@@ -1,0 +1,193 @@
+﻿1.Принцип одной ответственности, очевидность назначения, простота модуля.
+2.Простая тестируемость
+3.Всегда рассматривать вариант передать в конструктор vs pub/sub
+4.Если у нас есть статическое создание объекта из конструктора с параметрами - выносим это в main.js.
+Так нагляднее. 
+
+
+
+CanvasDrawer
+
+'GraphSkinNamesConfig':[Subscriber, {
+    "basic_skin": {"node":'circle', "label":'tahoma', "edge":'arc'}
+    "light_skin": {"node":'circle', "label":'times', "edge":'line'}
+}]
+
+GraphSkinNamesConfig
+  Listen
+    get_skin_node_type
+    get_skin_edge_type
+    get_skin_label_type
+
+CanvasDrawerNodeFactory(Publisher, {'circle':YOVALUE.GraphViewNodeCircle,'iconset1':YOVALUE.GraphViewNodeIconSet1})
+CanvasDrawerNodeFactory.prototype = { create(config) }
+CanvasDrawerEdgeFactory(Publisher, {'arc':YOVALUE.GraphViewEdgeArc, 'line':YOVALUE.GraphViewEdgeLine})
+CanvasDrawerEdgeFactory.prototype = { create(config) }
+CanvasDrawerLabelFactory(Publisher, {'tahoma':{font:'Tahoma',font-size:'5'}, 'times':{font:'TimesNewRoman',font-size:'3'}})
+CanvasDrawerLabelFactory.prototype = { create(config) }
+
+YOVALUE.GraphViewNodeCircle = function(){
+    YOVALUE.CanvasDrawer.Circle.apply(this, arguments)
+}
+
+GraphView(CanvasDrawer, CanvasDrawerNodeFactory, CanvasDrawerEdgeFactory, CanvasDrawerLabelFactory){
+    //create 3 layers
+}
+GraphView.prototype = {
+    setNodes(array),
+    setEdges(array),
+    setNodeLayout(layout),
+    setNodeLabelLayout(layout),
+    setColorScheme(scheme),
+    bindLayer(),
+    bindShape(),
+    draw(),
+    destroy()
+}
+
+GraphNodeLayouts(Subscriber, GraphNodeLayoutModuleFactory){}
+
+GraphNodeLayouts.prototype = {
+    eventListener: function(event){
+        case 'get_graph_node_layout':
+            var module = GraphNodeLayoutModuleFactory.getGraphNodeLayoutModule(event.getData()['node_layout_name'])
+            event.setResponse(module.getLayout(event.getData()['graph_tree_model']))
+    }
+}
+
+GraphNodeLayoutTree = function(graph_tree_model){
+    YOVALUE.implements(graph_tree_model, IGraphTreeModel)
+}
+
+IGraphTreeModel = {
+    getRootNode,
+    getLevel
+    getGraphTreeDepth
+    getSkeletonChildIds
+}
+
+GraphsPanelPresenter(GraphTreeModelFactory){
+   GraphTreeModelFactory.getGraphTreeModel(graph_id);
+}
+
+GraphNodeLayoutGraphModelBridgeFactory = function(){}
+GraphNodeLayoutGraphModelBridgeFactory.prototype = {
+   getGraphModelBridge(layout_name, model){
+
+   }
+}
+
+GraphNodeLabelLayoutGraphModelBridgeFactory = function(){}
+GraphNodeLabelLayoutGraphModelBridgeFactory.prototype = {
+   getGraphModelBridge(layout_name, model){
+
+   }
+}
+
+
+
+GraphLayoutNamesConfig(Subscriber, {'basic_layout':{'GraphNodeLayoutTree':'tree','GraphNodeLabelLayoutModule':'horizontal'}})
+
+GraphNodeLabelLayoutModuleFactory(Publisher, {'horizontal':YOVALUE.GraphNodeLabelLayoutHorizontal,'radial':YOVALUE.GraphNodeLabelLayoutRadial});
+GraphNodeLabelLayoutModuleFactory.prototype = {
+    getGraphNodeLabelLayoutModule();
+}
+
+GraphNodeLabelLayoutCanvasDrawerBridge = function(Publisher, CanvasDrawerLabelFactory){}
+GraphNodeLabelLayoutCanvasDrawerBridge.prototype = {
+   getTextListAreas(array)
+   getTextArea(text){
+     var skin_label_type = Publisher.dispatch('get_skin_label_type');
+     var label = CanvasDrawerLabelFactory.getLabel(skin_label_type, text);
+     return {"width":label.getWidth(), "height":label.getHeight()};
+   }
+}
+GraphNodeLabelLayouts(GraphNodeLabelLayoutCanvasDrawerBridge, GraphNodeLabelLayoutModuleFactory)
+GraphNodeLabelLayouts.prototype = {
+ eventListener: function(event){
+     case 'get_graph_node_label_layout':
+         var graph_model_bridge = event.getData()['graph_model_bridge'];
+         if(!this._label_areas[graph_id]) this._label_areas[graph_id] = GraphNodeLabelLayoutCanvasDrawerBridge.getTextListAreas(graph_model_bridge.getLabels());
+         var module = GraphNodeLabelLayoutModuleFactory.getGraphNodeLayoutModule(event.getData()['node_label_layout_name'])
+         event.setResponse(module.getLayout(this._label_areas[graph_id], graph_model_bridge))
+ }
+}
+
+
+
+//подписывается на события 'graph_model_initialized','graph_model_changed', 
+//'graph_mousemove', 'graph_mouse_on_node' и т.д.
+//публикует события 'bind_graph_view_event',
+//плюс специфические для каждого плагина вызовы типа 'get_graph_model', 'get_graph_node_layout', 'get_fish_eyed_layout'
+// и т.д.
+GraphViewPluginsMediator(Subscriber, Publisher, MouseMovePluginFactory, MouseOnNodePluginFactory, NodeClickedPluginFactory){
+
+}
+
+GraphViewPluginsMediator.prototype = {
+	Listen:
+	 graph_model_initialized:
+	 graph_model_changed:
+		delete this.plugin['graph_name']['mouse_move']
+		var graphsPanelView = Publisher.dispatch('get_graphs_panel_view');
+		this.plugin['graph_name']['mouse_move'] = MouseMovePluginFactory.create(graph_name, graphsPanelView);
+
+		delete this.plugin['graph_name']['mouse_on_node'];
+		this.plugin['graph_name']['mouse_on_node'] = 
+		
+		delete this.plugin['graph_name']['node_clicked'];
+		this.plugin['graph_name']['node_clicked'] = NodeClickedPluginFactory.create(graph_name);
+
+         graph_mousemove:
+		this.plugin['graph_name']['mouse_move'].drawGraph(x, y);
+
+         graph_nodeclick:
+		this.plugin['graph_name']['node_clicked'].transformGraph(node_id);
+		
+			
+}
+
+MouseMovePlugin = function(Publisher, graph_name, GraphsPanelView){
+	this.graph_name = graph_name;
+	this.initial_node_layout = GraphsPanelView.getNodeLayout();	
+}
+
+MouseMovePlugin.prototype = {
+	redrawGraph(x,y):
+        	var new_node_layout = Publisher.dispatch('get_fish_eye', this.initial_node_layout)		
+		GraphsPanelView.setNodeLayout(this.graph_name, new_node_layout);
+        	var new_node_label_layout = Publisher.dispatch('get_node_label_layout', new_node_layout)		
+		GraphsPanelView.setNodeLabelLayout(this.graph_name, new_node_label_layout);
+                GraphsPanelView.draw(this.graph_name);				
+}
+
+
+GraphViewsPubSub(publisher, subscriber, graphViewFactory, canvasDrawer, jQuery){
+}
+
+GraphViewsPubSub.prototype = {
+	eventListener(event){
+		graph_model_initialized:
+			createGraphView();
+			
+	}
+	
+	createGraphView(){
+		//unbind all listeners from this GraphView 
+
+		//remove old GraphView for graph_name if any
+    		
+		//create layers for GraphView
+
+    		//create new instance of GraphView for the given graph_name
+		
+		//publish various events on mouse activity: mousemove, nodeclick, mouseonnode etc.
+	}
+        showGraph
+        redrawGraph
+
+	setNodeLayout
+		graph_view_list[graph_name].setNodeLayout
+        getNodeLayout
+		graph_view_list[graph_name].getNodeLayout
+}

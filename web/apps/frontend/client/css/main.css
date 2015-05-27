@@ -1,0 +1,144 @@
+body {
+    /* background-color: #2B2B2B; */
+    background-color: #2C3338;
+    font-family: 'Oswald', sans-serif;
+    color: #F7F7F7;
+}
+
+#mainMenuContainer {
+    background-color: rgb(41, 127, 163);
+    margin-bottom: 1em;
+    text-align: right;
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+#graphMenuContainer {
+    text-align: center;
+}
+
+.textBox {
+    overflow-y: auto;
+    background-color: rgb(233, 233, 233);
+    padding: 15px 15px 15px 15px;
+    font-family: "times new roman";
+    color: black;
+}
+
+/* list of main menu items */
+ul#mainMenu {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: inline-table;
+}
+
+ul#mainMenu li {
+    float: left;
+    display: inline;
+}
+
+ul#mainMenu li a {
+    display: block;
+    width: 120px;
+    font-weight: bold;
+    color: black;
+    background-color: rgb(41, 127, 163);
+    text-align: center;
+    padding: 4px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-family: sans-serif;
+}
+
+ul#mainMenu li a:hover, ul#mainMenu li a.active {
+    color: #FFFFFF;
+}
+
+/* list of graph names */
+ul#graphMenu {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: inline-table;
+}
+
+ul#graphMenu li {
+    margin: 0 40px 0 40px;
+    float: left;
+    display: inline;
+}
+
+ul#graphMenu li a {
+    display: block;
+    width: 120px;
+    font-weight: bold;
+    color: white;
+    background-color: #2C3338;
+    text-align: center;
+    padding: 4px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-family: sans-serif;
+}
+
+ul#graphMenu li a:hover, ul#graphMenu li a.active {
+    background-color: rgb(41, 127, 163);
+    color: black;
+}
+
+#purpose {
+    background-color: rgb(36, 116, 149);
+}
+
+#method {
+    background-color: rgb(41, 127, 163);
+}
+
+#contacts {
+    background-color: #757576;
+}
+
+.description {
+    padding: 5% 15% 5% 15%;
+}
+
+.description h1 {
+    font-weight: 300;
+    font-size: 36px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.description p {
+    margin: 0 0 20px;
+    font-size: 20px;
+    font-weight: 200;
+    line-height: 1.2;
+}
+
+.description ul {
+    list-style-type: circle;
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 200;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    margin-left: 5%;
+}
+
+.description ul li {
+    margin-bottom: 5px;
+}
+
+#social {
+    text-align: center;
+}
+#social img {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 40px;
+}

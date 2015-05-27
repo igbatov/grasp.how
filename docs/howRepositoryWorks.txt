@@ -1,0 +1,14 @@
+Клентская javascript сторона может получить от сервера либо 
+ - одну из http ошибок: 401 (Unauthorized), 503 (Server unavaliabe), 500 (Any other error, except parse error)
+ - либо ответ от в форме обычного текста (http 200 OK)
+
+Клиентская часть общается с сервером исключительно посредством модуля Repository.
+Repository отвечает за то, чтобы все запросы set и get были выполнены именно в том порядке в котором он пришли в Repository.
+Repository может инициировать сообщения об ошибках
+401 (Unauthorized), 
+503 (Server unavaliabe), 
+500 (Any other error, except parse error)
+
+В случае ошибок 401 и 503 данные хранятся в Repository (на клиенте) пока сервер не станет доступен или пока пользователь не закроет страницу.
+
+
