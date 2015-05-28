@@ -35,7 +35,7 @@ class Config{
   }
 
   public function getWebDomainName(){
-    return isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
+    return isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
   }
 
   public function getDefaultPath($type){
