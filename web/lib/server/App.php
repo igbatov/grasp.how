@@ -74,8 +74,8 @@ abstract class App
   }
 
   protected function getRequest(){
-    //return json_decode($_REQUEST['data'], true);
-    return json_decode(stripslashes(urldecode($_REQUEST['data'])), true); // ugly fix for old php
+    if(substr(phpversion(), 0, 3) == '5.2') return json_decode(stripslashes(urldecode($_REQUEST['data'])), true); // ugly fix for old php
+    return json_decode($_REQUEST['data'], true);
   }
 
   protected function showView(){
