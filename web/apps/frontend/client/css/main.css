@@ -142,3 +142,23 @@ ul#graphMenu li a:hover, ul#graphMenu li a.active {
     margin-right: 10px;
     margin-top: 40px;
 }
+
+blockquote {
+    font-style: italic;
+    text-align: right;
+    font-size: 1em;
+    color: #DDD;
+    border-right: 0.5em solid #DDD;
+    padding-right: 15px;
+}
+
+blockquote:before {
+    float: left;
+    display: block;
+    height: 0;
+    content: "“";
+    margin-left: -.5em;
+    font: italic 800%/1 Cochin,Georgia,"Times New Roman", serif;
+    color: #DDD;
+}
+
