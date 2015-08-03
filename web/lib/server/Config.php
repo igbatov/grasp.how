@@ -30,6 +30,12 @@ class Config{
     return $c;
   }
 
+  public function getAdminSecret(){
+    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
+    $config_json = json_decode($string, true);
+    return $config_json['admin_secret'];
+  }
+
   public function getWebDomainURL(){
     return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName() .'/';
   }

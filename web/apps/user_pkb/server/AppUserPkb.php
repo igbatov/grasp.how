@@ -13,7 +13,7 @@ class AppUserPkb extends App
       $showGraphId = $vars[1];
       $action = $vars[2];
 
-    // create new user: my.mindsplot.com/createNewUser/max/maxpassword/_s1e1cret_
+    // create new user: my.mindsplot.com/createNewUser/<login>/<password>/<admin secret>
     }elseif($vars[0] === 'signupSuccess'){
       // send email to me signalling that someone want to signup
       $this->sendMail("info@mindsplot.com", "igbatov@gmail.com", "someone want to signup", print_r($_REQUEST, true));
@@ -23,8 +23,13 @@ class AppUserPkb extends App
       exit();
 
     }elseif($vars[0] === 'createNewUser'){
-      if($vars[3] != '_s1e1cret_') exit('wrong secret!');
+      if($vars[3] != $this->getAdminSecret()) exit('wrong secret!');
       $this->createNewUser($vars[1], $vars[2]);
+      exit();
+
+    }elseif($vars[0] === 'updateUserPassword'){
+      if($vars[3] != $this->getAdminSecret()) exit('wrong secret!');
+      $this->updateUserPassword($vars[1], $vars[2]);
       exit();
 
     }else{

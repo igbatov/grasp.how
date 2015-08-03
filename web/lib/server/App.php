@@ -113,6 +113,14 @@ abstract class App
     return $this->session->createNewUser($login, $password);
   }
 
+  protected function updateUserPassword($login, $password){
+    return $this->session->updateUserPassword($login, $password);
+  }
+
+  protected function getAdminSecret(){
+    return $this->config->getAdminSecret();
+  }
+
   //example from http://phpclub.ru/detail/article/mail#part_7
   public static function sendMail( $from, $to, $subj, $text, $files = array())
   {
