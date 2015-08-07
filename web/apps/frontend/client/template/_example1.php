@@ -15,5 +15,5 @@
   Edwin Curley "Seven deadly objections to belief in the christian God".
   Ричард Докинз "Бог как иллюзия".
   Craig W.L., Sinnott-Armstrong W. GOD? A Debate between a Christian and an Atheist/ Point/Counterpoint Series.
-  На следующем видео показано как вы можете использовать mindsplot.com для того чтобы вспомнить, осознать и упорядочить всю разрозненную и противоречивую информацию по этому вопросу.
+  На следующем видео показано как вы можете использовать grasp.how для того чтобы вспомнить, осознать и упорядочить всю разрозненную и противоречивую информацию по этому вопросу.
 </p>

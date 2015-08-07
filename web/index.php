@@ -4,8 +4,8 @@ require_once ('lib/server/bootstrap.php');
 
 // init application
 switch($c->getWebDomainName()){
-  case 'my.mindsplot.com':
-  case 'mindsplot.local':
+  case 'my.grasp.how':
+  case 'grasp.local':
     $app = new AppUserPkb($c, $s, $db, $eh);
     break;
   default:

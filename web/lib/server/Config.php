@@ -12,20 +12,10 @@ class Config{
     $config_json = json_decode($string, true);
 
     $c = new dbConf();
-    // if we are on a public server
-    if((bool)preg_match("/^((.*\.)||^)mindsplot\.com$/i", $this->getWebDomainName())){
-      $c->host = $config_json["public"]["host"];
-      $c->dbName = $config_json["public"]["dbName"];
-      $c->login = $config_json["public"]["login"];
-      $c->password = $config_json["public"]["password"];
-    }
-    // if we are in local/development environment
-    else{
-      $c->host = $config_json["local"]["host"];
-      $c->dbName = $config_json["local"]["dbName"];
-      $c->login = $config_json["local"]["login"];
-      $c->password = $config_json["local"]["password"];
-    }
+    $c->host = $config_json["db"]["host"];
+    $c->dbName = $config_json["db"]["dbName"];
+    $c->login = $config_json["db"]["login"];
+    $c->password = $config_json["db"]["password"];
 
     return $c;
   }

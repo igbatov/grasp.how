@@ -11,13 +11,13 @@
 И тогда, после 50ти лет работы вы сможете, наконец понять чему стоило посвящать свою жизнь.
 Я предлагаю краудсорсить этот процесс.
 
-Создать нового пользователя http://my.mindsplot.com/createNewUser/<login>/<password>/<admin secret>
-Обновить пароль пользователя http://mindsplot.local/updateUserPassword/<login>/<password>/<admin_secret>
+Создать нового пользователя http://my.grasp.how/createNewUser/<login>/<password>/<admin secret>
+Обновить пароль пользователя http://grasp.local/updateUserPassword/<login>/<password>/<admin_secret>
 
-Создание нового графа http://mindsplot.local/createNewGraph?data={"name":"newName"}
-Удалить граф http://mindsplot.local/removeGraph?data={"graph_id":"1234567"}
-Скопировать граф вместе с историей http://mindsplot.local/copyGraph?data={"name":"newName","graph_id":"123456"}
-Запуск тестов http://mindsplot.local/lib/client/jasmine/jasmin.php
+Создание нового графа http://grasp.local/createNewGraph?data={"name":"newName"}
+Удалить граф http://grasp.local/removeGraph?data={"graph_id":"1234567"}
+Скопировать граф вместе с историей http://grasp.local/copyGraph?data={"name":"newName","graph_id":"123456"}
+Запуск тестов http://grasp.local/lib/client/jasmine/jasmin.php
 
 - надо описать интерфейс YOVALUE.CanvasDrawer.Circle, YOVALUE.CanvasDrawer.Text, YOVALUE.CanvasDrawer.Path, YOVALUE.CanvasDrawer.Rect
 (иначе он начинает расползаться - this.backgroundShape._id в GraphView.js, shape._id в GraphViewElement.js)

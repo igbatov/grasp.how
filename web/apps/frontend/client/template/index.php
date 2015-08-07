@@ -20,7 +20,7 @@
       <li><a href="#purpose">ЦЕЛЬ</a></li>
       <li><a href="#method">МЕТОД</a></li>
       <li><a href="#contacts">КОНТАКТЫ</a></li>
-      <li><a href="http://my.mindsplot.com">ВХОД</a></li>
+      <li><a href="http://my.grasp.how">ВХОД</a></li>
     </ul>
   </div>
 
