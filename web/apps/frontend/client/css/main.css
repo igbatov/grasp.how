@@ -5,6 +5,18 @@ body {
     color: #F7F7F7;
 }
 
+#logo {
+    float: left;
+    text-align: center;
+    padding-left: 40px;
+    color: black;
+    font-weight: bold;
+}
+
+#logo .snippet {
+    font-weight: normal;
+}
+
 #mainMenuContainer {
     background-color: rgb(41, 127, 163);
     margin-bottom: 1em;

@@ -12,6 +12,10 @@
   </head>
   <body>
   <div id="mainMenuContainer">
+    <div id="logo">
+      GRASP.HOW<br>
+      <div class="snippet">полная и обоснованная картина мира</div>
+    </div>
     <ul id="mainMenu" >
       <li><a href="#purpose">ЦЕЛЬ</a></li>
       <li><a href="#method">МЕТОД</a></li>
