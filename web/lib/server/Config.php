@@ -30,12 +30,18 @@ class Config{
     return $c;
   }
 
+  public function getAdminSecret(){
+    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
+    $config_json = json_decode($string, true);
+    return $config_json['admin_secret'];
+  }
+
   public function getWebDomainURL(){
     return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName() .'/';
   }
 
   public function getWebDomainName(){
-    return isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
+    return isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
   }
 
   public function getDefaultPath($type){

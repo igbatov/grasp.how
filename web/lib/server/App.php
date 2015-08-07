@@ -74,8 +74,8 @@ abstract class App
   }
 
   protected function getRequest(){
-    //return json_decode($_REQUEST['data'], true);
-    return json_decode(stripslashes(urldecode($_REQUEST['data'])), true); // ugly fix for old php
+    if(substr(phpversion(), 0, 3) == '5.2') return json_decode(stripslashes(urldecode($_REQUEST['data'])), true); // ugly fix for old php
+    return json_decode($_REQUEST['data'], true);
   }
 
   protected function showView(){
@@ -111,6 +111,14 @@ abstract class App
 
   protected function createNewUser($login, $password){
     return $this->session->createNewUser($login, $password);
+  }
+
+  protected function updateUserPassword($login, $password){
+    return $this->session->updateUserPassword($login, $password);
+  }
+
+  protected function getAdminSecret(){
+    return $this->config->getAdminSecret();
   }
 
   //example from http://phpclub.ru/detail/article/mail#part_7

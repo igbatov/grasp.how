@@ -73,4 +73,8 @@ class Session{
   public function createNewUser($login, $password){
     return $this->auth->addUser($login, $password);
   }
+
+  public function updateUserPassword($login, $password){
+    return $this->auth->changePassword($login, $password);
+  }
 }
