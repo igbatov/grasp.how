@@ -85,12 +85,12 @@ ul#graphMenu li {
 
 ul#graphMenu li a {
     display: block;
-    width: 120px;
+    white-space: nowrap;
     font-weight: bold;
     color: white;
     background-color: #2C3338;
     text-align: center;
-    padding: 4px;
+    padding: 5px 20px;
     text-decoration: none;
     text-transform: uppercase;
     font-family: sans-serif;
