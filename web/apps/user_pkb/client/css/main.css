@@ -83,13 +83,6 @@ select {
     margin-left: 25px;
 }
 
-#selectGraphPosition select{
-    margin: 0 10%;
-    width: 30%;
-    float: left;
-    padding: 0;
-}
-
 input:focus, textarea:focus, select:focus{
     outline: none !important;
     border:1px solid deepblue;

@@ -4,6 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/reset.css">
   <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
+  <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/select_style.css">
   </head>
   <body>
   <div id="container">

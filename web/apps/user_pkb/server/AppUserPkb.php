@@ -295,7 +295,7 @@ class AppUserPkb extends App
     $q = "INSERT INTO graph_history SET graph_id = '".$graph_id."', step = '1', timestamp = unix_timestamp(NOW()), elements = '".$elements."'";
     $this->db->execute($q);
 
-    $settings = '{"skin":"basicSkin","layout":"basicLayout","position":"undefined"}';
+    $settings = '{"skin":"basicSkin","layout":"basicLayout","position":"not to be shown"}';
     $q = "INSERT INTO graph_settings SET graph_id = '".$graph_id."', settings = '".$settings."'";
     $this->db->execute($q);
 
@@ -445,14 +445,14 @@ class AppUserPkb extends App
       'CanvasDrawer/CanvasDrawer.js',
       'CanvasDrawer/CanvasDrawerFactory.js',
 
-      'GraphViewSkins/GraphViewElement.js',
-      'GraphViewSkins/iGraphViewNode.js',
-      'GraphViewSkins/iGraphViewNodeLabel.js',
-      'GraphViewSkins/iGraphViewEdge.js',
-      'GraphViewSkins/GraphViewNode.js',
-      'GraphViewSkins/GraphViewNodeImage.js',
-      'GraphViewSkins/GraphViewNodeLabel.js',
-      'GraphViewSkins/GraphViewEdge.js',
+      'GraphViewElement/GraphViewElement.js',
+      'GraphViewElement/iGraphViewNode.js',
+      'GraphViewElement/iGraphViewNodeLabel.js',
+      'GraphViewElement/iGraphViewEdge.js',
+      'GraphViewElement/GraphViewNode.js',
+      'GraphViewElement/GraphViewNodeImage.js',
+      'GraphViewElement/GraphViewNodeLabel.js',
+      'GraphViewElement/GraphViewEdge.js',
 
       'SelectGraphPosition.js',
       'SelectGraphLayout/SelectGraphLayoutModel.js',

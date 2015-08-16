@@ -27,7 +27,7 @@ YOVALUE.ModelChangeController.prototype = {
 
       }).then(function(positions){
         for(var i in graphModels){
-          if(positions[graphModels[i].getGraphId()] != 'undefined'){
+          if(positions[graphModels[i].getGraphId()] != 'not to be shown'){
             selectedElement.graphId = graphModels[i].getGraphId();
             that.showGraph(graphModels[i]);
           }
