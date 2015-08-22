@@ -473,7 +473,6 @@ class AppUserPkb extends App
       'GraphController/ModelChangeController.js',
       'GraphController/MappingChangeController.js',
       'GraphController/ShowEditorController.js',
-      'GraphController/FishEyeController.js',
       'GraphController/GraphControllerPubSub.js',
 
       'GraphNodeMappings/GraphNodeMappingsPubSub.js',
@@ -483,7 +482,6 @@ class AppUserPkb extends App
       'GraphNodeMappings/iGraphNodeMappingForceDirectedModel.js',
       'GraphNodeMappings/GraphNodeMappingTree.js',
       //'GraphNodeMappings/iMapping.js',
-      'GraphNodeMappings/GraphFishEye.js',
 
       'GraphNodeLabelMappings/GraphNodeLabelMappingsPubSub.js',
       'GraphNodeLabelMappings/GraphNodeLabelMappingRadial.js',

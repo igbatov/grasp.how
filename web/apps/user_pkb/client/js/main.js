@@ -31,7 +31,6 @@ var Modules = {
   MappingChangeController: YOVALUE.MappingChangeController,
   SelectElementController: YOVALUE.SelectElementController,
   ShowEditorController: YOVALUE.ShowEditorController,
-  FishEyeController: YOVALUE.FishEyeController,
   GraphControllerPubSub: YOVALUE.GraphControllerPubSub,
   GraphControllerModules: Array,
 
@@ -55,8 +54,6 @@ var Modules = {
 
   ViewManager: YOVALUE.ViewManager,
   GraphElementEditor: YOVALUE.GraphElementEditor,
-
-  GraphFishEye: YOVALUE.GraphFishEye,
 
   jQuery: jQuery,
   Ajax: YOVALUE.Ajax,
@@ -109,7 +106,6 @@ var DI = {
   MappingChangeController:['Publisher'],
   SelectElementController:['Publisher'],
   ShowEditorController:['Publisher'],
-  FishEyeController:['Publisher'],
   GraphControllerModules:[
     'HistoryController',
     'ModelChangeController',
@@ -117,7 +113,6 @@ var DI = {
     'SelectElementController',
     'ShowEditorController',
     'MappingChangeController',
-   // 'FishEyeController'
   ],
   GraphControllerPubSub:['Subscriber', 'Publisher', 'GraphControllerModules'],
 
@@ -160,8 +155,7 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['Subscriber', 'GraphDecoration'],
 
-  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
-  GraphFishEye: ['Subscriber']
+  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery']
 };
 
 // Creating and wiring modules according to DI array
