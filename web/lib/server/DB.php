@@ -5,19 +5,18 @@ class DB
 
   public function __construct(dbConf $c)
   {
-    $this->mysqlLink = mysql_connect($c->host, $c->login, $c->password);
-    mysql_select_db($c->dbName, $this->mysqlLink);
-    mysql_query("SET NAMES utf8");
+    $this->mysqlLink = mysqli_connect($c->host, $c->login, $c->password, $c->dbName);
+    mysqli_query($this->mysqlLink, "SET NAMES utf8");
   }
 
   public function execute($query)
   {
-    $result = mysql_query($query, $this->mysqlLink) or trigger_error("MysqlHelper::execute query='".$query."'\n".mysql_error($this->mysqlLink));
-    if(strtoupper(substr($query, 0, 6)) == "INSERT") return mysql_insert_id($this->mysqlLink);
-    if(!is_resource($result))  return $result;
+    $result = mysqli_query($this->mysqlLink, $query) or trigger_error("MysqlHelper::execute query='".$query."'\n".mysqli_error($this->mysqlLink));
+    if(strtoupper(substr($query, 0, 6)) == "INSERT") return mysqli_insert_id($this->mysqlLink);
+    if(is_bool($result))  return $result;
 
     $rows = array();
-    while ($row = mysql_fetch_assoc($result))
+    while ($row = mysqli_fetch_assoc($result))
     {
        $rows[] = $row;
     }
@@ -26,7 +25,7 @@ class DB
 
   public function escape($str)
   {
-    return mysql_real_escape_string($str, $this->mysqlLink);
+    return mysqli_real_escape_string($this->mysqlLink, $str);
   }
 
   /**
@@ -71,17 +70,17 @@ class DB
    */
   public function startTransaction()
   {
-    mysql_query("BEGIN", $this->mysqlLink);
+    mysqli_query($this->mysqlLink, "BEGIN");
   }
 
   public function commitTransaction()
   {
-    mysql_query("COMMIT", $this->mysqlLink);
+    mysqli_query($this->mysqlLink, "COMMIT");
   }
 
   public function rollbackTransaction()
   {
-    mysql_query("ROLLBACK", $this->mysqlLink);
+    mysqli_query($this->mysqlLink, "ROLLBACK");
   }
 }
 ?>

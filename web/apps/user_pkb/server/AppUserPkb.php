@@ -225,7 +225,7 @@ class AppUserPkb extends App
             $query = "SELECT MAX(node_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
             $rows = $this->db->execute($query);
             $node_content_id = $rows[0]['max_id'] + 1;
-            $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)."', `node_content_id` = '".$this->db->escape($node_content_id)."', `type` = '".$this->db->escape($r['node']['type'])."', `label` = '".$this->db->escape($r['node']['label'])."', `text` = '".$this->db->escape($r['node']['text'])."', `reliability` = '".$this->db->escape($r['node']['reliability'])."', `importance` = '".$this->db->escape($r['node']['importance'])."', created_at = NOW()";
+            $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)."', `node_content_id` = '".$this->db->escape($node_content_id)."', `type` = '".$this->db->escape($r['node']['type'])."', `label` = '".$this->db->escape($r['node']['label'])."', `text` = '".$this->db->escape($r['node']['text'])."', `reliability` = '".(is_numeric($r['node']['reliability']) ? $r['node']['reliability'] : 0)."', `importance` = '".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0)."', created_at = NOW()";
             $this->db->execute($query);
           }catch (Exception $e) {
             $this->db->rollbackTransaction();

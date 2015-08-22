@@ -57,7 +57,7 @@ abstract class App
           return $app_root."/../../../uploads";
           break;
       case "img":
-          return $app_root."/../../../web/img";
+          return $app_root."/client/img";
           break;
       default:
         return false;
