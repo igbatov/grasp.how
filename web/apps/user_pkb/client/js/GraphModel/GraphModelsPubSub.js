@@ -49,7 +49,8 @@ YOVALUE.GraphModelsPubSub.prototype = {
               graphSettings['edgeTypes'],
               graphSettings['nodeDefaultType'],
               graphSettings['edgeDefaultType'],
-              graphSettings['isEditable']
+              graphSettings['isEditable'],
+              graphSettings['isInTrash']
             );
             if(r === false)  YOVALUE.errorHandler.throwError('Graph Model init error');
           }
@@ -178,7 +179,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
     YOVALUE.mixin(model, readOnlyModel);
 
     //remove all modifiers
-    var modifyFunctions = ['init', 'setIsEditable', 'removeEdge','removeNode','addEdge','addNode','updateEdge','updateNode'];
+    var modifyFunctions = ['init', 'setIsEditable', 'setIsEditable', 'setGraphElements', 'removeEdge','removeNode','addEdge','addNode','updateEdge','updateNode'];
     for(i in modifyFunctions){
        delete readOnlyModel[modifyFunctions[i]];
     }

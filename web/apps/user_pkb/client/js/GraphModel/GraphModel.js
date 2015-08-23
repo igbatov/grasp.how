@@ -13,6 +13,7 @@ YOVALUE.GraphModel = function (graphId) {
   this.graphId = graphId;
   this.graphName = "";
   this.isEditable = false;
+  this.isInTrash = false;
   this.timestamp = null;
 
   //this read-only version will be exposed in getNodes(), getEdges() methods
@@ -28,8 +29,9 @@ YOVALUE.GraphModel.prototype = {
    * @param nodeDefaultType {string}
    * @param edgeDefaultType {string}
    * @param isEditable {boolean}
+   * @param isInTrash {boolean}
    */
-  init: function(name, nodeTypes, edgeTypes, nodeDefaultType, edgeDefaultType, isEditable){
+  init: function(name, nodeTypes, edgeTypes, nodeDefaultType, edgeDefaultType, isEditable, isInTrash){
     //sanity check - nodes and edges should implement at minimum iGraphModelNode structure
     var i;
 
@@ -66,6 +68,7 @@ YOVALUE.GraphModel.prototype = {
     this.nodeDefaultType = nodeDefaultType;
     this.edgeDefaultType = edgeDefaultType;
     this.isEditable = isEditable;
+    this.isInTrash = isInTrash;
 
     // update read-only version of nodes and edges that will be exposed to external world
     // (all graph modifications should be done via update, add, remove methods defined below)
@@ -119,6 +122,18 @@ YOVALUE.GraphModel.prototype = {
 
   getIsEditable: function(){
     return this.isEditable === true;
+  },
+
+  /**
+   * Set if this model is in trash
+   * @param v - boolean
+   */
+  setIsInTrash: function(v){
+    this.isInTrash = v;
+  },
+
+  getIsInTrash: function(){
+    return this.isInTrash === true;
   },
 
   /**

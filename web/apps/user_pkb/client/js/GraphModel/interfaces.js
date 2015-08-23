@@ -86,6 +86,9 @@ YOVALUE.iGraphModel = {
    */
   setIsEditable: function(v){},
   getIsEditable: function(){},
+
+  setIsInTrash: function(v){},
+  getIsInTrash: function(){},
   /**
    * @return {*} time in milliseconds of last modification
    */
@@ -172,6 +175,8 @@ YOVALUE.iGraphModelTree = {
   init: function(nodes, edges, nodeTypes, edgeTypes, nodeDefaultType, edgeDefaultType, isEditable){},
   setIsEditable: function(v){},
   getIsEditable: function(){},
+  setIsInTrash: function(v){},
+  getIsInTrash: function(){},
   applyChanges: function(c){},
   getTimestamp: function(){},
   /**

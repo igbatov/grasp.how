@@ -287,7 +287,7 @@ class AppUserPkb extends App
   }
 
   private function createNewGraph($auth_id, $name){
-    $graph = '{"name":"'.$name.'","isEditable":true,"edgeTypes":["link","in_favour_of","contrary_to"],"nodeTypes":["fact","research","theory","hypothesis","illustration","theory_problem", "question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"link"}';
+    $graph = '{"name":"'.$name.'","isEditable":true, "isInTrash":false, "edgeTypes":["link","in_favour_of","contrary_to"],"nodeTypes":["fact","research","theory","hypothesis","illustration","theory_problem", "question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"link"}';
     $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."'";
     $graph_id = $this->db->execute($q);
 
@@ -439,6 +439,7 @@ class AppUserPkb extends App
       'GraphModel/GraphModelsPubSub.js',
 
       'ViewManager.js',
+      'UIElements.js',
 
 //      'CanvasDrawer/kinetic-v5.0.0.js',
       'CanvasDrawer/kinetic-v4.7.0.js',
