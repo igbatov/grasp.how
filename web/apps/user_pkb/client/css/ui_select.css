@@ -1,9 +1,4 @@
-#selectGraphPosition .sel-box{
-    margin: 0 10%;
-    width: 30%;
-    float: left;
-    padding: 0;
-}
+
 .selected{
     display:block;
     width:239px;
@@ -11,7 +6,7 @@
     border:1px solid #999;
     padding:0px 0px 0px 10px;
 }
-.toc-odd{
+.sel-box ul{
     z-index: 1;
     position:absolute;
     top:20px;
@@ -19,17 +14,27 @@
     width:250px;
     display:none;
 }
-.toc-odd li{
+.sel-box li{
     padding:5px 10px;
     border-bottom:1px solid #999;
 }
-.toc-odd li:hover{
+.sel-box li:hover{
     background-color: #0000FF;
+}
+.sel-box .removable  li:hover{
     background-image: url('../img/recycle_icon.png');
     background-position: right;
     background-repeat: no-repeat;
     background-size: 20px;
 }
+
+.removeListItemButton{
+    width:20px;
+    height:20px;
+    float: right;
+    cursor: pointer;
+}
+
 .remove_button {
     border: 2px outset #aaa;
     border-radius: 4px;

@@ -53,6 +53,7 @@ var Modules = {
   GraphDecorationsPubSub: YOVALUE.GraphDecorationsPubSub,
 
   ViewManager: YOVALUE.ViewManager,
+  UIElements: YOVALUE.UIElements,
   GraphElementEditor: YOVALUE.GraphElementEditor,
 
   jQuery: jQuery,
@@ -90,6 +91,8 @@ var DI = {
     graphViews: {id:'graphViews',padding:[15,0]},
     serverStatus: {id:'serverStatus'}
   }],
+  UIElements: ['jQuery'],
+
   KeyManager: ['Publisher'],
   ServerStatus: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
 
@@ -120,7 +123,7 @@ var DI = {
   imageLoader: ['Promise'],
   Repository: ['Subscriber', 'Publisher', 'Ajax', 'imageLoader'],
 
-  SelectGraphPosition: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
+  SelectGraphPosition: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements'],
   SelectGraphLayoutModel: ['Subscriber', 'Publisher',{
     basicLayout: {
       node:{

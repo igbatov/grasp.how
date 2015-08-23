@@ -113,3 +113,10 @@ select {
     left: 50%;
 }
 
+.selectGraphPosition{
+    margin: 0 10%;
+    width: 30%;
+    float: left;
+    padding: 0;
+}
+
