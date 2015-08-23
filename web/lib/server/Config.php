@@ -51,6 +51,6 @@ class Config{
   }
 
   public function getWebRootPath(){
-    return $_SERVER['DOCUMENT_ROOT'];
+    return dirname(__FILE__)."/../../../web";
   }
 }
