@@ -82,6 +82,7 @@ YOVALUE.UIElements.prototype = {
 
     for(name in fields){
       if(fields[name]['type'] == 'input') c.append('<input name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
+      if(fields[name]['type'] == 'hidden') c.append('<input type="hidden" name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
       if(fields[name]['type'] == 'button'){
         var buttonId = this._generateId();
         c.append('<button id="'+buttonId+'" name="'+name+'">'+fields[name]['value']+'</button>');

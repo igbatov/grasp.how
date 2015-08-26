@@ -64,19 +64,40 @@ YOVALUE.SelectGraphPosition.prototype = {
         else trashItems[graphs[i].getGraphId()] = graphs[i].getGraphName();
       }
 
-      var onRemove = function(graphId){
-        console.log(graphId);
+      var onRemove = function(position){
+        var graphId = '';
+        for(var i in that.selectedPosition){
+          if(that.selectedPosition[i] == position) graphId = i;
+        }
+        that.UI.showConfirm('Are you sure you want to move '+graphs[graphId].getGraphName()+' to trash?', function(){
+
+        });
       };
 
-      var createNewGraph = function(data){
-        console.log(data);
+      var onEdit = function(position){
+        var graphId = null;
+        for(var i in that.selectedPosition){
+          if(that.selectedPosition[i] == position) graphId = i;
+        }
+        that.UI.showModal({
+          'graphId':{'type':'hidden', 'label':'', 'value':graphId},
+          'name':{'type':'input', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
+          'submit':{'type':'button', 'label':'', 'value':'Изменить'}
+        }, function(form){
+          // say about this event to all subscribers
+          that.publisher.publish('graph_name_changed', {graphId:form['graphId'], name:form['name']});
+          // redraw menu
+          that._createView();
+        });
       };
 
       var showNew = function(){
         that.UI.showModal({
           'name':{'type':'input', 'label':'Name:', 'value':''},
           'submit':{'type':'button', 'label':'', 'value':'Создать'}
-        }, createNewGraph);
+        }, function(){
+
+        });
       };
 
       var showTrash = function(){
@@ -100,9 +121,12 @@ YOVALUE.SelectGraphPosition.prototype = {
       for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') leftGraphId = i;
       for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') rightGraphId = i;
 
+      // clear our container
+      $('#'+c.id).html('');
+
       // create New and Trash Buttons
-      that.UI.createButton('#'+c.id, 'Trash', showTrash);
       that.UI.createButton('#'+c.id, 'New', showNew);
+      that.UI.createButton('#'+c.id, 'Trash', showTrash);
 
       // create containers for select boxes
       $('#'+c.id).append('<div id="leftSelectContainer" class="selectGraphPosition"></div>');
@@ -113,10 +137,10 @@ YOVALUE.SelectGraphPosition.prototype = {
       that.UI.createSelectBox('#rightSelectContainer', 'rightGraphView', items, onSelect, rightGraphId);
 
       // add edit and remove buttons to the right of select boxes
-      that.UI.createButton('#leftSelectContainer', 'Edit', showTrash);
-      that.UI.createButton('#leftSelectContainer', 'Remove', showNew);
-      that.UI.createButton('#rightSelectContainer', 'Edit', showTrash);
-      that.UI.createButton('#rightSelectContainer', 'Remove', showNew);
+      that.UI.createButton('#leftSelectContainer', 'Edit', function(){onEdit('leftGraphView')});
+      that.UI.createButton('#leftSelectContainer', 'Remove', function(){onRemove('leftGraphView')});
+      that.UI.createButton('#rightSelectContainer', 'Edit', function(){onEdit('rightGraphView')});
+      that.UI.createButton('#rightSelectContainer', 'Remove', function(){onRemove('rightGraphView')});
     });
     this.publisher.publishEvent(e);
   }

@@ -24,6 +24,7 @@ YOVALUE.GraphModelsPubSub = function (subscriber, publisher, graphModelFactory){
 
     'get_graph_models',
 
+    'graph_name_changed',
     'request_for_graph_model_change',
     'set_graph_model_elements',
 
@@ -80,6 +81,10 @@ YOVALUE.GraphModelsPubSub.prototype = {
         event.setResponse(graphModels);
         break;
 
+      case 'graph_name_changed':
+        this.graphModels[event.getData().graphId].setName(event.getData().name);
+        break;
+
       case "request_for_graph_model_change":
 
         var graphId = event.getData()['graphId'];
@@ -93,9 +98,8 @@ YOVALUE.GraphModelsPubSub.prototype = {
         // a set of changes
         if(event.getData()['type'] == 'changes'){
           c = event.getData()['changes'];
-        }
         // add new node
-        else if(event.getData()['type'] == 'addNode'){
+        }else if(event.getData()['type'] == 'addNode'){
           var e = this.publisher.createEvent("request_for_graph_element_content_change", {type: 'addEdge', graphId:graphId, elementType: graphModel.getEdgeDefaultType()});
           this.publisher.when(e).then(function(edgeContent){
             c.nodes.add = {'newNode': {nodeContentId: event.getData()['nodeContentId']}};

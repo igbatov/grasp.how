@@ -146,6 +146,9 @@ YOVALUE.GraphModel.prototype = {
   getName: function(){
     return this.graphName;
   },
+  setName: function(name){
+    this.graphName = name;
+  },
 
   /**
    *

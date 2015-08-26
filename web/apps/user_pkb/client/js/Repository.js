@@ -41,6 +41,7 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
 
   this.subscriber.subscribe(this,[
     'graph_element_content_changed',
+    'graph_name_changed',
 
     'send_pending_requests',
 
@@ -73,6 +74,12 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'graph_element_content_changed'){
       this.pendingRequests.push({url:'updateGraphElementContent', data:e.getData(), files: e.getData().file,  callback:function(data){
+        e.setResponse(data);
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'graph_name_changed'){
+      this.pendingRequests.push({url:'updateGraphName', data:e.getData(),  callback:function(data){
         e.setResponse(data);
       }});
       this.sendPendingRequests();

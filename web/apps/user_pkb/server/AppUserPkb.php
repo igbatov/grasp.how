@@ -152,6 +152,19 @@ class AppUserPkb extends App
         break;
 
       /* MODIFY METHODS */
+      case 'updateGraphName':
+        if($access_level == 'read') exit();
+
+        $r = $this->getRequest();
+        $query = "SELECT graph FROM `graph` WHERE id=".$r['graphId'];
+        $row = $this->db->execute($query)[0];
+        $settings = json_decode($row['graph'], true);
+        $settings['name'] =$r['name'];
+        $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$r['graphId'];
+        //echo $update_query."\n";
+        $this->db->execute($update_query);
+
+        break;
       case 'addGraphHistoryItem':
         if($access_level == 'read') exit();
 
