@@ -47,8 +47,8 @@ YOVALUE.ViewManager.prototype = {
       return {id: gv.attr('id'), centerX: gv.width()*(3/4), centerY:gv.height()/2, width:w/2, height:h};
     }else if(componentName === 'serverStatus'){
       return {id: this.settings.serverStatus.id};
-    }else if(componentName === 'selectGraphPosition'){
-      return {id: this.settings.selectGraphPosition.id};
+    }else if(componentName === 'horizontalMenu'){
+      return {id: this.settings.horizontalMenu.id};
     }else{
       return false;
     }

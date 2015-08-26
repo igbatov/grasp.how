@@ -8,7 +8,7 @@
   </head>
   <body>
   <div id="container">
-    <div id="selectGraphPosition"></div>
+    <div id="horizontalMenu"></div>
     <div id="leftGraphElementEditorContainer"></div>
     <div id="rightGraphElementEditorContainer"></div>
     <div id="graphViews">

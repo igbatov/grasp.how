@@ -19,11 +19,9 @@ YOVALUE.UIElements.prototype = {
    *                                     )
    * @param onSelectCallback - callback will receive item name on selection
    * @param defaultValue - selected item name
-   * @param className
-   * @param opt_showRemoveButton - boolean that indicates do we need Remove in item list
-   * @param opt_removeCallback - callback on remove action
+   * @param opt_className
    */
-  createSelectBox: function(parentSelector, name, items, onSelectCallback, defaultValue, className, opt_showRemoveButton, opt_removeCallback){
+  createSelectBox: function(parentSelector, name, items, onSelectCallback, defaultValue, opt_className){
     var $ = this.jQuery,
         uniqId = this._generateId(),
         value,
@@ -31,9 +29,9 @@ YOVALUE.UIElements.prototype = {
 
     var itemList = '';
     for(value in items){
-      itemList += '<li value="'+value+'">'+(items[value].length > 25 ? items[value].substr(0, 25)+'...' :  items[value])+(opt_showRemoveButton ? '<div class="removeListItemButton"></div>':'')+'</li>';
+      itemList += '<li value="'+value+'">'+(items[value].length > 25 ? items[value].substr(0, 25)+'...' :  items[value])+'</li>';
     }
-    var selectBox = '<div class="sel-box '+className+'" id="'+uniqId+'">'+selectedItem+'<ul '+(opt_showRemoveButton ? 'class="removable"' : '')+'>'+itemList+'</ul></div>';
+    var selectBox = '<div class="ui_select '+opt_className+'" id="'+uniqId+'">'+selectedItem+'<ul>'+itemList+'</ul></div>';
     $(parentSelector).append(selectBox);
 
     // toggle show/hide of menu
@@ -57,15 +55,6 @@ YOVALUE.UIElements.prototype = {
       onSelectCallback(name, $(this).attr('value'));
     });
 
-    // click on remove button
-    if(opt_showRemoveButton){
-      $('#'+uniqId+" .removeListItemButton").click(function(e) {
-        e.preventDefault();
-        opt_removeCallback($(this).parent().attr('value'));
-        $(this).parent().remove();
-      });
-    }
-
     return true;
   },
 
@@ -79,7 +68,33 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get form values as array 'name'=>'value'
    */
   showModal: function(fields, callback){
+    var $ = this.jQuery, uniqId = this._generateId(), name;
+    $('body').append('<div id="'+uniqId+'" class="ui_modal"></div>');
+    var c = $('#'+uniqId);
+    c.css('top', window.innerHeight/4+'px');
+    c.css('left', window.innerWidth/3+'px');
 
+    var closeId = this._generateId();
+    c.append('<div id="'+closeId+'" style="float: right; cursor: pointer">X</div>');
+    $('#'+closeId).click(function(){
+      c.remove();
+    });
+
+    for(name in fields){
+      if(fields[name]['type'] == 'input') c.append('<input name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
+      if(fields[name]['type'] == 'button'){
+        var buttonId = this._generateId();
+        c.append('<button id="'+buttonId+'" name="'+name+'">'+fields[name]['value']+'</button>');
+        $('#'+buttonId).click(function(){
+          var data = {};
+          $('#'+uniqId+' .UIModalField').each(function(){
+            data[$(this).attr('name')] = $(this).val();
+          });
+          callback(data);
+          c.remove();
+        });
+      }
+    }
   },
 
   /**
@@ -93,12 +108,18 @@ YOVALUE.UIElements.prototype = {
 
   /**
    * Create button
+   * @param parentSelector
    * @param text - "Are you sure ...?"
    * @param callback - callback will get 'yes' or 'no'
+   * @param opt_className
    */
-  createButton: function(parentSelector, text, callback, className){
-    var $ = this.jQuery;
-    $(parentSelector).append('<div class="'+className+'">'+text+'</div>');
+  createButton: function(parentSelector, text, callback, opt_className){
+    opt_className = typeof(opt_className) == 'undefined' ? '' : opt_className;
+    var $ = this.jQuery, uniqId = this._generateId();
+    $(parentSelector).append('<button id="'+uniqId+'" class="ui_button '+opt_className+'">'+text+'</button>');
+    $('#'+uniqId).click(function(){
+      callback();
+    });
   },
 
   /**

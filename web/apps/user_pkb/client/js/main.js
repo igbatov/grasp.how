@@ -85,7 +85,7 @@ var DI = {
   GraphHistory: ['Subscriber', 'Publisher'],
 
   ViewManager: ['jQuery', {
-    selectGraphPosition: {id:'selectGraphPosition',padding:[0,0]},
+    horizontalMenu: {id:'horizontalMenu',padding:[0,0]},
     leftGraphElementEditor: {id:'leftGraphElementEditorContainer',padding:[0,0]},
     rightGraphElementEditor: {id:'rightGraphElementEditorContainer',padding:[0,0]},
     graphViews: {id:'graphViews',padding:[15,0]},
@@ -123,7 +123,7 @@ var DI = {
   imageLoader: ['Promise'],
   Repository: ['Subscriber', 'Publisher', 'Ajax', 'imageLoader'],
 
-  SelectGraphPosition: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements'],
+  SelectGraphPosition: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery'],
   SelectGraphLayoutModel: ['Subscriber', 'Publisher',{
     basicLayout: {
       node:{

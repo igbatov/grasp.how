@@ -113,10 +113,12 @@ select {
     left: 50%;
 }
 
+#horizontalMenu > * { float: left; }
+
 .selectGraphPosition{
-    margin: 0 10%;
-    width: 30%;
-    float: left;
+    margin: 0 7%;
     padding: 0;
 }
+
+.selectGraphPosition > * { float: left; }
 

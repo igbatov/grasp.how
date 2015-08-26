@@ -1,0 +1,6 @@
+.ui_modal{
+    position: absolute;
+    z-index: 1000;
+    background-color: #9DE9BD;
+    padding: 10px 10px 10px 10px;
+}

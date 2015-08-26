@@ -5,20 +5,22 @@
  * @param publisher
  * @param ViewManager
  * @param UI
+ * @param jQuery
  * @constructor
  */
-YOVALUE.SelectGraphPosition = function(subscriber, publisher, ViewManager, UI){
+YOVALUE.SelectGraphPosition = function(subscriber, publisher, ViewManager, UI, jQuery){
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.selectedPosition = {};
   this.ViewManager = ViewManager;
   this.UI = UI;
+  this.jQuery = jQuery;
 
   this.subscriber.subscribe(this,[
     'get_selected_positions'    //request for graph position
   ]);
 
-  this.container = this.ViewManager.getViewContainer('selectGraphPosition');
+  this.container = this.ViewManager.getViewContainer('horizontalMenu');
 };
 
 YOVALUE.SelectGraphPosition.prototype = {
@@ -52,11 +54,11 @@ YOVALUE.SelectGraphPosition.prototype = {
   },
 
   _createView: function(){
-    var c = this.container, that = this;
+    var c = this.container, that = this, $ = this.jQuery;
 
     var e = this.publisher.createEvent("get_graph_models");
     this.publisher.when(e).then(function(graphs){
-      var items = {'new':' - CREATE NEW - ', 'trash':' - TRASH - '}, i, trashItems={};
+      var items = {'none':'none'}, i, trashItems={};
       for(i in graphs){
         if(!graphs[i].getIsInTrash()) items[graphs[i].getGraphId()] = graphs[i].getGraphName();
         else trashItems[graphs[i].getGraphId()] = graphs[i].getGraphName();
@@ -66,15 +68,22 @@ YOVALUE.SelectGraphPosition.prototype = {
         console.log(graphId);
       };
 
-      var createNewGraph = function(name){
-        console.log(name);
+      var createNewGraph = function(data){
+        console.log(data);
+      };
+
+      var showNew = function(){
+        that.UI.showModal({
+          'name':{'type':'input', 'label':'Name:', 'value':''},
+          'submit':{'type':'button', 'label':'', 'value':'Создать'}
+        }, createNewGraph);
+      };
+
+      var showTrash = function(){
+
       };
 
       var onSelect = function(position, graphId){
-
-        if(graphId == 'new') that.UI.showModal({'name':{'type':'input', 'label':'Name:'}}, createNewGraph);
-        if(graphId == 'trash') that.UI.showModal();
-
         // set position of old selected graph to 'not to be shown'
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == position) that.selectedPosition[i] = 'not to be shown';
@@ -91,8 +100,23 @@ YOVALUE.SelectGraphPosition.prototype = {
       for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') leftGraphId = i;
       for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') rightGraphId = i;
 
-      that.UI.createSelectBox('#'+c.id, 'leftGraphView', items, onSelect, leftGraphId, 'selectGraphPosition', true, onRemove);
-      that.UI.createSelectBox('#'+c.id, 'rightGraphView', items, onSelect, rightGraphId, 'selectGraphPosition', true, onRemove);
+      // create New and Trash Buttons
+      that.UI.createButton('#'+c.id, 'Trash', showTrash);
+      that.UI.createButton('#'+c.id, 'New', showNew);
+
+      // create containers for select boxes
+      $('#'+c.id).append('<div id="leftSelectContainer" class="selectGraphPosition"></div>');
+      $('#'+c.id).append('<div id="rightSelectContainer" class="selectGraphPosition"></div>');
+
+      // create left and right select box
+      that.UI.createSelectBox('#leftSelectContainer', 'leftGraphView', items, onSelect, leftGraphId);
+      that.UI.createSelectBox('#rightSelectContainer', 'rightGraphView', items, onSelect, rightGraphId);
+
+      // add edit and remove buttons to the right of select boxes
+      that.UI.createButton('#leftSelectContainer', 'Edit', showTrash);
+      that.UI.createButton('#leftSelectContainer', 'Remove', showNew);
+      that.UI.createButton('#rightSelectContainer', 'Edit', showTrash);
+      that.UI.createButton('#rightSelectContainer', 'Remove', showNew);
     });
     this.publisher.publishEvent(e);
   }
