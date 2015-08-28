@@ -31,7 +31,7 @@ YOVALUE.SelectGraphPosition.prototype = {
         var i, graphIds = event.getData(), unknownGraphIds=[], knownGraphIds=[];
 
         // determine graph id which is not in this.selectedPosition yet
-        for(i  in graphIds){
+        for(i in graphIds){
           if(typeof(this.selectedPosition[graphIds[i]]) == 'undefined') unknownGraphIds.push(graphIds[i]);
           else knownGraphIds.push(graphIds[i]);
         }
@@ -117,7 +117,16 @@ YOVALUE.SelectGraphPosition.prototype = {
       };
 
       var showTrash = function(){
-
+        var list = {}, graphId;
+        for(graphId in trashItems){
+          list[graphId] = {'type':'html', 'value':that.UI.createActionItem(graphId, trashItems[graphId], 'restore', function(graphId){
+            // say about this event to all subscribers
+            that.publisher.publish('set_is_graph_in_trash', {graphId:graphId, isInTrash:false});
+            // redraw menu
+            that._createView();
+          })};
+        }
+        that.UI.showModal(list, function(){});
       };
 
       var onSelect = function(position, graphId){

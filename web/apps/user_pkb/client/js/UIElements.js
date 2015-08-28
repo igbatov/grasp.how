@@ -87,6 +87,7 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'input') c.append('<input name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
       if(fields[name]['type'] == 'hidden') c.append('<input type="hidden" name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
       if(fields[name]['type'] == 'title') c.append('<div class="ui_modal_title">'+fields[name]['value']+'</div>');
+      if(fields[name]['type'] == 'html') c.append(fields[name]['value']);
       if(fields[name]['type'] == 'confirm'){
         var yesButtonId = this._generateId();
         var noButtonId = this._generateId();
@@ -143,6 +144,21 @@ YOVALUE.UIElements.prototype = {
     $('#'+uniqId).click(function(){
       callback();
     });
+  },
+
+  /**
+   * Creates item for the list with possibility of action on this items
+   * @param itemId
+   * @param itemName
+   * @param actionName
+   * @param actionCallback
+   */
+  createActionItem: function(itemId, itemName, actionName, actionCallback){
+    var uniqId = this._generateId(), $ = this.jQuery;
+    $(document).on('click', '#'+uniqId, function(){
+      actionCallback(itemId);
+    });
+    return '<div class="actionItem"><div class="actionName">'+itemName+'</div><div id="'+uniqId+'" class="actionButton">'+actionName+'</div></div>';
   },
 
   /**
