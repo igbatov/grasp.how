@@ -127,7 +127,7 @@ YOVALUE.SelectGraphPosition.prototype = {
         that.selectedPosition[graphId] = position;
 
         // say about this event to all subscribers
-        that.publisher.publish('graph_position_changed', graphId);
+        that.publisher.publish('graph_position_changed', {graphId:graphId, position:position});
       };
 
       var leftGraphId = null, rightGraphId = null;

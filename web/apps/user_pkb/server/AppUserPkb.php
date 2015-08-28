@@ -164,8 +164,39 @@ class AppUserPkb extends App
         $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$r['graphId'];
         //echo $update_query."\n";
         $this->db->execute($update_query);
-
+        $this->showRawData('success');
         break;
+
+      case 'changeGraphPosition':
+        $graphId = $this->getRequest()['graphId'];
+        $position = $this->getRequest()['position'];
+        $query = "SELECT graph_id, settings FROM graph_settings";
+        $rows = $this->db->execute($query);
+        foreach($rows as $row){
+          $settings = json_decode($row['settings'], true);
+          var_dump($settings['position']);
+          echo "<br>";
+          var_dump($position);
+          echo "<br>";
+          var_dump($graphId);
+          echo "<br>";
+          var_dump($row['graph_id']);
+          echo "<br>";
+          echo "--------------<br>";
+          if($settings['position'] == $position){
+            $settings['position'] = 'not to be shown';
+            $update_query = "UPDATE graph_settings SET settings = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE graph_id = '".$row['graph_id']."'";
+            $this->db->execute($update_query);
+          }
+          if($row['graph_id'] == $graphId){
+            $settings['position'] = $position;
+            $update_query = "UPDATE graph_settings SET settings = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE graph_id = '".$row['graph_id']."'";
+            $this->db->execute($update_query);
+          }
+        }
+        $this->showRawData('success');
+        break;
+
       case 'addGraphHistoryItem':
         if($access_level == 'read') exit();
 

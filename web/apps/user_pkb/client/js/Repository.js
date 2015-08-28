@@ -43,6 +43,7 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
     'graph_element_content_changed',
     'graph_name_changed',
     'create_new_graph',
+    'graph_position_changed',
 
     'send_pending_requests',
 
@@ -87,6 +88,12 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'create_new_graph'){
       this.pendingRequests.push({url:'createNewGraph', data:e.getData(),  callback:function(data){
+        e.setResponse(data);
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'graph_position_changed'){
+      this.pendingRequests.push({url:'changeGraphPosition', data:e.getData(),  callback:function(data){
         e.setResponse(data);
       }});
       this.sendPendingRequests();
