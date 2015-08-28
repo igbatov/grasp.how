@@ -42,6 +42,7 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
   this.subscriber.subscribe(this,[
     'graph_element_content_changed',
     'graph_name_changed',
+    'create_new_graph',
 
     'send_pending_requests',
 
@@ -80,6 +81,12 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'graph_name_changed'){
       this.pendingRequests.push({url:'updateGraphName', data:e.getData(),  callback:function(data){
+        e.setResponse(data);
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'create_new_graph'){
+      this.pendingRequests.push({url:'createNewGraph', data:e.getData(),  callback:function(data){
         e.setResponse(data);
       }});
       this.sendPendingRequests();
@@ -158,7 +165,7 @@ YOVALUE.Repository.prototype = {
       this.sendPendingRequests();
 
     }else if(name == 'repository_get_graphs_history_timeline'){
-      this.pendingRequests.push({url:'getGraphsHistoryTimeline', data:null, callback:function(data){
+      this.pendingRequests.push({url:'getGraphsHistoryTimeline', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});
       this.sendPendingRequests();

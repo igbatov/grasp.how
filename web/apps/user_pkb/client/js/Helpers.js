@@ -457,7 +457,7 @@ YOVALUE.decorationHelper.adjustDecorationToArea = function(decoration, area){
  * Table of given size that tracks every row hit count and
  * removes the least popular rows if size limit is exceeded
  * @param columnNames
- * @param size in bytes
+ * @param sizeLimit in bytes
  * @constructor
  */
 YOVALUE.Cache = function(columnNames, sizeLimit){

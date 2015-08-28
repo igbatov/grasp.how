@@ -129,9 +129,10 @@ class AppUserPkb extends App
         break;
 
       case 'getGraphsHistoryTimeline':
+        $r = $this->getRequest();
         $timeline = array();
-        $rows = $this->getGraphs($this->getGraphIds($this->getAuthId()));
-        foreach($rows as $graph_id => $settings){
+
+        foreach($r['ids'] as $graph_id){
           $timeline[$graph_id] = array();
           $query = "SELECT step, timestamp FROM graph_history WHERE graph_id = '".$graph_id."'";
           foreach($this->db->execute($query) as $row){

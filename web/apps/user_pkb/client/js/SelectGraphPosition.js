@@ -70,7 +70,10 @@ YOVALUE.SelectGraphPosition.prototype = {
           if(that.selectedPosition[i] == position) graphId = i;
         }
         that.UI.showConfirm('Are you sure you want to move '+graphs[graphId].getGraphName()+' to trash?', function(){
-
+          // say about this event to all subscribers
+          that.publisher.publish('move_graph_to_trash', {graphId:graphId});
+          // redraw menu
+          that._createView();
         });
       };
 
@@ -95,7 +98,17 @@ YOVALUE.SelectGraphPosition.prototype = {
         that.UI.showModal({
           'name':{'type':'input', 'label':'Name:', 'value':''},
           'submit':{'type':'button', 'label':'', 'value':'Создать'}
-        }, function(){
+        }, function(form){
+
+          var e = that.publisher.createEvent('create_new_graph', {name:form['name']});
+          that.publisher.when(e).then(function(){
+            // reload graphs models
+            return that.publisher.publish('load_graph_models');
+          }).then(function(){
+            // redraw menu
+            that._createView();
+          });
+          that.publisher.publishEvent(e);
 
         });
       };

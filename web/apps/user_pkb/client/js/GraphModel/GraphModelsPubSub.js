@@ -20,7 +20,7 @@ YOVALUE.GraphModelsPubSub = function (subscriber, publisher, graphModelFactory){
   this.publisher = publisher;
 
   this.subscriber.subscribe(this,[
-    'init_graph_models',
+    'load_graph_models',
 
     'get_graph_models',
 
@@ -37,7 +37,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
     var that = this, eventName = event.getName();
 
     switch (eventName){
-      case "init_graph_models":
+      case "load_graph_models":
         var e = this.publisher.createEvent("repository_get_graphs_model_settings", {});
         this.publisher.when(e).then(function(graphsSettings){
           var r, graphId, graphSettings;

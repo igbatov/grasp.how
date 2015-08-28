@@ -9,7 +9,7 @@ YOVALUE.GraphHistory = function(subscriber, publisher){
   this.lastStep = {};        // {int graphId1: int step1, int graphId2: int step2, ...}
 
   // storage of history
-  this.cache = new YOVALUE.Cache(['graphId', 'step', 'timestamp', 'elements', 'node_mapping'], 1000000);
+  this.history = new YOVALUE.Table(['graphId', 'step', 'timestamp', 'elements', 'node_mapping']);
 
   this.subscriber.subscribe(this,[
     'graph_model_changed',
@@ -35,22 +35,23 @@ YOVALUE.GraphHistory.prototype = {
       var i, r={}, graphsModelElements, graphId,
         historyRequest = event.getData(); // {graphId1: int step1 || null, graphId2: int step2 || null, ... }
 
-      graphsModelElements = this._getElementsFromCache(historyRequest);
+      graphsModelElements = this._getElementsFromHistory(historyRequest);
 
-      // get graphIds from historyRequest that are not in this.cache
+      // get graphIds from historyRequest that are not in this.history
       var emptyIds = YOVALUE.arrayHelper.difference(YOVALUE.getObjectKeys(historyRequest), YOVALUE.getObjectKeys(graphsModelElements));
-      // retrieve it from repository and
+
+      // retrieve it from repository
       if(emptyIds.length > 0){
         for(i in emptyIds) r[emptyIds[i]] = historyRequest[emptyIds[i]];
         var e = this.publisher.createEvent("repository_get_graphs_model_elements", r);
 
         this.publisher.when(e).then(function(graphsElements){
           for(i in graphsElements){
-            that.cache.add(graphsElements[i]);
+            that.history.insertRow(graphsElements[i]);
             that._setLastStep(graphsElements[i]['graphId'], graphsElements[i]['step']);
           }
 
-          event.setResponse(that._getElementsFromCache(historyRequest));
+          event.setResponse(that._getElementsFromHistory(historyRequest));
         });
         this.publisher.publishEvent(e);
       }else{
@@ -61,7 +62,7 @@ YOVALUE.GraphHistory.prototype = {
       var graphId = event.getData()['graphId'];
       if(typeof(this.currentStep[graphId]) == 'undefined') YOVALUE.errorHandler.throwError('currentStep for graphId '+graphId+' is not defined');
       var step = this.currentStep[graphId];
-      event.setResponse(this.cache.get({graphId: graphId, step: step})[0]['node_mapping']);
+      event.setResponse(this.history.getRows({graphId: graphId, step: step})[0]['node_mapping']);
 
     }else if(eventName === 'node_mapping_changed'){
       var graphId = event.getData()['graphId'];
@@ -69,7 +70,7 @@ YOVALUE.GraphHistory.prototype = {
       var step = this.currentStep[graphId];
 
       // update cache
-      var cnt = this.cache.update({graphId: graphId, step: step}, {node_mapping: event.getData()['node_mapping']});
+      var cnt = this.history.updateRows({graphId: graphId, step: step}, {node_mapping: event.getData()['node_mapping']});
       if(cnt == 0) YOVALUE.errorHandler.throwError('cache has no items for graphId '+graphId+', step '+step);
 
       // save in repository
@@ -87,7 +88,7 @@ YOVALUE.GraphHistory.prototype = {
       var step = parseInt(this._getLastStep(graphModel.getGraphId()));
 
       // get node mapping from previous step
-      var node_mapping = this.cache.get({graphId: graphModel.getGraphId(), step: step})[0]['node_mapping'];
+      var node_mapping = this.history.getRows({graphId: graphModel.getGraphId(), step: step})[0]['node_mapping'];
 
       step++;
       this._setLastStep(graphModel.getGraphId(), step);
@@ -98,7 +99,7 @@ YOVALUE.GraphHistory.prototype = {
         elements: {nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
         node_mapping: node_mapping
       };
-      this.cache.add(item);
+      this.history.insertRow(item);
 
       // update timeline and current step
       this.historyTimeline[item.graphId][item.step] = item.timestamp;
@@ -112,7 +113,7 @@ YOVALUE.GraphHistory.prototype = {
       // check that we have current step for all graphIds
       for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_previous_graph_step requested but no current step for graphId='+graphIds[i]);
 
-      var e = this.publisher.createEvent("get_graphs_history_timeline", {});
+      var e = this.publisher.createEvent("get_graphs_history_timeline", {ids:graphIds});
       that.publisher.when(e).then(function(timeline){
         for(i in graphIds) previousStep[graphIds[i]] =  that._getPreviousStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
         event.setResponse(previousStep);
@@ -125,7 +126,7 @@ YOVALUE.GraphHistory.prototype = {
       // check that we have current step for all graphIds
       for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_next_graph_step requested but no current step for graphId='+graphIds[i]);
 
-      var e = this.publisher.createEvent("get_graphs_history_timeline", {});
+      var e = this.publisher.createEvent("get_graphs_history_timeline", {ids:graphIds});
       that.publisher.when(e).then(function(timeline){
         for(i in graphIds) nextStep[graphIds[i]] =  that._getNextStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
         event.setResponse(nextStep);
@@ -139,7 +140,7 @@ YOVALUE.GraphHistory.prototype = {
 
       // for all such graphIds init currentStep to the last step in the timeline
       if(emptyIds.length > 0){
-        var e = this.publisher.createEvent("get_graphs_history_timeline", {});
+        var e = this.publisher.createEvent("get_graphs_history_timeline", {ids:emptyIds});
         that.publisher.when(e).then(function(timeline){
           var graphId;
           for(graphId in timeline){
@@ -160,11 +161,15 @@ YOVALUE.GraphHistory.prototype = {
       }
 
     }else if(eventName === 'get_graphs_history_timeline'){
-      if(YOVALUE.getObjectLength(that.historyTimeline) == 0){
-        var e = this.publisher.createEvent("repository_get_graphs_history_timeline", {});
+      // get graphIds that are not yet in this.historyTimeline
+      var emptyIds = YOVALUE.arrayHelper.difference(event.getData()['ids'], YOVALUE.getObjectKeys(that.historyTimeline));
+      if(emptyIds.length > 0){
+        var e = this.publisher.createEvent("repository_get_graphs_history_timeline", {ids:emptyIds});
         that.publisher.when(e).then(function(timeline){
-          that.historyTimeline = timeline;
-          event.setResponse(timeline);
+          for(var id in timeline){
+            that.historyTimeline[id] = timeline[id];
+          }
+          event.setResponse(that.historyTimeline);
         });
         this.publisher.publishEvent(e);
       }else{
@@ -177,13 +182,13 @@ YOVALUE.GraphHistory.prototype = {
    *
    * @param request Request in a form {graphId1: step1, graphId2: step2, ...}
    */
-  _getElementsFromCache: function(request){
+  _getElementsFromHistory: function(request){
     var graphId,
         graphsElements = {}; // {graphId1: {graphId: graphId1, step: step1, timestamp: ts1, elements: {nodes:{}, edges:{}}}, ...}
 
     for(graphId in request){
       var step = request[graphId] == null ? this._getLastStep(graphId) : request[graphId];
-      var row = this.cache.get({graphId:graphId, step:step})[0];
+      var row = this.history.getRows({graphId:graphId, step:step})[0];
       if(typeof(row) != 'undefined') graphsElements[graphId] = row;
     }
     return graphsElements;

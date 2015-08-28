@@ -167,7 +167,7 @@ YOVALUE.wireModules(Modules, DI);
 
 var p = Modules['Publisher'];
 //init models
-var e = p.createEvent('init_graph_models');
+var e = p.createEvent('load_graph_models');
 p.when(e).then(function(){
   // and then show them
   p.publish('show_graphs');
