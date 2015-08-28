@@ -162,7 +162,19 @@ class AppUserPkb extends App
         $settings = json_decode($row['graph'], true);
         $settings['name'] =$r['name'];
         $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$r['graphId'];
-        //echo $update_query."\n";
+        $this->db->execute($update_query);
+        $this->showRawData('success');
+        break;
+
+      case 'setIsGraphInTrash':
+        $graphId = $this->getRequest()['graphId'];
+        $isInTrash = $this->getRequest()['isInTrash'];
+        $r = $this->getRequest();
+        $query = "SELECT graph FROM `graph` WHERE id=".$graphId;
+        $row = $this->db->execute($query)[0];
+        $settings = json_decode($row['graph'], true);
+        $settings['isInTrash'] = $isInTrash;
+        $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$graphId;
         $this->db->execute($update_query);
         $this->showRawData('success');
         break;
@@ -174,15 +186,6 @@ class AppUserPkb extends App
         $rows = $this->db->execute($query);
         foreach($rows as $row){
           $settings = json_decode($row['settings'], true);
-          var_dump($settings['position']);
-          echo "<br>";
-          var_dump($position);
-          echo "<br>";
-          var_dump($graphId);
-          echo "<br>";
-          var_dump($row['graph_id']);
-          echo "<br>";
-          echo "--------------<br>";
           if($settings['position'] == $position){
             $settings['position'] = 'not to be shown';
             $update_query = "UPDATE graph_settings SET settings = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE graph_id = '".$row['graph_id']."'";

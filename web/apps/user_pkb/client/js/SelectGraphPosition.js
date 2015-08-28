@@ -69,9 +69,12 @@ YOVALUE.SelectGraphPosition.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == position) graphId = i;
         }
-        that.UI.showConfirm('Are you sure you want to move '+graphs[graphId].getGraphName()+' to trash?', function(){
+        that.UI.showConfirm('Are you sure you want to move "'+graphs[graphId].getGraphName()+'" to trash?', function(answer){
+          if(answer == 'no') return true;
+          // set it as not to be shown
+          onSelect('not to be shown', graphId);
           // say about this event to all subscribers
-          that.publisher.publish('move_graph_to_trash', {graphId:graphId});
+          that.publisher.publish('set_is_graph_in_trash', {graphId:graphId, isInTrash:true});
           // redraw menu
           that._createView();
         });

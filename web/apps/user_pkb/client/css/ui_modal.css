@@ -14,5 +14,5 @@
 }
 
 .ui_modal_content .confirm_button{
-    float: right; cursor: pointer;
+    float: left; cursor: pointer;
 }

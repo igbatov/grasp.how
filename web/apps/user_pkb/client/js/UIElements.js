@@ -70,19 +70,36 @@ YOVALUE.UIElements.prototype = {
   showModal: function(fields, callback){
     var $ = this.jQuery, uniqId = this._generateId(), name;
     $('body').append('<div id="'+uniqId+'" class="ui_modal"></div>');
-    var c = $('#'+uniqId);
-    c.css('top', window.innerHeight/4+'px');
-    c.css('left', window.innerWidth/3+'px');
+    var w = $('#'+uniqId), c;
+    w.css('top', window.innerHeight/2+'px');
+    w.css('left', window.innerWidth/2+'px');
 
     var closeId = this._generateId();
-    c.append('<div id="'+closeId+'" style="float: right; cursor: pointer">X</div>');
+    w.append('<div id="'+closeId+'"  class="close_button">X</div>');
     $('#'+closeId).click(function(){
-      c.remove();
+      w.remove();
     });
+
+    w.append('<div class="ui_modal_content"></div>');
+    c = $("#"+uniqId+' .ui_modal_content');
 
     for(name in fields){
       if(fields[name]['type'] == 'input') c.append('<input name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
       if(fields[name]['type'] == 'hidden') c.append('<input type="hidden" name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
+      if(fields[name]['type'] == 'title') c.append('<div class="ui_modal_title">'+fields[name]['value']+'</div>');
+      if(fields[name]['type'] == 'confirm'){
+        var yesButtonId = this._generateId();
+        var noButtonId = this._generateId();
+        c.append('<button id="'+yesButtonId+'" class="confirm_button">yes</button><button id="'+noButtonId+'" class="confirm_button">no</button>');
+        $('#'+yesButtonId).click(function(){
+          callback('yes');
+          w.remove();
+        });
+        $('#'+noButtonId).click(function(){
+          callback('no');
+          w.remove();
+        });
+      }
       if(fields[name]['type'] == 'button'){
         var buttonId = this._generateId();
         c.append('<button id="'+buttonId+'" name="'+name+'">'+fields[name]['value']+'</button>');
@@ -92,10 +109,14 @@ YOVALUE.UIElements.prototype = {
             data[$(this).attr('name')] = $(this).val();
           });
           callback(data);
-          c.remove();
+          w.remove();
         });
       }
     }
+
+    // correct windows position with respect to window size
+    w.css('top', (window.innerHeight/3 - c.height()/2)+'px');
+    w.css('left', (window.innerWidth/2 - c.width()/2)+'px');
   },
 
   /**
@@ -105,6 +126,7 @@ YOVALUE.UIElements.prototype = {
    */
   showConfirm: function(text, callback){
     var $ = this.jQuery;
+    this.showModal({'title':{'type':'title', 'value':text}, 'confirm':{'type':'confirm'}}, callback);
   },
 
   /**

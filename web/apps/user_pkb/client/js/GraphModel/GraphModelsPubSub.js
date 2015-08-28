@@ -25,6 +25,8 @@ YOVALUE.GraphModelsPubSub = function (subscriber, publisher, graphModelFactory){
     'get_graph_models',
 
     'graph_name_changed',
+    'set_is_graph_in_trash',
+
     'request_for_graph_model_change',
     'set_graph_model_elements',
 
@@ -37,6 +39,10 @@ YOVALUE.GraphModelsPubSub.prototype = {
     var that = this, eventName = event.getName();
 
     switch (eventName){
+      case "set_is_graph_in_trash":
+        this.graphModels[event.getData().graphId].setIsInTrash(event.getData().isInTrash);
+        break;
+
       case "load_graph_models":
         var e = this.publisher.createEvent("repository_get_graphs_model_settings", {});
         this.publisher.when(e).then(function(graphsSettings){
