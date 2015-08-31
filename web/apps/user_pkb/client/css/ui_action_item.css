@@ -3,6 +3,9 @@ ul.actionItem li:hover{
 }
 ul.actionItem li{
     padding-right: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 7px;
 }
 
 .actionButton {

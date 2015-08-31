@@ -149,7 +149,8 @@ var DI = {
       nodeLabel:{
         constructor: YOVALUE.GraphViewNodeLabel,
         attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
-      }}
+      }
+    }
   }],
 
   GraphNodeMappingsPubSub: ['Subscriber'],
