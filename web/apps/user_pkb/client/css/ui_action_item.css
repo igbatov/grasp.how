@@ -1,13 +1,12 @@
-div.actionButton:hover{
-    background-color: #0000FF;
+ul.actionItem li:hover{
+    background-color: #C2B9C2;
+}
+ul.actionItem li{
+    padding-right: 10px;
 }
 
 .actionButton {
-    float: left;
     cursor: pointer;
-}
-
-.actionName {
-    float: left;
-    padding: 2px 10px;
+    float: right;
+    padding-left: 10px;
 }

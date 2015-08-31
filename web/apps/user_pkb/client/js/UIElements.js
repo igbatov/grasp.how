@@ -155,13 +155,28 @@ YOVALUE.UIElements.prototype = {
    */
   createActionItem: function(itemId, itemName, actionName, actionCallback){
     var uniqId = this._generateId(), $ = this.jQuery;
-    $(document).on('click', '#'+uniqId, function(){
-      actionCallback(itemId);
+    $(document).on('click', '#'+uniqId+' a', function(){
+      actionCallback(itemId, $('#'+uniqId));
     });
-    return '<div class="actionItem"><div class="actionName">'+itemName+'</div><div id="'+uniqId+'" class="actionButton">'+actionName+'</div></div>';
+    return '<ul id="'+uniqId+'"  class="actionItem"><li>'+itemName+' <a href="#" class="actionButton">'+actionName+'</a></li></ul>';
   },
 
   /**
+   *
+   * @param items
+   * @param actionName
+   * @param actionCallback
+   */
+  showModalList: function(items, actionName, actionCallback){
+    var id, list={};
+    for(id in items){
+      list[id] = {'type':'html', 'value':this.createActionItem(id, items[id], 'restore', function(id, html){
+        actionCallback(id, html)
+      })};
+    }
+    this.showModal(list, function(){});
+  },
+      /**
    * private method to generate unique id for UI element
    * @private
    */

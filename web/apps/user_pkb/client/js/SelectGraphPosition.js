@@ -69,6 +69,7 @@ YOVALUE.SelectGraphPosition.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == position) graphId = i;
         }
+        if(typeof(graphs[graphId]) == 'undefined') return true;
         that.UI.showConfirm('Are you sure you want to move "'+graphs[graphId].getGraphName()+'" to trash?', function(answer){
           if(answer == 'no') return true;
           // set it as not to be shown
@@ -85,6 +86,7 @@ YOVALUE.SelectGraphPosition.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == position) graphId = i;
         }
+        if(typeof(graphs[graphId]) == 'undefined') return true;
         that.UI.showModal({
           'graphId':{'type':'hidden', 'label':'', 'value':graphId},
           'name':{'type':'input', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
@@ -117,16 +119,13 @@ YOVALUE.SelectGraphPosition.prototype = {
       };
 
       var showTrash = function(){
-        var list = {}, graphId;
-        for(graphId in trashItems){
-          list[graphId] = {'type':'html', 'value':that.UI.createActionItem(graphId, trashItems[graphId], 'restore', function(graphId){
-            // say about this event to all subscribers
-            that.publisher.publish('set_is_graph_in_trash', {graphId:graphId, isInTrash:false});
-            // redraw menu
-            that._createView();
-          })};
-        }
-        that.UI.showModal(list, function(){});
+        that.UI.showModalList(trashItems, 'restore', function(graphId, html){
+          html.remove();
+          // say about this event to all subscribers
+          that.publisher.publish('set_is_graph_in_trash', {graphId:graphId, isInTrash:false});
+          // redraw menu
+          that._createView();
+        });
       };
 
       var onSelect = function(position, graphId){
