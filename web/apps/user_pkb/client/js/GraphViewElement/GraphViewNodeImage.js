@@ -88,7 +88,8 @@ YOVALUE.GraphViewNodeImage.prototype = {
 
 
   setColor: function(color){
-    this.image.src = YOVALUE.changeColorInImage(this.image.src, this.color, color);
+    // if this is image of plain color setted in constructor (i.e. not user icon)
+    if(this.image.src.substr(1, 10) == 'data:image') this.image.src = YOVALUE.changeColorInImage(this.image.src, this.color, color);
     this.color = color;
   },
 
