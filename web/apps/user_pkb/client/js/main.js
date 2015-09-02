@@ -139,7 +139,7 @@ var DI = {
   SelectGraphSkinModel: ['Subscriber', 'Publisher', {
     basicSkin: {
       node:{
-        constructor: YOVALUE.GraphViewNode,
+        constructor: {'withoutIcon': YOVALUE.GraphViewNode, 'withIcon': YOVALUE.GraphViewNodeImage},
         attr: {}
       },
       edge:{
