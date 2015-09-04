@@ -43,7 +43,7 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
     'graph_element_content_changed',
     'graph_name_changed',
     'create_new_graph',
-    'set_is_graph_in_trash',
+    'set_graph_attributes',
     'graph_position_changed',
 
     'send_pending_requests',
@@ -93,8 +93,8 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'set_is_graph_in_trash'){
-      this.pendingRequests.push({url:'setIsGraphInTrash', data:e.getData(),  callback:function(data){
+    }else if(name == 'set_graph_attributes'){
+      this.pendingRequests.push({url:'setGraphAttributes', data:e.getData(),  callback:function(data){
         e.setResponse(data);
       }});
       this.sendPendingRequests();

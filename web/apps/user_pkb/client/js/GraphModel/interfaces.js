@@ -87,8 +87,10 @@ YOVALUE.iGraphModel = {
   setIsEditable: function(v){},
   getIsEditable: function(){},
 
-  setIsInTrash: function(v){},
-  getIsInTrash: function(){},
+  getAttributes: function(){},
+  setAttribute: function(name, v){},
+  getAttribute: function(){},
+
   /**
    * @return {*} time in milliseconds of last modification
    */

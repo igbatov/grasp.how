@@ -19,9 +19,9 @@ YOVALUE.GraphModelTree.prototype = {
    * @param isEditable {boolean}
    * @param isInTrash {boolean}
    */
-  init: function(name, nodeTypes, edgeTypes, nodeDefaultType, edgeDefaultType, isEditable, isInTrash){
+  init: function(name, nodeTypes, edgeTypes, nodeDefaultType, edgeDefaultType, isEditable, attributes){
     //do all the ordinary graph model stuff
-    this.graphModel.init(name, nodeTypes, edgeTypes, nodeDefaultType, edgeDefaultType, isEditable, isInTrash);
+    this.graphModel.init(name, nodeTypes, edgeTypes, nodeDefaultType, edgeDefaultType, isEditable, attributes);
     return true;
   },
 

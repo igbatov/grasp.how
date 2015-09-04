@@ -166,14 +166,16 @@ class AppUserPkb extends App
         $this->showRawData('success');
         break;
 
-      case 'setIsGraphInTrash':
+      case 'setGraphAttributes':
         $graphId = $this->getRequest()['graphId'];
-        $isInTrash = $this->getRequest()['isInTrash'];
-        $r = $this->getRequest();
+        $attributes = array();
+        foreach($this->getRequest() as $key => $value){
+          if($key != 'graphId') $attributes[$key] = $value;
+        }
         $query = "SELECT graph FROM `graph` WHERE id=".$graphId;
         $row = $this->db->execute($query)[0];
         $settings = json_decode($row['graph'], true);
-        $settings['isInTrash'] = $isInTrash;
+        $settings['attributes'] = array_merge($settings['attributes'], $attributes);
         $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$graphId;
         $this->db->execute($update_query);
         $this->showRawData('success');
@@ -507,7 +509,7 @@ class AppUserPkb extends App
       'GraphViewElement/GraphViewNodeLabel.js',
       'GraphViewElement/GraphViewEdge.js',
 
-      'SelectGraphPosition.js',
+      'GraphMenu.js',
       'SelectGraphLayout/SelectGraphLayoutModel.js',
       'SelectGraphSkin/SelectGraphSkinModel.js',
 

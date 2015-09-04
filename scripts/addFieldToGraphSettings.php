@@ -9,8 +9,8 @@ $query = "SELECT id, graph FROM `graph`";
 $rows = $db->execute($query);
 foreach($rows as $row){
   $settings = json_decode($row['graph'], true);
-  $settings['isInTrash'] = false;
-  $settings['name'] = urldecode($settings['name']);
+  $settings['attributes'] = array('isInTrash'=>$settings['isInTrash']);
+  unset($settings['isInTrash']);
   //echo $settings['name'];
   $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$row['id'];
   //echo $update_query."\n";

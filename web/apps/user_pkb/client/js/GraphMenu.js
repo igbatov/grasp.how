@@ -8,7 +8,7 @@
  * @param jQuery
  * @constructor
  */
-YOVALUE.SelectGraphPosition = function(subscriber, publisher, ViewManager, UI, jQuery){
+YOVALUE.GraphMenu = function(subscriber, publisher, ViewManager, UI, jQuery){
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.selectedPosition = {};
@@ -23,7 +23,7 @@ YOVALUE.SelectGraphPosition = function(subscriber, publisher, ViewManager, UI, j
   this.container = this.ViewManager.getViewContainer('horizontalMenu');
 };
 
-YOVALUE.SelectGraphPosition.prototype = {
+YOVALUE.GraphMenu.prototype = {
   eventListener: function(event){
     var that = this;
     switch (event.getName()){
@@ -60,7 +60,7 @@ YOVALUE.SelectGraphPosition.prototype = {
     this.publisher.when(e).then(function(graphs){
       var items = {'none':'none'}, i, trashItems={};
       for(i in graphs){
-        if(!graphs[i].getIsInTrash()) items[graphs[i].getGraphId()] = graphs[i].getGraphName();
+        if(!graphs[i].getAttribute('isInTrash')) items[graphs[i].getGraphId()] = graphs[i].getGraphName();
         else trashItems[graphs[i].getGraphId()] = graphs[i].getGraphName();
       }
 
@@ -75,7 +75,7 @@ YOVALUE.SelectGraphPosition.prototype = {
           // set it as not to be shown
           onSelect('not to be shown', graphId);
           // say about this event to all subscribers
-          that.publisher.publish('set_is_graph_in_trash', {graphId:graphId, isInTrash:true});
+          that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:true});
           // redraw menu
           that._createView();
         });
@@ -122,7 +122,7 @@ YOVALUE.SelectGraphPosition.prototype = {
         that.UI.showModalList(trashItems, 'restore', function(graphId, html){
           html.remove();
           // say about this event to all subscribers
-          that.publisher.publish('set_is_graph_in_trash', {graphId:graphId, isInTrash:false});
+          that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:false});
           // redraw menu
           that._createView();
         });
@@ -153,8 +153,8 @@ YOVALUE.SelectGraphPosition.prototype = {
       that.UI.createButton('#'+c.id, 'Trash', showTrash);
 
       // create containers for select boxes
-      $('#'+c.id).append('<div id="leftSelectContainer" class="selectGraphPosition"></div>');
-      $('#'+c.id).append('<div id="rightSelectContainer" class="selectGraphPosition"></div>');
+      $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');
+      $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
 
       // create left and right select box
       that.UI.createSelectBox('#leftSelectContainer', 'leftGraphView', items, onSelect, leftGraphId);

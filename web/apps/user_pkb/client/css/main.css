@@ -115,10 +115,10 @@ select {
 
 #horizontalMenu > * { float: left; }
 
-.selectGraphPosition{
+.GraphMenu{
     margin: 0 7%;
     padding: 0;
 }
 
-.selectGraphPosition > * { float: left; }
+.GraphMenu > * { float: left; }
 

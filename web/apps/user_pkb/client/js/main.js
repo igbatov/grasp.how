@@ -42,7 +42,7 @@ var Modules = {
   GraphLayoutNamesConfig: YOVALUE.GraphLayoutNamesConfig,
   GraphSkinNamesConfig: YOVALUE.GraphSkinNamesConfig,
 
-  SelectGraphPosition: YOVALUE.SelectGraphPosition,
+  GraphMenu: YOVALUE.GraphMenu,
   SelectGraphLayoutModel: YOVALUE.SelectGraphLayoutModel,
   SelectGraphSkinModel: YOVALUE.SelectGraphSkinModel,
 
@@ -123,7 +123,7 @@ var DI = {
   imageLoader: ['Promise'],
   Repository: ['Subscriber', 'Publisher', 'Ajax', 'imageLoader'],
 
-  SelectGraphPosition: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery'],
+  GraphMenu: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery'],
   SelectGraphLayoutModel: ['Subscriber', 'Publisher',{
     basicLayout: {
       node:{

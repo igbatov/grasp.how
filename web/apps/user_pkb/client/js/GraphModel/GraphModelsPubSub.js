@@ -20,15 +20,16 @@ YOVALUE.GraphModelsPubSub = function (subscriber, publisher, graphModelFactory){
   this.publisher = publisher;
 
   this.subscriber.subscribe(this,[
-    'load_graph_models',
+    'load_graph_models', // load all that we have from server
+    'add_graph_model', // insert new graph
 
     'get_graph_models',
 
     'graph_name_changed',
-    'set_is_graph_in_trash',
+    'set_graph_attributes',
 
     'request_for_graph_model_change',
-    'set_graph_model_elements',
+    'set_graph_model_elements',  // set all nodes or edges at once (usually this is request initiated by history model)
 
     'get_node_by_nodeContentId'
   ]);
@@ -39,8 +40,10 @@ YOVALUE.GraphModelsPubSub.prototype = {
     var that = this, eventName = event.getName();
 
     switch (eventName){
-      case "set_is_graph_in_trash":
-        this.graphModels[event.getData().graphId].setIsInTrash(event.getData().isInTrash);
+      case "set_graph_attributes":
+        for(var key in event.getData()){
+          if(key != 'graphId') this.graphModels[event.getData().graphId].setAttribute(key, event.getData()[key]);
+        }
         break;
 
       case "load_graph_models":
@@ -57,7 +60,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
               graphSettings['nodeDefaultType'],
               graphSettings['edgeDefaultType'],
               graphSettings['isEditable'],
-              graphSettings['isInTrash']
+              graphSettings['attributes']
             );
             if(r === false)  YOVALUE.errorHandler.throwError('Graph Model init error');
           }
