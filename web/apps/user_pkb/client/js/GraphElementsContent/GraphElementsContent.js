@@ -65,7 +65,7 @@ YOVALUE.GraphElementsContent.prototype = {
           {
             //retrieve node attributes and text
             var e1 = this.publisher.createEvent("get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]});
-            var e2 = this.publisher.createEvent("get_graph_node_text", [event.getData().element.nodeContentId]);
+            var e2 = this.publisher.createEvent("get_graph_node_text", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]});
             this.publisher.when(e1, e2).then(function(attributes, texts){
               er = attributes.nodes[event.getData().element.nodeContentId];
               er.text = texts[event.getData().element.nodeContentId];
@@ -160,8 +160,8 @@ YOVALUE.GraphElementsContent.prototype = {
         var unavaliableNodeContentIds = [];
 
         // determine node contents that is not yet retrieved from server
-        for(i in data){
-          nodeContentId = data[i];
+        for(i in data['nodeContentIds']){
+          nodeContentId = data['nodeContentIds'][i];
           var rows = this.cacheNodeTexts.get({nodeContentId:nodeContentId});
           if(rows.length) cachedTexts[nodeContentId] = rows[0].text;
           else unavaliableNodeContentIds.push(nodeContentId);
@@ -169,7 +169,7 @@ YOVALUE.GraphElementsContent.prototype = {
 
         // retrieve absent node content from server
         if(unavaliableNodeContentIds.length > 0){
-          var e = this.publisher.createEvent("repository_get_graph_node_text", unavaliableNodeContentIds);
+          var e = this.publisher.createEvent("repository_get_graph_node_text", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds});
           this.publisher.when(e).then(function(nodeTexts){
             for(var nodeContentId in nodeTexts){
               that.cacheNodeTexts.add({nodeContentId: nodeContentId, text: nodeTexts[nodeContentId]});

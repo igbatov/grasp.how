@@ -75,11 +75,11 @@ class AppUserPkb extends App
         break;
 
       case 'getGraphNodeText':
-        $content_ids = $this->getRequest();
+        $content_ids = $this->getRequest()['nodeContentIds'];
         $node_texts = array();
         foreach($content_ids as $content_id){
           $tmp = explode("-", $content_id);
-          $graph_id = $tmp[0];
+          $graph_id = $tmp[0];  // we MUST use this $graph_id node content can belong no to $this->getRequest()['graphId']; but to other graph (i.e. in case of "difference graph" or when node is shared between two different graphs)
           $node_content_id = $tmp[1];
           $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'");
           $node_texts[$content_id] = $node_rows[0]['text'];

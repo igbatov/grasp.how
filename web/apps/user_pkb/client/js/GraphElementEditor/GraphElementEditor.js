@@ -190,7 +190,7 @@ YOVALUE.GraphElementEditor.prototype = {
   },
 
   _insertNodeText: function(graphId, nodeContentId, isEditable){
-    var that = this, e = this.publisher.createEvent('get_graph_node_text', [nodeContentId]);
+    var that = this, e = this.publisher.createEvent('get_graph_node_text', {graphId:graphId, nodeContentIds:[nodeContentId]});
     this.publisher.when(e).then(function(nodes){
       that.jQuery('#node_'+graphId+'_'+nodeContentId+'_ajax').hide();
       var text = isEditable ? nodes[nodeContentId] : that._nl2br(nodes[nodeContentId]);
