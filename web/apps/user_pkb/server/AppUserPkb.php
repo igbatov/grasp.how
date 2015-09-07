@@ -79,9 +79,21 @@ class AppUserPkb extends App
         $node_texts = array();
         foreach($content_ids as $content_id){
           $tmp = explode("-", $content_id);
-          $graph_id = $tmp[0];  // we MUST use this $graph_id node content can belong no to $this->getRequest()['graphId']; but to other graph (i.e. in case of "difference graph" or when node is shared between two different graphs)
+          // we MUST use this $graph_id because node content can belong not to $this->getRequest()['graphId'];
+          // but to other graph (in case of "difference graph" or when node is shared between two different graphs
+          // and in case of link of node of one graph to another)
+          $graph_id = $tmp[0];
           $node_content_id = $tmp[1];
-          $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'");
+          $node_rows = $this->db->execute("SELECT text, cloned_from_graph_id,	cloned_from_node_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'");
+          // if $this->getRequest()['graphId'] is clone of another graph and $node_content_id was not modified (= NULL)
+          // return text of original graph
+          if(
+            $node_rows[0]['text'] == null &&
+            $node_rows[0]['cloned_from_graph_id'] != null &&
+            $node_rows[0]['cloned_from_node_content_id'] != null
+          ){
+            $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$node_rows[0]['cloned_from_graph_id']."' AND node_content_id = '".$node_rows[0]['cloned_from_node_content_id']."'");
+          }
           $node_texts[$content_id] = $node_rows[0]['text'];
         }
         $this->showRawData(json_encode($node_texts));
@@ -311,6 +323,11 @@ class AppUserPkb extends App
         $this->copyGraph($this->getAuthId(), $r['name'], $r['graph_id']);
         break;
 
+      case 'cloneGraph':
+        $r = $this->getRequest();
+        $this->cloneGraph($r['graph_id'], $r['history_step'], $this->getAuthId());
+        break;
+
       case 'removeGraph':
         $r = $this->getRequest();
         $this->removeGraph($this->getAuthId(), $r['graph_id']);
@@ -342,7 +359,7 @@ class AppUserPkb extends App
 
   private function createNewGraph($auth_id, $name){
     $graph = '{"name":"'.$name.'","isEditable":true, "isInTrash":false, "edgeTypes":["link","in_favour_of","contrary_to"],"nodeTypes":["fact","research","theory","hypothesis","illustration","theory_problem", "question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"link"}';
-    $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."'";
+    $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."', created_at = NOW()";
     $graph_id = $this->db->execute($q);
 
     $elements = '{"nodes":{"1":{"id":1,"nodeContentId":"'.$graph_id.'-1","isRoot":true}},"edges":{}}';
@@ -359,6 +376,60 @@ class AppUserPkb extends App
     return true;
   }
 
+  /**
+   * Clone graph from specific step in a lazy manner (node contents are copied only after editing)
+   * @param $graph_id - original graph id
+   * @param $graph_history_step - step in history of original graph
+   * @param $auth_id - user which clones graph
+   */
+  private function cloneGraph($graph_id, $graph_history_step, $auth_id){
+    // copy row in graph table
+    $q = "SELECT graph FROM graph WHERE id = '".$graph_id."'";
+    $rows = $this->db->execute($q);
+    $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', auth_id = '".$auth_id."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."'";
+    $new_graph_id = $this->db->execute($q);
+
+    // change node_content_id and edge_content_id to create history of clone
+    $q = "SELECT elements, node_mapping FROM graph_history WHERE graph_id = '".$graph_id."' AND step = '".$graph_history_step."'";
+    $rows = $this->db->execute($q);
+    $nodes = array();
+    $edges = array();
+    $node_content_ids = array();
+    $elements = json_decode($rows[0]['elements'], true);
+
+    foreach($elements['nodes'] as $k => $node){
+      $content_id = explode("-", $node['nodeContentId']);
+      $node['nodeContentId'] = $new_graph_id."-".$content_id[1];
+      $node_content_ids[] = $content_id[1];
+      $nodes[$k] = $node;
+    }
+    foreach($elements['edges'] as $k => $edge){
+      $content_id = explode("-", $edge['edgeContentId']);
+      $edge['edgeContentId'] = $new_graph_id."-".$content_id[1];
+      $edges[$k] = $edge;
+    }
+    $elements = json_encode(array("nodes"=>$nodes, "edges"=>$edges), JSON_FORCE_OBJECT);
+    $q = "INSERT INTO graph_history SET graph_id = '".$new_graph_id."', step = '1', timestamp = '".time()."', elements = '".$elements."', node_mapping = '".$rows[0]['node_mapping']."'";
+    $this->db->execute($q);
+
+    // copy all data in nodes except text
+    $q = "INSERT INTO node_content (graph_id, node_content_id, 	type,	label, reliability, importance, text, has_icon, cloned_from_graph_id, cloned_from_node_content_id, updated_at, created_at) SELECT '".$new_graph_id."', node_content_id,	type,	label, reliability, importance, NULL, has_icon, '".$graph_id."', node_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id IN ('".implode("','",$node_content_ids)."')";
+    $this->db->execute($q);
+
+    // just copy edges as is
+    $q = "INSERT INTO edge_content (graph_id, edge_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', edge_content_id,	type,	label, NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $this->db->execute($q);
+
+    $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
+    $this->db->execute($q);
+  }
+
+  /**
+   * Copy graph with all history
+   * @param $auth_id
+   * @param $name
+   * @param $graph_id
+   */
   private function copyGraph($auth_id, $name, $graph_id){
     $q = "SELECT graph FROM graph WHERE id = '".$graph_id."'";
     $rows = $this->db->execute($q);
