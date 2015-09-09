@@ -61,33 +61,40 @@ YOVALUE.GraphElementsContent.prototype = {
           this.publisher.publishEvent(e);
 
         }else if(event.getData()['type'] == 'addNode'){
-          if(event.getData().element.nodeContentId != null)
-          {
-            //retrieve node attributes and text
-            var e1 = this.publisher.createEvent("get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]});
-            var e2 = this.publisher.createEvent("get_graph_node_text", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]});
-            this.publisher.when(e1, e2).then(function(attributes, texts){
-              er = attributes.nodes[event.getData().element.nodeContentId];
-              er.text = texts[event.getData().element.nodeContentId];
-              event.setResponse(er);
-            });
-            this.publisher.publishEvent(e1, e2);
-          }
-          else
-          {
-            var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
-            newNode.label = event.getData().element.label;
-            newNode.type = event.getData().element.type;
-            newNode.icon = null;
 
-            e = this.publisher.createEvent("graph_element_content_changed",  {graphId:event.getData()['graphId'], type:event.getData()['type'],  node:newNode});
-            this.publisher.when(e).then(function(nodeContentId){
+          // function to save new node (here and in repo) and to set response with new node
+          var saveNewNode = function(graphId, newNode){
+            e = that.publisher.createEvent("graph_element_content_changed",  {graphId:graphId, type:'addNode',  node:newNode});
+            that.publisher.when(e).then(function(nodeContentId){
               newNode.nodeContentId = nodeContentId;
               that.cacheElementAttributes.add({elementType:'node', contentId:newNode.nodeContentId, attributes:newNode});
               that.cacheNodeTexts.add({contentId:newNode.nodeContentId, text:''});
               event.setResponse(newNode);
             });
-            this.publisher.publishEvent(e);
+            that.publisher.publishEvent(e);
+          };
+
+          // if this is copy from already existing node, then get its data? copy and call saveNewNode
+          if(event.getData().element.nodeContentId != null){
+            //retrieve node attributes and text
+            var e1 = this.publisher.createEvent("get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]});
+            var e2 = this.publisher.createEvent("get_graph_node_text", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]});
+            this.publisher.when(e1, e2).then(function(attributes, texts){
+              // create new node and copy all info from old
+              var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
+              newNode = attributes.nodes[event.getData().element.nodeContentId];
+              newNode.text = texts[event.getData().element.nodeContentId];
+              saveNewNode(event.getData()['graphId'], newNode);
+            });
+            this.publisher.publishEvent(e1, e2);
+          }
+          // if it is brand new node just set default values and call saveNewNode
+          else{
+            var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
+            newNode.label = event.getData().element.label;
+            newNode.type = event.getData().element.type;
+            newNode.icon = null;
+            saveNewNode(event.getData()['graphId'], newNode);
           }
 
         }else if(event.getData()['type'] == 'addIcon'){
