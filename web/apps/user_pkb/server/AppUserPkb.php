@@ -333,6 +333,21 @@ class AppUserPkb extends App
         $this->removeGraph($this->getAuthId(), $r['graph_id']);
         break;
 
+      case 'getGraphsCloneList':
+        $clone_list = array();
+        $graph_ids = $this->getGraphIds($this->getAuthId());
+        $q = "SELECT * FROM graph WHERE cloned_from_graph_id IN ('".implode("','", $graph_ids)."')";
+        $rows = $this->db->execute($q);
+        foreach($rows as $row){
+          $graph = json_decode($row['graph'], true);
+          if(!isset($clone_list[$row['cloned_from_graph_id']])) $clone_list[$row['cloned_from_graph_id']] = array();
+          $q = "SELECT username FROM auth WHERE id = '".$row['auth_id']."'";
+          $users = $this->db->execute($q);
+          $clone_list[$row['cloned_from_graph_id']][$row['id']] = $users[0]['username'].":".$graph['name'];
+        }
+        $this->showRawData(json_encode($clone_list));
+        break;
+
       default:
         if($access_level == 'read'){
           include($this->getAppDir("template", false)."/showGraph.php");

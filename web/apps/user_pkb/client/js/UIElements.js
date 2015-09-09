@@ -170,7 +170,7 @@ YOVALUE.UIElements.prototype = {
   showModalList: function(items, actionName, actionCallback){
     var id, list={};
     for(id in items){
-      list[id] = {'type':'html', 'value':this.createActionItem(id, items[id], 'restore', function(id, html){
+      list[id] = {'type':'html', 'value':this.createActionItem(id, items[id], actionName, function(id, html){
         actionCallback(id, html)
       })};
     }

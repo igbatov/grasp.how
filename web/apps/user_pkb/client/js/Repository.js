@@ -57,6 +57,7 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
     'repository_get_graph_elements_attributes',
     'repository_get_graph_node_text',
     'repository_get_graphs_history_timeline',
+    'repository_get_graphs_clone_list',
 
     'graph_history_item_added',
     'repository_update_node_mapping'
@@ -186,6 +187,12 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'repository_graph_node_icon_upload'){
       this.pendingRequests.push({url:'uploadIcon', data:e.getData().contentId, files:e.getData().file, callback:function(data){}});
+      this.sendPendingRequests();
+
+    }else if(name == 'repository_get_graphs_clone_list'){
+      this.pendingRequests.push({url:'getGraphsCloneList', data:null, callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
       this.sendPendingRequests();
 
     }

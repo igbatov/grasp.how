@@ -126,10 +126,12 @@ YOVALUE.ModelChangeController.prototype = {
 
       // Decorate nodes and edges with size and color
       decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
-        graphModel:graphModel,
-        graphNodeAttributes:graphNodeAttributes,
-        graphEdgeAttributes:graphEdgeAttributes,
-        scale:Math.min(graphArea.width, graphArea.height)}));
+            graphModel:graphModel,
+            graphNodeAttributes:graphNodeAttributes,
+            graphEdgeAttributes:graphEdgeAttributes,
+            scale:Math.min(graphArea.width, graphArea.height)
+          }
+      ));
 
       // Create node label layout for GraphView
       for(nodeId in graphNodes){

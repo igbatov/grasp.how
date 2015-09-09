@@ -108,6 +108,11 @@ YOVALUE.GraphElementsContent.prototype = {
         if(er) event.setResponse(er);
         break;
 
+    /**
+     * Returns from server
+     *  - nodes attributes (type, label, reliability, importance, has_icon)
+     *  - edges attributes (type, label)
+     */
       case "get_elements_attributes":
         var rows, i;
         var nodeContentIds = event.getData()['nodes'], nodeContentId;

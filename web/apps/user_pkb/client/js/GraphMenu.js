@@ -56,9 +56,12 @@ YOVALUE.GraphMenu.prototype = {
   _createView: function(){
     var c = this.container, that = this, $ = this.jQuery;
 
-    var e = this.publisher.createEvent("get_graph_models");
-    this.publisher.when(e).then(function(graphs){
+    var e1 = this.publisher.createEvent("get_graph_models");
+    var e2 = this.publisher.createEvent("repository_get_graphs_clone_list");
+    this.publisher.when(e1, e2).then(function(graphs, clones){
       var items = {'none':'none'}, i, trashItems={};
+
+      // get our own graph names
       for(i in graphs){
         if(!graphs[i].getAttribute('isInTrash')) items[graphs[i].getGraphId()] = graphs[i].getGraphName();
         else trashItems[graphs[i].getGraphId()] = graphs[i].getGraphName();
@@ -128,6 +131,23 @@ YOVALUE.GraphMenu.prototype = {
         });
       };
 
+      var showClones = function(pos){
+        var graphId;
+        for(var i in that.selectedPosition){
+          if(that.selectedPosition[i] == pos) graphId = i;
+        }
+        that.UI.showModalList(clones[graphId], 'show diff', function(cloneId, html){
+          html.remove();
+          var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
+          // get graph diff and show it
+          that.publisher.when(e).then(function(graph){
+
+          });
+          that.publisher.publishEvent(e);
+
+        });
+      };
+
       var onSelect = function(position, graphId){
         // set position of old selected graph to 'not to be shown'
         for(var i in that.selectedPosition){
@@ -163,9 +183,11 @@ YOVALUE.GraphMenu.prototype = {
       // add edit and remove buttons to the right of select boxes
       that.UI.createButton('#leftSelectContainer', 'Edit', function(){onEdit('leftGraphView')});
       that.UI.createButton('#leftSelectContainer', 'Remove', function(){onRemove('leftGraphView')});
+      that.UI.createButton('#leftSelectContainer', 'Clones', function(){showClones('leftGraphView')});
       that.UI.createButton('#rightSelectContainer', 'Edit', function(){onEdit('rightGraphView')});
       that.UI.createButton('#rightSelectContainer', 'Remove', function(){onRemove('rightGraphView')});
     });
-    this.publisher.publishEvent(e);
+
+    this.publisher.publishEvent(e1, e2);
   }
 };
