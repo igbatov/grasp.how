@@ -22,12 +22,12 @@ YOVALUE.GraphViewEdgeFactory.prototype = {
       }
     }
    * @param c
-   * @returns {skin.skin.edge.constructor}
+   * @returns {skin.edge.constr}
    */
   create: function(skin, c){
-    return new skin.skin.edge.constructor(
+    return new skin.edge.constr(
       new YOVALUE.GraphViewElement({graphId:c.graphId, elementId:c.edgeId, elementType:'edge'}),
-      YOVALUE.extend(skin.skin.edge.attr, c)
+      YOVALUE.extend(skin.edge.attr, c)
     );
   }
 };

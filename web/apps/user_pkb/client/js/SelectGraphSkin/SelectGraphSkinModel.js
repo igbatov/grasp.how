@@ -1,7 +1,7 @@
-YOVALUE.SelectGraphSkinModel = function(subscriber, publisher, skins){
+YOVALUE.SelectGraphSkinModel = function(subscriber, publisher, constrs){
   this.subscriber = subscriber;
   this.publisher = publisher;
-  this.skins = skins;
+  this.constrs = constrs;
   this.selectedSkins = {}; //key-graph_name, value-layout_name
 
   this.subscriber.subscribe(this,[
@@ -19,14 +19,19 @@ YOVALUE.SelectGraphSkinModel.prototype = {
         if(typeof(this.selectedSkins[graphId]) == 'undefined'){
           var e = this.publisher.createEvent("repository_get_selected_skins", [graphId]);
           this.publisher.when(e).then(function(data){
+            // change constructor names to actual constructors
+            data[graphId].node.constr.withoutIcon = that.constrs[data[graphId].node.constr.withoutIcon];
+            data[graphId].node.constr.withIcon = that.constrs[data[graphId].node.constr.withIcon];
+            data[graphId].edge.constr = that.constrs[data[graphId].edge.constr];
+            data[graphId].nodeLabel.constr = that.constrs[data[graphId].nodeLabel.constr];
+
             that.selectedSkins[graphId] = data[graphId];
-            var skinName = that.selectedSkins[graphId];
-            event.setResponse({skinName:skinName, skin: that.skins[skinName]});
+            //console.log(that.selectedSkins[graphId]);
+            event.setResponse(that.selectedSkins[graphId]);
           });
           this.publisher.publishEvent(e);
         }else{
-          var skinName = this.selectedSkins[graphId];
-          event.setResponse({skinName:skinName, skin: this.skins[skinName]});
+          event.setResponse(this.selectedSkins[graphId]);
         }
 
         break;

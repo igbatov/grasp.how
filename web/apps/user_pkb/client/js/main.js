@@ -124,6 +124,7 @@ var DI = {
   Repository: ['Subscriber', 'Publisher', 'Ajax', 'imageLoader'],
 
   GraphMenu: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery'],
+
   SelectGraphLayoutModel: ['Subscriber', 'Publisher',{
     basicLayout: {
       node:{
@@ -136,21 +137,12 @@ var DI = {
       }
     }
   }],
+
   SelectGraphSkinModel: ['Subscriber', 'Publisher', {
-    basicSkin: {
-      node:{
-        constructor: {'withoutIcon': YOVALUE.GraphViewNode, 'withIcon': YOVALUE.GraphViewNodeImage},
-        attr: {}
-      },
-      edge:{
-        constructor: YOVALUE.GraphViewEdge,
-        attr: {}
-      },
-      nodeLabel:{
-        constructor: YOVALUE.GraphViewNodeLabel,
-        attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
-      }
-    }
+    'GraphViewNode':YOVALUE.GraphViewNode,
+    'GraphViewNodeImage':YOVALUE.GraphViewNodeImage,
+    'GraphViewEdge':YOVALUE.GraphViewEdge,
+    'GraphViewNodeLabel':YOVALUE.GraphViewNodeLabel
   }],
 
   GraphNodeMappingsPubSub: ['Subscriber'],

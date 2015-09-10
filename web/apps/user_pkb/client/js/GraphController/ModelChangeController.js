@@ -129,8 +129,9 @@ YOVALUE.ModelChangeController.prototype = {
             graphModel:graphModel,
             graphNodeAttributes:graphNodeAttributes,
             graphEdgeAttributes:graphEdgeAttributes,
-            scale:Math.min(graphArea.width, graphArea.height)
-          }
+            scale:Math.min(graphArea.width, graphArea.height),
+            skin:skin
+        }
       ));
 
       // Create node label layout for GraphView
@@ -240,19 +241,8 @@ YOVALUE.ModelChangeController.prototype = {
     };
 
     var scale = Math.min(nnGraphViewSettings.graphArea.width, nnGraphViewSettings.graphArea.height);
-    nnGraphViewSettings.decoration = this.publisher.publishResponseEvent(this.publisher.createEvent("get_graph_decoration", {
-      graphModel: decorationGraphModel,
-      graphNodeAttributes:nodes,
-      graphEdgeAttributes:{},
-      scale:scale}));
-
     // we want extra size for the panel nodes
     var size = scale/6;
-    for(i in nnGraphViewSettings.decoration.nodes){
-      nnGraphViewSettings.decoration.nodes[i].size = size;
-      nnGraphViewSettings.decoration.nodeLabels[i].size = 2*size;
-    }
-
     // create node mapping
     var x, l = nnGraphViewSettings.graphArea.width/nodeTypes.length, nodeMapping = {};
     for(i in nodeTypes){
@@ -263,7 +253,6 @@ YOVALUE.ModelChangeController.prototype = {
       area: {centerX: nnGraphViewSettings.graphArea.width/2, centerY: nnGraphViewSettings.graphArea.height/2, width: nnGraphViewSettings.graphArea.width, height: nnGraphViewSettings.graphArea.height},
       mapping: nodeMapping
     };
-
     // node label mapping
     nnGraphViewSettings.nodeLabelMapping = nnGraphViewSettings.nodeMapping;
 
@@ -271,6 +260,20 @@ YOVALUE.ModelChangeController.prototype = {
     var e = this.publisher.createEvent("get_selected_skin", graphId);
     this.publisher.when(e).then(function(s){
       nnGraphViewSettings.skin = s;
+
+      nnGraphViewSettings.decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
+        graphModel: decorationGraphModel,
+        graphNodeAttributes:nodes,
+        graphEdgeAttributes:{},
+        scale:scale,
+        skin:nnGraphViewSettings.skin
+      }));
+
+      for(i in nnGraphViewSettings.decoration.nodes){
+        nnGraphViewSettings.decoration.nodes[i].size = size;
+        nnGraphViewSettings.decoration.nodeLabels[i].size = 2*size;
+      }
+
       that.publisher.publish("draw_graph_view", nnGraphViewSettings);
     });
 

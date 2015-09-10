@@ -22,17 +22,17 @@ YOVALUE.GraphViewNodeFactory.prototype = {
       }
     }
    * @param node settings
-   * @returns {YOVALUE.iGraphViewNode}
+   * @returns {skin.node.constr}
    */
   create: function(skin, node){
     var constructor;
 
-    if(node.icon == null || typeof(node.icon) == 'undefined') constructor = skin.skin.node.constructor.withoutIcon;
-    else constructor = skin.skin.node.constructor.withIcon;
+    if(node.icon == null || typeof(node.icon) == 'undefined') constructor = skin.node.constr.withoutIcon;
+    else constructor = skin.node.constr.withIcon;
 
     return new constructor(
       new YOVALUE.GraphViewElement({graphId:node.graphId, elementId:node.nodeId, elementType:'node'}),
-      YOVALUE.extend(skin.skin.node.attr, node)
+      YOVALUE.extend(skin.node.attr, node)
     );
   }
 };
