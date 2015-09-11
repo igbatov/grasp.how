@@ -16,7 +16,7 @@ class AppUserPkb extends App
     // create new user: my.grasp.how/createNewUser/<login>/<password>/<admin secret>
     }elseif($vars[0] === 'signupSuccess'){
       // send email to me signalling that someone want to signup
-      $this->sendMail("info@mindsplot.com", "igbatov@gmail.com", "someone want to signup", print_r($_REQUEST, true));
+      $this->sendMail("info@grasp.how", "igbatov@gmail.com", "someone want to signup", print_r($_REQUEST, true));
 
       // show signup success page
       include($this->getAppDir("template", false)."/signupSuccess.php");
@@ -328,6 +328,11 @@ class AppUserPkb extends App
         $this->cloneGraph($r['graph_id'], $r['history_step'], $this->getAuthId());
         break;
 
+      case 'getGraphDiff':
+        $r = $this->getRequest();
+        $this->showRawData(json_encode($this->getGraphDiff($r['graphId'], $r['cloneId'])));
+        break;
+
       case 'removeGraph':
         $r = $this->getRequest();
         $this->removeGraph($this->getAuthId(), $r['graph_id']);
@@ -356,6 +361,23 @@ class AppUserPkb extends App
         }
         break;
     }
+  }
+
+  protected function getGraphDiff($graphId, $cloneId){
+    // get last step from history of $graphId
+    $q = "SELECT * FROM graph_history WHERE graph_id = ".$graphId." AND ";
+
+    // get last step from history of $cloneId
+
+    // combine them in one model with 'diff' attribute
+
+    // == create graphViewSettings ==
+
+    // create nodes with tyoes {diff_new, diff_modified, diff_removed}
+
+    // create skin with stickers on node types -  node.attr.typeStickers
+
+    // decoration with colors of original scheme or white if type of node do not equal in original and clone
   }
 
   protected function createNewUser($login, $password){

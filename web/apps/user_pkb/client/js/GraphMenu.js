@@ -140,8 +140,8 @@ YOVALUE.GraphMenu.prototype = {
           html.remove();
           var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
           // get graph diff and show it
-          that.publisher.when(e).then(function(graph){
-
+          that.publisher.when(e).then(function(graphViewSettings, graphModel){
+            console.log(graphViewSettings);
           });
           that.publisher.publishEvent(e);
 

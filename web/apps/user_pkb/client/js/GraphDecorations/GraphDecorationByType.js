@@ -1,17 +1,5 @@
 YOVALUE.GraphDecorationByType = function(){
-  /*
-  this._categoryColors = [
-    ,
-    ,
-    ,
-    ,
-    ,
-    ,
-    "#FFFFE0",
-    "#FFFF00",
-    "#FFA500",
-  ];
-*/
+
 };
 
 
