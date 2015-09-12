@@ -81,7 +81,7 @@ YOVALUE.GraphModel.prototype = {
 
   /**
    *
-   * @param elements is {nodes:{id:iGraphModelTreeNode, ...}, edges: {id:iGraphModelTreeEdge, ...}}
+   * @param elements is {nodes:{id:iGraphModelNode, ...}, edges: {id:iGraphModelEdge, ...}}
    * @returns {boolean}
    */
   setGraphElements: function(elements){
@@ -500,6 +500,123 @@ YOVALUE.GraphModel.prototype = {
       if(this.nodes[i].nodeContentId == nodeContentId) return this.getNode(this.nodes[i].id);
     }
   },
+
+  /**
+   * Examples of changes:
+   * - add new node:
+   * c = {
+      nodes : { add : { new_node_1: {id:'new_node_1'} }, remove : [], update : {} },
+      edges : { add : { new_edge_1: {id:'new_edge_1', source:1, target:'new_node_1'} }, remove : [], update : {} }
+    }
+   * - remove node:
+   * c = {
+      nodes : { add : { }, remove : [ 4 ], update : {} },
+      edges : { add : { }, remove : [], update : {} }
+    }
+   * @param c {YOVALUE.iGraphModelChanges}
+   * @return {changes:{YOVALUE.iGraphModelChanges}, rollback:{YOVALUE.iGraphModelChanges}}
+   */
+  applyChanges: function(c){
+    if(!YOVALUE.implements(c, YOVALUE.iGraphModelChanges)) YOVALUE.errorHandler.throwError('');
+    var i, e, ch,
+        changes = YOVALUE.clone(YOVALUE.iGraphModelChanges),
+        rollback = {
+          name: this.getName(),
+          nodes: YOVALUE.clone(this.getNodes()),
+          edges: YOVALUE.clone(this.getEdges()),
+          nodeTypes: YOVALUE.clone(this.getNodeTypes()),
+          edgeTypes: YOVALUE.clone(this.getEdgeTypes()),
+          nodeDefaultType: this.getNodeDefaultType(),
+          edgeDefaultType: this.getEdgeDefaultType(),
+          isEditable: this.getIsEditable(),
+          attributes: this.getAttributes()
+        },
+    // Every new node or edge do not have real id yet.
+    // Nevertheless instructions in nodes.update, edges.add, edges.update can have reference
+    // to this not-yet-created nodes by means of "virtual ids" or "temporary ids"
+    // i.e. ids that exists only in instructions "c".
+    // When new nodes and edges from "c" added to graph its "virtual ids" are substituted by "real ids"
+        virtualNodeIds = {}, //correspondence between virtual ids of nodes and real one
+        virtualEdgeIds = {}; //correspondence between virtual ids of edges and real one
+
+    //create nodes
+    for(i in c.nodes.add){
+      e = c.nodes.add[i];
+      //check that virtual id do not exist in real node id pool
+      if(this._isNodeIdExists(i)) YOVALUE.errorHandler.throwError('Virtual node id is already exists in real node id pool. To prevent virtual id overlapping with real id try to specify it in none-number form. For example - "new_ID". It will be changed to number after creation.');
+      ch = this.addNode(e);
+      if(ch){
+        virtualNodeIds[i] = +YOVALUE.getObjectKeys(ch.nodes.add)[0];
+        changes = YOVALUE.deepmerge(ch, changes);
+      }
+    }
+    //create edges
+    for(i in c.edges.add){
+      e = c.edges.add[i];
+      //check that virtual id do not exist in real edge id pool
+      if(this._isEdgeIdExists(i)) YOVALUE.errorHandler.throwError('Virtual edge id is already exists in real edge id pool. To prevent virtual id overlapping with real id try to specify it in none-number form. For example - "new_ID". It will be changed to number after creation.');
+      //if edge has virtual source and target - change it to real one
+      if(typeof(virtualNodeIds[e.target]) != 'undefined') e.target = +virtualNodeIds[e.target];
+      if(typeof(virtualNodeIds[e.source]) != 'undefined') e.source = +virtualNodeIds[e.source];
+      ch = this.addEdge(e);
+      if(ch){
+        virtualEdgeIds[i] = YOVALUE.getObjectKeys(ch.edges.add)[0];
+        changes = YOVALUE.deepmerge(ch, changes);
+      }
+    }
+
+    //update nodes
+    for(i in c.nodes.update){
+      var id;
+      e = c.nodes.update[i];
+      //consider that we may want to update node that was just added
+      id = typeof(virtualNodeIds[i]) != 'undefined' ? +virtualNodeIds[i] : +i;
+      ch = this.updateNode(id, e);
+      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+    }
+    //update edges
+    for(i in c.edges.update){
+      e = c.edges.update[i];
+      //consider that we may want to update edge that was just added
+      id = typeof(virtualEdgeIds[i]) != 'undefined' ? +virtualEdgeIds[i] : +i;
+      //and source or target can be virtual too
+      if(typeof(e.target) !== 'undefined' && typeof(virtualNodeIds[e.target]) != 'undefined') e.target = virtualNodeIds[e.target];
+      if(typeof(e.source) !== 'undefined' && typeof(virtualNodeIds[e.source]) != 'undefined') e.source = virtualNodeIds[e.source];
+
+      ch = this.updateEdge(id, e);
+      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+    }
+
+
+    //remove nodes
+    for(i in c.nodes.remove){
+      id = c.nodes.remove[i];
+      //consider that we may want to remove node that was just added
+      id = typeof(virtualNodeIds[id]) != 'undefined' ? +virtualNodeIds[id] : +id;
+      ch = this.removeNode(id);
+      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+    }
+    //remove edges
+    for(i in c.edges.remove){
+      id = c.edges.remove[i];
+      //consider that we may want to remove edge that was just added
+      id = typeof(virtualEdgeIds[id]) != 'undefined' ? +virtualEdgeIds[id] : +id;
+      ch = this.removeEdge(id);
+      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+    }
+
+    // TODO: implement some reasonable check for new graph correctness here
+    if(0){
+      this.init(rollback.name, rollback.nodeTypes, rollback.edgeTypes, rollback.nodeDefaultType, rollback.edgeDefaultType, rollback.isEditable, rollback.attributes);
+      this.setGraphElements({nodes: rollback.nodes, edges: rollback.edges});
+      YOVALUE.errorHandler.notifyError('Changes are not valid');
+      YOVALUE.errorHandler.notifyError(c);
+      return YOVALUE.clone(YOVALUE.iGraphModelChanges);
+    }
+
+    return changes;
+  },
+
 
   _getFreeId: function(type){
     var max_id = -1;

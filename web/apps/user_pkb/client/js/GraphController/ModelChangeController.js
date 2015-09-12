@@ -182,12 +182,13 @@ YOVALUE.ModelChangeController.prototype = {
       }
 
       // Remove root and its edges from graph
+      /*
       var rootEdges = graphModel.getEdgesToChildIds(graphModel.getRootNode().id);
       for(var i in rootEdges){
         delete edges[rootEdges[i]];
       }
       delete nodes[graphModel.getRootNode().id];
-
+*/
       var graphViewSettings = {
         graphId: graphId,
         graphModel: {nodes: nodes, edges: edges},

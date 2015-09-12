@@ -43,7 +43,7 @@ foreach($rows as $row){
     )
   );
 
-  $update_query = "UPDATE graph_settings SET settings = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$row['id'];
+  $update_query = "UPDATE graph_settings SET settings = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE graph_id = ".$row['id'];
   echo $update_query."\n\n";
   $db->execute($update_query);
 }

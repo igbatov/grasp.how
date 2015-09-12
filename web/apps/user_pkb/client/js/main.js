@@ -9,7 +9,7 @@ var Modules = {
   Subscriber: YOVALUE.Subscriber,
   Publisher: YOVALUE.Publisher,
 
-  GraphModelFactory: YOVALUE.GraphModelTreeFactory,
+  GraphModelFactory: YOVALUE.GraphModelFactory,
   GraphElementsContent: YOVALUE.GraphElementsContent,
   GraphModelsPubSub: YOVALUE.GraphModelsPubSub,
 
@@ -138,12 +138,27 @@ var DI = {
     }
   }],
 
-  SelectGraphSkinModel: ['Subscriber', 'Publisher', {
-    'GraphViewNode':YOVALUE.GraphViewNode,
-    'GraphViewNodeImage':YOVALUE.GraphViewNodeImage,
-    'GraphViewEdge':YOVALUE.GraphViewEdge,
-    'GraphViewNodeLabel':YOVALUE.GraphViewNodeLabel
-  }],
+  SelectGraphSkinModel: ['Subscriber', 'Publisher',
+    {
+      'GraphViewNode':YOVALUE.GraphViewNode,
+      'GraphViewNodeImage':YOVALUE.GraphViewNodeImage,
+      'GraphViewEdge':YOVALUE.GraphViewEdge,
+      'GraphViewNodeLabel':YOVALUE.GraphViewNodeLabel
+    },
+    {
+      "node":{
+        "constr":{"withoutIcon":"GraphViewNode","withIcon":"GraphViewNodeImage"},
+        "attr":{"typeColors":{"text":"#00BFFF","question":"#87CEFA","value":"#3CB371","fact":"#8FBC8F","hypothesis":"#FF69B4","belief":"#FF0000"}}},
+      "edge":{
+        "constr":"GraphViewEdge",
+        "attr":{"typeColors":{"link":"#00BFFF","in_favour_of":"#87CEFA","contrary_to":"#3CB371"}}},
+      "nodeLabel":{
+        "constr":"GraphViewNodeLabel",
+        "attr":{"font":"Calibri","fill":"#BBBBBB","maxSize":24
+        }
+      }
+    }
+  ],
 
   GraphNodeMappingsPubSub: ['Subscriber'],
   GraphNodeLabelMappingsPubSub: ['Subscriber'],
