@@ -1,11 +1,11 @@
 /**
  * Constructs canvasDrawer shape for graph node.
  * Implements IGraphViewNode interface so that GraphView knows how to work with it.
- * @param args - {nodeId, nodeType, graphId, x, y, size, color, opacity}
+ * @param args - {nodeId, nodeType, graphId, x, y, size, color, opacity, stickers} merged with skin.node.attr definitions
  * @constructor
  */
 YOVALUE.GraphViewNodeImage = function(graphViewElement, args){
-  this.nodeType = args.nodeType;
+  this.stickers = args.stickers; // definition of stickers pictures in a form {'stickerName':<svg picture>, ...}
 
   this.graphViewElement = graphViewElement;
   YOVALUE.mixin(graphViewElement, this);

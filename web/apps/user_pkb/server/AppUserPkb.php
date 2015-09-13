@@ -1,7 +1,10 @@
 <?php
+include("GraphDiffCreator.php");
+
 class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
+  private $node_attributes;
 
   public function showView(){
     parent::showView();
@@ -54,6 +57,8 @@ class AppUserPkb extends App
       include($this->getAppDir("template", false)."/login.php");
       exit();
     }
+
+    $this->node_attributes = array('type', 'label', 'reliability', 'importance', 'has_icon');
 
     // else process action defined by url
     switch($action){
@@ -119,8 +124,25 @@ class AppUserPkb extends App
           $tmp = explode("-", $content_id);
           $graph_id = $tmp[0];
           $node_content_id = $tmp[1];
-          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, type, label, reliability, importance, has_icon FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'");
+          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attributes).", cloned_from_graph_id, cloned_from_node_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'");
           $node_row = $node_rows[0];
+
+          // if node was cloned and some its attributes is null this simply means it was just not modified -  so take it from original node
+          if($node_row['cloned_from_graph_id'] != null){
+            $attributes_to_borrow = array();
+            foreach($this->node_attributes as $attribute){
+              if($node_row[$attribute] == null) $attributes_to_borrow[] = $attribute;
+            }
+            // some is null
+            if(count($attributes_to_borrow)>0){
+              $original_node_rows = $this->db->execute("SELECT ".implode(',',$attributes_to_borrow)." FROM node_content WHERE graph_id = '".$node_row['cloned_from_graph_id']."' AND node_content_id = '".$node_row['cloned_from_node_content_id']."'");
+              $original_node_row = $original_node_rows[0];
+              foreach($attributes_to_borrow as $attribute){
+                $node_row[$attribute] = $original_node_row[$attribute];
+              }
+            }
+          }
+
           $node_row['iconSrc'] = $node_row['has_icon'] == 1 ? 'getIcon/?data="'.$content_id.'"' : null;
           unset($node_row['has_icon']);
           $nodes[$content_id] = $node_row;
@@ -218,7 +240,7 @@ class AppUserPkb extends App
         if($access_level == 'read') exit();
 
         $r = $this->getRequest();
-        $query = 'INSERT INTO graph_history SET graph_id = "'.$r['graphId'].'", step = "'.$r['step'].'", timestamp = "'.$r['timestamp'].'", elements = "'.$this->db->escape(json_encode($r['elements'])).'", node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
+        $query = 'INSERT INTO graph_history SET graph_id = "'.$r['graphId'].'", step = "'.$r['step'].'", timestamp = "'.$r['timestamp'].'", elements = "'.$this->db->escape(json_encode($r['elements'], JSON_FORCE_OBJECT)).'", node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
         if($this->db->execute($query)){
           $this->showRawData('success');
         }else{
@@ -230,7 +252,7 @@ class AppUserPkb extends App
         if($access_level == 'read') exit();
 
         $r = $this->getRequest();
-        $query = 'UPDATE graph_history SET node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'" WHERE graph_id = "'.$r['graphId'].'" AND step = "'.$r['step'].'"';
+        $query = 'UPDATE graph_history SET node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'], JSON_FORCE_OBJECT)).'" WHERE graph_id = "'.$r['graphId'].'" AND step = "'.$r['step'].'"';
         if($this->db->execute($query)){
           $this->showRawData('success');
         }else{
@@ -364,20 +386,26 @@ class AppUserPkb extends App
   }
 
   protected function getGraphDiff($graphId, $cloneId){
-    // get last step from history of $graphId
-    $q = "SELECT * FROM graph_history WHERE graph_id = ".$graphId." AND ";
+    // == get last step from history of $graphId and $cloneId ==
 
-    // get last step from history of $cloneId
+    $original = $this->getGraphsHistoryChunk(array($graphId=>null))[0];
+    $clone = $this->getGraphsHistoryChunk(array($cloneId=>null))[0];
 
-    // combine them in one model with 'diff' attribute
+    $graph_diff_creator = new GraphDiffCreator($this->db, $original, $clone, $this->node_attributes);
+    // == combine them in one model that has 'diff' attribute ==
+
+    // create array of nodes with all nodes from original and new nodes from clone
+
+
+    // create array of edges with all edges from original and new from clone
 
     // == create graphViewSettings ==
 
-    // create nodes with tyoes {diff_new, diff_modified, diff_removed}
+    // create nodes with types of form diff_originalContentId_clonedContentId
 
-    // create skin with stickers on node types -  node.attr.typeStickers
+    // create skin with stickers of types 'new', 'modified', 'removed' (defined in  node.attr.typeStickers)
 
-    // decoration with colors of original scheme or white if type of node do not equal in original and clone
+    // decoration with colors of original scheme and sticker names that shows if node is new, modified or removed
   }
 
   protected function createNewUser($login, $password){
@@ -399,16 +427,13 @@ class AppUserPkb extends App
     $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."', created_at = NOW()";
     $graph_id = $this->db->execute($q);
 
-    $elements = '{"nodes":{"1":{"id":1,"nodeContentId":"'.$graph_id.'-1","isRoot":true}},"edges":{}}';
+    $elements = '{"nodes":{},"edges":{}}';
     $q = "INSERT INTO graph_history SET graph_id = '".$graph_id."', step = '1', timestamp = unix_timestamp(NOW()), elements = '".$elements."'";
     $this->db->execute($q);
 
     $default_skin = '{"node":{"constr":{"withoutIcon":"GraphViewNode","withIcon":"GraphViewNodeImage"},"attr":{"typeColors":{"fact":"#00BFFF","research":"#87CEFA","theory":"#3CB371","hypothesis":"#8FBC8F","illustration":"#FF69B4","theory_problem":"#FF0000","question":"#FFFFE0","to_read":"#FFFF00","best_known_practice":"#FFA500"}}},"edge":{"constr":"GraphViewEdge","attr":{"typeColors":{"link":"#00BFFF","in_favour_of":"#87CEFA","contrary_to":"#3CB371"}}},"nodeLabel":{"constr":"GraphViewNodeLabel","attr":{"font":"Calibri","fill":"#BBBBBB","maxSize":24}}}';
     $settings = '{"skin":'.$default_skin.',"layout":"basicLayout","position":"not to be shown"}';
     $q = "INSERT INTO graph_settings SET graph_id = '".$graph_id."', settings = '".$settings."'";
-    $this->db->execute($q);
-
-    $q = "INSERT INTO node_content SET graph_id = '".$graph_id."', node_content_id = 1, 	type = 'text',	label = 'root', `reliability` = 0, `importance` = 0, text = '', has_icon = 0, created_at = NOW()";
     $this->db->execute($q);
 
     return true;
@@ -451,7 +476,7 @@ class AppUserPkb extends App
     $this->db->execute($q);
 
     // copy all data in nodes except text
-    $q = "INSERT INTO node_content (graph_id, node_content_id, 	type,	label, reliability, importance, text, has_icon, cloned_from_graph_id, cloned_from_node_content_id, updated_at, created_at) SELECT '".$new_graph_id."', node_content_id,	type,	label, reliability, importance, NULL, has_icon, '".$graph_id."', node_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id IN ('".implode("','",$node_content_ids)."')";
+    $q = "INSERT INTO node_content (graph_id, node_content_id, ".explode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_node_content_id, updated_at, created_at) SELECT '".$new_graph_id."', node_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', node_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id IN ('".implode("','",$node_content_ids)."')";
     $this->db->execute($q);
 
     // just copy edges as is
@@ -597,8 +622,7 @@ class AppUserPkb extends App
 
       'GraphModel/interfaces.js',
       'GraphModel/GraphModel.js',
-      'GraphModel/GraphModelTree.js',
-      'GraphModel/GraphModelTreeFactory.js',
+      'GraphModel/GraphModelFactory.js',
       'GraphModel/GraphModelsPubSub.js',
 
       'ViewManager.js',
@@ -640,11 +664,8 @@ class AppUserPkb extends App
       'GraphController/GraphControllerPubSub.js',
 
       'GraphNodeMappings/GraphNodeMappingsPubSub.js',
-      'GraphNodeMappings/GraphNodeMappingTreeNode.js',
-      'GraphNodeMappings/iGraphNodeMappingTreeModel.js',
       'GraphNodeMappings/GraphNodeMappingForceDirected.js',
       'GraphNodeMappings/iGraphNodeMappingForceDirectedModel.js',
-      'GraphNodeMappings/GraphNodeMappingTree.js',
       //'GraphNodeMappings/iMapping.js',
 
       'GraphNodeLabelMappings/GraphNodeLabelMappingsPubSub.js',
