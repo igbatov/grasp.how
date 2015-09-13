@@ -135,18 +135,6 @@ YOVALUE.GraphModelsPubSub.prototype = {
         else if(event.getData()['type'] == 'removeEdge'){
           c.edges.remove = [event.getData()['elementId']];
         }
-        // change nodes skeleton parent
-        else if(event.getData()['type'] == 'changeSkeletonParent'){
-          var parentEdges = graphModel.getEdges(graphModel.getEdgesFromParentIds(event.getData()['nodeId']));
-          for(var i in parentEdges){
-            if(parentEdges[i].isSkeleton){
-              c.edges.update[i] = {isSkeleton: false};
-            }
-            if(parentEdges[i].source == event.getData()['newParentId']){
-              c.edges.update[i] = {isSkeleton: true};
-            }
-          }
-        }
 
         // If changes not applied yet, apply it now
         if(!changesApplied) this.applyChanges(event.getData()['type'], c, graphModel);

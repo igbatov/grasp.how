@@ -123,7 +123,6 @@ YOVALUE.ModelChangeController.prototype = {
       layout = l;
       graphNodeAttributes = c['nodes'];
       graphEdgeAttributes = c['edges'];
-
       // Decorate nodes and edges with size and color
       decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
             graphModel:graphModel,
@@ -133,7 +132,6 @@ YOVALUE.ModelChangeController.prototype = {
             skin:skin
         }
       ));
-
       // Create node label layout for GraphView
       for(nodeId in graphNodes){
         nodeLabels[graphNodes[nodeId].id] = {id: graphNodes[nodeId].id, label: graphNodeAttributes[graphNodes[nodeId].nodeContentId].label, size: decoration.nodeLabels[nodeId].size};
@@ -141,13 +139,11 @@ YOVALUE.ModelChangeController.prototype = {
 
       nodeLabelAreaList = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_view_label_area", {nodeLabels:nodeLabels, skin:skin}));
       nodeMappingHint = that.publisher.publishResponseEvent(that.publisher.createEvent("graph_history_get_node_mapping", {graphId:graphModel.getGraphId()}));
-
       // Create node layout for GraphView
       nodeMapping = that.publisher.publishResponseEvent(that.publisher.createEvent("get_node_mapping", {graphId:graphModel.getGraphId(), model:graphModel, hint:nodeMappingHint, layout:layout, nodeLabelAreaList:nodeLabelAreaList, area:graphArea}));
       // If node mapping module actually changed nodeMappingHint, then save it in repository
       // so that the next time we will not make node mapping module working again
       if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish("node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping});
-
       // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
       var nodes = {};
       var graphNode;
@@ -175,20 +171,11 @@ YOVALUE.ModelChangeController.prototype = {
           id: graphEdge.id,
           source: graphEdge.source,
           target: graphEdge.target,
-          isSkeleton: graphEdge.isSkeleton,
           type: graphEdgeAttributes[graphEdge.edgeContentId].type,
           edgeContentId: graphEdge.edgeContentId
         };
       }
 
-      // Remove root and its edges from graph
-      /*
-      var rootEdges = graphModel.getEdgesToChildIds(graphModel.getRootNode().id);
-      for(var i in rootEdges){
-        delete edges[rootEdges[i]];
-      }
-      delete nodes[graphModel.getRootNode().id];
-*/
       var graphViewSettings = {
         graphId: graphId,
         graphModel: {nodes: nodes, edges: edges},
@@ -198,7 +185,6 @@ YOVALUE.ModelChangeController.prototype = {
         decoration: decoration,
         skin: skin
       };
-
       that.publisher.publish("draw_graph_view", graphViewSettings);
     });
 

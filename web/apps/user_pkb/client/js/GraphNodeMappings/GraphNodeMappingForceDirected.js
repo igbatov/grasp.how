@@ -67,6 +67,11 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
       return hintMapping;
     }
 
+    if(YOVALUE.getObjectLength(nodes) == 0){
+      var mapping = {area:this.area, mapping:{}};
+      return mapping;
+    }
+
     // In a special case when hint is null and there is only one node in graph, place it in the center of area
     if(YOVALUE.getObjectLength(nodes) == 1){
       var nodeIds = YOVALUE.getObjectKeys(nodes);
