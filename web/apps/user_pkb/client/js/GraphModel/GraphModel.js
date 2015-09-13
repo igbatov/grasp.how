@@ -429,6 +429,10 @@ YOVALUE.GraphModel.prototype = {
     return edgesFromParentIds;
   },
 
+  getNeighbourEdgeIds: function(nodeId){
+    return this.getEdgesFromParentIds(nodeId).concat(this.getEdgesToChildIds(nodeId));
+  },
+
   /**
    * Get edge id by its source node id and target node id
    * @param srcNodeId
