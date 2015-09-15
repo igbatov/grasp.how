@@ -40,8 +40,8 @@ YOVALUE.GraphDecorationByType.prototype = {
       decoration = {scale: scale, nodes:{}, edges:{}, nodeLabels:{}},
       nodes = graphModel.getNodes(),
       edges = graphModel.getEdges(),
-      size = Math.min(scale/(2*YOVALUE.getObjectLength(nodes)), 5),//we do not want huge node size, set upper limit to 5 pixels
-      labelSize = 1.8*size,
+      size = Math.min(scale/(YOVALUE.getObjectLength(nodes)), 5),//we do not want huge node size, set upper limit to 5 pixels
+      labelSize = 3*size,
       skin = skin;
 
     for(i in nodes){
@@ -52,7 +52,7 @@ YOVALUE.GraphDecorationByType.prototype = {
       if(reliability == 0) reliability = 99;
       if(importance == 0) importance = 99;
 
-      decoration.nodes[i] = {color:color, borderColor:color, opacity:reliability/99, size:Math.max(1, size*importance/50), stickers:graphNodeAttributes[nodes[i].nodeContentId].stickers};
+      decoration.nodes[i] = {color:color, borderColor:color, opacity:reliability/99, size:Math.max(1, size*importance/20), stickers:graphNodeAttributes[nodes[i].nodeContentId].stickers};
       decoration.nodeLabels[i] = {opacity: 1, size:Math.max(1, labelSize*importance/50)};
     }
     for(i in edges){

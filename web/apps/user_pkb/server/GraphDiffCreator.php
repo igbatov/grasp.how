@@ -13,9 +13,9 @@ class GraphDiffCreator{
     $this->node_attributes = $node_attributes;
 
     // fill in all_originally_cloned_node_content_ids (remember, some of them may be already removed in $this->clone['element']['nodes'])
-    $q = "SELECT cloned_from_node_content_id FROM node_content WHERE cloned_from_graph_id = ".$this->original['graph_id'];
+    $q = "SELECT cloned_from_node_content_id FROM node_content WHERE cloned_from_graph_id = ".$this->original['graphId'];
     $rows = $this->db->execute($q);
-    foreach($rows as $row) $this->all_originally_cloned_node_content_ids[] = $row['node_content_id'];
+    foreach($rows as $row) $this->all_originally_cloned_node_content_ids[] = $row['cloned_from_node_content_id'];
 
     // check that they indeed clones
 
@@ -24,12 +24,39 @@ class GraphDiffCreator{
   public function getDiffGraph(){
     $nodes = $this->getDiffNodes();
     $edges = $this->getDiffEdges($nodes);
+    var_dump($nodes);
+    var_dump($edges);
   }
 
   public function getDiffEdges($nodes){
     $combined_edges = array();
+
     foreach($this->original['elements']['edges'] as $edge){
-     //$combined_edges[] =
+      $s = $this->findIndex($nodes, 'originalContentId', explode('-', $this->original['elements']['nodes'][$edge['source']]['nodeContentId'])[1]);
+      $t = $this->findIndex($nodes, 'originalContentId', explode('-', $this->original['elements']['nodes'][$edge['target']]['nodeContentId'])[1]);
+      $combined_edges[$s."-".$t] = array('source'=>$s, 'target'=>$t, 'edgeContentId'=>$edge['edgeContentId']);
+    }
+
+    foreach($this->clone['elements']['edges'] as $edge){
+      $s = $this->findIndex($nodes, 'clonedContentId', explode('-', $this->clone['elements']['nodes'][$edge['source']]['nodeContentId'])[1]);
+      $t = $this->findIndex($nodes, 'clonedContentId', explode('-', $this->clone['elements']['nodes'][$edge['target']]['nodeContentId'])[1]);
+      $combined_edges[$s."-".$t] = array('source'=>$s, 'target'=>$t, 'edgeContentId'=>$edge['edgeContentId']);
+    }
+
+    // format edge array in a standard way
+    $count = 0;
+    foreach($combined_edges as $i => $edge){
+      $count++;
+      $combined_edges[$count] = array('id'=>$count, 'source'=>$edge['source'], 'target'=>$edge['target'], 'edgeContentId'=>$edge['edgeContentId']);
+      unset($combined_edges[$i]);
+    }
+
+    return $combined_edges;
+  }
+
+  private function findIndex($array, $key, $value){
+    foreach($array as $index=>$row){
+      if($row[$key] == $value) return $index;
     }
   }
 

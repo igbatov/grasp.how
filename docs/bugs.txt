@@ -19,7 +19,6 @@
 - если править название а потом мышкой навести на этот же узел, то остается старое название
 - зачем нужна инструкция node.update, если YOVALUE.iGraphModelChanges не предполагает даже nodes.update изменений?
 - зачем вообще в GraphModel есть nodeTypes, edgeTypes, nodeDefautType, edgeDefautType если в YOVALUE.iGraphModelEdge, YOVALUE.iGraphModelNode нет поля type?
-- зачем нужна структура дерева (параметры isRoot узла и isSkeleton ребра), мы же все равно используем ручное расположение и force-layout?
 
 TODO нужные фичи
 - сделать timeline
