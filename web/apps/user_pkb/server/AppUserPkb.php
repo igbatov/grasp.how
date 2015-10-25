@@ -392,15 +392,14 @@ class AppUserPkb extends App
     $clone = $this->getGraphsHistoryChunk(array($cloneId=>null))[0];
 
     $graph_diff_creator = new GraphDiffCreator($this->db, $original, $clone, $this->node_attributes);
-    $graph_diff_creator->getDiffGraph();
-    // == combine them in one model that has 'diff' attribute ==
-
-    // create array of nodes with all nodes from original and new nodes from clone
-
-
-    // create array of edges with all edges from original and new from clone
+    $graphModel = $graph_diff_creator->getDiffGraph();
 
     // == create graphViewSettings ==
+    $graphViewSettings = array(
+      'graphId' => 'diff_'.$graphId.'_'.$cloneId,
+      'graphModel' => $graphModel,
+      'settings'
+    );
 
     // create nodes with types of form diff_originalContentId_clonedContentId
 

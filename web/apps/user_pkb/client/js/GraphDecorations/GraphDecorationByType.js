@@ -24,11 +24,11 @@ YOVALUE.GraphDecorationByType.prototype = {
   /**
    *
    * @param graphModel - {getNodeTypes: function(){}, getEdgeTypes: function(){}, getNodes: function(){}, getEdges: function(){}}
-   * @param graphNodeAttributes - {1: {type:, reliability:, importance:}, ...}
+   * @param graphNodeAttributes - {1: {type:, reliability:, importance:, stickers:}, ...}
    * @param graphEdgeAttributes - {1: {type: }, ...}
    * @param scale
-   * @param skin {skinName, skin:{edge: , node: , nodeLabel: }}
-   * @returns {scale: sc, {nodes: {id:{color:c, borderColor:b, opacity:o, size:s}, ...}, edges: {id: {color:c, borderColor:b, opacity:o, width:s}, ...}, nodeLabels: {id: {size: s}}}} - size and width is in (0, sc] interval
+   * @param skin - {skinName, skin:{edge: , node: , nodeLabel: }}
+   * @returns {scale: sc, {nodes: {id:{color:c, borderColor:b, opacity:o, size:s, stickers:stickers}, ...}, edges: {id: {color:c, borderColor:b, opacity:o, width:s}, ...}, nodeLabels: {id: {size: s}}}} - size and width is in (0, sc] interval
    */
   getDecoration: function(graphModel, graphNodeAttributes, graphEdgeAttributes, scale, skin){
 
@@ -41,8 +41,7 @@ YOVALUE.GraphDecorationByType.prototype = {
       nodes = graphModel.getNodes(),
       edges = graphModel.getEdges(),
       size = Math.min(scale/(YOVALUE.getObjectLength(nodes)), 5),//we do not want huge node size, set upper limit to 5 pixels
-      labelSize = 3*size,
-      skin = skin;
+      labelSize = 3*size;
 
     for(i in nodes){
       type = graphNodeAttributes[nodes[i].nodeContentId].type;
