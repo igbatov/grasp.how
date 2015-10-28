@@ -125,7 +125,11 @@ class GraphDiffCreator{
       }
       // if it was brand new node
       else{
-        $combined_nodes[] = array('contentId'=>array('original'=>null, 'clone'=>$this->clone["graphId"]."-".$row['node_content_id'], 'attributes'=>array('stickers'=>['added_by_cloner']));
+        $combined_nodes[] = array('contentId'=>array(
+          'original'=>null,
+          'clone'=>$this->clone["graphId"]."-".$row['node_content_id'],
+          'attributes'=>array('stickers'=>['added_by_cloner']
+          )));
       }
     }
 

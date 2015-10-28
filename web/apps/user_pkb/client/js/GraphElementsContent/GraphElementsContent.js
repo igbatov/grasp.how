@@ -2,7 +2,10 @@
  * This module is used by node editor to get/set graph nodes contents and attributes
  * It encapsulates read/write from/to repository and caching
  * You can think of it as extra layer above repository that implements caching and some extra logic for addNode, addIcon events
- * Node contentId has the form 'graphId-contentId' or 'graphId-contentId/graphId-contentId' for diff graph
+ *
+ * Though client (javascript) code do not rely on structure of contentId, I describe it here for reference - contentId has the form 'graphId-contentId' or 'graphId-contentId/graphId-contentId' for diff graph.
+ * Client code only implies that every node has unique (global) string contentId across all graphs
+ *
  * @param subscriber
  * @param publisher
  * @constructor
