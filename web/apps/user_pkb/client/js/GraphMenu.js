@@ -181,7 +181,7 @@ YOVALUE.GraphMenu.prototype = {
       that.UI.createSelectBox('#rightSelectContainer', 'rightGraphView', items, onSelect, rightGraphId);
 
       // add edit and remove buttons to the right of select boxes
-      that.UI.createButton('#leftSelectContainer', 'Edit', function(){onEdit('leftGraphView')});
+      that.UI.createButton('#leftSelectContainer', 'Edit name', function(){onEdit('leftGraphView')});
       that.UI.createButton('#leftSelectContainer', 'Remove', function(){onRemove('leftGraphView')});
       that.UI.createButton('#leftSelectContainer', 'Clones', function(){showClones('leftGraphView')});
       that.UI.createButton('#rightSelectContainer', 'Edit', function(){onEdit('rightGraphView')});
