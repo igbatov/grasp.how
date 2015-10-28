@@ -3,8 +3,6 @@
  * @type {Object}
  */
 YOVALUE.iGraphView = {
-  remove: function(){},
-
   setNodeMapping: function(){},
   setNodeLabelMapping: function(){},
   setModel: function(){},

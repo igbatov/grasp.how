@@ -11,5 +11,6 @@ YOVALUE.iGraphNodeContent = {
   importance: String(),
   reliability: String(),
   text: String(),
-  icon: Object()
+  icon: Object(),
+  stickers: Object()
 };

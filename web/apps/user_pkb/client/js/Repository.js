@@ -60,7 +60,9 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
     'repository_get_graphs_clone_list',
 
     'graph_history_item_added',
-    'repository_update_node_mapping'
+    'repository_update_node_mapping',
+
+    'get_graph_diff'
 
   ]);
 };
@@ -74,6 +76,10 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'repository_update_node_mapping'){
       this.pendingRequests.push({url:'updateNodeMapping', data:e.getData(), callback:function(){}});
+      this.sendPendingRequests();
+
+    }else if(name == 'get_graph_diff'){
+      this.pendingRequests.push({url:'getGraphDiff', data:e.getData(), callback:function(){}});
       this.sendPendingRequests();
 
     }else if(name == 'graph_element_content_changed'){

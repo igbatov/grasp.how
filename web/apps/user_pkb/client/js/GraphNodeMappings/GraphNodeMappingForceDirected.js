@@ -31,7 +31,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
     if(hintMapping && !YOVALUE.deepCompare(hintMapping.area, area)) hintMapping = YOVALUE.MappingHelper.adjustMappingToArea(hintMapping, area);
 
     // If for some nodes we already have fixed coordinates that should not be changed (hint mapping)
-    // then place all the rest unmapped node in random place around it random adjacent node
+    // then place all the rest unmapped node in random place around its random adjacent node
     if(hintMapping){
       var radius = area.height/10;
 
@@ -39,7 +39,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
       for(var i in nodes){
         if(typeof(hintMapping.mapping[nodes[i].id]) == 'undefined'){
           // find any adjacent node to this nodes[i]
-          var adjNode = null;
+          var adjNode = {x:area.centerX, y:area.centerY};
           for(var j in edges){
             if(edges[j].source == nodes[i].id) adjNode = hintMapping.mapping[edges[j].target];
             if(edges[j].target == nodes[i].id) adjNode = hintMapping.mapping[edges[j].source];
@@ -67,7 +67,12 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
       return hintMapping;
     }
 
-    // In a special case when hint is null and there is only one node in graph (root), place it in the center of area
+    if(YOVALUE.getObjectLength(nodes) == 0){
+      var mapping = {area:this.area, mapping:{}};
+      return mapping;
+    }
+
+    // In a special case when hint is null and there is only one node in graph, place it in the center of area
     if(YOVALUE.getObjectLength(nodes) == 1){
       var nodeIds = YOVALUE.getObjectKeys(nodes);
       var mapping = {area:{}, mapping:{}};
@@ -76,7 +81,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
       return mapping;
     }
 
-    // Case when we have no hint mapping at all - use force directed layout to place nodes
+    // Case when we have no hint mapping and there are more than on node - use force directed layout to place nodes
     // create point from nodes
     var x, y, i, sector = Math.PI/YOVALUE.getObjectLength(nodes), count = 0;
     var hasUnmappedNodesInHint = false;

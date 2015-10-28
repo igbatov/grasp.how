@@ -4,7 +4,6 @@
  * - changes models on 'request_for_graph_model_change'
  * - return various additional info about graph on events
  *    'get_graph_shortest_paths',
- *    'get_graph_tree_depth',
  *     and so on...
  * - fires 'graph_model_initialized' and 'graph_model_changed' events
  *
@@ -109,14 +108,20 @@ YOVALUE.GraphModelsPubSub.prototype = {
           c = event.getData()['changes'];
         // add new node
         }else if(event.getData()['type'] == 'addNode'){
-          var e = this.publisher.createEvent("request_for_graph_element_content_change", {type: 'addEdge', graphId:graphId, elementType: graphModel.getEdgeDefaultType()});
-          this.publisher.when(e).then(function(edgeContent){
+          if(event.getData()['parentNodeId'] == null){
             c.nodes.add = {'newNode': {nodeContentId: event.getData()['nodeContentId']}};
-            c.edges.add = {'newEdge': {edgeContentId: edgeContent.edgeContentId, source: event.getData()['parentNodeId'], target:'newNode'}};
-            that.applyChanges(event.getData()['type'], c, graphModel);
-            changesApplied = true;
-          });
-          this.publisher.publishEvent(e);
+
+          }else{
+            var e = this.publisher.createEvent("request_for_graph_element_content_change", {type: 'addEdge', graphId:graphId, elementType: graphModel.getEdgeDefaultType()});
+            this.publisher.when(e).then(function(edgeContent){
+              c.nodes.add = {'newNode': {nodeContentId: event.getData()['nodeContentId']}};
+              c.edges.add = {'newEdge': {edgeContentId: edgeContent.edgeContentId, source: event.getData()['parentNodeId'], target:'newNode'}};
+              that.applyChanges(event.getData()['type'], c, graphModel);
+              changesApplied = true;
+
+            });
+            this.publisher.publishEvent(e);
+          }
         }
         // add new edge
         else if(event.getData()['type'] == 'addEdge'){
@@ -129,18 +134,6 @@ YOVALUE.GraphModelsPubSub.prototype = {
         // remove edge
         else if(event.getData()['type'] == 'removeEdge'){
           c.edges.remove = [event.getData()['elementId']];
-        }
-        // change nodes skeleton parent
-        else if(event.getData()['type'] == 'changeSkeletonParent'){
-          var parentEdges = graphModel.getEdges(graphModel.getEdgesFromParentIds(event.getData()['nodeId']));
-          for(var i in parentEdges){
-            if(parentEdges[i].isSkeleton){
-              c.edges.update[i] = {isSkeleton: false};
-            }
-            if(parentEdges[i].source == event.getData()['newParentId']){
-              c.edges.update[i] = {isSkeleton: true};
-            }
-          }
         }
 
         // If changes not applied yet, apply it now

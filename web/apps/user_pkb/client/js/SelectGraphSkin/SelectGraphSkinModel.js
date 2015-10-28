@@ -1,7 +1,8 @@
-YOVALUE.SelectGraphSkinModel = function(subscriber, publisher, constrs){
+YOVALUE.SelectGraphSkinModel = function(subscriber, publisher, constrs, default_skin){
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.constrs = constrs;
+  this.default_skin = default_skin;
   this.selectedSkins = {}; //key-graph_name, value-layout_name
 
   this.subscriber.subscribe(this,[
@@ -19,6 +20,7 @@ YOVALUE.SelectGraphSkinModel.prototype = {
         if(typeof(this.selectedSkins[graphId]) == 'undefined'){
           var e = this.publisher.createEvent("repository_get_selected_skins", [graphId]);
           this.publisher.when(e).then(function(data){
+            if(typeof(data[graphId]) == 'undefined') data[graphId] = that.default_skin;
             // change constructor names to actual constructors
             data[graphId].node.constr.withoutIcon = that.constrs[data[graphId].node.constr.withoutIcon];
             data[graphId].node.constr.withIcon = that.constrs[data[graphId].node.constr.withIcon];

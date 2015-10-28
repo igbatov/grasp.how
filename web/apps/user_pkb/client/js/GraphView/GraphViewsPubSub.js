@@ -90,6 +90,9 @@ YOVALUE.GraphViewsPubSub.prototype = {
           if(typeof(event.getData()['decoration']) !== 'undefined'){
             this.graphViewList[graphId].setDecoration(event.getData()['decoration']);
           }
+          if(typeof(event.getData()['skin']) !== 'undefined'){
+            this.graphViewList[graphId].setSkin(event.getData()['skin']);
+          }
           this.graphViewList[graphId].drawGraph();
         }
         break;
@@ -192,7 +195,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
           // (I do not know why)
           // Such "dragging" always ended dropping on the same node
           // If this is the case we fire here "clicknode" in addition to "dragendnode" event
-          if(e.fromGraphId == droppedOnGraphId && e.draggedModelElement.element.id == droppedOnElement.element.id){
+          if(droppedOnElement && e.fromGraphId == droppedOnGraphId && e.draggedModelElement.element.id == droppedOnElement.element.id){
             eventData = {
               eventType: 'clicknode',
               elementType: 'node',

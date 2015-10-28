@@ -42,14 +42,7 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, jQuery
       elementType = $('#'+containerId+' [name=elementType]').val();
 
     if(elementType == 'node'){
-      if(fieldName == 'skeletonParentNodeId'){
-        that.publisher.publish('request_for_graph_model_change', {
-          graphId: $('#'+containerId+' [name=graphId]').val(),
-          type: 'changeSkeletonParent',
-          nodeId: $('#'+containerId+' [name=elementId]').val(),
-          newParentId: $('#'+containerId+' [name=skeletonParentNodeId]').val()
-        });
-      }else if(fieldName == 'nodeText'){
+      if(fieldName == 'nodeText'){
         that.publisher.publish('request_for_graph_element_content_change', {
           graphId: $('#'+containerId+' [name=graphId]').val(),
           type: 'updateNodeText',
@@ -154,13 +147,6 @@ YOVALUE.GraphElementEditor.prototype = {
       typeOptions += '<option '+selected+' value="'+type+'">'+type+'</option>';
     }
 
-    // select list for parent node
-    for(i in parentEdges){
-      var edge = parentEdges[i],
-      selected = edge.isSkeleton ? 'selected' : '';
-      parentNodeOptions += '<option '+selected+' value="'+edge.source+'">'+parentNodeAttributes[edge.source].label+'</option>';
-    }
-
     // select list for importance options
     for(i=0; i<100; i++){
       selected = i == node.importance ? 'selected' : '';
@@ -176,7 +162,6 @@ YOVALUE.GraphElementEditor.prototype = {
     var bgStyle = node.icon == null ? '' : 'background-image:url(\''+node.icon.src+'\'); background-repeat:no-repeat; background-position: center center;';
     var form = '<textarea class="labelTextArea" name="label">'+node.label+'</textarea>'
       +'<select name="type">'+typeOptions+'</select>'
-      + (YOVALUE.getObjectLength(parentEdges) > 1 ? '<select name="skeletonParentNodeId">'+parentNodeOptions+'</select>' : '')
       +'<select name="importance">'+importanceOptions+'</select>'
       +'<select name="reliability">'+reliabilityOptions+'</select>'
       +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxImageSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText"></textarea>'

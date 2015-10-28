@@ -9,15 +9,15 @@ YOVALUE.GraphViewNodeFactory.prototype = {
    *
    * @param skin in form {
       node:{
-        constructor: YOVALUE.GraphViewNode,
+        constr: {'withoutIcon':YOVALUE.GraphViewNode, 'withIcon':YOVALUE.GraphViewNodeImage}
         attr: {}
       },
       edge:{
-        constructor: YOVALUE.GraphViewEdge,
+        constr: YOVALUE.GraphViewEdge,
         attr: {}
       },
       nodeLabel:{
-        constructor: YOVALUE.GraphViewNodeLabel,
+        constr: YOVALUE.GraphViewNodeLabel,
         attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
       }
     }

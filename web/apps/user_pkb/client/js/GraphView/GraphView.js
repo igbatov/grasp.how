@@ -406,7 +406,8 @@ YOVALUE.GraphView.prototype = {
         y:nodeMapping[node.id].y,
         size:this.decoration.nodes[node.id].size,
         color:this.decoration.nodes[node.id].color,
-        opacity:this.decoration.nodes[node.id].opacity
+        opacity:this.decoration.nodes[node.id].opacity,
+        stickers:this.decoration.nodes[node.id].stickers
       });
 
       this.graphViewElements.insertRow({'element':elNode, 'elementType':elNode.getElementType(),'elementId':elNode.getElementId(),'canvasDrawerShapeId':elNode.getCanvasDrawerShapeId()});

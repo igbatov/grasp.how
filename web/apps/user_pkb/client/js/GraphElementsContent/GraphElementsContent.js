@@ -2,6 +2,7 @@
  * This module is used by node editor to get/set graph nodes contents and attributes
  * It encapsulates read/write from/to repository and caching
  * You can think of it as extra layer above repository that implements caching and some extra logic for addNode, addIcon events
+ * Node contentId has the form 'graphId-contentId' or 'graphId-contentId/graphId-contentId' for diff graph
  * @param subscriber
  * @param publisher
  * @constructor

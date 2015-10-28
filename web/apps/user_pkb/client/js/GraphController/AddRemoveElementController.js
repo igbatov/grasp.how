@@ -52,8 +52,7 @@ YOVALUE.AddRemoveElementController.prototype = {
         var e2 = that.publisher.createEvent("request_for_graph_element_content_change", {type: 'addNode', graphId: data['droppedOnGraphId'], element: data['draggedModelElement'].element});
         this.publisher.when(e1, e2).then(function(graphModels, nodeContent){
           var graphModel = graphModels[data['droppedOnGraphId']];
-          // if node was dropped on background add it as a child to the root node
-          var parentNodeId = typeof(data['droppedOnModelElement']) === 'undefined' ? graphModel.getRootNode().id : data['droppedOnModelElement'].element.id;
+          var parentNodeId = typeof(data['droppedOnModelElement']) === 'undefined' ? null : data['droppedOnModelElement'].element.id;
           that.publisher.publish("request_for_graph_model_change", {graphId: graphId, type: 'addNode', parentNodeId: parentNodeId, nodeContentId: nodeContent.nodeContentId});
         });
         this.publisher.publishEvent(e1, e2);
@@ -68,8 +67,7 @@ YOVALUE.AddRemoveElementController.prototype = {
         if(selectedElement.elementType == 'node'){
           this.publisher.publish("request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeNode', elementId: selectedElement.element.id});
         }else if(selectedElement.elementType == 'edge'){
-          //TODO: if edge is skeleton, then move skeleton attribute to other appropriate edge if any. If there is no such edge, fire warning "Cannot remove single edge, please create another edge first!"
-          this.publisher.publish("request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeEdge', elementId: selectedElement.element.id});
+           this.publisher.publish("request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeEdge', elementId: selectedElement.element.id});
         }
       }
 
