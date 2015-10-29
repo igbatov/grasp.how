@@ -86,16 +86,16 @@ class AppUserPkb extends App
           // we MUST use this $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
           // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
           $graph_id = $this->getGraphId($content_id);
-          $node_content_id = $this->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT text, cloned_from_graph_id,	cloned_from_node_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'");
-          // if $this->getRequest()['graphId'] is clone of another graph and $node_content_id was not modified (= NULL)
+          $local_content_id = $this->getLocalContentId($content_id);
+          $node_rows = $this->db->execute("SELECT text, cloned_from_graph_id,	cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+          // if $this->getRequest()['graphId'] is clone of another graph and $local_content_id was not modified (= NULL)
           // return text of original graph
           if(
             $node_rows[0]['text'] == null &&
             $node_rows[0]['cloned_from_graph_id'] != null &&
-            $node_rows[0]['cloned_from_node_content_id'] != null
+            $node_rows[0]['cloned_from_local_content_id'] != null
           ){
-            $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$node_rows[0]['cloned_from_graph_id']."' AND node_content_id = '".$node_rows[0]['cloned_from_node_content_id']."'");
+            $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$node_rows[0]['cloned_from_graph_id']."' AND local_content_id = '".$node_rows[0]['cloned_from_local_content_id']."'");
           }
           $node_texts[$content_id] = $node_rows[0]['text'];
         }
@@ -119,8 +119,8 @@ class AppUserPkb extends App
         $edges = array();
         foreach($r['nodes'] as $content_id){
           $graph_id = $this->getGraphId($content_id);
-          $node_content_id = $this->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attributes).", cloned_from_graph_id, cloned_from_node_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'");
+          $local_content_id = $this->getLocalContentId($content_id);
+          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attributes).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
           $node_row = $node_rows[0];
 
           // if node was cloned and some its attributes is null this simply means it was just not modified -  so take it from original node
@@ -131,7 +131,7 @@ class AppUserPkb extends App
             }
             // some is null
             if(count($attributes_to_borrow)>0){
-              $original_node_rows = $this->db->execute("SELECT ".implode(',',$attributes_to_borrow)." FROM node_content WHERE graph_id = '".$node_row['cloned_from_graph_id']."' AND node_content_id = '".$node_row['cloned_from_node_content_id']."'");
+              $original_node_rows = $this->db->execute("SELECT ".implode(',',$attributes_to_borrow)." FROM node_content WHERE graph_id = '".$node_row['cloned_from_graph_id']."' AND local_content_id = '".$node_row['cloned_from_local_content_id']."'");
               $original_node_row = $original_node_rows[0];
               foreach($attributes_to_borrow as $attribute){
                 $node_row[$attribute] = $original_node_row[$attribute];
@@ -146,8 +146,8 @@ class AppUserPkb extends App
 
         foreach($r['edges'] as $content_id){
           $graph_id = $this->getGraphId($content_id);
-          $edge_content_id = $this->getLocalContentId($content_id);
-          $query = "SELECT '".$content_id."' as edgeContentId, type, label FROM edge_content WHERE graph_id = '".$graph_id."' AND edge_content_id = '".$edge_content_id."'";
+          $local_content_id = $this->getLocalContentId($content_id);
+          $query = "SELECT '".$content_id."' as edgeContentId, type, label FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           $edge_rows = $this->db->execute($query);
           $edge_row = $edge_rows[0];
           $edges[$content_id] = $edge_row;
@@ -262,10 +262,10 @@ class AppUserPkb extends App
 
         if($r['type'] == 'updateNodeText' || $r['type'] == 'updateNodeAttribute' || $r['type'] == 'addIcon'){
           $graph_id = $this->getGraphId($r['nodeContentId']);
-          $node_content_id = $this->getLocalContentId($r['nodeContentId']);
+          $local_content_id = $this->getLocalContentId($r['nodeContentId']);
         }else if($r['type'] == 'updateEdgeAttribute'){
           $graph_id = $this->getGraphId($r['edgeContentId']);
-          $edge_content_id = $this->getLocalContentId($r['edgeContentId']);
+          $local_content_id = $this->getLocalContentId($r['edgeContentId']);
         }else if($r['type'] == 'addEdge' || $r['type'] == 'addNode'){
           $graph_id = $r['graphId'];
         }
@@ -273,43 +273,43 @@ class AppUserPkb extends App
         $this->isUserOwnGraph($graph_id);
 
         if($r['type'] == 'updateNodeText'){
-          $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'";
+          $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           $this->db->execute($query);
         }else if($r['type'] == 'updateNodeAttribute'){
-          $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'";
+          $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           $this->db->execute($query);
         }else if($r['type'] == 'updateEdgeAttribute'){
-          $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND edge_content_id = '".$edge_content_id."'";
+          $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           $this->db->execute($query);
         }else if($r['type'] == 'addEdge'){
           $this->db->startTransaction();
             try{
-              $query = "SELECT MAX(edge_content_id) as max_id FROM edge_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
+              $query = "SELECT MAX(local_content_id) as max_id FROM edge_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
               $rows = $this->db->execute($query);
-              $edge_content_id = (int)$rows[0]['max_id'] + 1;
-              $query = "INSERT INTO edge_content SET `graph_id` = '".$this->db->escape($graph_id)."', `edge_content_id` = '".$this->db->escape($edge_content_id)."', `type` = '".$this->db->escape($r['edge']['type'])."', `label` = '".$this->db->escape($r['edge']['label'])."', created_at = NOW()";
+              $local_content_id = (int)$rows[0]['max_id'] + 1;
+              $query = "INSERT INTO edge_content SET `graph_id` = '".$this->db->escape($graph_id)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['edge']['type'])."', `label` = '".$this->db->escape($r['edge']['label'])."', created_at = NOW()";
               $this->db->execute($query);
             }catch (Exception $e) {
               $this->db->rollbackTransaction();
               $this->error("Error during transaction: ".mysql_error().". Transaction rollbacked.");
             }
           $this->db->commitTransaction();
-          $this->showRawData($this->createGlobalContentId($graph_id,$edge_content_id));
+          $this->showRawData($this->createGlobalContentId($graph_id,$local_content_id));
 
         }else if($r['type'] == 'addNode'){
           $this->db->startTransaction();
           try{
-            $query = "SELECT MAX(node_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
+            $query = "SELECT MAX(local_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
             $rows = $this->db->execute($query);
-            $node_content_id = $rows[0]['max_id'] + 1;
-            $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)."', `node_content_id` = '".$this->db->escape($node_content_id)."', `type` = '".$this->db->escape($r['node']['type'])."', `label` = '".$this->db->escape($r['node']['label'])."', `text` = '".$this->db->escape($r['node']['text'])."', `reliability` = '".(is_numeric($r['node']['reliability']) ? $r['node']['reliability'] : 0)."', `importance` = '".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0)."', created_at = NOW()";
+            $local_content_id = $rows[0]['max_id'] + 1;
+            $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['node']['type'])."', `label` = '".$this->db->escape($r['node']['label'])."', `text` = '".$this->db->escape($r['node']['text'])."', `reliability` = '".(is_numeric($r['node']['reliability']) ? $r['node']['reliability'] : 0)."', `importance` = '".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0)."', created_at = NOW()";
             $this->db->execute($query);
           }catch (Exception $e) {
             $this->db->rollbackTransaction();
             $this->error("Error during transaction: ".mysql_error().". Transaction rollbacked.");
           }
           $this->db->commitTransaction();
-          $this->showRawData($this->createGlobalContentId($graph_id, $node_content_id));
+          $this->showRawData($this->createGlobalContentId($graph_id, $local_content_id));
 
         }else if($r['type'] == 'addIcon'){
           $content_id = $r['nodeContentId'];
@@ -322,7 +322,7 @@ class AppUserPkb extends App
           }
 
           // mark in db that now it has icon
-          $query = "UPDATE node_content SET has_icon = 1 WHERE graph_id = '".$graph_id."' AND node_content_id = '".$node_content_id."'";
+          $query = "UPDATE node_content SET has_icon = 1 WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           $this->db->execute($query);
 
         }
@@ -473,18 +473,18 @@ class AppUserPkb extends App
     $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', auth_id = '".$auth_id."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."'";
     $new_graph_id = $this->db->execute($q);
 
-    // change node_content_id and edge_content_id to create history of clone
+    // change local_content_id and local_content_id to create history of clone
     $q = "SELECT elements, node_mapping FROM graph_history WHERE graph_id = '".$graph_id."' AND step = '".$graph_history_step."'";
     $rows = $this->db->execute($q);
     $nodes = array();
     $edges = array();
-    $node_content_ids = array();
+    $local_content_ids = array();
     $elements = json_decode($rows[0]['elements'], true);
 
     foreach($elements['nodes'] as $k => $node){
       $local_content_id = $this->getLocalContentId($node['nodeContentId']);
       $node['nodeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
-      $node_content_ids[] = $local_content_id;
+      $local_content_ids[] = $local_content_id;
       $nodes[$k] = $node;
     }
     foreach($elements['edges'] as $k => $edge){
@@ -497,11 +497,11 @@ class AppUserPkb extends App
     $this->db->execute($q);
 
     // copy all data in nodes except text
-    $q = "INSERT INTO node_content (graph_id, node_content_id, ".explode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_node_content_id, updated_at, created_at) SELECT '".$new_graph_id."', node_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', node_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND node_content_id IN ('".implode("','",$node_content_ids)."')";
+    $q = "INSERT INTO node_content (graph_id, local_content_id, ".explode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->db->execute($q);
 
     // just copy edges as is
-    $q = "INSERT INTO edge_content (graph_id, edge_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', edge_content_id,	type,	label, NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO edge_content (graph_id, local_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
     $this->db->execute($q);
 
     $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
@@ -548,10 +548,10 @@ class AppUserPkb extends App
     $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
     $this->db->execute($q);
 
-    $q = "INSERT INTO node_content (graph_id, node_content_id, 	type,	label, reliability, importance, text, has_icon, updated_at, created_at) SELECT '".$new_graph_id."', node_content_id,	type,	label, reliability, importance, text, has_icon, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO node_content (graph_id, local_content_id, 	type,	label, reliability, importance, text, has_icon, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, reliability, importance, text, has_icon, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."'";
     $this->db->execute($q);
 
-    $q = "INSERT INTO edge_content (graph_id, edge_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', edge_content_id,	type,	label, NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO edge_content (graph_id, local_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
     $this->db->execute($q);
   }
 

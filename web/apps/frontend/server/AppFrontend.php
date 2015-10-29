@@ -16,7 +16,7 @@ class AppFrontend extends App{
       $graph[$graph_row['id']] = array("name"=>$graph_settings["name"], "nodeTypes"=>$graph_settings["nodeTypes"]);
 
       // get nodes and edges
-      $node_content_ids = array();
+      $local_content_ids = array();
       $rows = $this->db->execute("SELECT * FROM graph_history WHERE graph_id = '".$graph_row['id']."' ORDER BY step DESC LIMIT 1");
       foreach($rows as $row){
         $elements = json_decode($row['elements'], true);
@@ -31,15 +31,15 @@ class AppFrontend extends App{
 
         foreach($elements['nodes'] as $node){
           $t = explode("-", $node['nodeContentId']);
-          $node_content_ids[$t[1]] = $node['id'];
+          $local_content_ids[$t[1]] = $node['id'];
         }
       }
 
       // get nodes contents
       $graph[$graph_row['id']]["nodeContents"] = array();
-      $rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_row['id']."' AND node_content_id IN ('".implode("','", array_keys($node_content_ids))."')");
+      $rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_row['id']."' AND local_content_id IN ('".implode("','", array_keys($local_content_ids))."')");
       foreach($rows as $row){
-        $graph[$graph_row['id']]["nodeContents"][$node_content_ids[$row['node_content_id']]] = array("label"=>$row['label'], "text"=>$row['text'], "type"=>$row['type'], "importance"=>$row['importance'], "reliability"=>$row['reliability']);
+        $graph[$graph_row['id']]["nodeContents"][$local_content_ids[$row['local_content_id']]] = array("label"=>$row['label'], "text"=>$row['text'], "type"=>$row['type'], "importance"=>$row['importance'], "reliability"=>$row['reliability']);
       }
 
       // convert data to the appropriate format

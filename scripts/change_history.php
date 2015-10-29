@@ -15,7 +15,7 @@ foreach($rows as $row){
     if($node['isRoot'] == true){
       $root_id = $node['id'];
       $tmp = explode('-', $node['nodeContentId']);
-      $q = "DELETE FROM node_content WHERE graph_id = ".$tmp[0]." AND node_content_id = ".$tmp[1];
+      $q = "DELETE FROM node_content WHERE graph_id = ".$tmp[0]." AND local_content_id = ".$tmp[1];
      // echo $q."\n\n";
       $db->execute($q);
       continue;
