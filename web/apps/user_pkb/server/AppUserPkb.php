@@ -1,10 +1,12 @@
 <?php
 include("GraphDiffCreator.php");
+include("ContentIdConverter.php");
 
 class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
   private $node_attributes;
+  private $contentIdConverter;
 
   public function showView(){
     parent::showView();
@@ -59,6 +61,7 @@ class AppUserPkb extends App
     }
 
     $this->node_attributes = array('type', 'label', 'reliability', 'importance', 'has_icon');
+    $this->contentIdConverter = new ContentIdConverter();
 
     // else process action defined by url
     switch($action){
@@ -378,41 +381,13 @@ class AppUserPkb extends App
     }
   }
 
-  /**
-   * Creates unique across all graphs elements contentId from $graphId and $localContentId
-   * @param $graphId
-   * @param $localContentId
-   * @return string
-   */
-  protected function createGlobalContentId($graphId, $localContentId){
-    return $graphId."-".$localContentId;
-  }
-
-  /**
-   * Returns graphId from contentId
-   * @param $contentId
-   * @return mixed
-   */
-  protected function getGraphId($contentId){
-    return explode('-', $contentId)[0];
-  }
-
-  /**
-   * Returns localContentId from contentId
-   * @param $contentId
-   * @return mixed
-   */
-  protected function getLocalContentId($contentId){
-    return explode('-', $contentId)[1];
-  }
-
   protected function getGraphDiff($graphId, $cloneId){
     // == get last step from history of $graphId and $cloneId ==
 
     $original = $this->getGraphsHistoryChunk(array($graphId=>null))[0];
     $clone = $this->getGraphsHistoryChunk(array($cloneId=>null))[0];
 
-    $graph_diff_creator = new GraphDiffCreator($this->db, $original, $clone, $this->node_attributes);
+    $graph_diff_creator = new GraphDiffCreator($this->db, $original, $clone, $this->node_attributes, $this->contentIdConverter);
     $graphModel = $graph_diff_creator->getDiffGraph();
 
     // == create graphViewSettings ==

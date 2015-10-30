@@ -1,24 +1,24 @@
 <?php
+
 class GraphDiffCreator{
   private $original;
   private $clone;
   private $db;
   private $node_attributes;
+  private $contentIdConverter;
   private $all_originally_cloned_local_content_ids;
 
-  public function __construct($db, $original, $clone, $node_attributes){
+  public function __construct($db, $original, $clone, $node_attributes, ContentIdConverter $contentIdConverter){
     $this->db = $db;
     $this->original = $original;
     $this->clone = $clone;
     $this->node_attributes = $node_attributes;
+    $this->contentIdConverter = $contentIdConverter;
 
     // fill in all_originally_cloned_local_content_ids (remember, some of them may be already removed in $this->clone['element']['nodes'])
-    $q = "SELECT cloned_from_local_content_id FROM node_content WHERE cloned_from_graph_id = ".$this->original['graphId'];
+    $q = "SELECT cloned_from_local_content_id FROM node_content WHERE graph_id = ".$this->clone['graphId']." AND cloned_from_graph_id = ".$this->original['graphId']." AND cloned_from_local_content_id IS NOT NULL";
     $rows = $this->db->execute($q);
     foreach($rows as $row) $this->all_originally_cloned_local_content_ids[] = $row['cloned_from_local_content_id'];
-
-    // check that they indeed clones
-
   }
 
   /**
@@ -40,7 +40,98 @@ class GraphDiffCreator{
   }
 
   /**
-   * Create array of edges with all edges from original and new from clone
+   * Create array of nodes with all nodes from original and new nodes from clone
+   * Return array('originalContentId'=> , 'clonedContentId'=> , 'status'=> ). There are 5 types of diff nodes
+   * 1 "added_by_clonee" - nodes added in original graph while clone was edited
+   * 2 "added_by_cloner": originalContentId == null, clonedContentId != null - nodes added by cloner
+   * 3 "removed_by_cloner" - nodes deleted by cloner
+   * 4,5 "modified" or "unmodified": originalContentId != null, clonedContentId != null - nodes that stay in cloned graph and may be modified on untouched
+   * @return array
+   */
+  public function getDiffNodes(){
+    $combined_nodes = array();
+
+    /** == add nodes of clone to $combined_nodes == **/
+    $clone_local_content_ids = $this->getNodeContentIds($this->clone['elements']['nodes']);
+
+    $q = "SELECT graph_id, text, local_content_id, ".implode(', ', $this->node_attributes).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE local_content_id IN (".implode(',', $clone_local_content_ids).") AND graph_id = ".$this->clone["graphId"];
+    $rows = $this->db->execute($q);
+
+    foreach($rows as $row){
+      // if it is cloned
+      if($row['cloned_from_local_content_id'] != null){
+        // determine if any attr was modified
+        $status = 'unmodified';
+        foreach($this->node_attributes as $attr) if($row[$attr] != null) $status = 'modified';
+        if($row['text'] != null) $status = 'modified';
+
+        // form attributes for diff graph node
+        $attrs = array();
+        foreach($this->node_attributes as $attr) $attrs[$attr] = $row[$attr];
+        $attrs['stickers']=array($status);
+
+        // form diff graph nodes
+        $combined_nodes[] = array(
+          'contentId'=>array(
+            'original'=>$this->contentIdConverter->createGlobalContentId($this->original['graphId'], $row['cloned_from_local_content_id']),
+            'clone'=>$this->contentIdConverter->createGlobalContentId($this->clone["graphId"],$row['local_content_id'])),
+          'attributes'=>$attrs
+        );
+      }
+      // if it was brand new node
+      else{
+        // form attributes for diff graph node
+        $attrs = array();
+        foreach($this->node_attributes as $attr) $attrs[$attr] = $row[$attr];
+        $attrs['stickers']=array('added_by_cloner');
+
+        // form diff graph nodes
+        $combined_nodes[] = array(
+          'contentId'=>array(
+            'original'=>null,
+            'clone'=>$this->contentIdConverter->createGlobalContentId($this->clone["graphId"],$row['local_content_id'])
+          ),
+          'attributes'=>$attrs
+        );
+      }
+    }
+
+    /** == now add nodes of original graph to $combined_nodes == **/
+    $original_local_content_ids = $this->getNodeContentIds($this->original['elements']['nodes']);
+
+    // take original local_content_ids of clones nodes
+    $original_nodes_already_in_combined = array();
+    foreach($combined_nodes as $combined_node) if($combined_node['contentId']['original'] != null) $original_nodes_already_in_combined[] = $combined_node['contentId']['original'];
+
+    // get all nodes that is in $this->original but not in $combined_nodes yet
+    $q = "SELECT graph_id, text, local_content_id, ".implode(', ', $this->node_attributes)." FROM node_content WHERE".
+        " local_content_id IN (".implode(',', array_diff($original_local_content_ids, $original_nodes_already_in_combined)).") AND".
+        " graph_id = ".$this->original["graphId"];
+    $rows = $this->db->execute($q);
+    foreach($rows as $row){
+      // determine status of the node
+      $status = in_array($row['local_content_id'], $this->all_originally_cloned_local_content_ids) ? 'removed_by_cloner' : 'added_by_clonee';
+
+      // form attributes for diff graph node
+      $attrs = array();
+      foreach($this->node_attributes as $attr) $attrs[$attr] = $row[$attr];
+      $attrs['stickers']=array($status);
+
+      $combined_nodes[] = array(
+        'contentId'=>array(
+            'original'=>$this->contentIdConverter->createGlobalContentId($this->original["graphId"],$row['local_content_id']),
+            'clone'=>null
+        ),
+        'attributes'=>$attrs
+      );
+    }
+
+    return $combined_nodes;
+  }
+
+
+  /**
+   * Create array of edges with all edges from original graph and new one from clone
    * @param $nodes
    * @return array
    */
@@ -91,64 +182,11 @@ class GraphDiffCreator{
     return $combined_edges;
   }
 
-  private function findIndex($array, $key, $value){
+  private function findIndex($array, $value){
     foreach($array as $index=>$row){
-      if($row[$key] == $value) return $index;
+      if($row == $value) return $index;
     }
     return false;
-  }
-
-  /**
-   * Create array of nodes with all nodes from original and new nodes from clone
-   * Return array('originalContentId'=> , 'clonedContentId'=> , 'status'=> ). There are four types of diff nodes
-   * 1. "added_by_clonee": originalContentId = null, clonedContentId != null - nodes added by cloner
-   * 2. "removed": originalContentId != null, clonedContentId == null - nodes deleted by cloner or added later by author of original graph (clonee)
-   * 3. "modified" or "unmodified": originalContentId != null, clonedContentId != null - nodes that stay in cloned graph and may be modified on untouched
-   * @return array
-   */
-  public function getDiffNodes(){
-    $combined_nodes = array();
-
-    // == add nodes of clone to $combined_nodes ==
-    $clone_local_content_ids = $this->getNodeContentIds($this->clone['elements']['nodes']);
-
-    $q = "SELECT graph_id, text, local_content_id, ".implode(', ', $this->node_attributes).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE local_content_id IN (".implode(',', $clone_local_content_ids).") AND graph_id = ".$this->clone["graphId"];
-    $rows = $this->db->execute($q);
-
-    foreach($rows as $row){
-      // if it is cloned
-      if($row['cloned_from_local_content_id'] != null){
-        $status = 'unmodified';
-        foreach($this->node_attributes as $attr) if($row[$attr] != null) $status = 'modified';
-        if($row['text'] != null) $status = 'modified';
-        $combined_nodes[] = array('contentId'=>array('original'=>$this->original['graphId']."-".$row['cloned_from_local_content_id'], 'clone'=>$this->clone["graphId"]."-".$row['local_content_id']), 'attributes'=>array('stickers'=>[$status]));
-      }
-      // if it was brand new node
-      else{
-        $combined_nodes[] = array('contentId'=>array(
-          'original'=>null,
-          'clone'=>$this->clone["graphId"]."-".$row['local_content_id'],
-          'attributes'=>array('stickers'=>['added_by_cloner']
-          )));
-      }
-    }
-
-    // == now add nodes of original graph to $combined_nodes ==
-    $original_local_content_ids = $this->getNodeContentIds($this->original['elements']['nodes']);
-
-    // take original local_content_ids of clones nodes
-    $original_nodes_already_in_combined = array();
-    foreach($combined_nodes as $combined_node) if($combined_node['originalContentId'] != null) $original_nodes_already_in_combined[] = $combined_node['originalContentId'];
-
-    // get all nodes that is in $this->original but not in $combined_nodes yet
-    $q = "SELECT graph_id, text, local_content_id, ".implode(', ', $this->node_attributes)." FROM node_content WHERE local_content_id IN (".implode(',', $original_local_content_ids).") AND local_content_id NOT IN (".implode(',', $original_nodes_already_in_combined).") AND graph_id = ".$this->original["graphId"];
-    $rows = $this->db->execute($q);
-    foreach($rows as $row){
-      $status = in_array($row['local_content_id'], $this->all_originally_cloned_local_content_ids) ? 'removed' : 'added_by_clonee';
-      $combined_nodes[] = array('contentId'=>array('original'=>$this->original["graphId"]."-".$row['local_content_id'], 'clone'=>null),  'attributes'=>array('stickers'=>[$status]));
-    }
-
-    return $combined_nodes;
   }
 
   /**
@@ -159,8 +197,7 @@ class GraphDiffCreator{
   public function getNodeContentIds($nodes){
     $local_content_ids = array();
     foreach($nodes as $node){
-      $tmp = explode('-', $node["nodeContentId"]);
-      $local_content_ids[] = $tmp[1];
+      $local_content_ids[] = $this->contentIdConverter->getLocalContentId($node["nodeContentId"]);
     }
     return $local_content_ids;
   }
