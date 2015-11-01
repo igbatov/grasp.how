@@ -1,18 +1,26 @@
 <?php
 
+/**
+ * Class that creates so called diff graph given original graph and cloned one.
+ * Diff graph is a union of both graphs with nodes marked as new, deleted and modified (in clone compared to original).
+ * Algorithms in methods relies heavily on the fact that local_content_ids of cloned nodes and edges
+ * is the same in clone as in the original graph.
+ */
 class GraphDiffCreator{
   private $original;
   private $clone;
   private $db;
   private $node_attributes;
+  private $edge_attributes;
   private $contentIdConverter;
   private $all_originally_cloned_local_content_ids;
 
-  public function __construct($db, $original, $clone, $node_attributes, ContentIdConverter $contentIdConverter){
+  public function __construct($db, $original, $clone, $node_attributes, $edge_attributes, ContentIdConverter $contentIdConverter){
     $this->db = $db;
     $this->original = $original;
     $this->clone = $clone;
     $this->node_attributes = $node_attributes;
+    $this->edge_attributes = $edge_attributes;
     $this->contentIdConverter = $contentIdConverter;
 
     // fill in all_originally_cloned_local_content_ids (remember, some of them may be already removed in $this->clone['element']['nodes'])
@@ -28,14 +36,55 @@ class GraphDiffCreator{
   public function getDiffGraph(){
     $diff_nodes = $this->getDiffNodes();
     $diff_edges = $this->getDiffEdges($diff_nodes);
+var_dump($diff_nodes);
+var_dump($diff_edges);
+    // format node array in a standard way
+    $nodes = array();
+    $count = 0;
+    foreach($diff_nodes as $node){
+      $node[$count] = array(
+        'id'=>$count,
+        'nodeContentId'=>$this->createGlobalContentId(
+                $this->contentIdConverter->getGraphId($node['contentId']['original']),
+                $this->contentIdConverter->getLocalContentId($node['contentId']['original']),
+                $this->contentIdConverter->getGraphId($node['contentId']['clone']),
+                $this->contentIdConverter->getLocalContentId($node['contentId']['clone'])
+            ),
+        'attributes'=>$node['attributes'],
+      );
+      $count++;
+    }
 
+    // format edge array in a standard way
+    $edges = array();
+    $count = 0;
+    foreach($diff_edges as $edge){
+      $edges[$count] = array(
+        'id'=>$count,
+        'source'=>$edge['source'],
+        'target'=>$edge['target'],
+        'edgeContentId'=>$this->createGlobalContentId(
+                $this->contentIdConverter->getGraphId($edge['contentId']['original']),
+                $this->contentIdConverter->getLocalContentId($edge['contentId']['original']),
+                $this->contentIdConverter->getGraphId($edge['contentId']['clone']),
+                $this->contentIdConverter->getLocalContentId($edge['contentId']['clone'])
+            ),
+        'attributes'=>$edge['attributes'],
+      );
+      $count++;
+    }
+
+    $original_settings_query = "SELECT settings FROM graph_settings WHERE graph_id = ".$this->original['graphId'];
+    $original_settings = $this->db->execute($original_settings_query);
+    $clone_settings_query = "SELECT settings FROM graph_settings WHERE graph_id = ".$this->clone['graphId'];
+    $clone_settings = $this->db->execute($clone_settings_query);
+
+    // check that original and clone settings are compatible
 
     return array(
-        'nodes'=>$nodes,
-        'edges'=>$edges,
-        'settings'=>$settings,
-        'graphNodeAttributes'=>$graphNodeAttributes,
-        'graphEdgeAttributes'=>$graphEdgeAttributes
+      'nodes'=>$nodes,
+      'edges'=>$edges,
+      'settings'=>$original_settings
     );
   }
 
@@ -78,7 +127,7 @@ class GraphDiffCreator{
           'attributes'=>$attrs
         );
       }
-      // if it was brand new node
+      // if it was brand new node in clone
       else{
         // form attributes for diff graph node
         $attrs = array();
@@ -119,8 +168,8 @@ class GraphDiffCreator{
 
       $combined_nodes[] = array(
         'contentId'=>array(
-            'original'=>$this->contentIdConverter->createGlobalContentId($this->original["graphId"],$row['local_content_id']),
-            'clone'=>null
+          'original'=>$this->contentIdConverter->createGlobalContentId($this->original["graphId"],$row['local_content_id']),
+          'clone'=>null
         ),
         'attributes'=>$attrs
       );
@@ -132,29 +181,32 @@ class GraphDiffCreator{
 
   /**
    * Create array of edges with all edges from original graph and new one from clone
-   * @param $nodes
+   * @param $diff_nodes
    * @return array
    */
-  public function getDiffEdges($nodes){
+  public function getDiffEdges($diff_nodes){
     $combined_edges = array();
 
+    $original_edge_local_content_ids = array();
     foreach($this->original['elements']['edges'] as $edge){
-      $s = $this->findIndex($nodes, 'originalContentId', explode('-', $this->original['elements']['nodes'][$edge['source']]['nodeContentId'])[1]);
-      $t = $this->findIndex($nodes, 'originalContentId', explode('-', $this->original['elements']['nodes'][$edge['target']]['nodeContentId'])[1]);
+      $s = $this->findIndex($diff_nodes, 'original', $this->original['elements']['nodes'][$edge['source']]['nodeContentId']);
+      $t = $this->findIndex($diff_nodes, 'original', $this->original['elements']['nodes'][$edge['target']]['nodeContentId']);
       $combined_edges[$s."-".$t] = array(
           'source'=>$s,
           'target'=>$t,
-          'edgeContentId'=>array('original'=>$edge['edgeContentId']), 'clone'=>null);
+          'contentId'=>array('original'=>$edge['edgeContentId']), 'clone'=>null);
+      $original_edge_local_content_ids[] = $edge['edgeContentId'];
     }
 
     // add all from cloned one (edges with the same source and destination will be rewrited)
+    $clone_edge_local_content_ids = array();
     foreach($this->clone['elements']['edges'] as $edge){
-      $s = $this->findIndex($nodes, 'clonedContentId', explode('-', $this->clone['elements']['nodes'][$edge['source']]['nodeContentId'])[1]);
-      $t = $this->findIndex($nodes, 'clonedContentId', explode('-', $this->clone['elements']['nodes'][$edge['target']]['nodeContentId'])[1]);
+      $s = $this->findIndex($diff_nodes, 'clone', $this->clone['elements']['nodes'][$edge['source']]['nodeContentId']);
+      $t = $this->findIndex($diff_nodes, 'clone', $this->clone['elements']['nodes'][$edge['target']]['nodeContentId']);
       if(isset($combined_edges[$s."-".$t])) $combined_edges[$s."-".$t] = array(
         'source'=>$s,
         'target'=>$t,
-        'edgeContentId'=>array('original'=>$edge['edgeContentId'], 'clone'=>$edge['edgeContentId']),
+        'contentId'=>array('original'=>$edge['edgeContentId'], 'clone'=>$edge['edgeContentId']),
         'attributes'=>array()
       );
       else $combined_edges[$s."-".$t] = array(
@@ -163,28 +215,51 @@ class GraphDiffCreator{
         'edgeContentId'=>array('original'=>null, 'clone'=>$edge['edgeContentId']),
         'attributes'=>array()
       );
+      $clone_edge_local_content_ids[] = $edge['edgeContentId'];
     }
 
-    // format edge array in a standard way
-    $count = 0;
-    foreach($combined_edges as $i => $edge){
-      $count++;
-      $combined_edges[$count] = array(
-          'id'=>$count,
-          'source'=>$edge['source'],
-          'target'=>$edge['target'],
-          'edgeContentId'=>$edge['edgeContentId'],
-          'attributes'=>$edge['attributes'],
-      );
-      unset($combined_edges[$i]);
+    // fill in attributes of new original edges
+    $q = "SELECT graph_id, local_content_id, ".implode(', ', $this->edge_attributes)." FROM edge_content WHERE".
+        " local_content_id IN (".implode(',', array_diff($original_edge_local_content_ids, $clone_edge_local_content_ids)).") AND".
+        " graph_id = ".$this->original["graphId"];
+    $rows = $this->db->execute($q);
+    foreach($rows as $row){
+      foreach($combined_edges as $combined_edge){
+        if($this->contentIdConverter->getLocalContentId($combined_edge['contentId']['original']) == $row['local_content_id']){
+          // form attributes for diff graph node
+          $attrs = array();
+          foreach($this->edge_attributes as $attr) $attrs[$attr] = $row[$attr];
+          $combined_edge['attributes'] = $attrs;
+        }
+      }
+    }
+
+    // fill in attributes of clone edges
+    $q = "SELECT graph_id, local_content_id, ".implode(', ', $this->edge_attributes)." FROM edge_content WHERE".
+        " local_content_id IN (".implode(',', $clone_edge_local_content_ids).") AND".
+        " graph_id = ".$this->clone["graphId"];
+    $rows = $this->db->execute($q);
+    foreach($rows as $row){
+      foreach($combined_edges as $combined_edge){
+        if($this->contentIdConverter->getLocalContentId($combined_edge['contentId']['clone']) == $row['local_content_id']){
+          // form attributes for diff graph node
+          $attrs = array();
+          foreach($this->edge_attributes as $attr) $attrs[$attr] = $row[$attr];
+          $combined_edge['attributes'] = $attrs;
+        }
+      }
     }
 
     return $combined_edges;
   }
 
-  private function findIndex($array, $value){
-    foreach($array as $index=>$row){
-      if($row == $value) return $index;
+  private function createGlobalContentId($originalGraphId, $localContentId, $cloneGraphId, $localContentId){
+    return $originalGraphId."-".$localContentId."/".$cloneGraphId."-".$localContentId;
+  }
+
+  private function findIndex($diff_nodes, $type, $value){
+    foreach($diff_nodes as $index=>$diff_node){
+      if($diff_node['contentId'][$type] == $value) return $index;
     }
     return false;
   }

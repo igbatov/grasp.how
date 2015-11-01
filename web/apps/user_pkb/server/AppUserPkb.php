@@ -6,6 +6,7 @@ class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
   private $node_attributes;
+  private $edge_attributes;
   private $contentIdConverter;
 
   public function showView(){
@@ -61,6 +62,7 @@ class AppUserPkb extends App
     }
 
     $this->node_attributes = array('type', 'label', 'reliability', 'importance', 'has_icon');
+    $this->edge_attributes = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
     // else process action defined by url
@@ -88,8 +90,8 @@ class AppUserPkb extends App
         foreach($content_ids as $content_id){
           // we MUST use this $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
           // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
-          $graph_id = $this->getGraphId($content_id);
-          $local_content_id = $this->getLocalContentId($content_id);
+          $graph_id = $this->contentIdConverter->getGraphId($content_id);
+          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
           $node_rows = $this->db->execute("SELECT text, cloned_from_graph_id,	cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
           // if $this->getRequest()['graphId'] is clone of another graph and $local_content_id was not modified (= NULL)
           // return text of original graph
@@ -108,7 +110,7 @@ class AppUserPkb extends App
       case 'getIcon':
         $r = $this->getRequest();
         // get auth_id of this content_id
-        $graph_id = $this->getGraphId($r);
+        $graph_id = $this->contentIdConverter->getGraphId($r);
         $node_rows = $this->db->execute("SELECT auth_id FROM graph WHERE id = '".$graph_id."'");
         $auth_id = $node_rows[0]['auth_id'];
         $img_path = $this->getAppDir('uploads', false)."/".$auth_id."/".$r.".png";
@@ -121,8 +123,8 @@ class AppUserPkb extends App
         $nodes = array();
         $edges = array();
         foreach($r['nodes'] as $content_id){
-          $graph_id = $this->getGraphId($content_id);
-          $local_content_id = $this->getLocalContentId($content_id);
+          $graph_id = $this->contentIdConverter->getGraphId($content_id);
+          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
           $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attributes).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
           $node_row = $node_rows[0];
 
@@ -148,8 +150,8 @@ class AppUserPkb extends App
         }
 
         foreach($r['edges'] as $content_id){
-          $graph_id = $this->getGraphId($content_id);
-          $local_content_id = $this->getLocalContentId($content_id);
+          $graph_id = $this->contentIdConverter->getGraphId($content_id);
+          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
           $query = "SELECT '".$content_id."' as edgeContentId, type, label FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           $edge_rows = $this->db->execute($query);
           $edge_row = $edge_rows[0];
@@ -264,11 +266,11 @@ class AppUserPkb extends App
         $r = $this->getRequest();
 
         if($r['type'] == 'updateNodeText' || $r['type'] == 'updateNodeAttribute' || $r['type'] == 'addIcon'){
-          $graph_id = $this->getGraphId($r['nodeContentId']);
-          $local_content_id = $this->getLocalContentId($r['nodeContentId']);
+          $graph_id = $this->contentIdConverter->getGraphId($r['nodeContentId']);
+          $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
         }else if($r['type'] == 'updateEdgeAttribute'){
-          $graph_id = $this->getGraphId($r['edgeContentId']);
-          $local_content_id = $this->getLocalContentId($r['edgeContentId']);
+          $graph_id = $this->contentIdConverter->getGraphId($r['edgeContentId']);
+          $local_content_id = $this->contentIdConverter->getLocalContentId($r['edgeContentId']);
         }else if($r['type'] == 'addEdge' || $r['type'] == 'addNode'){
           $graph_id = $r['graphId'];
         }
@@ -387,14 +389,13 @@ class AppUserPkb extends App
     $original = $this->getGraphsHistoryChunk(array($graphId=>null))[0];
     $clone = $this->getGraphsHistoryChunk(array($cloneId=>null))[0];
 
-    $graph_diff_creator = new GraphDiffCreator($this->db, $original, $clone, $this->node_attributes, $this->contentIdConverter);
+    $graph_diff_creator = new GraphDiffCreator($this->db, $original, $clone, $this->node_attributes, $this->edge_attributes, $this->contentIdConverter);
     $graphModel = $graph_diff_creator->getDiffGraph();
 
     // == create graphViewSettings ==
     $graphViewSettings = array(
       'graphId' => 'diff_'.$graphId.'_'.$cloneId,
-      'graphModel' => $graphModel,
-      'settings'
+      'graphModel' => $graphModel
     );
 
     // create nodes with types of form diff_originalContentId_clonedContentId
@@ -457,13 +458,13 @@ class AppUserPkb extends App
     $elements = json_decode($rows[0]['elements'], true);
 
     foreach($elements['nodes'] as $k => $node){
-      $local_content_id = $this->getLocalContentId($node['nodeContentId']);
+      $local_content_id = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
       $node['nodeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
       $local_content_ids[] = $local_content_id;
       $nodes[$k] = $node;
     }
     foreach($elements['edges'] as $k => $edge){
-      $local_content_id = $this->getLocalContentId($edge['edgeContentId']);
+      $local_content_id = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
       $edge['edgeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
       $edges[$k] = $edge;
     }
@@ -506,12 +507,12 @@ class AppUserPkb extends App
       $elements = json_decode($row['elements'], true);
 
       foreach($elements['nodes'] as $k => $node){
-        $local_content_id = $this->getLocalContentId($node['nodeContentId']);
+        $local_content_id = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
         $node['nodeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
         $nodes[$k] = $node;
       }
       foreach($elements['edges'] as $k => $edge){
-        $local_content_id = $this->getLocalContentId($edge['edgeContentId']);
+        $local_content_id = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
         $edge['edgeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
         $edges[$k] = $edge;
       }
