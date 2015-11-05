@@ -384,14 +384,25 @@ class AppUserPkb extends App
   }
 
   protected function getGraphDiff($graphId, $cloneId){
-    // == get last step from history of $graphId and $cloneId ==
-
-    $original = $this->getGraphsHistoryChunk(array($graphId=>null))[0];
+    $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$cloneId."'";
+    $rows = $this->db->execute($q);
+    $original = $this->getGraphsHistoryChunk(array($graphId=>$rows[0]['cloned_from_graph_history_step']))[0];
     $clone = $this->getGraphsHistoryChunk(array($cloneId=>null))[0];
 
-    $graph_diff_creator = new GraphDiffCreator($this->db, $original, $clone, $this->node_attributes, $this->edge_attributes, $this->contentIdConverter);
-    $graphModel = $graph_diff_creator->getDiffGraph();
+    $graph1NodeContentUpdatedAt = $this->getNodeAttributes($graphId);
+    $graph2NodeContentUpdatedAt = $this->getNodeAttributes($cloneId);
 
+    $graph_diff_creator = new GraphDiffCreator(
+      $original,
+      $clone,
+      $graph1NodeContentUpdatedAt,
+      $graph2NodeContentUpdatedAt,
+      $this->node_attributes,
+      $this->edge_attributes,
+      $this->contentIdConverter
+    );
+    $graphModel = $graph_diff_creator->getDiffGraph();
+    var_dump($graphModel);
     // == create graphViewSettings ==
     $graphViewSettings = array(
       'graphId' => 'diff_'.$graphId.'_'.$cloneId,
@@ -403,6 +414,14 @@ class AppUserPkb extends App
     // create skin with stickers of types 'new', 'modified', 'removed' (defined in  node.attr.typeStickers)
 
     // decoration with colors of original scheme and sticker names that shows if node is new, modified or removed
+  }
+
+  protected function getNodeAttributes($graphId){
+    $q = "SELECT local_content_id, ".implode(',',$this->node_attributes).", updated_at FROM node_content WHERE graph_id = '".$graphId."'";
+    $rows = $this->db->execute($q);
+    $attrs = array();
+    foreach($rows as $row) $attrs[$row['local_content_id']] = $row;
+    return $attrs;
   }
 
   protected function createNewUser($login, $password){
@@ -472,12 +491,12 @@ class AppUserPkb extends App
     $q = "INSERT INTO graph_history SET graph_id = '".$new_graph_id."', step = '1', timestamp = '".time()."', elements = '".$elements."', node_mapping = '".$rows[0]['node_mapping']."'";
     $this->db->execute($q);
 
-    // copy all data in nodes except text
-    $q = "INSERT INTO node_content (graph_id, local_content_id, ".explode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    // copy local_content_id, created_at, updated_at
+    $q = "INSERT INTO node_content (graph_id, local_content_id, ".explode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, updated_at, created_at FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->db->execute($q);
 
     // just copy edges as is
-    $q = "INSERT INTO edge_content (graph_id, local_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO edge_content (graph_id, local_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, updated_at, created_at FROM edge_content WHERE graph_id = '".$graph_id."'";
     $this->db->execute($q);
 
     $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
@@ -591,7 +610,13 @@ class AppUserPkb extends App
       $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$graph_id."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
       $rows = $this->db->execute($query);
       foreach($rows as $row){
-        $graphs_history[] = array('graphId'=>$graph_id, 'step'=>$row['step'], 'timestamp'=>$row['timestamp'], 'elements'=>json_decode($row['elements'], true), 'node_mapping'=>json_decode($row['node_mapping'], true));
+        $graphs_history[] = array(
+          'graphId'=>$graph_id,
+          'step'=>$row['step'],
+          'timestamp'=>$row['timestamp'],
+          'elements'=>json_decode($row['elements'], true),
+          'node_mapping'=>json_decode($row['node_mapping'], true)
+        );
       }
     }
 
