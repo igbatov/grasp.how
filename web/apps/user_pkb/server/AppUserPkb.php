@@ -299,7 +299,7 @@ class AppUserPkb extends App
               $this->error("Error during transaction: ".mysql_error().". Transaction rollbacked.");
             }
           $this->db->commitTransaction();
-          $this->showRawData($this->createGlobalContentId($graph_id,$local_content_id));
+          $this->showRawData($this->contentIdConverter->createGlobalContentId($graph_id,$local_content_id));
 
         }else if($r['type'] == 'addNode'){
           $this->db->startTransaction();
@@ -314,7 +314,7 @@ class AppUserPkb extends App
             $this->error("Error during transaction: ".mysql_error().". Transaction rollbacked.");
           }
           $this->db->commitTransaction();
-          $this->showRawData($this->createGlobalContentId($graph_id, $local_content_id));
+          $this->showRawData($this->contentIdConverter->createGlobalContentId($graph_id, $local_content_id));
 
         }else if($r['type'] == 'addIcon'){
           $content_id = $r['nodeContentId'];
@@ -478,13 +478,13 @@ class AppUserPkb extends App
 
     foreach($elements['nodes'] as $k => $node){
       $local_content_id = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
-      $node['nodeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
+      $node['nodeContentId'] = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
       $local_content_ids[] = $local_content_id;
       $nodes[$k] = $node;
     }
     foreach($elements['edges'] as $k => $edge){
       $local_content_id = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
-      $edge['edgeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
+      $edge['edgeContentId'] = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
       $edges[$k] = $edge;
     }
     $elements = json_encode(array("nodes"=>$nodes, "edges"=>$edges), JSON_FORCE_OBJECT);
@@ -492,7 +492,7 @@ class AppUserPkb extends App
     $this->db->execute($q);
 
     // copy local_content_id, created_at, updated_at
-    $q = "INSERT INTO node_content (graph_id, local_content_id, ".explode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, updated_at, created_at FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $q = "INSERT INTO node_content (graph_id, local_content_id, ".implode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, updated_at, created_at FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->db->execute($q);
 
     // just copy edges as is
@@ -527,12 +527,12 @@ class AppUserPkb extends App
 
       foreach($elements['nodes'] as $k => $node){
         $local_content_id = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
-        $node['nodeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
+        $node['nodeContentId'] = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
         $nodes[$k] = $node;
       }
       foreach($elements['edges'] as $k => $edge){
         $local_content_id = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
-        $edge['edgeContentId'] = $this->createGlobalContentId($new_graph_id, $local_content_id);
+        $edge['edgeContentId'] = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
         $edges[$k] = $edge;
       }
       $elements = json_encode(array("nodes"=>$nodes, "edges"=>$edges), JSON_FORCE_OBJECT);

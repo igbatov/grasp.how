@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Class that creates so called diff graph given original graph and cloned one.
- * Diff graph is a union of both graphs with nodes marked as new, deleted and modified (in clone compared to original).
+ * Class that creates so called diff graph given original graph and modified (or cloned) one.
+ * Diff graph is a union of both graphs with nodes marked as new, absent (removed), modified or unmodified.
  * Algorithms in methods relies heavily on the fact that local_content_ids of cloned nodes and edges
  * is the same in clone as in the original graph.
  */
@@ -145,7 +145,7 @@ class GraphDiffCreator{
     $t1 = explode('-',$t[1]);
     return array(
       'graphId1'=>$t0[0],
-      'localContentId1'=>$t[1],
+      'localContentId1'=>$t0[1],
       'graphId2'=>$t1[0],
       'localContentId2'=>$t1[1]
     );
