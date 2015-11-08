@@ -5,8 +5,8 @@ include("ContentIdConverter.php");
 class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
-  private $node_attributes;
-  private $edge_attributes;
+  private $node_attribute_names;
+  private $edge_attribute_names;
   private $contentIdConverter;
 
   public function showView(){
@@ -61,8 +61,8 @@ class AppUserPkb extends App
       exit();
     }
 
-    $this->node_attributes = array('type', 'label', 'reliability', 'importance', 'has_icon');
-    $this->edge_attributes = array('type', 'label');
+    $this->node_attribute_names = array('type', 'label', 'reliability', 'importance', 'has_icon');
+    $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
     // else process action defined by url
@@ -125,13 +125,13 @@ class AppUserPkb extends App
         foreach($r['nodes'] as $content_id){
           $graph_id = $this->contentIdConverter->getGraphId($content_id);
           $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attributes).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
           $node_row = $node_rows[0];
 
           // if node was cloned and some its attributes is null this simply means it was just not modified -  so take it from original node
           if($node_row['cloned_from_graph_id'] != null){
             $attributes_to_borrow = array();
-            foreach($this->node_attributes as $attribute){
+            foreach($this->node_attribute_names as $attribute){
               if($node_row[$attribute] == null) $attributes_to_borrow[] = $attribute;
             }
             // some is null
@@ -389,26 +389,51 @@ class AppUserPkb extends App
     $original = $this->getGraphsHistoryChunk(array($graphId=>$rows[0]['cloned_from_graph_history_step']))[0];
     $clone = $this->getGraphsHistoryChunk(array($cloneId=>null))[0];
 
-    $graph1NodeContentUpdatedAt = $this->getNodeAttributes($graphId);
-    $graph2NodeContentUpdatedAt = $this->getNodeAttributes($cloneId);
+    $graph1NodeContent = $this->getNodeAttributes($graphId);
+    $graph2NodeContent = $this->getNodeAttributes($cloneId);
+
+    $graph1EdgeContent = $this->getEdgeAttributes($graphId);
+    $graph2EdgeContent = $this->getEdgeAttributes($cloneId);
 
     $graph_diff_creator = new GraphDiffCreator(
       $original,
       $clone,
-      $graph1NodeContentUpdatedAt,
-      $graph2NodeContentUpdatedAt,
+      $graph1NodeContent,
+      $graph2NodeContent,
       $this->contentIdConverter
     );
     $graphModel = $graph_diff_creator->getDiffGraph();
 
-    // add to nodes and edges attribute values and format them in standard way
+    // create array of diff node attributes
+    $diffNodeAttributes = array();
+    foreach($graphModel['nodes'] as $node){
+      $contentId = $graph_diff_creator->decodeContentId($node['contentId']);
+      if($contentId['graphId1']) $diffNodeAttributes[$node['contentId']] = $graph1NodeContent[$contentId['localContentId1']];
+      // if we have graph2 attributes for this node, use it
+      if($contentId['graphId2']){
+        foreach($this->node_attribute_names as $attribute_name){
+          if($graph2NodeContent[$contentId['localContentId2']][$attribute_name])
+            $diffNodeAttributes[$node['contentId']][$attribute_name] = $graph2NodeContent[$contentId['localContentId2']][$attribute_name];
+        }
+      }
+    }
+
+    // create array of diff edge attributes
+    $diffEdgeAttributes = array();
+    foreach($graphModel['edges'] as $edge){
+      $localContentId = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
+      if($graph2EdgeContent[$localContentId]) $diffEdgeAttributes[$edge['edgeContentId']] = $graph2EdgeContent[$localContentId];
+      else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$localContentId];
+    }
 
 
-    var_dump($graphModel);
+    var_dump($diffEdgeAttributes);
     // == create graphViewSettings ==
     $graphViewSettings = array(
       'graphId' => 'diff_'.$graphId.'_'.$cloneId,
-      'graphModel' => $graphModel
+      'graphModel' => $graphModel,
+      'nodeAttributes' => $diffNodeAttributes,
+      'edgeAttributes' => $diffEdgeAttributes
     );
 
     // create nodes with types of form diff_originalContentId_clonedContentId
@@ -419,7 +444,15 @@ class AppUserPkb extends App
   }
 
   protected function getNodeAttributes($graphId){
-    $q = "SELECT local_content_id, ".implode(',',$this->node_attributes).", updated_at FROM node_content WHERE graph_id = '".$graphId."'";
+    $q = "SELECT local_content_id, ".implode(',',$this->node_attribute_names).", updated_at FROM node_content WHERE graph_id = '".$graphId."'";
+    $rows = $this->db->execute($q);
+    $attrs = array();
+    foreach($rows as $row) $attrs[$row['local_content_id']] = $row;
+    return $attrs;
+  }
+
+  protected function getEdgeAttributes($graphId){
+    $q = "SELECT local_content_id, ".implode(',',$this->edge_attribute_names).", updated_at FROM edge_content WHERE graph_id = '".$graphId."'";
     $rows = $this->db->execute($q);
     $attrs = array();
     foreach($rows as $row) $attrs[$row['local_content_id']] = $row;
@@ -494,7 +527,7 @@ class AppUserPkb extends App
     $this->db->execute($q);
 
     // copy local_content_id, created_at, updated_at
-    $q = "INSERT INTO node_content (graph_id, local_content_id, ".implode(',', $this->node_attributes).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, updated_at, created_at FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $q = "INSERT INTO node_content (graph_id, local_content_id, ".implode(',', $this->node_attribute_names).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, updated_at, created_at FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->db->execute($q);
 
     // just copy edges as is

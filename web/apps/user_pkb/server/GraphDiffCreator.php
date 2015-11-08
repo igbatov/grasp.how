@@ -11,8 +11,6 @@ class GraphDiffCreator{
   private $graph2;
   private $graph1NodeContentUpdatedAt;
   private $graph2NodeContentUpdatedAt;
-  private $node_attribute_names;
-  private $edge_attribute_names;
   private $contentIdConverter;
 
   /**
@@ -97,6 +95,7 @@ class GraphDiffCreator{
   /**
    * Merge edges of graph1 and graph.
    * I.e. it creates array of all edges between diff_nodes
+   * diff_edge edgeContentId = graph2 edge edgeContentId or graph1 edge edgeContentId if it absent in graph2
    * @param $diff_edges
    * @param $graph
    * @param $diff_nodes
@@ -138,11 +137,11 @@ class GraphDiffCreator{
     return null;
   }
 
-  private function encodeContentId($graphId1, $localContentId1, $graphId2, $localContentId2){
+  public function encodeContentId($graphId1, $localContentId1, $graphId2, $localContentId2){
     return $graphId1."-".$localContentId1."/".$graphId2."-".$localContentId2;
   }
   
-  private function decodeContentId($contentId){
+  public function decodeContentId($contentId){
     $t = explode('/',$contentId);
     $t0 = explode('-',$t[0]);
     $t1 = explode('-',$t[1]);
