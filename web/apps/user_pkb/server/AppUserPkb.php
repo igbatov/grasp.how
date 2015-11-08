@@ -397,11 +397,13 @@ class AppUserPkb extends App
       $clone,
       $graph1NodeContentUpdatedAt,
       $graph2NodeContentUpdatedAt,
-      $this->node_attributes,
-      $this->edge_attributes,
       $this->contentIdConverter
     );
     $graphModel = $graph_diff_creator->getDiffGraph();
+
+    // add to nodes and edges attribute values and format them in standard way
+
+
     var_dump($graphModel);
     // == create graphViewSettings ==
     $graphViewSettings = array(

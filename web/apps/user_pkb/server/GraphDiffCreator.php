@@ -25,8 +25,6 @@ class GraphDiffCreator{
    * @param $graph2 - row from history of graph 2
    * @param $graph1NodeContentUpdatedAt - update time of content of graph 1 nodes
    * @param $graph2NodeContentUpdatedAt - update time of content of graph 2 nodes
-   * @param $node_attribute_names
-   * @param $edge_attribute_names
    * @param ContentIdConverter $contentIdConverter
    */
   public function __construct(
@@ -34,21 +32,19 @@ class GraphDiffCreator{
     $graph2,
     $graph1NodeContentUpdatedAt,
     $graph2NodeContentUpdatedAt,
-    $node_attribute_names,
-    $edge_attribute_names,
     ContentIdConverter $contentIdConverter
   ){
     $this->graph1 = $graph1;
     $this->graph2 = $graph2;
     $this->graph1NodeContentUpdatedAt = $graph1NodeContentUpdatedAt;
     $this->graph2NodeContentUpdatedAt = $graph2NodeContentUpdatedAt;
-    $this->node_attribute_names = $node_attribute_names;
-    $this->edge_attribute_names = $edge_attribute_names;
     $this->contentIdConverter = $contentIdConverter;
   }
 
   /**
-   * Combine original graph and cloned one into one model that has 'diff' attribute
+   * Combine graph1 and graph2 one into one model with node statuses 'absent', 'added', 'modified' or 'unmodified'
+   * (in graph2 in respect to graph1, which is supposed to be earlier version of graph2)
+   * 'modified' and 'unmodified' is set according to updated_at timestamp of the node
    * @return array
    */
   public function getDiffGraph(){
@@ -98,6 +94,13 @@ class GraphDiffCreator{
     );
   }
 
+  /**
+   * Merge edges of graph1 and graph.
+   * I.e. it creates array of all edges between diff_nodes
+   * @param $diff_edges
+   * @param $graph
+   * @param $diff_nodes
+   */
   private function addDiffEdges(&$diff_edges, $graph, $diff_nodes){
     foreach($graph['elements']['edges'] as $edge){
       $sourceContentId = $graph['elements']['nodes'][$edge['source']]['nodeContentId'];
@@ -135,8 +138,8 @@ class GraphDiffCreator{
     return null;
   }
 
-  private function encodeContentId($originalGraphId, $localContentId, $cloneGraphId, $localContentId){
-    return $originalGraphId."-".$localContentId."/".$cloneGraphId."-".$localContentId;
+  private function encodeContentId($graphId1, $localContentId1, $graphId2, $localContentId2){
+    return $graphId1."-".$localContentId1."/".$graphId2."-".$localContentId2;
   }
   
   private function decodeContentId($contentId){
