@@ -62,21 +62,21 @@ class GraphDiffCreator{
     foreach($absentInGraph2 as $localContentId){
       $i++;
       $diff_nodes[$i] = array(
-        'contentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, null, null),
+        'nodeContentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, null, null),
         'status'=>'absent'
       );
     }
     foreach($absentInGraph1 as $localContentId){
       $i++;
       $diff_nodes[$i] = array(
-        'contentId'=>$this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId),
+        'nodeContentId'=>$this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId),
         'status'=>'added'
       );
     }
     foreach($common as $localContentId){
       $i++;
       $diff_nodes[$i] = array(
-        'contentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId),
+        'nodeContentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId),
         'status'=>$this->graph1NodeContentUpdatedAt[$localContentId]['updated_at'] == $this->graph2NodeContentUpdatedAt[$localContentId]['updated_at'] ? 'unmodified' : 'modified'
       );
     }
@@ -85,6 +85,31 @@ class GraphDiffCreator{
     $diff_edges = array();
     $this->addDiffEdges($diff_edges, $this->graph1, $diff_nodes);
     $this->addDiffEdges($diff_edges, $this->graph2, $diff_nodes);
+
+    // reformat edges to diff_nodes form
+    foreach($this->graph1['elements']['edges'] as $edge)
+      $graph1EdgeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
+
+    foreach($this->graph2['elements']['edges'] as $edge)
+      $graph2EdgeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
+
+    $absentInGraph2 = array_diff($graph1EdgeLocalContentIds, $graph2EdgeLocalContentIds);
+    $absentInGraph1 = array_diff($graph2EdgeLocalContentIds, $graph1EdgeLocalContentIds);
+    $common = array_intersect($graph2EdgeLocalContentIds, $graph1EdgeLocalContentIds);
+
+    $i=0;
+    foreach($diff_edges as $key => $diff_edge){
+      $localContentId = $this->contentIdConverter->getLocalContentId($diff_edge['edgeContentId']);
+      $diff_edges[$i] = $diff_edge;
+      if(in_array($localContentId, $absentInGraph2))
+        $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, null, null);
+      if(in_array($localContentId, $absentInGraph1))
+        $diff_edges[$i]['edgeContentId'] = $this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId);
+      if(in_array($localContentId, $common))
+        $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId);
+      $i++;
+      unset($diff_edges[$key]);
+    }
 
     return array(
       'nodes'=>$diff_nodes,
@@ -127,7 +152,7 @@ class GraphDiffCreator{
    */
   private function findDiffNodeId($graphId, $localContentId, $diff_nodes){
     foreach($diff_nodes as $nodeId=>$diff_node){
-      $contentId = $this->decodeContentId($diff_node['contentId']);
+      $contentId = $this->decodeContentId($diff_node['nodeContentId']);
       if(
         $graphId == $contentId['graphId1'] && $localContentId == $contentId['localContentId1']
         ||

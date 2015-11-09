@@ -407,13 +407,13 @@ class AppUserPkb extends App
     // create array of diff node attributes
     $diffNodeAttributes = array();
     foreach($graphModel['nodes'] as $node){
-      $contentId = $graph_diff_creator->decodeContentId($node['contentId']);
-      if($contentId['graphId1']) $diffNodeAttributes[$node['contentId']] = $graph1NodeContent[$contentId['localContentId1']];
+      $contentId = $graph_diff_creator->decodeContentId($node['nodeContentId']);
+      if($contentId['graphId1']) $diffNodeAttributes[$node['nodeContentId']] = $graph1NodeContent[$contentId['localContentId1']];
       // if we have graph2 attributes for this node, use it
       if($contentId['graphId2']){
         foreach($this->node_attribute_names as $attribute_name){
           if($graph2NodeContent[$contentId['localContentId2']][$attribute_name])
-            $diffNodeAttributes[$node['contentId']][$attribute_name] = $graph2NodeContent[$contentId['localContentId2']][$attribute_name];
+            $diffNodeAttributes[$node['nodeContentId']][$attribute_name] = $graph2NodeContent[$contentId['localContentId2']][$attribute_name];
         }
       }
     }
@@ -421,12 +421,13 @@ class AppUserPkb extends App
     // create array of diff edge attributes
     $diffEdgeAttributes = array();
     foreach($graphModel['edges'] as $edge){
-      $localContentId = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
-      if($graph2EdgeContent[$localContentId]) $diffEdgeAttributes[$edge['edgeContentId']] = $graph2EdgeContent[$localContentId];
-      else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$localContentId];
+      $contentId = $graph_diff_creator->decodeContentId($edge['edgeContentId']);
+      if($contentId['graphId2']) $diffEdgeAttributes[$edge['edgeContentId']] = $graph2EdgeContent[$contentId['localContentId2']];
+      else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$contentId['localContentId1']];
     }
 
 
+   // var_dump($graphModel['edges']);
     var_dump($diffEdgeAttributes);
     // == create graphViewSettings ==
     $graphViewSettings = array(
