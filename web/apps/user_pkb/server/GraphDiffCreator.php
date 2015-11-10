@@ -11,6 +11,8 @@ class GraphDiffCreator{
   private $graph2;
   private $graph1NodeContentUpdatedAt;
   private $graph2NodeContentUpdatedAt;
+  private $graph1EdgeContentUpdatedAt;
+  private $graph2EdgeContentUpdatedAt;
   private $contentIdConverter;
 
   /**
@@ -21,8 +23,10 @@ class GraphDiffCreator{
    *    edges=>array(id=>array(source=>123, target=>234, edgeContentId=>globalContentId))
    *  )
    * @param $graph2 - row from history of graph 2
-   * @param $graph1NodeContentUpdatedAt - update time of content of graph 1 nodes
+   * @param $graph1NodeContentUpdatedAt - update time of content of graph 1 nodes in array(nodeContentId=>array('updated_at'=>'2015-11-23 23:22:13'), ...)
    * @param $graph2NodeContentUpdatedAt - update time of content of graph 2 nodes
+   * @param $graph1EdgeContentUpdatedAt - update time of content of graph 1 edges
+   * @param $graph2EdgeContentUpdatedAt - update time of content of graph 2 edges
    * @param ContentIdConverter $contentIdConverter
    */
   public function __construct(
@@ -30,12 +34,16 @@ class GraphDiffCreator{
     $graph2,
     $graph1NodeContentUpdatedAt,
     $graph2NodeContentUpdatedAt,
+    $graph1EdgeContentUpdatedAt,
+    $graph2EdgeContentUpdatedAt,
     ContentIdConverter $contentIdConverter
   ){
     $this->graph1 = $graph1;
     $this->graph2 = $graph2;
     $this->graph1NodeContentUpdatedAt = $graph1NodeContentUpdatedAt;
     $this->graph2NodeContentUpdatedAt = $graph2NodeContentUpdatedAt;
+    $this->graph1EdgeContentUpdatedAt = $graph1EdgeContentUpdatedAt;
+    $this->graph2EdgeContentUpdatedAt = $graph2EdgeContentUpdatedAt;
     $this->contentIdConverter = $contentIdConverter;
   }
 
@@ -101,12 +109,18 @@ class GraphDiffCreator{
     foreach($diff_edges as $key => $diff_edge){
       $localContentId = $this->contentIdConverter->getLocalContentId($diff_edge['edgeContentId']);
       $diff_edges[$i] = $diff_edge;
-      if(in_array($localContentId, $absentInGraph2))
+      if(in_array($localContentId, $absentInGraph2)){
         $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, null, null);
-      if(in_array($localContentId, $absentInGraph1))
+        $diff_edges[$i]['status'] = 'absent';
+      }
+      if(in_array($localContentId, $absentInGraph1)){
         $diff_edges[$i]['edgeContentId'] = $this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId);
-      if(in_array($localContentId, $common))
+        $diff_edges[$i]['status'] = 'added';
+      }
+      if(in_array($localContentId, $common)){
         $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId);
+        $diff_edges[$i]['status'] = $this->graph1EdgeContentUpdatedAt[$localContentId]['updated_at'] == $this->graph2EdgeContentUpdatedAt[$localContentId]['updated_at'] ? 'unmodified' : 'modified';
+      }
       $i++;
       unset($diff_edges[$key]);
     }

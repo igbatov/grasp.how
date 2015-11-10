@@ -394,12 +394,15 @@ class AppUserPkb extends App
 
     $graph1EdgeContent = $this->getEdgeAttributes($graphId);
     $graph2EdgeContent = $this->getEdgeAttributes($cloneId);
-
+//var_dump($graph1EdgeContent);
+//var_dump($graph2EdgeContent);
     $graph_diff_creator = new GraphDiffCreator(
       $original,
       $clone,
       $graph1NodeContent,
       $graph2NodeContent,
+      $graph1EdgeContent,
+      $graph2EdgeContent,
       $this->contentIdConverter
     );
     $graphModel = $graph_diff_creator->getDiffGraph();
@@ -427,8 +430,8 @@ class AppUserPkb extends App
     }
 
 
-   // var_dump($graphModel['edges']);
-    var_dump($diffEdgeAttributes);
+    var_dump($graphModel['edges']);
+  //  var_dump($diffEdgeAttributes);
     // == create graphViewSettings ==
     $graphViewSettings = array(
       'graphId' => 'diff_'.$graphId.'_'.$cloneId,
@@ -527,12 +530,14 @@ class AppUserPkb extends App
     $q = "INSERT INTO graph_history SET graph_id = '".$new_graph_id."', step = '1', timestamp = '".time()."', elements = '".$elements."', node_mapping = '".$rows[0]['node_mapping']."'";
     $this->db->execute($q);
 
-    // copy local_content_id, created_at, updated_at
+    // Copy local_content_id, created_at, updated_at
+    // We set attributes to null here and change them only when cloner actually modifies them
+    // Thus we avoid unnecessary data duplication and track what attributes was actually changed
     $q = "INSERT INTO node_content (graph_id, local_content_id, ".implode(',', $this->node_attribute_names).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, updated_at, created_at FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->db->execute($q);
 
     // just copy edges as is
-    $q = "INSERT INTO edge_content (graph_id, local_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, updated_at, created_at FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO edge_content (graph_id, local_content_id,	".implode(',', $this->edge_attribute_names).", updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, ".implode(',', $this->edge_attribute_names).", updated_at, created_at FROM edge_content WHERE graph_id = '".$graph_id."'";
     $this->db->execute($q);
 
     $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
