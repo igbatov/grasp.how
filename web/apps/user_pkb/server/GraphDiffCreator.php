@@ -5,6 +5,8 @@
  * Diff graph is a union of both graphs with nodes marked as new, absent (removed), modified or unmodified.
  * Algorithms in methods relies heavily on the fact that local_content_ids of cloned nodes and edges
  * is the same in clone as in the original graph.
+ * It also assumes that graph1 is ancestor from the history of graph2 or graph1 was cloned into graph2
+ * - i.e. there was no edits in graph1 in the same time as graph2 was edited
  */
 class GraphDiffCreator{
   private $graph1;
@@ -60,6 +62,7 @@ class GraphDiffCreator{
     foreach($this->graph2['elements']['nodes'] as $node)
       $graph2NodeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
 
+    // we can do this because no new nodes was added in graph1, only in graph2
     $absentInGraph2 = array_diff($graph1NodeLocalContentIds, $graph2NodeLocalContentIds);
     $absentInGraph1 = array_diff($graph2NodeLocalContentIds, $graph1NodeLocalContentIds);
     $common = array_intersect($graph2NodeLocalContentIds, $graph1NodeLocalContentIds);
