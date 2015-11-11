@@ -8,7 +8,7 @@
 <body>
 <table style="width: 100%; margin-top: 10%;">
   <tr>
-    <td colspan="2" style="text-align: center; font-size: 60px;"><div style="margin-bottom: 60px;">SIGN IN OR SIGN UP</div></td>
+    <td colspan="2" style="text-align: center; font-size: 60px;"><div style="margin-bottom: 60px;">SIGN IN OR GET INVITE</div></td>
 
   </tr>
   <tr>
@@ -42,7 +42,7 @@
             <input type="<?php echo $field["type"]; ?>" name="<?php echo $key; ?>" /><br>
           </p>
         <?php endforeach ?>
-        <input type="submit" value="SIGN UP" />
+        <input type="submit" value="GET INVITE" />
       </form>
     </fieldset>
   </div> <!-- end login -->

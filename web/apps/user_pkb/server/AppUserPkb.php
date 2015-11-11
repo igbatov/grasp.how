@@ -1,4 +1,5 @@
 <?php
+
 include("GraphDiffCreator.php");
 include("ContentIdConverter.php");
 
@@ -12,7 +13,6 @@ class AppUserPkb extends App
   public function showView(){
     parent::showView();
     $vars = $this->getRoute();
-
     // choose the mode of access level
     if($vars[0] === 'showGraph'){
       $access_level = 'read';
@@ -53,14 +53,32 @@ class AppUserPkb extends App
         "action"=>"signupSuccess",
         "fields"=>array(
           "email"=>array("type"=>"text"),
+          "profile url"=>array("type"=>"text"),
+          /*
           "password"=>array("type"=>"password"),
           "password again"=>array("type"=>"password")
+          */
         )
       );
       include($this->getAppDir("template", false)."/login.php");
       exit();
     }
 
+    // check that user browsing from supported device/browser
+    $mobile_checker = new Mobile_Detect();
+    $deviceType = ($mobile_checker->isMobile() ? ($mobile_checker->isTablet() ? 'tablet' : 'phone') : 'computer');
+    $browser_checker = new \Sinergi\BrowserDetector\Browser();
+    $os_checker = new \Sinergi\BrowserDetector\Os();
+    if(
+      $browser_checker->getName() != Sinergi\BrowserDetector\Browser::CHROME
+      || $deviceType != 'computer'
+      || $os_checker->getName() != \Sinergi\BrowserDetector\Os::WINDOWS
+    ){
+      include($this->getAppDir("template", false)."/browserUnsupported.php");
+      exit();
+    }
+
+    // define node and edge attributes (must be the same as db table column names)
     $this->node_attribute_names = array('type', 'label', 'reliability', 'importance', 'has_icon');
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
@@ -88,7 +106,7 @@ class AppUserPkb extends App
         $content_ids = $this->getRequest()['nodeContentIds'];
         $node_texts = array();
         foreach($content_ids as $content_id){
-          // we MUST use this $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
+          // we MUST use $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
           // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
           $graph_id = $this->contentIdConverter->getGraphId($content_id);
           $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);

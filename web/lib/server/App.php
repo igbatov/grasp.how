@@ -59,6 +59,9 @@ abstract class App
       case "img":
           return $app_root."/client/img";
           break;
+      case "lib":
+          return $this->config->getWebRootPath()."/lib/server";
+          break;
       default:
         return false;
     }

@@ -66,8 +66,6 @@ require_once ($path.'/'.'App.php');
 require_once ($path.'/'.'../../apps/frontend/server/AppFrontend.php');
 require_once ($path.'/'.'../../apps/user_pkb/server/AppUserPkb.php');
 
-
-
 // init pear auth module
 $options = array('dsn' => 'mysql://'.$c->getDbConf()->login.':'.$c->getDbConf()->password.'@'.$c->getDbConf()->host.'/'.$c->getDbConf()->dbName);
 $a = new Auth('MDB2', $options, null, false);
@@ -85,3 +83,9 @@ $s->start();
 // init helper modules
 $db = new DB($c->getDbConf());
 $eh = new ErrorHandler();
+
+// include browser detector classes
+include_once($c->getWebRootPath()."/lib/server/vendor/Sinergi/BrowserDetector/DetectorInterface.php");
+foreach (glob($c->getWebRootPath()."/lib/server/vendor/Sinergi/BrowserDetector/*.php") as $filename) include_once($filename);
+// include mobile detection
+require_once($c->getWebRootPath()."/lib/server/vendor/Mobile_Detect.php");
