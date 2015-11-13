@@ -174,3 +174,13 @@ blockquote:before {
     color: #DDD;
 }
 
+.call_to_action{
+    font-weight: bold;
+    text-align: center;
+    padding: 20px 20px 20px 20px;
+    color: #754103;
+    background-color: #00FFB8;
+    margin: 20px 20px 20px 20px;
+    font-size: large;
+}
+
