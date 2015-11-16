@@ -195,12 +195,8 @@ class AppUserPkb extends App
         break;
 
       case "getGraphSettings":
-        $s = array();
         $graph_ids = $this->getRequest();
-        $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id IN ('".implode("','",$graph_ids)."')";
-        foreach($this->db->execute($query) as $row){
-          $s[$row['graph_id']] = json_decode($row['settings'], true);
-        }
+        $s = $this->getGraphSettings($graph_ids);
         $this->showRawData(json_encode($s));
         break;
 
@@ -401,6 +397,15 @@ class AppUserPkb extends App
     }
   }
 
+  protected function getGraphSettings($graph_ids){
+    $s = array();
+    $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id IN ('".implode("','",$graph_ids)."')";
+    foreach($this->db->execute($query) as $row){
+      $s[$row['graph_id']] = json_decode($row['settings'], true);
+    }
+    return $s;
+  }
+
   protected function getGraphDiff($graphId, $cloneId){
     $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$cloneId."'";
     $rows = $this->db->execute($q);
@@ -447,15 +452,16 @@ class AppUserPkb extends App
       else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$contentId['localContentId1']];
     }
 
-
-    var_dump($graphModel['edges']);
-  //  var_dump($diffEdgeAttributes);
+    $s = $this->getGraphSettings(array($graphId, $cloneId));
+  // var_dump($graphModel['edges']);
+    var_dump($s);
     // == create graphViewSettings ==
     $graphViewSettings = array(
       'graphId' => 'diff_'.$graphId.'_'.$cloneId,
       'graphModel' => $graphModel,
       'nodeAttributes' => $diffNodeAttributes,
-      'edgeAttributes' => $diffEdgeAttributes
+      'edgeAttributes' => $diffEdgeAttributes,
+      'settings' => $s[$graphId]
     );
 
     // create nodes with types of form diff_originalContentId_clonedContentId

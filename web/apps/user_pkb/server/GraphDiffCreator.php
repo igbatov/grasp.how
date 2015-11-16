@@ -51,7 +51,7 @@ class GraphDiffCreator{
 
   /**
    * Combine graph1 and graph2 one into one model with node statuses 'absent', 'added', 'modified' or 'unmodified'
-   * (in graph2 in respect to graph1, which is supposed to be earlier version of graph2)
+   * (graph1 is supposed to be earlier version of graph2)
    * 'modified' and 'unmodified' is set according to updated_at timestamp of the node
    * @return array
    */
@@ -62,7 +62,7 @@ class GraphDiffCreator{
     foreach($this->graph2['elements']['nodes'] as $node)
       $graph2NodeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
 
-    // we can do this because no new nodes was added in graph1, only in graph2
+    // we can do this because no new nodes was added or removed in graph1, only in graph2
     $absentInGraph2 = array_diff($graph1NodeLocalContentIds, $graph2NodeLocalContentIds);
     $absentInGraph1 = array_diff($graph2NodeLocalContentIds, $graph1NodeLocalContentIds);
     $common = array_intersect($graph2NodeLocalContentIds, $graph1NodeLocalContentIds);
