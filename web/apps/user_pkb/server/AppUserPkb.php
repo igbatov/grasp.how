@@ -406,22 +406,22 @@ class AppUserPkb extends App
     return $s;
   }
 
-  protected function getGraphDiff($graphId, $cloneId){
-    $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$cloneId."'";
+  protected function getGraphDiff($graphId1, $graphId2){
+    $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$graphId2."'";
     $rows = $this->db->execute($q);
-    $original = $this->getGraphsHistoryChunk(array($graphId=>$rows[0]['cloned_from_graph_history_step']))[0];
-    $clone = $this->getGraphsHistoryChunk(array($cloneId=>null))[0];
+    $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
+    $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
 
-    $graph1NodeContent = $this->getNodeAttributes($graphId);
-    $graph2NodeContent = $this->getNodeAttributes($cloneId);
+    $graph1NodeContent = $this->getNodeAttributes($graphId1);
+    $graph2NodeContent = $this->getNodeAttributes($graphId2);
 
-    $graph1EdgeContent = $this->getEdgeAttributes($graphId);
-    $graph2EdgeContent = $this->getEdgeAttributes($cloneId);
+    $graph1EdgeContent = $this->getEdgeAttributes($graphId1);
+    $graph2EdgeContent = $this->getEdgeAttributes($graphId2);
 //var_dump($graph1EdgeContent);
 //var_dump($graph2EdgeContent);
     $graph_diff_creator = new GraphDiffCreator(
-      $original,
-      $clone,
+      $graph1,
+      $graph2,
       $graph1NodeContent,
       $graph2NodeContent,
       $graph1EdgeContent,
@@ -452,23 +452,76 @@ class AppUserPkb extends App
       else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$contentId['localContentId1']];
     }
 
-    $s = $this->getGraphSettings(array($graphId, $cloneId));
-  // var_dump($graphModel['edges']);
-    var_dump($s);
+    $s = $this->getGraphSettings(array($graphId1, $graphId2));
+    // check that settings for $graphId1 is the sane as for $graphId2
+    if($s[$graphId1]['skin'] != $s[$graphId2]['skin']) exit('Skins are different');
+
+    /**
+     * create mapping merging node_mapping of graphId1 and graphId2
+     */
+    // first of all adapt area of mappings to area of graph1
+    var_dump($graph2['node_mapping']);
+    $graph2['node_mapping'] = $this->adjustMappingToArea($graph2['node_mapping'], $graph2['node_mapping']['area']);
+    var_dump($graph2['node_mapping']);
+    exit();
+    // now merge to mapping, mapping of graph1 takes precedence
+    $diff_node_mapping = array();
+    foreach($graphModel['nodes'] as $id=>$node){
+      $contentId = $graph_diff_creator->decodeContentId($node['nodeContentId']);
+      if($contentId['graphId1']){
+        $nodeId = $this->findNodeIdByNodeContentId(
+          $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']),
+          $graph1['nodes']
+        );
+        $diff_node_mapping[$id] = $graph1['node_mapping']['mapping'][$nodeId];
+      }else{
+        $nodeId = $this->findNodeIdByNodeContentId(
+          $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']),
+          $graph2['nodes']
+        );
+        $diff_node_mapping[$id] = $graph2['node_mapping']['mapping'][$nodeId];
+      }
+    }
+
     // == create graphViewSettings ==
     $graphViewSettings = array(
-      'graphId' => 'diff_'.$graphId.'_'.$cloneId,
+      'graphId' => 'diff_'.$graphId1.'_'.$graphId2,
       'graphModel' => $graphModel,
       'nodeAttributes' => $diffNodeAttributes,
       'edgeAttributes' => $diffEdgeAttributes,
-      'settings' => $s[$graphId]
+      'nodeMapping' => $diff_node_mapping,
+      'settings' => $s[$graphId1]
     );
 
-    // create nodes with types of form diff_originalContentId_clonedContentId
+    return $graphViewSettings;
+  }
 
-    // create skin with stickers of types 'new', 'modified', 'removed' (defined in  node.attr.typeStickers)
+  protected function adjustMappingToArea($mapping, $area){
+    if(empty($area)) return $mapping;
 
-    // decoration with colors of original scheme and sticker names that shows if node is new, modified or removed
+    $adjustedMappingCoordinates = array();
+    $mappingCoordinates = $mapping['mapping'];
+    $mappingArea = $mapping['area'];
+    $xStretchRatio = $area['width']/$mappingArea['width'];
+    $yStretchRatio = $area['height']/$mappingArea['height'];
+
+    foreach($mappingCoordinates as $i => $n){
+      $adjustedMappingCoordinates[$i] = $n;
+      $adjustedMappingCoordinates[$i]['x'] = round(($n['x'] - $mappingArea['centerX'])*$xStretchRatio) + $area['centerX'];
+      $adjustedMappingCoordinates[$i]['y'] = round(($n['y'] - $mappingArea['centerY'])*$yStretchRatio) + $area['centerY'];
+    }
+
+    $adjustedMapping = array(
+      'area'=>$area,
+      'mapping'=>$adjustedMappingCoordinates
+     );
+
+    return $adjustedMapping;
+  }
+
+  protected function findNodeIdByNodeContentId($globalContentId, $nodes){
+    foreach($nodes as $id => $node) if($node['nodeContentId'] == $globalContentId) return $id;
+    return null;
   }
 
   protected function getNodeAttributes($graphId){

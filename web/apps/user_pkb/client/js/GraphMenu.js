@@ -137,10 +137,9 @@ YOVALUE.GraphMenu.prototype = {
           if(that.selectedPosition[i] == pos) graphId = i;
         }
         that.UI.showModalList(clones[graphId], 'show diff', function(cloneId, html){
-          html.remove();
           var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
           // get graph diff and show it
-          that.publisher.when(e).then(function(graphViewSettings, graphModel){
+          that.publisher.when(e).then(function(graphViewSettings){
             console.log(graphViewSettings);
           });
           that.publisher.publishEvent(e);

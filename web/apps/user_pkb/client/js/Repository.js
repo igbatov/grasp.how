@@ -79,7 +79,9 @@ YOVALUE.Repository.prototype = {
       this.sendPendingRequests();
 
     }else if(name == 'get_graph_diff'){
-      this.pendingRequests.push({url:'getGraphDiff', data:e.getData(), callback:function(){}});
+      this.pendingRequests.push({url:'getGraphDiff', data:e.getData(), callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
       this.sendPendingRequests();
 
     }else if(name == 'graph_element_content_changed'){
