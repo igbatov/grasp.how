@@ -131,7 +131,7 @@ YOVALUE.GraphElementsContent.prototype = {
 
         // get elements that does not exists in cacheElementAttributes
         var undefinedContentIds = {nodes:[], edges:[]};
-        var elementAttributes = {nodes:[], edges:[]};
+        var elementAttributes = {nodes:{}, edges:{}};
         for(i in nodeContentIds){
           nodeContentId = nodeContentIds[i];
           rows = this.cacheElementAttributes.get({elementType:'node', contentId:nodeContentId});

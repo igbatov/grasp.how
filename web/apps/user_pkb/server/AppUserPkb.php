@@ -797,6 +797,8 @@ class AppUserPkb extends App
       'GraphView/GraphView.js',
       'GraphView/GraphViewFactory.js',
       'GraphView/GraphViewsPubSub.js',
+      'GraphView/iGraphViewSettingsStructOne.js',
+      'GraphView/iGraphViewSettingsStructTwo.js',
 
       'GraphController/AddRemoveElementController.js',
       'GraphController/HistoryController.js',

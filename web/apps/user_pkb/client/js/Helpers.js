@@ -37,10 +37,9 @@ YOVALUE.implements = function(objToCheck, iFaces){
     var iFace = arguments[i];
     for(var m in iFace){
       if(m && YOVALUE.typeof(iFace[m]) != YOVALUE.typeof(objToCheck[m])){
-        //console.log(m);
         return false;
       }
-      if(YOVALUE.typeof(iFace[m])  === 'object' && iFace[m] !== {}){
+      if(YOVALUE.typeof(iFace[m])  === 'object' && YOVALUE.getObjectLength(iFace[m])){
         return YOVALUE.implements(objToCheck[m], iFace[m]);
       }
       if(YOVALUE.typeof(iFace[m]) === "function" && iFace[m].length !== objToCheck[m].length){

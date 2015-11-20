@@ -63,35 +63,43 @@ YOVALUE.GraphViewsPubSub.prototype = {
         break;
 
       case "draw_graph_view":
+        // GraphViewSettings can be in two forms - iGraphViewSettingsStructOne or iGraphViewSettingsStructTwo
+        // If it is in iGraphViewSettingsStructTwo convert it to iGraphViewSettingsStructOne
+        var graphViewSettings = {};
+        if(YOVALUE.implements(event.getData(), YOVALUE.iGraphViewSettingsStructTwo)){
+          graphViewSettings = this._convertGraphViewSettings(event.getData());
+        }else{
+          graphViewSettings = event.getData();
+        }
         if(typeof(this.graphViewList[graphId]) == 'undefined'){
           this.graphViewList[graphId] = this.graphViewFactory.create(graphId, this.canvasDrawer);
-          this.graphViewList[graphId].setGraphArea(event.getData()['graphArea']);
-          this.graphViewList[graphId].setModel(event.getData()['graphModel']);
-          this.graphViewList[graphId].setNodeMapping(event.getData()['nodeMapping']);
-          this.graphViewList[graphId].setNodeLabelMapping(event.getData()['nodeLabelMapping']);
-          this.graphViewList[graphId].setDecoration(event.getData()['decoration']);
-          this.graphViewList[graphId].setSkin(event.getData()['skin']);
+          this.graphViewList[graphId].setGraphArea(graphViewSettings['graphArea']);
+          this.graphViewList[graphId].setModel(graphViewSettings['graphModel']);
+          this.graphViewList[graphId].setNodeMapping(graphViewSettings['nodeMapping']);
+          this.graphViewList[graphId].setNodeLabelMapping(graphViewSettings['nodeLabelMapping']);
+          this.graphViewList[graphId].setDecoration(graphViewSettings['decoration']);
+          this.graphViewList[graphId].setSkin(graphViewSettings['skin']);
           this.graphViewList[graphId].drawGraph();
           //bind event fire for various graphView manipulations
-          this.bindPublishers(graphId, event.getData()['eventsToListen']);
+          this.bindPublishers(graphId, graphViewSettings['eventsToListen']);
         }else{
-          if(typeof(event.getData()['graphArea']) !== 'undefined'){
-            this.graphViewList[graphId].setGraphArea(event.getData()['graphArea']);
+          if(typeof(graphViewSettings['graphArea']) !== 'undefined'){
+            this.graphViewList[graphId].setGraphArea(graphViewSettings['graphArea']);
           }
-          if(typeof(event.getData()['graphModel']) !== 'undefined'){
-            this.graphViewList[graphId].setModel(event.getData()['graphModel']);
+          if(typeof(graphViewSettings['graphModel']) !== 'undefined'){
+            this.graphViewList[graphId].setModel(graphViewSettings['graphModel']);
           }
-          if(typeof(event.getData()['nodeMapping']) !== 'undefined'){
-            this.graphViewList[graphId].setNodeMapping(event.getData()['nodeMapping']);
+          if(typeof(graphViewSettings['nodeMapping']) !== 'undefined'){
+            this.graphViewList[graphId].setNodeMapping(graphViewSettings['nodeMapping']);
           }
-          if(typeof(event.getData()['nodeLabelMapping']) !== 'undefined'){
-            this.graphViewList[graphId].setNodeLabelMapping(event.getData()['nodeLabelMapping']);
+          if(typeof(graphViewSettings['nodeLabelMapping']) !== 'undefined'){
+            this.graphViewList[graphId].setNodeLabelMapping(graphViewSettings['nodeLabelMapping']);
           }
-          if(typeof(event.getData()['decoration']) !== 'undefined'){
-            this.graphViewList[graphId].setDecoration(event.getData()['decoration']);
+          if(typeof(graphViewSettings['decoration']) !== 'undefined'){
+            this.graphViewList[graphId].setDecoration(graphViewSettings['decoration']);
           }
-          if(typeof(event.getData()['skin']) !== 'undefined'){
-            this.graphViewList[graphId].setSkin(event.getData()['skin']);
+          if(typeof(graphViewSettings['skin']) !== 'undefined'){
+            this.graphViewList[graphId].setSkin(graphViewSettings['skin']);
           }
           this.graphViewList[graphId].drawGraph();
         }
@@ -142,6 +150,67 @@ YOVALUE.GraphViewsPubSub.prototype = {
         break;
     }
     return true;
+  },
+
+  /**
+   *
+   * @param graphViewSettingsStructTwo
+   * @returns graphViewSettingsStructOne
+   * @private
+   */
+  _convertGraphViewSettings: function(graphViewSettingsStructTwo){
+    var graphModel = graphViewSettingsStructTwo['graphModel'],
+        skin = graphViewSettingsStructTwo['skin'],
+        layout = graphViewSettingsStructTwo['layout'],
+        graphNodeAttributes = graphViewSettingsStructTwo['graphNodeAttributes'],
+        graphEdgeAttributes = graphViewSettingsStructTwo['graphEdgeAttributes'],
+        decoration = graphViewSettingsStructTwo['decoration'],
+        nodeMapping = graphViewSettingsStructTwo['nodeMapping'];
+
+    var i, graphNodes = graphModel.getNodes(), graphEdges = graphModel.getEdges();
+
+    var nodes = {};
+    var graphNode;
+    for(i in graphNodes){
+      graphNode = graphNodes[i];
+      nodes[graphNode.id] = {
+        id: graphNode.id,
+        type: graphNodeAttributes[graphNode.nodeContentId].type,
+        label: graphNodeAttributes[graphNode.nodeContentId].label,
+        reliability: graphNodeAttributes[graphNode.nodeContentId].reliability,
+        importance: graphNodeAttributes[graphNode.nodeContentId].importance,
+        icon: graphNodeAttributes[graphNode.nodeContentId].icon,
+        nodeContentId: graphNode.nodeContentId
+      };
+    }
+
+    // Create from graphEdge and graphEdgeAttributes nodes that GraphView is waiting from us
+    // - see implementation of YOVALUE.iGraphViewModel
+    var edges = {};
+    var graphEdge;
+
+    for(i in graphEdges){
+      graphEdge = graphEdges[i];
+      edges[graphEdge.id] = {
+        id: graphEdge.id,
+        source: graphEdge.source,
+        target: graphEdge.target,
+        type: graphEdgeAttributes[graphEdge.edgeContentId].type,
+        edgeContentId: graphEdge.edgeContentId
+      };
+    }
+
+    var graphViewSettings = {
+      graphId: graphModel.getGraphId(),
+      graphModel: {nodes: nodes, edges: edges},
+      graphArea: nodeMapping.area,
+      nodeMapping: nodeMapping,
+      nodeLabelMapping: nodeMapping,
+      decoration: decoration,
+      skin: skin
+    };
+
+    return graphViewSettings;
   },
 
   /**

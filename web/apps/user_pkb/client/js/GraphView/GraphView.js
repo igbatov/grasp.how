@@ -211,6 +211,7 @@ YOVALUE.GraphView.prototype = {
    */
   setModel: function(model){
     if(!YOVALUE.implements(model, YOVALUE.iGraphViewModel)) {
+      console.log(model);
       YOVALUE.errorHandler.throwError("Object do not implement YOVALUE.iGraphViewModel interface");
     }
     this.model = model;
