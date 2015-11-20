@@ -140,7 +140,17 @@ YOVALUE.GraphMenu.prototype = {
           var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
           // get graph diff and show it
           that.publisher.when(e).then(function(graphViewSettings){
+            var decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
+                  graphModel:graphViewSettings.graphModel,
+                  graphNodeAttributes:graphViewSettings.nodeAttributes,
+                  graphEdgeAttributes:graphViewSettings.edgeAttributes,
+                  scale:Math.min(graphViewSettings.graphArea.width, graphViewSettings.graphArea.height),
+                  skin:graphViewSettings.skin
+                }
+            ));
+            graphViewSettings.decoration = decoration;
             console.log(graphViewSettings);
+            //that.publisher.publish("draw_graph_view", graphViewSettings);
           });
           that.publisher.publishEvent(e);
 

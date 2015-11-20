@@ -145,50 +145,74 @@ YOVALUE.ModelChangeController.prototype = {
       // so that the next time we will not make node mapping module working again
       if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish("node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping});
       // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
-      var nodes = {};
-      var graphNode;
-      for(i in graphNodes){
-        graphNode = graphNodes[i];
-        nodes[graphNode.id] = {
-          id: graphNode.id,
-          type: graphNodeAttributes[graphNode.nodeContentId].type,
-          label: graphNodeAttributes[graphNode.nodeContentId].label,
-          reliability: graphNodeAttributes[graphNode.nodeContentId].reliability,
-          importance: graphNodeAttributes[graphNode.nodeContentId].importance,
-          icon: graphNodeAttributes[graphNode.nodeContentId].icon,
-          nodeContentId: graphNode.nodeContentId
-        };
-      }
-
-      // Create from graphEdge and graphEdgeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
-      var edges = {};
-      var graphEdges = graphModel.getEdges();
-      var graphEdge;
-
-      for(i in graphEdges){
-        graphEdge = graphEdges[i];
-        edges[graphEdge.id] = {
-          id: graphEdge.id,
-          source: graphEdge.source,
-          target: graphEdge.target,
-          type: graphEdgeAttributes[graphEdge.edgeContentId].type,
-          edgeContentId: graphEdge.edgeContentId
-        };
-      }
-
-      var graphViewSettings = {
-        graphId: graphId,
-        graphModel: {nodes: nodes, edges: edges},
-        graphArea: graphArea,
-        nodeMapping: nodeMapping,
-        nodeLabelMapping: nodeMapping,
-        decoration: decoration,
-        skin: skin
-      };
+      var graphViewSettings = that._createGraphViewSettings(
+          graphModel,
+          skin,
+          layout,
+          graphNodeAttributes,
+          graphEdgeAttributes,
+          decoration,
+          nodeMapping
+      );
+      console.log(graphViewSettings);
       that.publisher.publish("draw_graph_view", graphViewSettings);
     });
-
     this.publisher.publishEvent(e1, e2, e3);
+  },
+
+  _createGraphViewSettings: function(
+      graphModel,
+      skin,
+      layout,
+      graphNodeAttributes,
+      graphEdgeAttributes,
+      decoration,
+      nodeMapping
+    ){
+    var i, graphNodes = graphModel.getNodes(), graphEdges = graphModel.getEdges();
+
+    var nodes = {};
+    var graphNode;
+    for(i in graphNodes){
+      graphNode = graphNodes[i];
+      nodes[graphNode.id] = {
+        id: graphNode.id,
+        type: graphNodeAttributes[graphNode.nodeContentId].type,
+        label: graphNodeAttributes[graphNode.nodeContentId].label,
+        reliability: graphNodeAttributes[graphNode.nodeContentId].reliability,
+        importance: graphNodeAttributes[graphNode.nodeContentId].importance,
+        icon: graphNodeAttributes[graphNode.nodeContentId].icon,
+        nodeContentId: graphNode.nodeContentId
+      };
+    }
+
+    // Create from graphEdge and graphEdgeAttributes nodes that GraphView is waiting from us
+    // - see implementation of YOVALUE.iGraphViewModel
+    var edges = {};
+    var graphEdge;
+
+    for(i in graphEdges){
+      graphEdge = graphEdges[i];
+      edges[graphEdge.id] = {
+        id: graphEdge.id,
+        source: graphEdge.source,
+        target: graphEdge.target,
+        type: graphEdgeAttributes[graphEdge.edgeContentId].type,
+        edgeContentId: graphEdge.edgeContentId
+      };
+    }
+
+    var graphViewSettings = {
+      graphId: graphModel.getGraphId(),
+      graphModel: {nodes: nodes, edges: edges},
+      graphArea: nodeMapping.area,
+      nodeMapping: nodeMapping,
+      nodeLabelMapping: nodeMapping,
+      decoration: decoration,
+      skin: skin
+    };
+
+    return graphViewSettings;
   },
 
   // get data to init mini-graphView that draws just node types of the graphModel

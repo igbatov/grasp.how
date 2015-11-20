@@ -460,24 +460,23 @@ class AppUserPkb extends App
      * create mapping merging node_mapping of graphId1 and graphId2
      */
     // first of all adapt area of mappings to area of graph1
-    var_dump($graph2['node_mapping']);
-    $graph2['node_mapping'] = $this->adjustMappingToArea($graph2['node_mapping'], $graph2['node_mapping']['area']);
-    var_dump($graph2['node_mapping']);
-    exit();
-    // now merge to mapping, mapping of graph1 takes precedence
+    $graph2['node_mapping'] = $this->adjustMappingToArea($graph2['node_mapping'], $graph1['node_mapping']['area']);
+
+    // now merge two mappings
+    // mapping of graph1 takes precedence
     $diff_node_mapping = array();
     foreach($graphModel['nodes'] as $id=>$node){
       $contentId = $graph_diff_creator->decodeContentId($node['nodeContentId']);
       if($contentId['graphId1']){
         $nodeId = $this->findNodeIdByNodeContentId(
           $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']),
-          $graph1['nodes']
+          $graph1['elements']['nodes']
         );
         $diff_node_mapping[$id] = $graph1['node_mapping']['mapping'][$nodeId];
       }else{
         $nodeId = $this->findNodeIdByNodeContentId(
           $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']),
-          $graph2['nodes']
+          $graph2['elements']['nodes']
         );
         $diff_node_mapping[$id] = $graph2['node_mapping']['mapping'][$nodeId];
       }
@@ -489,8 +488,10 @@ class AppUserPkb extends App
       'graphModel' => $graphModel,
       'nodeAttributes' => $diffNodeAttributes,
       'edgeAttributes' => $diffEdgeAttributes,
-      'nodeMapping' => $diff_node_mapping,
-      'settings' => $s[$graphId1]
+      'graphArea'=> $graph1['node_mapping']['area'],
+      'nodeMapping' => array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping),
+      'nodeLabelMapping' => array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping),
+      'skin' => $s[$graphId1]['skin']
     );
 
     return $graphViewSettings;
@@ -520,7 +521,9 @@ class AppUserPkb extends App
   }
 
   protected function findNodeIdByNodeContentId($globalContentId, $nodes){
-    foreach($nodes as $id => $node) if($node['nodeContentId'] == $globalContentId) return $id;
+    foreach($nodes as $id => $node){
+      if($node['nodeContentId'] == $globalContentId) return $id;
+    }
     return null;
   }
 
