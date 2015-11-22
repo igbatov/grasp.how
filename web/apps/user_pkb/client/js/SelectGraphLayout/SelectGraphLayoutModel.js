@@ -5,7 +5,8 @@ YOVALUE.SelectGraphLayoutModel = function(subscriber, publisher, layouts){
   this.selectedLayouts = {}; //key-graph_name, value-layout_name
 
   this.subscriber.subscribe(this,[
-    'get_selected_layout'
+    'get_selected_layout',
+    'get_layout_by_name'
   ]);
 };
 
@@ -14,6 +15,10 @@ YOVALUE.SelectGraphLayoutModel.prototype = {
     var that = this;
 
     switch (event.getName()){
+      case "get_layout_by_name":
+        event.setResponse({layoutName:event.getData(), layout: this.layouts[event.getData()]});
+        break;
+
       case "get_selected_layout":
         var graphId = event.getData();
 

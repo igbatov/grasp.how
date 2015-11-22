@@ -61,7 +61,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
 
       // remove from hintMapping nodes that are not exist in model
       for(var i in hintMapping.mapping){
-        if(typeof(nodes[hintMapping.mapping[i].id]) == 'undefined') delete hintMapping.mapping[i].id;
+        if(typeof(nodes[hintMapping.mapping[i].id]) == 'undefined') delete hintMapping.mapping[i];
       }
 
       return hintMapping;

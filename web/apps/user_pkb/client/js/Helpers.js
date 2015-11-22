@@ -40,7 +40,7 @@ YOVALUE.implements = function(objToCheck, iFaces){
         return false;
       }
       if(YOVALUE.typeof(iFace[m])  === 'object' && YOVALUE.getObjectLength(iFace[m])){
-        return YOVALUE.implements(objToCheck[m], iFace[m]);
+        if(YOVALUE.implements(objToCheck[m], iFace[m]) === false) return false;
       }
       if(YOVALUE.typeof(iFace[m]) === "function" && iFace[m].length !== objToCheck[m].length){
         //console.log(m);
@@ -388,16 +388,13 @@ YOVALUE.MappingHelper.adjustMappingToArea = function(mapping, area){
   }
 
   var n, i,
-    adjustedMappingCoordinates = {},
-    mappingCoordinates = mapping.mapping,
+    adjustedMappingCoordinates = YOVALUE.clone(mapping.mapping),
     mappingArea = mapping.area,
     xStretchRatio = area.width/mappingArea.width,
     yStretchRatio = area.height/mappingArea.height;
 
-  for(i in mappingCoordinates){
-    n = mappingCoordinates[i];
-
-    adjustedMappingCoordinates[i] = YOVALUE.clone(n);
+  for(i in adjustedMappingCoordinates){
+    n = adjustedMappingCoordinates[i];
     adjustedMappingCoordinates[i].x = Math.round((n.x - mappingArea.centerX)*xStretchRatio) + area.centerX ;
     adjustedMappingCoordinates[i].y = Math.round((n.y - mappingArea.centerY)*yStretchRatio) + area.centerY;
 

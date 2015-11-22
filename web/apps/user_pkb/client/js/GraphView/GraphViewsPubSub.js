@@ -71,6 +71,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }else{
           graphViewSettings = event.getData();
         }
+
         if(typeof(this.graphViewList[graphId]) == 'undefined'){
           this.graphViewList[graphId] = this.graphViewFactory.create(graphId, this.canvasDrawer);
           this.graphViewList[graphId].setGraphArea(graphViewSettings['graphArea']);
@@ -160,6 +161,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
    */
   _convertGraphViewSettings: function(graphViewSettingsStructTwo){
     var graphModel = graphViewSettingsStructTwo['graphModel'],
+        graphId = graphViewSettingsStructTwo['graphId'],
         skin = graphViewSettingsStructTwo['skin'],
         layout = graphViewSettingsStructTwo['layout'],
         graphNodeAttributes = graphViewSettingsStructTwo['graphNodeAttributes'],
@@ -167,10 +169,11 @@ YOVALUE.GraphViewsPubSub.prototype = {
         decoration = graphViewSettingsStructTwo['decoration'],
         nodeMapping = graphViewSettingsStructTwo['nodeMapping'];
 
-    var i, graphNodes = graphModel.getNodes(), graphEdges = graphModel.getEdges();
+    var i, graphNodes = graphModel.nodes, graphEdges = graphModel.edges;
 
     var nodes = {};
     var graphNode;
+
     for(i in graphNodes){
       graphNode = graphNodes[i];
       nodes[graphNode.id] = {
@@ -201,7 +204,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
     }
 
     var graphViewSettings = {
-      graphId: graphModel.getGraphId(),
+      graphId: graphId,
       graphModel: {nodes: nodes, edges: edges},
       graphArea: nodeMapping.area,
       nodeMapping: nodeMapping,

@@ -4,7 +4,7 @@
  */
 YOVALUE.iGraphViewSettingsStructOne = {
   graphId: '',
-  graphModel: {},
+  graphModel: {nodes:{},edges:{}},
   graphArea: {},
   nodeMapping: {},
   nodeLabelMapping: {},

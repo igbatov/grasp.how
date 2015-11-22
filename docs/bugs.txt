@@ -6,9 +6,12 @@
 И тогда, после 10ти лет работы вы сможете, наконец понять чему стоило посвящать свою жизнь.
 Я предлагаю краудсорсить этот процесс.
 
+Админские команды:
 Создать нового пользователя http://my.grasp.how/createNewUser/<login>/<password>/<admin secret>
 Обновить пароль пользователя http://my.grasp.how/updateUserPassword/<login>/<password>/<admin_secret>
+Удалить граф http://grasp.local/removeGraph/<graph id>/<admin_secret>
 
+Из-под пользователя:
 Создание нового графа http://grasp.local/createNewGraph?data={"name":"newName"}
 Удалить граф http://grasp.local/removeGraph?data={"graph_id":"1234567"}
 Скопировать граф вместе с историей http://grasp.local/copyGraph?data={"name":"newName","graph_id":"123456"}
@@ -22,6 +25,7 @@
 - зачем вообще в GraphModel есть nodeTypes, edgeTypes, nodeDefautType, edgeDefautType если в YOVALUE.iGraphModelEdge, YOVALUE.iGraphModelNode нет поля type?
 
 TODO нужные фичи
+- сделать возможность клонировать клон
 - сделать timeline
 
 - Сделать карту википедии по следующему принципу. 

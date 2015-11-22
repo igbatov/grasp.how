@@ -6,7 +6,8 @@ YOVALUE.SelectGraphSkinModel = function(subscriber, publisher, constrs, default_
   this.selectedSkins = {}; //key-graph_name, value-layout_name
 
   this.subscriber.subscribe(this,[
-    'get_selected_skin'
+    'get_selected_skin',
+    'get_skin_by_skin_settings'
   ]);
 };
 
@@ -14,6 +15,12 @@ YOVALUE.SelectGraphSkinModel.prototype = {
   eventListener: function(event){
     var that = this;
     switch (event.getName()){
+      case "get_skin_by_skin_settings":
+        var data = event.getData();
+        data = that._replaceConstructorNameByConstructor(data, that.constrs);
+        event.setResponse(data);
+        break;
+
       case "get_selected_skin":
         var graphId = event.getData();
 
@@ -22,11 +29,7 @@ YOVALUE.SelectGraphSkinModel.prototype = {
           this.publisher.when(e).then(function(data){
             if(typeof(data[graphId]) == 'undefined') data[graphId] = that.default_skin;
             // change constructor names to actual constructors
-            data[graphId].node.constr.withoutIcon = that.constrs[data[graphId].node.constr.withoutIcon];
-            data[graphId].node.constr.withIcon = that.constrs[data[graphId].node.constr.withIcon];
-            data[graphId].edge.constr = that.constrs[data[graphId].edge.constr];
-            data[graphId].nodeLabel.constr = that.constrs[data[graphId].nodeLabel.constr];
-
+            data[graphId] = that._replaceConstructorNameByConstructor(data[graphId], that.constrs);
             that.selectedSkins[graphId] = data[graphId];
             //console.log(that.selectedSkins[graphId]);
             event.setResponse(that.selectedSkins[graphId]);
@@ -38,5 +41,13 @@ YOVALUE.SelectGraphSkinModel.prototype = {
 
         break;
     }
+  },
+
+  _replaceConstructorNameByConstructor: function(data, constructors){
+    data.node.constr.withoutIcon = constructors[data.node.constr.withoutIcon];
+    data.node.constr.withIcon = constructors[data.node.constr.withIcon];
+    data.edge.constr = constructors[data.edge.constr];
+    data.nodeLabel.constr = constructors[data.nodeLabel.constr];
+    return data;
   }
 };

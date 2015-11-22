@@ -11,7 +11,8 @@ YOVALUE.GraphNodeMappingsPubSub.prototype = {
   eventListener: function(event){
     var eventName = event.getName(),
       graphId = event.getData()['graphId'],
-      model = event.getData()['model'],
+      nodes = event.getData()['model'].nodes,
+      edges = event.getData()['model'].edges,
       hint = event.getData()['hint'],
       layout = event.getData()['layout'],
       nodeLabelAreaList = event.getData()['nodeLabelAreaList'],
@@ -24,7 +25,7 @@ YOVALUE.GraphNodeMappingsPubSub.prototype = {
 
     switch (eventName){
       case "get_node_mapping":
-        var mapping = this.nodeMappers[layout.layoutName].getMapping(model.getNodes(), model.getEdges(), hint, nodeLabelAreaList, area);
+        var mapping = this.nodeMappers[layout.layoutName].getMapping(nodes, edges, hint, nodeLabelAreaList, area);
         event.setResponse(mapping);
         break;
     }

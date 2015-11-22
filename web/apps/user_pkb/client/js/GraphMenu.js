@@ -3,16 +3,16 @@
  * Using this menu user can select graph to be on left panel (leftGraphView), right panel (rightGraphView) or be hidden (not to be shown)
  * @param subscriber
  * @param publisher
- * @param ViewManager
+ * @param viewManager
  * @param UI
  * @param jQuery
  * @constructor
  */
-YOVALUE.GraphMenu = function(subscriber, publisher, ViewManager, UI, jQuery){
+YOVALUE.GraphMenu = function(subscriber, publisher, viewManager, UI, jQuery){
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.selectedPosition = {};
-  this.ViewManager = ViewManager;
+  this.viewManager = viewManager;
   this.UI = UI;
   this.jQuery = jQuery;
 
@@ -20,7 +20,7 @@ YOVALUE.GraphMenu = function(subscriber, publisher, ViewManager, UI, jQuery){
     'get_selected_positions'    //request for graph position
   ]);
 
-  this.container = this.ViewManager.getViewContainer('horizontalMenu');
+  this.container = this.viewManager.getViewContainer('horizontalMenu');
 };
 
 YOVALUE.GraphMenu.prototype = {
@@ -140,17 +140,49 @@ YOVALUE.GraphMenu.prototype = {
           var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
           // get graph diff and show it
           that.publisher.when(e).then(function(graphViewSettings){
+            var graphArea = that.viewManager.getViewContainer('rightGraphView');
+            graphViewSettings.skin = that.publisher.publishResponseEvent(
+                that.publisher.createEvent("get_skin_by_skin_settings", graphViewSettings.skin)
+            );
+
             var decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
                   graphModel:graphViewSettings.graphModel,
-                  graphNodeAttributes:graphViewSettings.nodeAttributes,
-                  graphEdgeAttributes:graphViewSettings.edgeAttributes,
-                  scale:Math.min(graphViewSettings.graphArea.width, graphViewSettings.graphArea.height),
+                  graphNodeAttributes:graphViewSettings.graphNodeAttributes,
+                  graphEdgeAttributes:graphViewSettings.graphEdgeAttributes,
+                  scale:Math.min(graphArea.width, graphArea.height),
                   skin:graphViewSettings.skin
                 }
             ));
             graphViewSettings.decoration = decoration;
-            console.log(graphViewSettings);
-            //that.publisher.publish("draw_graph_view", graphViewSettings);
+
+            // Create node label layout for GraphView
+            var nodeLabels = {};
+            var graphNodes = graphViewSettings.graphModel.nodes;
+            for(var nodeId in graphNodes){
+              nodeLabels[graphNodes[nodeId].id] = {
+                id: graphNodes[nodeId].id,
+                label: graphViewSettings.graphNodeAttributes[graphNodes[nodeId].nodeContentId].label,
+                size: decoration.nodeLabels[nodeId].size
+              };
+            }
+            var nodeLabelAreaList = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_view_label_area", {
+              nodeLabels:nodeLabels,
+              skin:graphViewSettings.skin
+            }));
+            var nodeMappingHint = graphViewSettings.nodeMapping;
+            graphViewSettings.layout = that.publisher.publishResponseEvent(that.publisher.createEvent("get_layout_by_name",'basicLayout'));
+            // Create node layout for GraphView
+            graphViewSettings.nodeMapping = that.publisher.publishResponseEvent(that.publisher.createEvent("get_node_mapping", {
+              graphId:graphViewSettings.graphId,
+              model:graphViewSettings.graphModel,
+              hint:nodeMappingHint,
+              layout:graphViewSettings.layout,
+              nodeLabelAreaList:nodeLabelAreaList,
+              area:graphArea
+            }));
+
+           // that.publisher.publish('hide_all_graphs');
+            that.publisher.publish("draw_graph_view", graphViewSettings);
           });
           that.publisher.publishEvent(e);
 

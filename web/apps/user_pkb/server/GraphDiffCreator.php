@@ -73,6 +73,7 @@ class GraphDiffCreator{
     foreach($absentInGraph2 as $localContentId){
       $i++;
       $diff_nodes[$i] = array(
+        'id'=>$i,
         'nodeContentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, null, null),
         'status'=>'absent'
       );
@@ -80,6 +81,7 @@ class GraphDiffCreator{
     foreach($absentInGraph1 as $localContentId){
       $i++;
       $diff_nodes[$i] = array(
+        'id'=>$i,
         'nodeContentId'=>$this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId),
         'status'=>'added'
       );
@@ -87,6 +89,7 @@ class GraphDiffCreator{
     foreach($common as $localContentId){
       $i++;
       $diff_nodes[$i] = array(
+        'id'=>$i,
         'nodeContentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId),
         'status'=>$this->graph1NodeContentUpdatedAt[$localContentId]['updated_at'] == $this->graph2NodeContentUpdatedAt[$localContentId]['updated_at'] ? 'unmodified' : 'modified'
       );
@@ -110,21 +113,24 @@ class GraphDiffCreator{
 
     $i=0;
     foreach($diff_edges as $key => $diff_edge){
+      $i++;
       $localContentId = $this->contentIdConverter->getLocalContentId($diff_edge['edgeContentId']);
       $diff_edges[$i] = $diff_edge;
       if(in_array($localContentId, $absentInGraph2)){
         $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, null, null);
         $diff_edges[$i]['status'] = 'absent';
+        $diff_edges[$i]['id'] = $i;
       }
       if(in_array($localContentId, $absentInGraph1)){
         $diff_edges[$i]['edgeContentId'] = $this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId);
         $diff_edges[$i]['status'] = 'added';
+        $diff_edges[$i]['id'] = $i;
       }
       if(in_array($localContentId, $common)){
         $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId);
         $diff_edges[$i]['status'] = $this->graph1EdgeContentUpdatedAt[$localContentId]['updated_at'] == $this->graph2EdgeContentUpdatedAt[$localContentId]['updated_at'] ? 'unmodified' : 'modified';
+        $diff_edges[$i]['id'] = $i;
       }
-      $i++;
       unset($diff_edges[$key]);
     }
 

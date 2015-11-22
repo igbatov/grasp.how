@@ -23,7 +23,7 @@ YOVALUE.GraphDecorationByType = function(){
 YOVALUE.GraphDecorationByType.prototype = {
   /**
    *
-   * @param graphModel - {getNodeTypes: function(){}, getEdgeTypes: function(){}, getNodes: function(){}, getEdges: function(){}}
+   * @param graphModel - {nodes:{}, edges:{}}
    * @param graphNodeAttributes - {1: {type:, reliability:, importance:, stickers:}, ...}
    * @param graphEdgeAttributes - {1: {type: }, ...}
    * @param scale
@@ -38,8 +38,8 @@ YOVALUE.GraphDecorationByType.prototype = {
       importance,
       color,
       decoration = {scale: scale, nodes:{}, edges:{}, nodeLabels:{}},
-      nodes = graphModel.getNodes(),
-      edges = graphModel.getEdges(),
+      nodes = graphModel.nodes,
+      edges = graphModel.edges,
       size = Math.min(scale/(YOVALUE.getObjectLength(nodes)), 5),//we do not want huge node size, set upper limit to 5 pixels
       labelSize = 3*size;
 

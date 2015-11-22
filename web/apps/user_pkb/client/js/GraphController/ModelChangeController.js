@@ -123,31 +123,48 @@ YOVALUE.ModelChangeController.prototype = {
       layout = l;
       graphNodeAttributes = c['nodes'];
       graphEdgeAttributes = c['edges'];
+
       // Decorate nodes and edges with size and color
       decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
-            graphModel:graphModel,
+            graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
             graphNodeAttributes:graphNodeAttributes,
             graphEdgeAttributes:graphEdgeAttributes,
             scale:Math.min(graphArea.width, graphArea.height),
             skin:skin
         }
       ));
+
       // Create node label layout for GraphView
       for(nodeId in graphNodes){
-        nodeLabels[graphNodes[nodeId].id] = {id: graphNodes[nodeId].id, label: graphNodeAttributes[graphNodes[nodeId].nodeContentId].label, size: decoration.nodeLabels[nodeId].size};
+        nodeLabels[graphNodes[nodeId].id] = {
+          id: graphNodes[nodeId].id,
+          label: graphNodeAttributes[graphNodes[nodeId].nodeContentId].label,
+          size: decoration.nodeLabels[nodeId].size
+        };
       }
-
-      nodeLabelAreaList = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_view_label_area", {nodeLabels:nodeLabels, skin:skin}));
-      nodeMappingHint = that.publisher.publishResponseEvent(that.publisher.createEvent("graph_history_get_node_mapping", {graphId:graphModel.getGraphId()}));
+      nodeLabelAreaList = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_view_label_area", {
+        nodeLabels:nodeLabels,
+        skin:skin
+      }));
+      nodeMappingHint = that.publisher.publishResponseEvent(that.publisher.createEvent("graph_history_get_node_mapping", {
+        graphId:graphModel.getGraphId()
+      }));
       // Create node layout for GraphView
-      nodeMapping = that.publisher.publishResponseEvent(that.publisher.createEvent("get_node_mapping", {graphId:graphModel.getGraphId(), model:graphModel, hint:nodeMappingHint, layout:layout, nodeLabelAreaList:nodeLabelAreaList, area:graphArea}));
+      nodeMapping = that.publisher.publishResponseEvent(that.publisher.createEvent("get_node_mapping", {
+        graphId:graphModel.getGraphId(),
+        model:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
+        hint:nodeMappingHint,
+        layout:layout,
+        nodeLabelAreaList:nodeLabelAreaList,
+        area:graphArea
+      }));
       // If node mapping module actually changed nodeMappingHint, then save it in repository
-      // so that the next time we will not make node mapping module working again
+      // (so next time we will not make node mapping module working again)
       if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish("node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping});
       // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
       var graphViewSettings = {
           graphId:graphModel.getGraphId(),
-          graphModel:graphModel,
+          graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
           skin:skin,
           layout:layout,
           graphNodeAttributes:graphNodeAttributes,
@@ -187,15 +204,8 @@ YOVALUE.ModelChangeController.prototype = {
       };
     }
 
-    nnGraphViewSettings.graphModel = {edges: {}, nodes: nodes};
+    nnGraphViewSettings.graphModel = {nodes: nodes, edges: {}};
     // create color scheme
-    var decorationGraphModel = {
-      getNodes: function(){ return nodes; },
-      getEdges: function(){ return {}; },
-      getNodeTypes: function(){ return nodeTypes; },
-      getEdgeTypes: function(){ return graphModel.getEdgeTypes(); }
-    };
-
     var scale = Math.min(nnGraphViewSettings.graphArea.width, nnGraphViewSettings.graphArea.height);
     // we want extra size for the panel nodes
     var size = scale/6;
@@ -206,7 +216,12 @@ YOVALUE.ModelChangeController.prototype = {
       nodeMapping[i] = {id: i, x: x,  y: nnGraphViewSettings.graphArea.height/2};
     }
     nnGraphViewSettings.nodeMapping = {
-      area: {centerX: nnGraphViewSettings.graphArea.width/2, centerY: nnGraphViewSettings.graphArea.height/2, width: nnGraphViewSettings.graphArea.width, height: nnGraphViewSettings.graphArea.height},
+      area: {
+        centerX: nnGraphViewSettings.graphArea.width/2,
+        centerY: nnGraphViewSettings.graphArea.height/2,
+        width: nnGraphViewSettings.graphArea.width,
+        height: nnGraphViewSettings.graphArea.height
+      },
       mapping: nodeMapping
     };
     // node label mapping
@@ -218,7 +233,7 @@ YOVALUE.ModelChangeController.prototype = {
       nnGraphViewSettings.skin = s;
 
       nnGraphViewSettings.decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
-        graphModel: decorationGraphModel,
+        graphModel: {nodes: nodes, edges: {}},
         graphNodeAttributes:nodes,
         graphEdgeAttributes:{},
         scale:scale,

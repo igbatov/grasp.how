@@ -12,14 +12,13 @@ class DB
   public function execute($query)
   {
     $result = mysqli_query($this->mysqlLink, $query) or trigger_error("MysqlHelper::execute query='".$query."'\n".mysqli_error($this->mysqlLink));
+
+    if(strtoupper(substr($query, 0, 6)) == "DELETE") return $result;
     if(strtoupper(substr($query, 0, 6)) == "INSERT") return mysqli_insert_id($this->mysqlLink);
     if(is_bool($result))  return $result;
 
     $rows = array();
-    while ($row = mysqli_fetch_assoc($result))
-    {
-       $rows[] = $row;
-    }
+    while ($row = mysqli_fetch_assoc($result)) $rows[] = $row;
     return $rows;
   }
 

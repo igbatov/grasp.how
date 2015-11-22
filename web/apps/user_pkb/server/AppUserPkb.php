@@ -38,6 +38,11 @@ class AppUserPkb extends App
       $this->updateUserPassword($vars[1], $vars[2]);
       exit();
 
+    }elseif($vars[0] === 'removeGraph'){
+      if($vars[2] != $this->getAdminSecret()) exit('wrong secret!');
+      var_dump($this->removeGraph($vars[1]));
+      exit();
+
     }else{
       $access_level = 'read&write';
       $showGraphId = null;
@@ -70,7 +75,7 @@ class AppUserPkb extends App
     $browser_checker = new \Sinergi\BrowserDetector\Browser();
     $os_checker = new \Sinergi\BrowserDetector\Os();
     if(
-      $browser_checker->getName() != Sinergi\BrowserDetector\Browser::CHROME
+      !in_array($browser_checker->getName(), array(Sinergi\BrowserDetector\Browser::CHROME, Sinergi\BrowserDetector\Browser::OPERA))
       || $deviceType != 'computer'
       || $os_checker->getName() != \Sinergi\BrowserDetector\Os::WINDOWS
     ){
@@ -263,6 +268,7 @@ class AppUserPkb extends App
         break;
 
       case 'updateNodeMapping':
+        //exit();
         if($access_level == 'read') exit();
 
         $r = $this->getRequest();
@@ -368,8 +374,8 @@ class AppUserPkb extends App
         break;
 
       case 'removeGraph':
-        $r = $this->getRequest();
-        $this->removeGraph($this->getAuthId(), $r['graph_id']);
+       // $r = $this->getRequest();
+       // var_dump($this->removeGraph($r['graph_id'], $this->getAuthId()));
         break;
 
       case 'getGraphsCloneList':
@@ -438,10 +444,13 @@ class AppUserPkb extends App
       // if we have graph2 attributes for this node, use it
       if($contentId['graphId2']){
         foreach($this->node_attribute_names as $attribute_name){
-          if($graph2NodeContent[$contentId['localContentId2']][$attribute_name])
+          if($graph2NodeContent[$contentId['localContentId2']][$attribute_name] != null)
             $diffNodeAttributes[$node['nodeContentId']][$attribute_name] = $graph2NodeContent[$contentId['localContentId2']][$attribute_name];
         }
       }
+
+      $diffNodeAttributes[$node['nodeContentId']]['nodeContentId'] = $node['nodeContentId'];
+      unset($diffNodeAttributes[$node['nodeContentId']]['local_content_id']);
     }
 
     // create array of diff edge attributes
@@ -450,6 +459,9 @@ class AppUserPkb extends App
       $contentId = $graph_diff_creator->decodeContentId($edge['edgeContentId']);
       if($contentId['graphId2']) $diffEdgeAttributes[$edge['edgeContentId']] = $graph2EdgeContent[$contentId['localContentId2']];
       else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$contentId['localContentId1']];
+
+      $diffEdgeAttributes[$edge['edgeContentId']]['edgeContentId'] = $edge['edgeContentId'];
+      unset($diffEdgeAttributes[$edge['edgeContentId']]['local_content_id']);
     }
 
     $s = $this->getGraphSettings(array($graphId1, $graphId2));
@@ -473,27 +485,27 @@ class AppUserPkb extends App
           $graph1['elements']['nodes']
         );
         $diff_node_mapping[$id] = $graph1['node_mapping']['mapping'][$nodeId];
+        $diff_node_mapping[$id]['id'] = $id;
       }else{
         $nodeId = $this->findNodeIdByNodeContentId(
           $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']),
           $graph2['elements']['nodes']
         );
         $diff_node_mapping[$id] = $graph2['node_mapping']['mapping'][$nodeId];
+        $diff_node_mapping[$id]['id'] = $id;
       }
     }
-
     // == create graphViewSettings ==
     $graphViewSettings = array(
       'graphId' => 'diff_'.$graphId1.'_'.$graphId2,
       'graphModel' => $graphModel,
-      'nodeAttributes' => $diffNodeAttributes,
-      'edgeAttributes' => $diffEdgeAttributes,
-      'graphArea'=> $graph1['node_mapping']['area'],
+      'graphNodeAttributes' => $diffNodeAttributes,
+      'graphEdgeAttributes' => $diffEdgeAttributes,
+     // 'graphArea'=> $graph1['node_mapping']['area'],
       'nodeMapping' => array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping),
-      'nodeLabelMapping' => array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping),
       'skin' => $s[$graphId1]['skin']
     );
-
+//var_dump($graphViewSettings); exit();
     return $graphViewSettings;
   }
 
@@ -671,21 +683,31 @@ class AppUserPkb extends App
     $this->db->execute($q);
   }
 
-  private function removeGraph($auth_id, $graph_id){
-    $q = "DELETE FROM graph WHERE id = '".$graph_id."' AND auth_id = '".$auth_id."'";
-    $this->db->execute($q);
+  private function removeGraph($graph_id, $auth_id=null){
+    $tables = array('graph_history','graph_settings','node_content','edge_content');
+    $result = array();
 
-    $q = "DELETE FROM graph_history WHERE graph_id = '".$graph_id."'";
-    $this->db->execute($q);
+    // check permission
+    if($auth_id !== null){
+      $q = "SELECT auth_id FROM graph WHERE id = '".$graph_id."'";
+      if($this->db->execute($q)[0]['auth_id'] != $auth_id){
+        foreach($tables as $table) $result[$table] = 'no permission';
+        return $result;
+      }
+    }
 
-    $q = "DELETE FROM graph_settings WHERE graph_id = '".$graph_id."'";
-    $this->db->execute($q);
+    $q = "DELETE FROM graph WHERE id = '".$graph_id."'".($auth_id !== null ? " AND auth_id = '".$auth_id."'" : "");
+    $r = $this->db->execute($q);
+    if($r == true) $result['graph'] = 'success';
+    else $result['graph'] = print_r($r, true);
 
-    $q = "DELETE FROM node_content WHERE graph_id = '".$graph_id."'";
-    $this->db->execute($q);
-
-    $q = "DELETE FROM edge_content WHERE graph_id = '".$graph_id."'";
-    $this->db->execute($q);
+    foreach($tables as $table){
+      $q = "DELETE FROM ".$table." WHERE graph_id = '".$graph_id."'";
+      $r = $this->db->execute($q);
+      if($r == true) $result[$table] = 'success';
+      else $result[$table] = print_r($r, true);
+    }
+    return $result;
   }
 
   private function isUserOwnGraph($graph_id){

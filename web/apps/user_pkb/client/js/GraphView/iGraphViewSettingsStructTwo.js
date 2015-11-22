@@ -4,7 +4,7 @@
  */
 YOVALUE.iGraphViewSettingsStructTwo = {
   graphId:'',
-  graphModel:{},
+  graphModel:{nodes:{},edges:{}},
   skin:{},
   layout:{},
   graphNodeAttributes:{},
