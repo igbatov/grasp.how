@@ -91,7 +91,7 @@ class GraphDiffCreator{
       $diff_nodes[$i] = array(
         'id'=>$i,
         'nodeContentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId),
-        'status'=>$this->graph1NodeContentUpdatedAt[$localContentId]['updated_at'] == $this->graph2NodeContentUpdatedAt[$localContentId]['updated_at'] ? 'unmodified' : 'modified'
+        'status'=>$this->graph2NodeContentUpdatedAt[$localContentId]['updated_at'] > $this->graph2NodeContentUpdatedAt[$localContentId]['created_at'] ? 'modified' : 'unmodified'
       );
     }
 
@@ -128,7 +128,7 @@ class GraphDiffCreator{
       }
       if(in_array($localContentId, $common)){
         $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId);
-        $diff_edges[$i]['status'] = $this->graph1EdgeContentUpdatedAt[$localContentId]['updated_at'] == $this->graph2EdgeContentUpdatedAt[$localContentId]['updated_at'] ? 'unmodified' : 'modified';
+        $diff_edges[$i]['status'] = $this->graph2EdgeContentUpdatedAt[$localContentId]['updated_at'] > $this->graph2EdgeContentUpdatedAt[$localContentId]['created_at'] ? 'modified' : 'unmodified';
         $diff_edges[$i]['id'] = $i;
       }
       unset($diff_edges[$key]);
@@ -141,7 +141,7 @@ class GraphDiffCreator{
   }
 
   /**
-   * Merge edges of graph1 and graph.
+   * Merge edges of graph1 and graph2.
    * I.e. it creates array of all edges between diff_nodes
    * diff_edge edgeContentId = graph2 edge edgeContentId or graph1 edge edgeContentId if it absent in graph2
    * @param $diff_edges

@@ -116,15 +116,6 @@ class AppUserPkb extends App
           $graph_id = $this->contentIdConverter->getGraphId($content_id);
           $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
           $node_rows = $this->db->execute("SELECT text, cloned_from_graph_id,	cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
-          // if $this->getRequest()['graphId'] is clone of another graph and $local_content_id was not modified (= NULL)
-          // return text of original graph
-          if(
-            $node_rows[0]['text'] == null &&
-            $node_rows[0]['cloned_from_graph_id'] != null &&
-            $node_rows[0]['cloned_from_local_content_id'] != null
-          ){
-            $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$node_rows[0]['cloned_from_graph_id']."' AND local_content_id = '".$node_rows[0]['cloned_from_local_content_id']."'");
-          }
           $node_texts[$content_id] = $node_rows[0]['text'];
         }
         $this->showRawData(json_encode($node_texts));
@@ -150,23 +141,6 @@ class AppUserPkb extends App
           $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
           $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
           $node_row = $node_rows[0];
-
-          // if node was cloned and some its attributes is null this simply means it was just not modified -  so take it from original node
-          if($node_row['cloned_from_graph_id'] != null){
-            $attributes_to_borrow = array();
-            foreach($this->node_attribute_names as $attribute){
-              if($node_row[$attribute] == null) $attributes_to_borrow[] = $attribute;
-            }
-            // some is null
-            if(count($attributes_to_borrow)>0){
-              $original_node_rows = $this->db->execute("SELECT ".implode(',',$attributes_to_borrow)." FROM node_content WHERE graph_id = '".$node_row['cloned_from_graph_id']."' AND local_content_id = '".$node_row['cloned_from_local_content_id']."'");
-              $original_node_row = $original_node_rows[0];
-              foreach($attributes_to_borrow as $attribute){
-                $node_row[$attribute] = $original_node_row[$attribute];
-              }
-            }
-          }
-
           $node_row['iconSrc'] = $node_row['has_icon'] == 1 ? 'getIcon/?data="'.$content_id.'"' : null;
           unset($node_row['has_icon']);
           $nodes[$content_id] = $node_row;
@@ -540,7 +514,7 @@ class AppUserPkb extends App
   }
 
   protected function getNodeAttributes($graphId){
-    $q = "SELECT local_content_id, ".implode(',',$this->node_attribute_names).", updated_at FROM node_content WHERE graph_id = '".$graphId."'";
+    $q = "SELECT local_content_id, ".implode(',',$this->node_attribute_names).", updated_at, created_at FROM node_content WHERE graph_id = '".$graphId."'";
     $rows = $this->db->execute($q);
     $attrs = array();
     foreach($rows as $row) $attrs[$row['local_content_id']] = $row;
@@ -548,7 +522,7 @@ class AppUserPkb extends App
   }
 
   protected function getEdgeAttributes($graphId){
-    $q = "SELECT local_content_id, ".implode(',',$this->edge_attribute_names).", updated_at FROM edge_content WHERE graph_id = '".$graphId."'";
+    $q = "SELECT local_content_id, ".implode(',',$this->edge_attribute_names).", updated_at, created_at FROM edge_content WHERE graph_id = '".$graphId."'";
     $rows = $this->db->execute($q);
     $attrs = array();
     foreach($rows as $row) $attrs[$row['local_content_id']] = $row;
@@ -587,7 +561,8 @@ class AppUserPkb extends App
   }
 
   /**
-   * Clone graph from specific step in a lazy manner (node contents are copied only after editing)
+   * Clone graph from specific step. All text and attributes are copied - this preserve text on clone from modification by clonee and
+   * simplify process of cloning from clones
    * @param $graph_id - original graph id
    * @param $graph_history_step - step in history of original graph
    * @param $auth_id - user which clones graph
@@ -623,13 +598,11 @@ class AppUserPkb extends App
     $this->db->execute($q);
 
     // Copy local_content_id, created_at, updated_at
-    // We set attributes to null here and change them only when cloner actually modifies them
-    // Thus we avoid unnecessary data duplication and track what attributes was actually changed
-    $q = "INSERT INTO node_content (graph_id, local_content_id, ".implode(',', $this->node_attribute_names).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	NULL,	NULL, NULL, NULL, NULL, NULL, '".$graph_id."', local_content_id, updated_at, created_at FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $q = "INSERT INTO node_content (graph_id, local_content_id, ".implode(',', $this->node_attribute_names).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	".implode(',', $this->node_attribute_names).", text, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->db->execute($q);
 
     // just copy edges as is
-    $q = "INSERT INTO edge_content (graph_id, local_content_id,	".implode(',', $this->edge_attribute_names).", updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, ".implode(',', $this->edge_attribute_names).", updated_at, created_at FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO edge_content (graph_id, local_content_id,	".implode(',', $this->edge_attribute_names).", updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, ".implode(',', $this->edge_attribute_names).", NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
     $this->db->execute($q);
 
     $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
