@@ -24,6 +24,7 @@ YOVALUE.GraphModel = function (graphId) {
 YOVALUE.GraphModel.prototype = {
   /**
    *
+   * @param name
    * @param nodeTypes {Array.<string>}
    * @param edgeTypes {Array.<string>}
    * @param nodeDefaultType {string}

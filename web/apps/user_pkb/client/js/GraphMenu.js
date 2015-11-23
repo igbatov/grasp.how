@@ -147,8 +147,12 @@ YOVALUE.GraphMenu.prototype = {
               elements:graphViewSettings.graphModel
             });
 
+            // set graphArea for diff graph
+            var position = 'rightGraphView';
+            var graphArea = that.viewManager.getViewContainer(position);
+            that.selectedPosition[graphViewSettings.graphId] = position;
+
             // build graphViewSettings
-            var graphArea = that.viewManager.getViewContainer('rightGraphView');
             graphViewSettings.skin = that.publisher.publishResponseEvent(
                 that.publisher.createEvent("get_skin_by_skin_settings", graphViewSettings.skin)
             );

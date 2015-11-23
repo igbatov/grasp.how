@@ -186,7 +186,7 @@ class GraphDiffCreator{
   }
 
   public function encodeContentId($graphId1, $localContentId1, $graphId2, $localContentId2){
-    return $graphId1."-".$localContentId1."/".$graphId2."-".$localContentId2;
+    return $graphId1."-".$localContentId1.'/'.$graphId2."-".$localContentId2;
   }
   
   public function decodeContentId($contentId){

@@ -8,13 +8,13 @@
  * @param jQuery
  * @constructor
  */
-YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, jQuery){
+YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, jQuery, ajaxLoaderSrc){
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
 
-  this.ajaxImageSrc = window.location.origin+'/img/ajax.gif';
+  this.ajaxLoaderSrc = ajaxLoaderSrc;
 
   this.subscriber.subscribe(this,[
     'show_graph_element_editor',
@@ -91,10 +91,9 @@ YOVALUE.GraphElementEditor.prototype = {
             event.getData().graphId,
             event.getData().isEditable,
             event.getData().nodeTypes,
-            event.getData().node,
-            event.getData().parentEdges,
-            event.getData().parentNodeAttributes
+            event.getData().node
           );
+
           v.html(form);
           this._insertNodeText(event.getData().graphId, event.getData().node.nodeContentId, event.getData().isEditable);
         }else if(event.getData().elementType == 'edge'){
@@ -135,12 +134,12 @@ YOVALUE.GraphElementEditor.prototype = {
     +'<input type="hidden" name="graphId" value="'+graphId+'">';
   },
 
-  _getNodeForm: function(graphId, isEditable, nodeTypes, node, parentEdges, parentNodeAttributes){
+  _getNodeForm: function(graphId, isEditable, nodeTypes, node){
     // show in view-only form
-    if(!isEditable) return '<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxImageSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText"></div>';
+    if(!isEditable) return '<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText"></div>';
 
     // select list for node types
-    var i, typeOptions = '', parentNodeOptions = '', importanceOptions = '', reliabilityOptions = '';
+    var i, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
     for(i in nodeTypes){
       var type = nodeTypes[i],
       selected = type == node.type ? 'selected' : '';
@@ -164,7 +163,7 @@ YOVALUE.GraphElementEditor.prototype = {
       +'<select name="type">'+typeOptions+'</select>'
       +'<select name="importance">'+importanceOptions+'</select>'
       +'<select name="reliability">'+reliabilityOptions+'</select>'
-      +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxImageSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText"></textarea>'
+      +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText"></textarea>'
       +'<input type="file" name="icon" />'
       +'<input type="hidden" name="elementType" value="node">'
       +'<input type="hidden" name="elementId" value="'+node.id+'">'
@@ -177,10 +176,11 @@ YOVALUE.GraphElementEditor.prototype = {
   _insertNodeText: function(graphId, nodeContentId, isEditable){
     var that = this, e = this.publisher.createEvent('get_graph_node_text', {graphId:graphId, nodeContentIds:[nodeContentId]});
     this.publisher.when(e).then(function(nodes){
-      that.jQuery('#node_'+graphId+'_'+nodeContentId+'_ajax').hide();
+      console.log('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_ajax');
+      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_ajax').hide();
       var text = isEditable ? nodes[nodeContentId] : that._nl2br(nodes[nodeContentId]);
-      that.jQuery('#node_'+graphId+'_'+nodeContentId+'_text').html(text);
-      that.jQuery('#node_'+graphId+'_'+nodeContentId+'_text').show();
+      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_text').html(text);
+      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_text').show();
     });
     this.publisher.publishEvent(e);
   },
@@ -188,5 +188,9 @@ YOVALUE.GraphElementEditor.prototype = {
   _nl2br: function(str, is_xhtml) {
     var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
     return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
+  },
+
+  _escapeNodeContenId: function(str){
+    return str.replace('/', '\\/');
   }
 };

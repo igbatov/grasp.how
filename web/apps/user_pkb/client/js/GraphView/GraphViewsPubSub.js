@@ -199,6 +199,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         source: graphEdge.source,
         target: graphEdge.target,
         type: graphEdgeAttributes[graphEdge.edgeContentId].type,
+        label: graphEdgeAttributes[graphEdge.edgeContentId].label,
         edgeContentId: graphEdge.edgeContentId
       };
     }

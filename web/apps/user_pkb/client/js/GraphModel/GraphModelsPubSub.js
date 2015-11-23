@@ -46,11 +46,11 @@ YOVALUE.GraphModelsPubSub.prototype = {
         break;
 
       case "add_graph_model":
-        var graphId = event.getData['graphId'];
-        this.graphModels[graphId] = that.graphModelFactory.create(graphId);
-        var graphSettings = event.getData['graphSettings'];
-        var elements = event.getData['elements'];
-        var r = that.graphModels[graphId].init(
+        var graphId = event.getData()['graphId'];
+        this.graphModels[graphId] = this.graphModelFactory.create(graphId);
+        var graphSettings = event.getData()['graphSettings'];
+        var elements = event.getData()['elements'];
+        var r = this.graphModels[graphId].init(
             graphSettings['name'],
             graphSettings['nodeTypes'],
             graphSettings['edgeTypes'],

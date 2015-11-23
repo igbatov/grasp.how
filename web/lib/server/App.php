@@ -105,8 +105,8 @@ abstract class App
     exit();
   }
 
-  protected function showImage($file){
-    header('Content-Type: image/jpeg');
+  protected function showImage($file, $type="image/jpeg"){
+    header('Content-Type: '.$type);
     header('Content-Length: ' . filesize($file));
     readfile($file);
     exit();

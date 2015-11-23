@@ -166,7 +166,7 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['Subscriber', 'GraphDecoration'],
 
-  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery']
+  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery', jQuery('#ajaxLoader').attr('src')]
 };
 
 // Creating and wiring modules according to DI array
