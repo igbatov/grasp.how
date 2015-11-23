@@ -1,5 +1,6 @@
 <?php
 
+include("class.Diff.php");
 include("GraphDiffCreator.php");
 include("ContentIdConverter.php");
 
@@ -111,12 +112,26 @@ class AppUserPkb extends App
         $content_ids = $this->getRequest()['nodeContentIds'];
         $node_texts = array();
         foreach($content_ids as $content_id){
-          // we MUST use $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
-          // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
-          $graph_id = $this->contentIdConverter->getGraphId($content_id);
-          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT text, cloned_from_graph_id,	cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
-          $node_texts[$content_id] = $node_rows[0]['text'];
+          if(GraphDiffCreator::isDiffContentId($content_id)){
+            $contentId = GraphDiffCreator::decodeContentId($content_id);
+            $text1 = "";
+            $text2 = "";
+            if($contentId['graphId1']) $text1 = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$contentId['graphId1']."' AND local_content_id = '".$contentId['localContentId1']."'")[0]['text'];
+            if($contentId['graphId2']) $text2 = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'")[0]['text'];
+            if($contentId['graphId1'] && $contentId['graphId2']){
+              $text1 = mb_convert_encoding($text1, 'HTML-ENTITIES', 'UTF-8');
+              $text2 = mb_convert_encoding($text2, 'HTML-ENTITIES', 'UTF-8');
+              $node_texts[$content_id] = mb_convert_encoding(Diff::toString(Diff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
+            }
+            else $node_texts[$content_id] = $text1.$text2;
+          }else{
+            // we MUST use $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
+            // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
+            $graph_id = $this->contentIdConverter->getGraphId($content_id);
+            $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
+            $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+            $node_texts[$content_id] = $node_rows[0]['text'];
+          }
         }
         $this->showRawData(json_encode($node_texts));
         break;
@@ -413,7 +428,7 @@ class AppUserPkb extends App
     // create array of diff node attributes
     $diffNodeAttributes = array();
     foreach($graphModel['nodes'] as $node){
-      $contentId = $graph_diff_creator->decodeContentId($node['nodeContentId']);
+      $contentId = GraphDiffCreator::decodeContentId($node['nodeContentId']);
       if($contentId['graphId1']) $diffNodeAttributes[$node['nodeContentId']] = $graph1NodeContent[$contentId['localContentId1']];
       // if we have graph2 attributes for this node, use it
       if($contentId['graphId2']){
@@ -430,7 +445,7 @@ class AppUserPkb extends App
     // create array of diff edge attributes
     $diffEdgeAttributes = array();
     foreach($graphModel['edges'] as $edge){
-      $contentId = $graph_diff_creator->decodeContentId($edge['edgeContentId']);
+      $contentId = GraphDiffCreator::decodeContentId($edge['edgeContentId']);
       if($contentId['graphId2']) $diffEdgeAttributes[$edge['edgeContentId']] = $graph2EdgeContent[$contentId['localContentId2']];
       else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$contentId['localContentId1']];
 
@@ -452,7 +467,7 @@ class AppUserPkb extends App
     // mapping of graph1 takes precedence
     $diff_node_mapping = array();
     foreach($graphModel['nodes'] as $id=>$node){
-      $contentId = $graph_diff_creator->decodeContentId($node['nodeContentId']);
+      $contentId = GraphDiffCreator::decodeContentId($node['nodeContentId']);
       if($contentId['graphId1']){
         $nodeId = $this->findNodeIdByNodeContentId(
           $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']),

@@ -12,7 +12,7 @@
     <div id="leftGraphElementEditorContainer"></div>
     <div id="rightGraphElementEditorContainer"></div>
     <div id="graphViews">
-      <img class="ajax" id="ajaxLoader" src="<?php echo $this->getAppDir('img'); ?>/ajax.png">
+      <img class="ajax" id="ajaxLoader" src="<?php echo $this->getAppDir('img'); ?>/ajax.gif">
     </div>
     <div id="serverStatus"></div>
   </div>

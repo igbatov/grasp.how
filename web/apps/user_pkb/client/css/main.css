@@ -97,6 +97,14 @@ select {
     appearance:         none;
 }
 
+.nodeText{
+    background-color: #CCC;
+    margin: 20px;
+    padding: 20px;
+    height: 75%;
+    overflow-y: scroll;
+}
+
 #serverStatus {
     position:absolute;
     bottom: 0;

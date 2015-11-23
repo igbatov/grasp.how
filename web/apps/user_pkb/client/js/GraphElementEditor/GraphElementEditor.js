@@ -136,7 +136,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
   _getNodeForm: function(graphId, isEditable, nodeTypes, node){
     // show in view-only form
-    if(!isEditable) return '<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText"></div>';
+    if(!isEditable) return '<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" class="nodeText" name="nodeText"></div>';
 
     // select list for node types
     var i, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
@@ -176,7 +176,6 @@ YOVALUE.GraphElementEditor.prototype = {
   _insertNodeText: function(graphId, nodeContentId, isEditable){
     var that = this, e = this.publisher.createEvent('get_graph_node_text', {graphId:graphId, nodeContentIds:[nodeContentId]});
     this.publisher.when(e).then(function(nodes){
-      console.log('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_ajax');
       that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_ajax').hide();
       var text = isEditable ? nodes[nodeContentId] : that._nl2br(nodes[nodeContentId]);
       that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_text').html(text);

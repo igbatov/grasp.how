@@ -74,7 +74,7 @@ class GraphDiffCreator{
       $i++;
       $diff_nodes[$i] = array(
         'id'=>$i,
-        'nodeContentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, null, null),
+        'nodeContentId'=>self::encodeContentId($this->graph1['graphId'], $localContentId, null, null),
         'status'=>'absent'
       );
     }
@@ -82,7 +82,7 @@ class GraphDiffCreator{
       $i++;
       $diff_nodes[$i] = array(
         'id'=>$i,
-        'nodeContentId'=>$this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId),
+        'nodeContentId'=>self::encodeContentId(null, null, $this->graph2['graphId'], $localContentId),
         'status'=>'added'
       );
     }
@@ -90,7 +90,7 @@ class GraphDiffCreator{
       $i++;
       $diff_nodes[$i] = array(
         'id'=>$i,
-        'nodeContentId'=>$this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId),
+        'nodeContentId'=>self::encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId),
         'status'=>$this->graph2NodeContentUpdatedAt[$localContentId]['updated_at'] > $this->graph2NodeContentUpdatedAt[$localContentId]['created_at'] ? 'modified' : 'unmodified'
       );
     }
@@ -117,17 +117,17 @@ class GraphDiffCreator{
       $localContentId = $this->contentIdConverter->getLocalContentId($diff_edge['edgeContentId']);
       $diff_edges[$i] = $diff_edge;
       if(in_array($localContentId, $absentInGraph2)){
-        $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, null, null);
+        $diff_edges[$i]['edgeContentId'] = self::encodeContentId($this->graph1['graphId'], $localContentId, null, null);
         $diff_edges[$i]['status'] = 'absent';
         $diff_edges[$i]['id'] = $i;
       }
       if(in_array($localContentId, $absentInGraph1)){
-        $diff_edges[$i]['edgeContentId'] = $this->encodeContentId(null, null, $this->graph2['graphId'], $localContentId);
+        $diff_edges[$i]['edgeContentId'] = self::encodeContentId(null, null, $this->graph2['graphId'], $localContentId);
         $diff_edges[$i]['status'] = 'added';
         $diff_edges[$i]['id'] = $i;
       }
       if(in_array($localContentId, $common)){
-        $diff_edges[$i]['edgeContentId'] = $this->encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId);
+        $diff_edges[$i]['edgeContentId'] = self::encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId);
         $diff_edges[$i]['status'] = $this->graph2EdgeContentUpdatedAt[$localContentId]['updated_at'] > $this->graph2EdgeContentUpdatedAt[$localContentId]['created_at'] ? 'modified' : 'unmodified';
         $diff_edges[$i]['id'] = $i;
       }
@@ -175,7 +175,7 @@ class GraphDiffCreator{
    */
   private function findDiffNodeId($graphId, $localContentId, $diff_nodes){
     foreach($diff_nodes as $nodeId=>$diff_node){
-      $contentId = $this->decodeContentId($diff_node['nodeContentId']);
+      $contentId = self::decodeContentId($diff_node['nodeContentId']);
       if(
         $graphId == $contentId['graphId1'] && $localContentId == $contentId['localContentId1']
         ||
@@ -185,11 +185,11 @@ class GraphDiffCreator{
     return null;
   }
 
-  public function encodeContentId($graphId1, $localContentId1, $graphId2, $localContentId2){
+  public static function encodeContentId($graphId1, $localContentId1, $graphId2, $localContentId2){
     return $graphId1."-".$localContentId1.'/'.$graphId2."-".$localContentId2;
   }
   
-  public function decodeContentId($contentId){
+  public static function decodeContentId($contentId){
     $t = explode('/',$contentId);
     $t0 = explode('-',$t[0]);
     $t1 = explode('-',$t[1]);
@@ -199,6 +199,10 @@ class GraphDiffCreator{
       'graphId2'=>$t1[0],
       'localContentId2'=>$t1[1]
     );
+  }
+
+  public static function isDiffContentId($contentId){
+    return strpos($contentId, '/') !== false;
   }
 }
 ?>

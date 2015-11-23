@@ -24,7 +24,7 @@ YOVALUE.SelectElementController.prototype = {
         eventName === 'mouseenternode' ||
         eventName === 'mouseenteredge'){
       var graphId = event.getData().graphId;
-console.log('123');
+
       if(typeof(this.initialDecoration[graphId]) === 'undefined'){
         this.initDecorations(graphId);
         this.selectedDecoration[graphId] = this.initialDecoration[graphId];
