@@ -140,6 +140,14 @@ YOVALUE.GraphMenu.prototype = {
           var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
           // get graph diff and show it
           that.publisher.when(e).then(function(graphViewSettings){
+            //create graphModel for diff graph
+            that.publisher.publish("add_graph_model", {
+              graphId:graphViewSettings.graphId,
+              graphSettings:graphViewSettings.graphModelSettings,
+              elements:graphViewSettings.graphModel
+            });
+
+            // build graphViewSettings
             var graphArea = that.viewManager.getViewContainer('rightGraphView');
             graphViewSettings.skin = that.publisher.publishResponseEvent(
                 that.publisher.createEvent("get_skin_by_skin_settings", graphViewSettings.skin)
@@ -180,7 +188,7 @@ YOVALUE.GraphMenu.prototype = {
               nodeLabelAreaList:nodeLabelAreaList,
               area:graphArea
             }));
-
+console.log(graphViewSettings);
            // that.publisher.publish('hide_all_graphs');
             that.publisher.publish("draw_graph_view", graphViewSettings);
           });

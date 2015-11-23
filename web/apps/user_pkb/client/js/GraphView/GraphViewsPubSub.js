@@ -245,6 +245,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
       var eventName = eventNames[i];
       this.graphViewList[graphId].bind(eventName, function(e){
         var eventData;
+
         // 'dragendnode' is special event because we can drag node from one graphView to another
         // That is why graphView can only report the canvasDrawer shape the node was dropped on
         // and here we must find graphView and element that corresponds to shape the node was dropped on
@@ -287,7 +288,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }else{
           eventData = e;
         }
-
+        console.log(eventData);
         that.publisher.publish(eventData.eventType, eventData);
       });
     }

@@ -45,6 +45,24 @@ YOVALUE.GraphModelsPubSub.prototype = {
         }
         break;
 
+      case "add_graph_model":
+        var graphId = event.getData['graphId'];
+        this.graphModels[graphId] = that.graphModelFactory.create(graphId);
+        var graphSettings = event.getData['graphSettings'];
+        var elements = event.getData['elements'];
+        var r = that.graphModels[graphId].init(
+            graphSettings['name'],
+            graphSettings['nodeTypes'],
+            graphSettings['edgeTypes'],
+            graphSettings['nodeDefaultType'],
+            graphSettings['edgeDefaultType'],
+            graphSettings['isEditable'],
+            graphSettings['attributes']
+        );
+        if(r === false)  YOVALUE.errorHandler.throwError('Graph Model init error');
+        this.graphModels[graphId].setGraphElements(elements);
+        break;
+
       case "load_graph_models":
         var e = this.publisher.createEvent("repository_get_graphs_model_settings", {});
         this.publisher.when(e).then(function(graphsSettings){

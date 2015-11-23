@@ -469,15 +469,24 @@ class AppUserPkb extends App
         $diff_node_mapping[$id]['id'] = $id;
       }
     }
+
+    // get graph model settings
+    $diffGraphId = 'diff_'.$graphId1.'_'.$graphId2;
+    $q = "SELECT graph FROM graph WHERE id = '".$graphId1."'";
+    $graphModelSettings = json_decode($this->db->execute($q)[0]['graph'], true);
+    $graphModelSettings['name'] = $diffGraphId;
+    $graphModelSettings['isEditable'] = false;
+
     // == create graphViewSettings ==
     $graphViewSettings = array(
-      'graphId' => 'diff_'.$graphId1.'_'.$graphId2,
+      'graphId' => $diffGraphId,
       'graphModel' => $graphModel,
       'graphNodeAttributes' => $diffNodeAttributes,
       'graphEdgeAttributes' => $diffEdgeAttributes,
      // 'graphArea'=> $graph1['node_mapping']['area'],
       'nodeMapping' => array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping),
-      'skin' => $s[$graphId1]['skin']
+      'skin' => $s[$graphId1]['skin'],
+      'graphModelSettings' => $graphModelSettings
     );
 //var_dump($graphViewSettings); exit();
     return $graphViewSettings;
