@@ -351,6 +351,14 @@ YOVALUE.ColorHelper.getRGB = function(s, asArray) {
   return res;
 };
 
+YOVALUE.arrayToObject = function (arr) {
+  if(Object.prototype.toString.call(arr) != '[object Array]') return arr;
+  var rv = {};
+  for (var i = 0; i < arr.length; ++i)
+    rv[i] = arr[i];
+  return rv;
+};
+
 /**
  * Convert color in RGB to Hex
  * @param R

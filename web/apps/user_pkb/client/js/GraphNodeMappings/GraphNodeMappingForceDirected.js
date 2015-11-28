@@ -25,6 +25,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
     this.springs = [];
     this.area = area;
     var hintMapping;
+    hint.mapping = YOVALUE.arrayToObject(hint.mapping);
     hintMapping = YOVALUE.clone(hint);
 
     // adjust hint to area we need to map to
