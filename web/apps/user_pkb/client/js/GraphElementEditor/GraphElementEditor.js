@@ -8,11 +8,12 @@
  * @param jQuery
  * @constructor
  */
-YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, jQuery, ajaxLoaderSrc){
+YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQuery, ajaxLoaderSrc){
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
+  this.UI = UI;
 
   this.ajaxLoaderSrc = ajaxLoaderSrc;
 
@@ -158,8 +159,11 @@ YOVALUE.GraphElementEditor.prototype = {
       reliabilityOptions += '<option '+selected+' value="'+i+'">'+i+'</option>';
     }
 
+//    this.UI.createItemsBox('#'+formId, );
+
     var bgStyle = node.icon == null ? '' : 'background-image:url(\''+node.icon.src+'\'); background-repeat:no-repeat; background-position: center center;';
-    var form = '<textarea class="labelTextArea" name="label">'+node.label+'</textarea>'
+    var formId = this.UI.generateId();
+    var form = '<div id="'+formId+'"><textarea class="labelTextArea" name="label">'+node.label+'</textarea>'
       +'<select name="type">'+typeOptions+'</select>'
       +'<select name="importance">'+importanceOptions+'</select>'
       +'<select name="reliability">'+reliabilityOptions+'</select>'
@@ -168,7 +172,8 @@ YOVALUE.GraphElementEditor.prototype = {
       +'<input type="hidden" name="elementType" value="node">'
       +'<input type="hidden" name="elementId" value="'+node.id+'">'
       +'<input type="hidden" name="elementContentId" value="'+node.nodeContentId+'">'
-      +'<input type="hidden" name="graphId" value="'+graphId+'">';
+      +'<input type="hidden" name="graphId" value="'+graphId+'">'
+      +'</div>';
 
     return form;
   },

@@ -23,7 +23,7 @@ YOVALUE.UIElements.prototype = {
    */
   createSelectBox: function(parentSelector, name, items, onSelectCallback, defaultValue, opt_className){
     var $ = this.jQuery,
-        uniqId = this._generateId(),
+        uniqId = this.generateId(),
         value,
         selectedItem = defaultValue == null ? '<span class="selected" value="none">none</span>' : '<span class="selected" value="'+defaultValue+'">'+items[defaultValue]+'</span>';
 
@@ -68,13 +68,13 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get form values as array 'name'=>'value'
    */
   showModal: function(fields, callback){
-    var $ = this.jQuery, uniqId = this._generateId(), name;
+    var $ = this.jQuery, uniqId = this.generateId(), name;
     $('body').append('<div id="'+uniqId+'" class="ui_modal"></div>');
     var w = $('#'+uniqId), c;
     w.css('top', window.innerHeight/2+'px');
     w.css('left', window.innerWidth/2+'px');
 
-    var closeId = this._generateId();
+    var closeId = this.generateId();
     w.append('<div id="'+closeId+'"  class="close_button">X</div>');
     $('#'+closeId).click(function(){
       w.remove();
@@ -89,8 +89,8 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'title') c.append('<div class="ui_modal_title">'+fields[name]['value']+'</div>');
       if(fields[name]['type'] == 'html') c.append(fields[name]['value']);
       if(fields[name]['type'] == 'confirm'){
-        var yesButtonId = this._generateId();
-        var noButtonId = this._generateId();
+        var yesButtonId = this.generateId();
+        var noButtonId = this.generateId();
         c.append('<button id="'+yesButtonId+'" class="confirm_button">yes</button><button id="'+noButtonId+'" class="confirm_button">no</button>');
         $('#'+yesButtonId).click(function(){
           callback('yes');
@@ -102,7 +102,7 @@ YOVALUE.UIElements.prototype = {
         });
       }
       if(fields[name]['type'] == 'button'){
-        var buttonId = this._generateId();
+        var buttonId = this.generateId();
         c.append('<button id="'+buttonId+'" name="'+name+'">'+fields[name]['value']+'</button>');
         $('#'+buttonId).click(function(){
           var data = {};
@@ -126,7 +126,6 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get 'yes' or 'no'
    */
   showConfirm: function(text, callback){
-    var $ = this.jQuery;
     this.showModal({'title':{'type':'title', 'value':text}, 'confirm':{'type':'confirm'}}, callback);
   },
 
@@ -139,26 +138,11 @@ YOVALUE.UIElements.prototype = {
    */
   createButton: function(parentSelector, text, callback, opt_className){
     opt_className = typeof(opt_className) == 'undefined' ? '' : opt_className;
-    var $ = this.jQuery, uniqId = this._generateId();
+    var $ = this.jQuery, uniqId = this.generateId();
     $(parentSelector).append('<button id="'+uniqId+'" class="ui_button '+opt_className+'">'+text+'</button>');
     $('#'+uniqId).click(function(){
       callback();
     });
-  },
-
-  /**
-   * Creates item for the list with possibility of action on this items
-   * @param itemId
-   * @param itemName
-   * @param actionName
-   * @param actionCallback
-   */
-  createActionItem: function(itemId, itemName, actionName, actionCallback){
-    var uniqId = this._generateId(), $ = this.jQuery;
-    $(document).on('click', '#'+uniqId+' a', function(){
-      actionCallback(itemId, $('#'+uniqId));
-    });
-    return '<ul id="'+uniqId+'"  class="actionItem"><li>'+itemName+' <a href="#" class="actionButton">'+actionName+'</a></li></ul>';
   },
 
   /**
@@ -170,17 +154,85 @@ YOVALUE.UIElements.prototype = {
   showModalList: function(items, actionName, actionCallback){
     var id, list={};
     for(id in items){
-      list[id] = {'type':'html', 'value':this.createActionItem(id, items[id], actionName, function(id, html){
+      list[id] = {'type':'html', 'value':this._createActionItem(id, items[id], actionName, function(id, html){
         actionCallback(id, html)
       })};
     }
     this.showModal(list, function(){});
   },
-      /**
-   * private method to generate unique id for UI element
+
+  /**
+   * Creates form and list of items created from this list
+   * @param parentSelector
+   * @param fields
+   * @param items
+   * @param addCallback
+   * @param removeCallback
+   */
+  createItemsBox: function(parentSelector, fields, items, addCallback, removeCallback){
+    var that = this, i, j, form="", options, list="", $ = this.jQuery, uniqId, buttonId, listId;
+
+    // create form
+    form = "<form>";
+    for(i in fields){
+      if(fields[i]['type'] == 'text') form += '<label>'+fields[i]['label']+'</label><input type="text" value="'+fields[i]['value']+'"></input>';
+      if(fields[i]['type'] == 'select'){
+        options = "";
+        for(var v in fields[i]['options']) options += '<option value="'+v+'" '+(v == fields[i]['selected'] ? 'selected':'')+'>'+fields[i]['options'][v]+'</option>';
+        form += '<label>'+fields[i]['label']+'</label><select>'+options+'</select>';
+      }
+    }
+    form = "</form>";
+
+    // create list of already added items
+    listId = this.generateId();
+    list = '<div id="'+listId+'">';
+    for(i in items){
+      var item_fields = "";
+      for(j in items[i]) item_fields += "; "+items[i][j];
+      list += this._createActionItem(i, item_fields, 'delete', removeCallback);
+    }
+    list += "</div>";
+    
+    // append add button to form
+    buttonId = this.generateId();
+    var button = '<button id="'+buttonId+'" class="ui_button">ADD</button>';
+    $('#'+buttonId).click(function(){
+      if(addCallback()){
+        var item_fields = "";
+        for(j in items[i]) item_fields += "; "+items[i][j];
+        list += that._createActionItem(i, item_fields, 'delete', removeCallback);
+        $('#'+listId).append(item_fields);
+      }
+    });
+
+    uniqId = this.generateId();
+    $(parentSelector).append('<div id="'+uniqId+'">'+form+button+list+"</div>");
+    return uniqId;
+  },
+
+  /**
+   * Method to generate unique id for UI element
    * @private
    */
-  _generateId: function(){
+  generateId: function(){
     return this.time.getTime() + '_' + Math.floor(Math.random()*1000);
   }
+
+  /**
+   * Private method creates item for the list with possibility of action on this items
+   * @param itemId
+   * @param itemName
+   * @param actionName
+   * @param actionCallback
+   */
+  _createActionItem: function(itemId, itemName, actionName, actionCallback){
+    var uniqId = this.generateId(), $ = this.jQuery;
+    $(document).on('click', '#'+uniqId+' a', function(){
+      actionCallback(itemId, $('#'+uniqId));
+    });
+    return '<ul id="'+uniqId+'"  class="actionItem"><li>'+itemName+' <a href="#" class="actionButton">'+actionName+'</a></li></ul>';
+  },
+
+
 };
