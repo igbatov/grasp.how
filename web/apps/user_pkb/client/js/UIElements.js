@@ -192,16 +192,14 @@ YOVALUE.UIElements.prototype = {
     form += '<td><button id="'+buttonId+'" class="ui_button">+</button></td></tr>';
 
     // create list of already added items
-    listId = this.generateId();
-    list = '<tr id="'+listId+'">';
+    list = '';
     for(i in items){
-      list += "<td>";
+      list += "<tr><td>";
       var item_fields = "";
       for(j in items[i]) item_fields += "; "+items[i][j];
       list += this._createActionItem(i, item_fields, 'delete', removeCallback);
-      list += "</td>";
+      list += "</td></tr>";
     }
-    list += "</tr>";
 
     uniqId = this.generateId();
     $(parentSelector).append('<table id="'+uniqId+'" class="itemsBox">'+form+list+"</table>");
@@ -217,9 +215,8 @@ YOVALUE.UIElements.prototype = {
       if(addCallback(item)){
         var item_fields = "";
         for(j in item) item_fields += "<td>"+item[j]+"</td>";
-        list += '<tr>'+item_fields+'<td>delete</td></tr>';
-        console.log(list);
-        $('#'+listId).append(list);
+        item_fields = '<tr>'+item_fields+'<td>X</td></tr>';
+        $('#'+uniqId).append(item_fields);
       }
     });
 
