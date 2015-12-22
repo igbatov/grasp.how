@@ -97,12 +97,22 @@ select {
     appearance:         none;
 }
 
+.factNodeText {
+    height: 47%;
+}
+
 .nodeText{
     background-color: #CCC;
     margin: 20px;
     padding: 20px;
-    height: 75%;
     overflow-y: scroll;
+}
+
+.nodeSourceList{
+    width: 96%;
+    height: 20%;
+    margin-left: 20px;
+    overflow-y: auto;
 }
 
 #serverStatus {

@@ -170,44 +170,59 @@ YOVALUE.UIElements.prototype = {
    * @param removeCallback
    */
   createItemsBox: function(parentSelector, fields, items, addCallback, removeCallback){
-    var that = this, i, j, form="", options, list="", $ = this.jQuery, uniqId, buttonId, listId;
+    var that = this, i, j, form, options, list="", $ = this.jQuery, uniqId, buttonId, listId;
 
     // create form
-    form = "<form>";
+    form = "<tr>";
+    for(i in fields) form += "<th>"+fields[i]['label']+"</th>";
+    form += "<th></th></tr><tr>";
+
     for(i in fields){
-      if(fields[i]['type'] == 'text') form += '<label>'+fields[i]['label']+'</label><input type="text" value="'+fields[i]['value']+'"></input>';
+      form += '<td>';
+      if(fields[i]['type'] == 'text') form += '<input type="text" name="'+i+'" value="'+fields[i]['value']+'"></input>';
       if(fields[i]['type'] == 'select'){
         options = "";
         for(var v in fields[i]['options']) options += '<option value="'+v+'" '+(v == fields[i]['selected'] ? 'selected':'')+'>'+fields[i]['options'][v]+'</option>';
-        form += '<label>'+fields[i]['label']+'</label><select>'+options+'</select>';
+        form += '<select  name="'+i+'">'+options+'</select>';
       }
+      form += '</td>';
     }
-    form = "</form>";
+    // append add button to form
+    buttonId = this.generateId();
+    form += '<td><button id="'+buttonId+'" class="ui_button">+</button></td></tr>';
 
     // create list of already added items
     listId = this.generateId();
-    list = '<div id="'+listId+'">';
+    list = '<tr id="'+listId+'">';
     for(i in items){
+      list += "<td>";
       var item_fields = "";
       for(j in items[i]) item_fields += "; "+items[i][j];
       list += this._createActionItem(i, item_fields, 'delete', removeCallback);
+      list += "</td>";
     }
-    list += "</div>";
-    
-    // append add button to form
-    buttonId = this.generateId();
-    var button = '<button id="'+buttonId+'" class="ui_button">ADD</button>';
+    list += "</tr>";
+
+    uniqId = this.generateId();
+    $(parentSelector).append('<table id="'+uniqId+'" class="itemsBox">'+form+list+"</table>");
+
     $('#'+buttonId).click(function(){
-      if(addCallback()){
+      var value = "", item = {};
+      for(i in fields){
+        if(fields[i]['type'] == 'text') value = $(this).parent().parent().find("input[name='"+i+"']").val();
+        if(fields[i]['type'] == 'select') value = $(this).parent().parent().find("select[name='"+i+"']").val();
+        item[i] = value;
+      }
+
+      if(addCallback(item)){
         var item_fields = "";
-        for(j in items[i]) item_fields += "; "+items[i][j];
-        list += that._createActionItem(i, item_fields, 'delete', removeCallback);
-        $('#'+listId).append(item_fields);
+        for(j in item) item_fields += "<td>"+item[j]+"</td>";
+        list += '<tr>'+item_fields+'<td>delete</td></tr>';
+        console.log(list);
+        $('#'+listId).append(list);
       }
     });
 
-    uniqId = this.generateId();
-    $(parentSelector).append('<div id="'+uniqId+'">'+form+button+list+"</div>");
     return uniqId;
   },
 
@@ -217,7 +232,7 @@ YOVALUE.UIElements.prototype = {
    */
   generateId: function(){
     return this.time.getTime() + '_' + Math.floor(Math.random()*1000);
-  }
+  },
 
   /**
    * Private method creates item for the list with possibility of action on this items
@@ -232,7 +247,5 @@ YOVALUE.UIElements.prototype = {
       actionCallback(itemId, $('#'+uniqId));
     });
     return '<ul id="'+uniqId+'"  class="actionItem"><li>'+itemName+' <a href="#" class="actionButton">'+actionName+'</a></li></ul>';
-  },
-
-
+  }
 };

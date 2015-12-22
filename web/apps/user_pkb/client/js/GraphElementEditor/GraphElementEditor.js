@@ -86,25 +86,24 @@ YOVALUE.GraphElementEditor.prototype = {
     switch (eventName)
     {
       case "show_graph_element_editor":
-        var form;
+        v.html('');
         if(event.getData().elementType == 'node'){
-          form = this._getNodeForm(
+          this._createNodeForm(
+            '#'+v.attr('id'),
             event.getData().graphId,
             event.getData().isEditable,
             event.getData().nodeTypes,
             event.getData().node
           );
-
-          v.html(form);
           this._insertNodeText(event.getData().graphId, event.getData().node.nodeContentId, event.getData().isEditable);
         }else if(event.getData().elementType == 'edge'){
-          form = this._getEdgeForm(
+          this._createEdgeForm(
+            '#'+v.attr('id'),
             event.getData().graphId,
             event.getData().isEditable,
             event.getData().edgeTypes,
             event.getData().edge
           );
-          v.html(form);
         }
         v.show();
         break;
@@ -117,7 +116,7 @@ YOVALUE.GraphElementEditor.prototype = {
     }
   },
 
-  _getEdgeForm: function(graphId, isEditable, edgeTypes, edge){
+  _createEdgeForm: function(parentSelector, graphId, isEditable, edgeTypes, edge){
     if(!isEditable) return '';
 
     var i, typeOptions = '';
@@ -135,9 +134,10 @@ YOVALUE.GraphElementEditor.prototype = {
     +'<input type="hidden" name="graphId" value="'+graphId+'">';
   },
 
-  _getNodeForm: function(graphId, isEditable, nodeTypes, node){
+  _createNodeForm: function(parentSelector, graphId, isEditable, nodeTypes, node){
+    var parent = this.jQuery(parentSelector);
     // show in view-only form
-    if(!isEditable) return '<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" class="nodeText" name="nodeText"></div>';
+    if(!isEditable) parent.append('<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" class="nodeText" name="nodeText"></div>');
 
     // select list for node types
     var i, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
@@ -159,23 +159,45 @@ YOVALUE.GraphElementEditor.prototype = {
       reliabilityOptions += '<option '+selected+' value="'+i+'">'+i+'</option>';
     }
 
-//    this.UI.createItemsBox('#'+formId, );
-
     var bgStyle = node.icon == null ? '' : 'background-image:url(\''+node.icon.src+'\'); background-repeat:no-repeat; background-position: center center;';
-    var formId = this.UI.generateId();
-    var form = '<div id="'+formId+'"><textarea class="labelTextArea" name="label">'+node.label+'</textarea>'
+    var sourceListId = this.UI.generateId();
+    var form = '<textarea class="labelTextArea" name="label">'+node.label+'</textarea>'
       +'<select name="type">'+typeOptions+'</select>'
       +'<select name="importance">'+importanceOptions+'</select>'
       +'<select name="reliability">'+reliabilityOptions+'</select>'
-      +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText"></textarea>'
-      +'<input type="file" name="icon" />'
+      +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText" class="nodeText '+node.type+'NodeText"></textarea>'
+      + (node.type == 'fact' ? '<div id="'+sourceListId+'" class="nodeSourceList"></div>' : '')
+     // +'<input type="file" name="icon" />'
       +'<input type="hidden" name="elementType" value="node">'
       +'<input type="hidden" name="elementId" value="'+node.id+'">'
       +'<input type="hidden" name="elementContentId" value="'+node.nodeContentId+'">'
-      +'<input type="hidden" name="graphId" value="'+graphId+'">'
-      +'</div>';
+      +'<input type="hidden" name="graphId" value="'+graphId+'">';
 
-    return form;
+    parent.append(form);
+    this.UI.createItemsBox(
+      '#'+sourceListId,
+      {
+        'source_type':{'type':'select','label':'тип','options':{'book':'книга','monography':'монография','textbook':'учебник','news':'новость', 'article':'научная статья'},'value':'book'},
+        'field_type':{'type':'text','label':'область','value':''},
+        'url':{'type':'text','label':'url',value:''},
+        'author':{'type':'text', label:'Автор', value:''},
+        'editor':{'type':'text', label:'Рецензент', value:''},
+        'publisher':{'type':'text', label:'Издатель', value:''},
+        'primacy':{'type':'select', label:'Первичность', 'options':{'1':'первичный','2':'вторичный',3:'третичный'}, value:''},
+        'publish_date':{'type':'text', label:'Дата издания', value:''}
+      },
+      [],
+      function(item){
+        console.log(item);
+        return true;
+      },
+      function(item){
+        console.log(item);
+        return true;
+      }
+    );
+
+  //  return form;
   },
 
   _insertNodeText: function(graphId, nodeContentId, isEditable){
