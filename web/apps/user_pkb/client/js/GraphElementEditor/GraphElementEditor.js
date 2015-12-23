@@ -135,7 +135,7 @@ YOVALUE.GraphElementEditor.prototype = {
   },
 
   _createNodeForm: function(parentSelector, graphId, isEditable, nodeTypes, node){
-    var parent = this.jQuery(parentSelector);
+    var parent = this.jQuery(parentSelector), that = this;
     // show in view-only form
     if(!isEditable) parent.append('<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" class="nodeText" name="nodeText"></div>');
 
@@ -174,28 +174,35 @@ YOVALUE.GraphElementEditor.prototype = {
       +'<input type="hidden" name="graphId" value="'+graphId+'">';
 
     parent.append(form);
-    this.UI.createItemsBox(
-      '#'+sourceListId,
-      {
-        'source_type':{'type':'select','label':'тип','options':{'book':'книга','monography':'монография','textbook':'учебник','news':'новость', 'article':'научная статья'},'value':'book'},
-        'field_type':{'type':'text','label':'область','value':''},
-        'url':{'type':'text','label':'url',value:''},
-        'author':{'type':'text', label:'Автор', value:''},
-        'editor':{'type':'text', label:'Рецензент', value:''},
-        'publisher':{'type':'text', label:'Издатель', value:''},
-        'primacy':{'type':'select', label:'Первичность', 'options':{'1':'первичный','2':'вторичный',3:'третичный'}, value:''},
-        'publish_date':{'type':'text', label:'Дата издания', value:''}
-      },
-      [],
-      function(item){
-        console.log(item);
-        return true;
-      },
-      function(item){
-        console.log(item);
-        return true;
-      }
-    );
+
+    var e = this.publisher.createEvent('get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId});
+    this.publisher.when(e).then(function(sources){
+      that.UI.createItemsBox(
+        '#'+sourceListId,
+        {
+          'source_type':{'type':'select','label':'тип','options':{'book':'книга','monography':'монография','textbook':'учебник','news':'новость', 'article':'научная статья'},'value':'book'},
+          'field_type':{'type':'text','label':'область','value':''},
+          'url':{'type':'text','label':'url',value:''},
+          'author':{'type':'text', label:'Автор', value:''},
+          'editor':{'type':'text', label:'Рецензент', value:''},
+          'publisher':{'type':'text', label:'Издатель', value:''},
+          'primacy':{'type':'select', label:'Первичность', 'options':{'1':'первичный','2':'вторичный',3:'третичный'}, value:''},
+          'publish_date':{'type':'text', label:'Дата издания', value:''}
+        },
+        sources,
+        function(item){
+          console.log('addCallback', item);
+          that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+          return true;
+        },
+        function(item){
+          console.log('removeCallback', item);
+          that.publisher.publish('node_source_removed', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+          return true;
+        }
+      );
+    });
+    this.publisher.publishEvent(e);
 
   //  return form;
   },

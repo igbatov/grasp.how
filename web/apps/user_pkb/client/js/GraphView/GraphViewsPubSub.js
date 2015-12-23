@@ -289,7 +289,6 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }else{
           eventData = e;
         }
-        console.log(eventData);
         that.publisher.publish(eventData.eventType, eventData);
       });
     }

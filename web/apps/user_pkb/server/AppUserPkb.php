@@ -382,6 +382,36 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($clone_list));
         break;
 
+      case "addNodeContentSource":
+        $r = $this->getRequest();
+        $graph_id = $r['graphId'];
+        $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
+        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$r['source']['field_type']."', url='".$r['source']['url']."', author='".$r['source']['author']."', editor='".$r['source']['editor']."', publisher='".$r['source']['publisher']."', primacy='".$r['source']['primacy']."', publish_date='".$r['source']['publish_date']."' ";
+        $this->log($q);
+        $this->db->execute($q);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        break;
+
+      case "removeNodeContentSource":
+        $r = $this->getRequest();
+        $graph_id = $r['graphId'];
+        $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
+        $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND source_type='".$r['source']['source_type']."' AND field_type='".$r['source']['field_type']."' AND url='".$r['source']['url']."' AND author='".$r['source']['author']."' AND editor='".$r['source']['editor']."' AND publisher='".$r['source']['publisher']."' AND primacy='".$r['source']['primacy']."' AND publish_date='".$r['source']['publish_date']."' ";
+        $this->log($q);
+        $this->db->execute($q);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        break;
+
+      case "getNodeContentSourceList":
+        $r = $this->getRequest();
+        $graph_id = $r['graphId'];
+        $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
+        $q = "SELECT * FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
+        $this->log($q);
+        $rows = $this->db->execute($q);
+        $this->showRawData(json_encode($rows));
+        break;
+
       default:
         if($access_level == 'read'){
           include($this->getAppDir("template", false)."/showGraph.php");

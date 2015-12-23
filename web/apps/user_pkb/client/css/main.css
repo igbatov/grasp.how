@@ -113,6 +113,7 @@ select {
     height: 20%;
     margin-left: 20px;
     overflow-y: auto;
+    color: white;
 }
 
 #serverStatus {

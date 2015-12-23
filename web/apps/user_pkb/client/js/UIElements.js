@@ -194,11 +194,7 @@ YOVALUE.UIElements.prototype = {
     // create list of already added items
     list = '';
     for(i in items){
-      list += "<tr><td>";
-      var item_fields = "";
-      for(j in items[i]) item_fields += "; "+items[i][j];
-      list += this._createActionItem(i, item_fields, 'delete', removeCallback);
-      list += "</td></tr>";
+      list += createItemRow(items[i], fields, removeCallback);
     }
 
     uniqId = this.generateId();
@@ -213,12 +209,22 @@ YOVALUE.UIElements.prototype = {
       }
 
       if(addCallback(item)){
-        var item_fields = "";
-        for(j in item) item_fields += "<td>"+item[j]+"</td>";
-        item_fields = '<tr>'+item_fields+'<td>X</td></tr>';
-        $('#'+uniqId).append(item_fields);
+        $('#'+uniqId).append(createItemRow(item, fields, removeCallback));
       }
     });
+
+    function createItemRow(item, fields, removeCallback){
+      var item_fields = "", id = that.generateId(), field_names = YOVALUE.getObjectKeys(fields);
+      for(j in item){
+        if(field_names.indexOf(j) != -1) item_fields += "<td>"+item[j]+"</td>";
+      }
+      item_fields = '<tr>'+item_fields+'<td id="'+id+'" style="cursor:pointer">X</td></tr>';
+      $(document).on('click', '#'+id, function(){
+        $(this).parent().remove();
+        removeCallback(item);
+      });
+      return item_fields;
+    };
 
     return uniqId;
   },
