@@ -182,21 +182,23 @@ YOVALUE.GraphElementEditor.prototype = {
         {
           'source_type':{'type':'select','label':'тип','options':{'book':'книга','monography':'монография','textbook':'учебник','news':'новость', 'article':'научная статья'},'value':'book'},
           'field_type':{'type':'text','label':'область','value':''},
+          'name':{'type':'text','label':'Название','value':''},
           'url':{'type':'text','label':'url',value:''},
           'author':{'type':'text', label:'Автор', value:''},
           'editor':{'type':'text', label:'Рецензент', value:''},
           'publisher':{'type':'text', label:'Издатель', value:''},
           'primacy':{'type':'select', label:'Первичность', 'options':{'1':'первичный','2':'вторичный',3:'третичный'}, value:''},
-          'publish_date':{'type':'text', label:'Дата издания', value:''}
+          'publish_date':{'type':'text', label:'Дата издания', value:''},
+          'pages':{'type':'text', label:'Том, страницы', value:''}
         },
         sources,
         function(item){
-          console.log('addCallback', item);
+          //console.log('addCallback', item);
           that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
           return true;
         },
         function(item){
-          console.log('removeCallback', item);
+          //console.log('removeCallback', item);
           that.publisher.publish('node_source_removed', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
           return true;
         }

@@ -66,7 +66,7 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
 
     'node_source_added',
     'node_source_removed',
-    'get_graph_node_sources'
+    'repository_get_graph_node_sources'
 
   ]);
 };
@@ -219,8 +219,7 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'get_graph_node_sources'){
-      console.log('www');
+    }else if(name == 'repository_get_graph_node_sources'){
       this.pendingRequests.push({url:'getNodeContentSourceList', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});

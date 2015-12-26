@@ -60,7 +60,9 @@ var Modules = {
   Ajax: YOVALUE.Ajax,
   Promise: YOVALUE.Promise,
 
-  imageLoader: YOVALUE.imageLoader
+  imageLoader: YOVALUE.imageLoader,
+
+  NodeSourcesCache: YOVALUE.NodeSourcesCache
 };
 
 /**
@@ -166,7 +168,9 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['Subscriber', 'GraphDecoration'],
 
-  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', jQuery('#ajaxLoader').attr('src')]
+  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', jQuery('#ajaxLoader').attr('src')],
+
+  NodeSourcesCache: ['Subscriber', 'Publisher']
 };
 
 // Creating and wiring modules according to DI array

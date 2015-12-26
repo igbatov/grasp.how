@@ -386,7 +386,7 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$r['source']['field_type']."', url='".$r['source']['url']."', author='".$r['source']['author']."', editor='".$r['source']['editor']."', publisher='".$r['source']['publisher']."', primacy='".$r['source']['primacy']."', publish_date='".$r['source']['publish_date']."' ";
+        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$r['source']['field_type']."', `name`='".$r['source']['name']."', url='".$r['source']['url']."', author='".$r['source']['author']."', editor='".$r['source']['editor']."', publisher='".$r['source']['publisher']."', primacy='".$r['source']['primacy']."', publish_date='".$r['source']['publish_date']."', `pages`='".$r['source']['pages']."' ";
         $this->log($q);
         $this->db->execute($q);
         $this->showRawData(json_encode(array('result'=>'SUCCESS')));
@@ -870,7 +870,8 @@ class AppUserPkb extends App
       'GraphDecorations/GraphDecorationByType.js',
       //'GraphDecorations/iDecoration.js',
 
-      'GraphElementEditor/GraphElementEditor.js'
+      'GraphElementEditor/GraphElementEditor.js',
+      'NodeSourcesCache.js'
     );
   }
 }
