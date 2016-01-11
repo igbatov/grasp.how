@@ -19,6 +19,104 @@ canvasDrawerTest.afterEach = function(){
   // element.parentNode.removeChild(element);
 };
 
+describe("CanvasDrawer.addShape", function () {
+  beforeEach(function(){
+    canvasDrawerTest.beforeEach.apply(this);
+  });
+
+  it("should draw circle", function () {
+    var circle = new YOVALUE.CanvasDrawer.Circle({
+      id: 1,
+      x: 100,
+      y: 100,
+      radius: 70,
+      fill: 'blue'
+    });
+    this.canvasDrawer.addShape(this.layerId, circle);
+    this.canvasDrawer.drawLayer(this.layerId);
+
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[0]);
+  });
+
+  it("shape should be draggable if attr 'draggable' is true", function () {
+    var circle = new YOVALUE.CanvasDrawer.Circle({
+      id: 1,
+      x: 100,
+      y: 100,
+      radius: 70,
+      fill: 'blue',
+      draggable: true
+    });
+    this.canvasDrawer.addShape(this.layerId, circle);
+    this.canvasDrawer.drawLayer(this.layerId);
+
+    var el = this.canvasDrawer.getStage().getContent();
+    jasmineCanvasDrawerEventSimulation.drag(el, {x:100, y:100}, {x:100, y:1});
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[3]);
+  });
+
+  it("should draw text", function () {
+    var text = new YOVALUE.CanvasDrawer.Text({
+      id: 1,
+      graphId: 'graphId',
+      x: 50,
+      y: 50,
+      text: 'Text for CanvasDrawer test',
+      fontSize: 10,
+      fontFamily: 'Calibri',
+      fill: 'black'
+    });
+    this.canvasDrawer.addShape(this.layerId, text);
+    this.canvasDrawer.drawLayer(this.layerId);
+
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[1]);
+  });
+
+  it("should draw path", function () {
+    var path = new YOVALUE.CanvasDrawer.Path({
+      id: 1,
+      data: 'M10,100Q100,50,190,100',
+      stroke: 'blue'
+    });
+    this.canvasDrawer.addShape(this.layerId, path);
+    this.canvasDrawer.drawLayer(this.layerId);
+
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[2]);
+  });
+
+  it("should draw image", function () {
+    var imageObj = new Image();
+    imageObj.src = YOVALUE.TestFixtures.CanvasDrawer[4];
+    var img = new YOVALUE.CanvasDrawer.Image({
+      x: 0,
+      y: 0,
+      image: imageObj,
+      width: 10,
+      height: 10,
+      // fill: args.color,
+      draggable: true
+    });
+
+    waitsFor(function () {
+      return imageObj.complete;
+    });
+
+    runs(function () {
+      this.canvasDrawer.addShape(this.layerId, img);
+      this.canvasDrawer.drawLayer(this.layerId);
+
+      img.setSize({width:200, height:200});
+      this.canvasDrawer.drawLayer(this.layerId);
+
+      jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[4]);
+    });
+  });
+
+  afterEach(function(){
+    canvasDrawerTest.afterEach.apply(this);
+  })
+});
+
 describe("CanvasDrawer.bindStage", function () {
   beforeEach(function(){
     canvasDrawerTest.beforeEach.apply(this);
@@ -140,104 +238,6 @@ describe("CanvasDrawer.getIntersection", function () {
   it("should return all shapes under given point", function () {
     var shapes = this.canvasDrawer.getIntersections(100, 100);
     expect(shapes.length).toEqual(2);
-  });
-
-  afterEach(function(){
-    canvasDrawerTest.afterEach.apply(this);
-  })
-});
-
-describe("CanvasDrawer.addShape", function () {
-  beforeEach(function(){
-    canvasDrawerTest.beforeEach.apply(this);
-  });
-
-  it("should draw circle", function () {
-    var circle = new YOVALUE.CanvasDrawer.Circle({
-      id: 1,
-      x: 100,
-      y: 100,
-      radius: 70,
-      fill: 'blue'
-    });
-    this.canvasDrawer.addShape(this.layerId, circle);
-    this.canvasDrawer.drawLayer(this.layerId);
-
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[0]);
-  });
-
-  it("shape should be draggable if attr 'draggable' is true", function () {
-    var circle = new YOVALUE.CanvasDrawer.Circle({
-      id: 1,
-      x: 100,
-      y: 100,
-      radius: 70,
-      fill: 'blue',
-      draggable: true
-    });
-    this.canvasDrawer.addShape(this.layerId, circle);
-    this.canvasDrawer.drawLayer(this.layerId);
-
-    var el = this.canvasDrawer.getStage().getContent();
-    jasmineCanvasDrawerEventSimulation.drag(el, {x:100, y:100}, {x:100, y:1});
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[3]);
-  });
-
-  it("should draw text", function () {
-    var text = new YOVALUE.CanvasDrawer.Text({
-      id: 1,
-      graphId: 'graphId',
-      x: 50,
-      y: 50,
-      text: 'Text for CanvasDrawer test',
-      fontSize: 10,
-      fontFamily: 'Calibri',
-      fill: 'black'
-    });
-    this.canvasDrawer.addShape(this.layerId, text);
-    this.canvasDrawer.drawLayer(this.layerId);
-
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[1]);
-  });
-
-  it("should draw path", function () {
-    var path = new YOVALUE.CanvasDrawer.Path({
-      id: 1,
-      data: 'M10,100Q100,50,190,100',
-      stroke: 'blue'
-    });
-    this.canvasDrawer.addShape(this.layerId, path);
-    this.canvasDrawer.drawLayer(this.layerId);
-
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[2]);
-  });
-
-  it("should draw image", function () {
-    var imageObj = new Image();
-    imageObj.src = YOVALUE.TestFixtures.CanvasDrawer[4];
-    var img = new YOVALUE.CanvasDrawer.Image({
-      x: 0,
-      y: 0,
-      image: imageObj,
-      width: 10,
-      height: 10,
-      // fill: args.color,
-      draggable: true
-    });
-
-    waitsFor(function () {
-      return imageObj.complete;
-    });
-
-    runs(function () {
-      this.canvasDrawer.addShape(this.layerId, img);
-      this.canvasDrawer.drawLayer(this.layerId);
-
-      img.setSize({width:200, height:200});
-      this.canvasDrawer.drawLayer(this.layerId);
-
-      jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[4]);
-    });
   });
 
   afterEach(function(){
