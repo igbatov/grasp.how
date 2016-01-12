@@ -8,7 +8,7 @@
 <script>
 
   $( document ).ready(function() {
-    var drawer = new YOVALUE.SVGDrawer('container', 500, 500, jQuery);
+    var drawer = new YOVALUE.SVGDrawer('container', 500, 500);
     drawer.addLayer('layerOne');
     var shape = new YOVALUE.SVGDrawer.Circle({x:100, y:100, radius:50, color:'red'});
     drawer.addShape('layerOne', shape);
@@ -25,21 +25,20 @@
    * Interface for CanvasDrawer and SVGDrawer
    * @type {Object}
    */
-  YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainerHeight, jQuery){
+  YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainerHeight){
     this.id = YOVALUE.getUniqId();
     this.stageContainerId = stageContainerId;
     this.svgns = "http://www.w3.org/2000/svg";
-    this.$ = jQuery;
-    this.$('#'+stageContainerId).append('<svg id="'+this.id+'" xmlns="'+this.svgns+'" version="1.1" width="'+stageContainerWidth+'" height="'+stageContainerHeight+'"></svg>');
+    var svgroot = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgroot.setAttribute("id", this.id);
+    svgroot.setAttribute("width", stageContainerWidth);
+    svgroot.setAttribute("height", stageContainerHeight);
+    document.getElementById(stageContainerId).appendChild(svgroot);
   };
 
   YOVALUE.SVGDrawer.prototype = {
     getId: function(){
       return this.id;
-    },
-
-    draw: function(){
-      this.$('#'+this.stageContainerId).html( this.$('#'+this.stageContainerId).html());
     },
 
     /**
@@ -49,7 +48,9 @@
      * @param layer_id
      */
     addLayer: function(layer_id){
-      this.$('#'+this.id).append('<g id="'+layer_id+'"></g>');
+      var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttributeNS(null, "id", layer_id);
+      document.getElementById(this.id).appendChild(g);
     },
     removeLayer: function(layer_id){},
     drawLayer: function(layer_id){},
@@ -75,8 +76,6 @@
      */
     addShape: function(layer_id, shape){
       document.getElementById(layer_id).appendChild(shape.getShape());
-      this.draw();
-      document.getElementById(shape.getId()).addEventListener("click",shape.handleEvent,false)
     },
 
     /**
@@ -171,10 +170,6 @@
     getStrokeWidth: function(){}
   };
 
-  function haha(e){
-    console.log(e);
-  }
-
   /**
    * Circle
    * @param args
@@ -194,6 +189,7 @@
     this.shape.setAttributeNS(null, "r",  args.radius);
     this.shape.setAttributeNS(null, "fill", args.color);
     this.shape.setAttributeNS(null, "transform", "matrix(1 0 0 1 0 0)");
+    this.shape.addEventListener("click",this,false);
   };
 
   YOVALUE.SVGDrawer.Circle.prototype = {
