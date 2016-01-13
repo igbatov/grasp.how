@@ -10,8 +10,14 @@
   $( document ).ready(function() {
     var drawer = new YOVALUE.SVGDrawer('container', 500, 500);
     drawer.addLayer('layerOne');
-    var shape = new YOVALUE.SVGDrawer.Circle({x:100, y:100, radius:50, color:'red'});
-    drawer.addShape('layerOne', shape);
+    var shape1 = new YOVALUE.SVGDrawer.Circle({x:100, y:100, radius:50, color:'red'});
+    drawer.addShape('layerOne', shape1);
+    var shape2 = new YOVALUE.SVGDrawer.Circle({x:120, y:100, radius:50, color:'blue'});
+    drawer.addShape('layerOne', shape2);
+    shape1.setDraggable(true);
+    shape2.setDraggable(false);
+    shape2.setDraggable(true);
+    console.log(drawer.getIntersections(125,100));
   });
 
 
@@ -26,14 +32,16 @@
    * @type {Object}
    */
   YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainerHeight){
+    var that = this;
     this.id = YOVALUE.getUniqId();
     this.stageContainerId = stageContainerId;
     this.svgns = "http://www.w3.org/2000/svg";
-    var svgroot = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svgroot.setAttribute("id", this.id);
-    svgroot.setAttribute("width", stageContainerWidth);
-    svgroot.setAttribute("height", stageContainerHeight);
-    document.getElementById(stageContainerId).appendChild(svgroot);
+    this.svgroot = document.createElementNS(this.svgns, "svg");
+    this.svgroot.setAttribute("id", this.id);
+    this.svgroot.setAttribute("width", stageContainerWidth);
+    this.svgroot.setAttribute("height", stageContainerHeight);
+    this.shapes = {}; // all shapes added by addShape()
+    document.getElementById(stageContainerId).appendChild(this.svgroot);
   };
 
   YOVALUE.SVGDrawer.prototype = {
@@ -50,7 +58,7 @@
     addLayer: function(layer_id){
       var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.setAttributeNS(null, "id", layer_id);
-      document.getElementById(this.id).appendChild(g);
+      this.svgroot.appendChild(g);
     },
     removeLayer: function(layer_id){},
     drawLayer: function(layer_id){},
@@ -75,6 +83,7 @@
      * @param shape
      */
     addShape: function(layer_id, shape){
+      this.shapes[shape.getId()] = shape;
       document.getElementById(layer_id).appendChild(shape.getShape());
     },
 
@@ -108,7 +117,33 @@
      * @param y
      * @return {*}
      */
-    getIntersections: function(x,y){}
+    getIntersections: function(x,y){
+      var hitRect = this.svgroot.createSVGRect();
+      hitRect.height = 1;
+      hitRect.width = 1;
+      hitRect.y = y;
+      hitRect.x = x;
+      return this.svgroot.getIntersectionList(hitRect, null);
+    },
+
+    _onmousemove: function(evt){
+      /*
+      var id, shape;
+      for(id in this.shapes){
+        shape = this.shapes[id];
+        if(shape.mousedown && shape.draggable){
+          // move shape to front
+          shape.getShape().parentElement.appendChild(shape.getShape());
+          // update shapes (x, y)
+          shape.matrix[4] += evt.clientX - shape.x;
+          shape.matrix[5] += evt.clientY - shape.y;
+          shape.getShape().setAttributeNS(null, "transform", "matrix(" + shape.matrix.join(' ') + ")");
+          shape.x = evt.clientX;
+          shape.y = evt.clientY;
+        }
+      }
+*/
+    }
   };
 
   /**
@@ -123,8 +158,8 @@
     setY: function(v){},
     getY: function(){},
 
-    setGraggable: function(v){},
-    getGraggable: function(){},
+    setDraggable: function(v){},
+    getDraggable: function(){},
 
     setWidth: function(v){},
     getWidth: function(){},
@@ -157,8 +192,8 @@
     setData: function(v){},
     getData: function(){},
 
-    setGraggable: function(v){},
-    getGraggable: function(){},
+    setDraggable: function(v){},
+    getDraggable: function(){},
 
     setOpacity: function(v){},
     getOpacity: function(){},
@@ -176,11 +211,15 @@
    * @constructor
    */
   YOVALUE.SVGDrawer.Circle = function(args){
+    var i;
     this.id = YOVALUE.getUniqId();
     this.x = args.x;
     this.y = args.y;
+    this.matrix = [1, 0, 0, 1, 0, 0];
     this.radius = args.radius;
     this.color = args.color;
+    this.draggable = args.draggable;
+    this.mousedown = false;
 
     this.shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     this.shape.setAttributeNS(null, "id", this.id);
@@ -188,8 +227,13 @@
     this.shape.setAttributeNS(null, "cy", args.y);
     this.shape.setAttributeNS(null, "r",  args.radius);
     this.shape.setAttributeNS(null, "fill", args.color);
-    this.shape.setAttributeNS(null, "transform", "matrix(1 0 0 1 0 0)");
-    this.shape.addEventListener("click",this,false);
+    this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+
+    var mouseEvents = ["mouseover", "mouseout", "mousedown", "mouseup", "click", "dblclick"];
+    for(i in mouseEvents){
+      this.shape.addEventListener(mouseEvents[i],this,false);
+    }
+    document.addEventListener('mousemove',this,false);
   };
 
   YOVALUE.SVGDrawer.Circle.prototype = {
@@ -201,7 +245,28 @@
     },
 
     handleEvent: function(evt){
-      console.log(evt);
+      evt.preventDefault(); // fix for firefox image dragging do not interfere with our custom dragging
+
+      if(evt.type == "mousedown"){
+        console.log(evt);
+        this.mousedown = true;
+      }
+      if(evt.type == "mouseup"){
+        console.log(evt);
+        this.mousedown = false;
+      }
+      if(evt.type == "mousemove"){
+        if(this.mousedown && this.draggable){
+          // move shape to front
+          this.getShape().parentElement.appendChild(this.getShape());
+          // update shapes (x, y)
+          this.matrix[4] += evt.clientX - this.x;
+          this.matrix[5] += evt.clientY - this.y;
+          this.getShape().setAttributeNS(null, "transform", "matrix(" + this.matrix.join(' ') + ")");
+          this.x = evt.clientX;
+          this.y = evt.clientY;
+        }
+      }
     },
 
     setX: function(v){
@@ -214,8 +279,16 @@
     setRadius: function(v){},
     getRadius: function(){},
 
-    setGraggable: function(v){},
-    getGraggable: function(){},
+    /**
+     * Make shape draggable or not
+     * @param v boolean
+     */
+    setDraggable: function(v){
+      this.draggable = v;
+    },
+    getDraggable: function(){
+      return this.draggable;
+    },
 
     setOpacity: function(v){},
     getOpacity: function(){},
@@ -249,8 +322,8 @@
     setFontFamily: function(v){},
     getFontFamily: function(){},
 
-    setGraggable: function(v){},
-    getGraggable: function(){},
+    setDraggable: function(v){},
+    getDraggable: function(){},
 
     setOpacity: function(v){},
     getOpacity: function(){},
