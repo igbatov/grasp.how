@@ -32,7 +32,6 @@
    * @type {Object}
    */
   YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainerHeight){
-    var that = this;
     this.id = YOVALUE.getUniqId();
     this.stageContainerId = stageContainerId;
     this.svgns = "http://www.w3.org/2000/svg";
@@ -118,31 +117,28 @@
      * @return {*}
      */
     getIntersections: function(x,y){
-      var hitRect = this.svgroot.createSVGRect();
-      hitRect.height = 1;
-      hitRect.width = 1;
-      hitRect.y = y;
-      hitRect.x = x;
-      return this.svgroot.getIntersectionList(hitRect, null);
-    },
-
-    _onmousemove: function(evt){
-      /*
-      var id, shape;
-      for(id in this.shapes){
-        shape = this.shapes[id];
-        if(shape.mousedown && shape.draggable){
-          // move shape to front
-          shape.getShape().parentElement.appendChild(shape.getShape());
-          // update shapes (x, y)
-          shape.matrix[4] += evt.clientX - shape.x;
-          shape.matrix[5] += evt.clientY - shape.y;
-          shape.getShape().setAttributeNS(null, "transform", "matrix(" + shape.matrix.join(' ') + ")");
-          shape.x = evt.clientX;
-          shape.y = evt.clientY;
+      if(this.svgroot.getIntersectionList) {
+        var hitRect = this.svgroot.createSVGRect();
+        hitRect.height = 1;
+        hitRect.width = 1;
+        hitRect.y = y;
+        hitRect.x = x;
+        return this.svgroot.getIntersectionList(hitRect, null);
+      } else {
+        // hack for firefox (ver 43.0.4 still does not support getIntersectionList)
+        var i, id, shapePointerEvents = {}, shapesUnderPoint = [];
+        // save attribute pointer-events for all shapes
+        for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().getAttribute('pointer-events');
+        // test every shape for (x, y) overlap
+        for(id in this.shapes){
+          for(i in this.shapes) this.shapes[i].getShape().setAttribute('pointer-events', 'none');
+          this.shapes[id].getShape().setAttributeNS(null, 'pointer-events', 'visiblePainted');
+          shapesUnderPoint.push(document.elementFromPoint(x, y));
         }
+        // restore original pointer-events attribute
+        for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().setAttribute('pointer-events', shapePointerEvents[id]);
+        return shapesUnderPoint;
       }
-*/
     }
   };
 
