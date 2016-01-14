@@ -10,14 +10,16 @@
   $( document ).ready(function() {
     var drawer = new YOVALUE.SVGDrawer('container', 500, 500);
     drawer.addLayer('layerOne');
-    var shape1 = new YOVALUE.SVGDrawer.Circle({x:100, y:100, radius:50, color:'red'});
+    var shape1 = drawer.createShape('circle', {x:100, y:100, radius:50, color:'blue'});
     drawer.addShape('layerOne', shape1);
-    var shape2 = new YOVALUE.SVGDrawer.Circle({x:120, y:100, radius:50, color:'blue'});
+    var shape2 = drawer.createShape('circle', {x:120, y:100, radius:50, color:'red'});
     drawer.addShape('layerOne', shape2);
     shape1.setDraggable(true);
     shape2.setDraggable(false);
-    shape2.setDraggable(true);
+ //   shape2.setDraggable(true);
+   // shape2.setY(200);
     console.log(drawer.getIntersections(125,100));
+    console.log(shape2.getBBox());
   });
 
 
@@ -139,8 +141,146 @@
         for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().setAttribute('pointer-events', shapePointerEvents[id]);
         return shapesUnderPoint;
       }
+    },
+
+    createShape: function(type, args){
+      if(type == 'circle'){
+        return new YOVALUE.SVGDrawer.Circle(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      }
     }
   };
+
+  /**
+   * Circle
+   * @param args
+   * @constructor
+   */
+  YOVALUE.SVGDrawer.BaseShape = function(args){
+    this.id = YOVALUE.getUniqId();
+    this.x = args.x;
+    this.y = args.y;
+    this.matrix = [1, 0, 0, 1, args.x, args.y];
+    this.color = args.color;
+    this.opacity = args.opacity;
+    this.stroke = args.stroke;
+    this.strokeWidth = args.strokeWidth;
+    this.draggable = args.draggable;
+    this.mousedown = false;
+    this.shape = null; // should be redefined in final shape class
+  };
+
+  YOVALUE.SVGDrawer.BaseShape.prototype = {
+    init: function(){
+      this.shape.setAttributeNS(null, "id", this.getId());
+      this.shape.setAttributeNS(null, "cx", 0);
+      this.shape.setAttributeNS(null, "cy", 0);
+      this.shape.setAttributeNS(null, "fill", this.color);
+      this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    },
+
+    getId: function(){
+      return this.id;
+    },
+
+    getShape: function(){
+      return this.shape;
+    },
+    setShape: function(v){
+      return this.shape = v;
+    },
+
+    handleEvent: function(evt){
+      evt.preventDefault(); // fix for firefox image dragging do not interfere with our custom dragging
+
+      if(evt.type == "dblclick"){
+        this.setX(200);
+      }
+      if(evt.type == "mousedown"){
+        console.log(evt);
+        this.mousedown = true;
+      }
+      if(evt.type == "mouseup"){
+        console.log(evt);
+        this.mousedown = false;
+
+      }
+      if(evt.type == "mousemove"){
+        if(this.mousedown && this.draggable){
+          // move shape to front
+          this.getShape().parentElement.appendChild(this.getShape());
+          // update shapes (x, y)
+          this.matrix[4] += evt.clientX - this.getX();
+          this.matrix[5] += evt.clientY - this.getY();
+          this.shape.setAttributeNS(null, "transform", "matrix(" + this.matrix.join(' ') + ")");
+          this.x = evt.clientX;
+          this.y = evt.clientY;
+        }
+      }
+    },
+
+    setX: function(v){
+      this.x = v;
+      this.matrix[4] = v;
+      this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    },
+    getX: function(){
+      return this.x ? this.x : this.getBBox().x;
+    },
+    setY: function(v){
+      this.y = v;
+      this.matrix[5] = v;
+      this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    },
+    getY: function(){
+      return this.y ? this.y : this.getBBox().y;
+    },
+
+    /**
+     * Make shape draggable or not
+     * @param v boolean
+     */
+    setDraggable: function(v){
+      this.draggable = v;
+    },
+    getDraggable: function(){
+      return this.draggable;
+    },
+
+    setOpacity: function(v){
+      this.opacity = v;
+    },
+    getOpacity: function(){
+      return this.opacity;
+    },
+
+    setStroke: function(v){
+      this.stroke = v;
+    },
+    getStroke: function(){
+      return this.stroke;
+    },
+
+    setStrokeWidth: function(v){
+      this.strokeWidth = v;
+    },
+    getStrokeWidth: function(){
+      return this.strokeWidth;
+    },
+
+    getBBox: function(){
+      return this.getShape().getBBox();
+    },
+
+    bindEvents: function(){
+      var i;
+      var mouseEvents = ["mouseover", "mouseout", "mousedown", "mouseup", "click", "dblclick"];
+      for(i in mouseEvents){
+        this.getShape().addEventListener(mouseEvents[i],this,false);
+      }
+      document.addEventListener('mousemove',this,false);
+    }
+  };
+
 
   /**
    * Rectangle
@@ -206,94 +346,27 @@
    * @param args
    * @constructor
    */
-  YOVALUE.SVGDrawer.Circle = function(args){
-    var i;
-    this.id = YOVALUE.getUniqId();
-    this.x = args.x;
-    this.y = args.y;
-    this.matrix = [1, 0, 0, 1, 0, 0];
-    this.radius = args.radius;
-    this.color = args.color;
-    this.draggable = args.draggable;
-    this.mousedown = false;
-
+  YOVALUE.SVGDrawer.Circle = function(baseShape, args){
+    YOVALUE.mixin(baseShape, this);
     this.shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    this.shape.setAttributeNS(null, "id", this.id);
-    this.shape.setAttributeNS(null, "cx", args.x);
-    this.shape.setAttributeNS(null, "cy", args.y);
-    this.shape.setAttributeNS(null, "r",  args.radius);
-    this.shape.setAttributeNS(null, "fill", args.color);
-    this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    baseShape.setShape(this.shape);
+    baseShape.init();
+    this.setRadius(args.radius);
 
-    var mouseEvents = ["mouseover", "mouseout", "mousedown", "mouseup", "click", "dblclick"];
-    for(i in mouseEvents){
-      this.shape.addEventListener(mouseEvents[i],this,false);
-    }
-    document.addEventListener('mousemove',this,false);
+    this.bindEvents();
   };
 
   YOVALUE.SVGDrawer.Circle.prototype = {
-    getId: function(){
-      return this.id;
+    setRadius: function(v){
+      this.radius = v;
+      this.getShape().setAttributeNS(null, "r",  this.radius);
     },
-    getShape: function(){
-      return this.shape;
+    getRadius: function(){
+      return this.radius;
     },
-
-    handleEvent: function(evt){
-      evt.preventDefault(); // fix for firefox image dragging do not interfere with our custom dragging
-
-      if(evt.type == "mousedown"){
-        console.log(evt);
-        this.mousedown = true;
-      }
-      if(evt.type == "mouseup"){
-        console.log(evt);
-        this.mousedown = false;
-      }
-      if(evt.type == "mousemove"){
-        if(this.mousedown && this.draggable){
-          // move shape to front
-          this.getShape().parentElement.appendChild(this.getShape());
-          // update shapes (x, y)
-          this.matrix[4] += evt.clientX - this.x;
-          this.matrix[5] += evt.clientY - this.y;
-          this.getShape().setAttributeNS(null, "transform", "matrix(" + this.matrix.join(' ') + ")");
-          this.x = evt.clientX;
-          this.y = evt.clientY;
-        }
-      }
-    },
-
-    setX: function(v){
-      this.shape.setAttributeNS(null, "cx", v);
-    },
-    getX: function(){},
-    setY: function(v){},
-    getY: function(){},
-
-    setRadius: function(v){},
-    getRadius: function(){},
-
-    /**
-     * Make shape draggable or not
-     * @param v boolean
-     */
-    setDraggable: function(v){
-      this.draggable = v;
-    },
-    getDraggable: function(){
-      return this.draggable;
-    },
-
-    setOpacity: function(v){},
-    getOpacity: function(){},
-
-    setStroke: function(v){},
-    getStroke: function(){},
-
-    setStrokeWidth: function(v){},
-    getStrokeWidth: function(){}
+    setShape: function(){
+      return false;
+    }
   };
 
   /**
@@ -326,6 +399,22 @@
 
     setFill: function(v){},
     getFill: function(){}
+  };
+
+  /**
+   * This functions extends object 'extendme' with functions of object 'base'
+   * If the function A already exists in  'extendme', then it does not touch it
+   * @param base - object that donate its functions
+   * @param extendme - object that is extended
+   */
+  YOVALUE.mixin = function(base, extendme){
+    var prop;
+    for(prop in base){
+      if(typeof base[prop] === 'function'
+        && !extendme[prop]){
+        extendme[prop] = base[prop].bind(base);
+      }
+    }
   };
 /*--------------------------------------*/
 
