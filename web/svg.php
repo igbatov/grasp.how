@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <script src="../lib/client/jquery.js"></script>
 </head>
 <body>
@@ -10,15 +11,28 @@
   $( document ).ready(function() {
     var drawer = new YOVALUE.SVGDrawer('container', 500, 500);
     drawer.addLayer('layerOne');
-    var shape1 = drawer.createShape('circle', {x:100, y:100, radius:50, color:'blue'});
-    drawer.addShape('layerOne', shape1);
-    var shape2 = drawer.createShape('circle', {x:120, y:100, radius:50, color:'red'});
+//    var shape1 = drawer.createShape('circle', {x:100, y:100, radius:50, color:'blue'});
+  //  var shape1 = drawer.createShape('rectangle', {x:100, y:100, width:50, height:50, color:'blue'});
+  //  drawer.addShape('layerOne', shape1);
+    //var shape2 = drawer.createShape('rectangle', {x:120, y:100, width:50, height:50, fill:'red'});
+    //drawer.addShape('layerOne', shape2);
+    var shape3 = drawer.createShape('circle', {x:120, y:100, radius:20, fill:'green'});
+    drawer.addShape('layerOne', shape3);
+//    var shape4 = drawer.createShape('path', {data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
+  //  drawer.addShape('layerOne', shape4);
+    var shape5 = drawer.createShape('text', {x:120, y:100, text:'Привет всем!', fill:'black'});
+    drawer.addShape('layerOne', shape5);
+//    shape2.setDraggable(false);
+ //   shape3.setDraggable(true);
+    shape5.setDraggable(true);
+
+    var p = shape5.getBBox();
+    var shape2 = drawer.createShape('rectangle', {x:p.x, y:p.y, width:p.width, height:p.height, fill:'none', stroke:'blue', strokeWidth:2});
     drawer.addShape('layerOne', shape2);
-    shape1.setDraggable(true);
-    shape2.setDraggable(false);
+
  //   shape2.setDraggable(true);
    // shape2.setY(200);
-    console.log(drawer.getIntersections(125,100));
+//    console.log(drawer.getIntersections(125,100));
     console.log(shape2.getBBox());
   });
 
@@ -86,6 +100,7 @@
     addShape: function(layer_id, shape){
       this.shapes[shape.getId()] = shape;
       document.getElementById(layer_id).appendChild(shape.getShape());
+      shape.setXY(shape.getXY());
     },
 
     /**
@@ -146,6 +161,12 @@
     createShape: function(type, args){
       if(type == 'circle'){
         return new YOVALUE.SVGDrawer.Circle(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      }else if(type == 'rectangle'){
+        return new YOVALUE.SVGDrawer.Rect(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      }else if(type == 'path'){
+        return new YOVALUE.SVGDrawer.Path(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      }else if(type == 'text'){
+        return new YOVALUE.SVGDrawer.Text(new YOVALUE.SVGDrawer.BaseShape(args), args);
       }
     }
   };
@@ -160,7 +181,7 @@
     this.x = args.x;
     this.y = args.y;
     this.matrix = [1, 0, 0, 1, args.x, args.y];
-    this.color = args.color;
+    this.fill = args.fill;
     this.opacity = args.opacity;
     this.stroke = args.stroke;
     this.strokeWidth = args.strokeWidth;
@@ -171,11 +192,16 @@
 
   YOVALUE.SVGDrawer.BaseShape.prototype = {
     init: function(){
-      this.shape.setAttributeNS(null, "id", this.getId());
-      this.shape.setAttributeNS(null, "cx", 0);
-      this.shape.setAttributeNS(null, "cy", 0);
-      this.shape.setAttributeNS(null, "fill", this.color);
-      this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+      this.setId(this.id);
+      this.setFill(this.fill);
+      this.setOpacity(this.opacity);
+      this.setStroke(this.stroke);
+      this.setStrokeWidth(this.strokeWidth);
+    },
+
+    setId: function(v){
+      this.id = v;
+      this.shape.setAttributeNS(null, "id", v);
     },
 
     getId: function(){
@@ -193,7 +219,7 @@
       evt.preventDefault(); // fix for firefox image dragging do not interfere with our custom dragging
 
       if(evt.type == "dblclick"){
-        this.setX(200);
+
       }
       if(evt.type == "mousedown"){
         console.log(evt);
@@ -209,30 +235,27 @@
           // move shape to front
           this.getShape().parentElement.appendChild(this.getShape());
           // update shapes (x, y)
-          this.matrix[4] += evt.clientX - this.getX();
-          this.matrix[5] += evt.clientY - this.getY();
-          this.shape.setAttributeNS(null, "transform", "matrix(" + this.matrix.join(' ') + ")");
-          this.x = evt.clientX;
-          this.y = evt.clientY;
+          this.setXY({x:evt.clientX, y:evt.clientY});
         }
       }
     },
 
-    setX: function(v){
-      this.x = v;
-      this.matrix[4] = v;
-      this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    /**
+     * Set center of shape to x, y
+     */
+    setXY: function(p){
+      if(!Number.isInteger(p.x) || !Number.isInteger(p.y)) return false;
+      this.x = p.x;
+      this.y = p.y;
+      // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
+      this.matrix[4] = this.shape.nodeName == 'circle' ? p.x : p.x-this.getBBox().width/2;
+      this.matrix[5] = this.shape.nodeName == 'circle' ? p.y : p.y-this.getBBox().height/2;
+      if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
+      if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+      if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
     },
-    getX: function(){
-      return this.x ? this.x : this.getBBox().x;
-    },
-    setY: function(v){
-      this.y = v;
-      this.matrix[5] = v;
-      this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
-    },
-    getY: function(){
-      return this.y ? this.y : this.getBBox().y;
+    getXY: function(){
+      return {x: this.x, y: this.y};
     },
 
     /**
@@ -248,13 +271,23 @@
 
     setOpacity: function(v){
       this.opacity = v;
+      this.shape.setAttributeNS(null, "opacity", v);
     },
     getOpacity: function(){
       return this.opacity;
     },
 
+    setFill: function(v){
+      this.fill = v;
+      this.shape.setAttributeNS(null, "fill", v);
+    },
+    getFill: function(){
+      return this.fill;
+    },
+
     setStroke: function(v){
       this.stroke = v;
+      this.shape.setAttributeNS(null, "stroke", v);
     },
     getStroke: function(){
       return this.stroke;
@@ -262,13 +295,15 @@
 
     setStrokeWidth: function(v){
       this.strokeWidth = v;
+      this.shape.setAttributeNS(null, "stroke-width", v);
     },
     getStrokeWidth: function(){
       return this.strokeWidth;
     },
 
     getBBox: function(){
-      return this.getShape().getBBox();
+      var bbox = this.getShape().getBBox();
+      return {x:Number.isInteger(this.x)?this.x:(bbox.x+bbox.width/2), y:Number.isInteger(this.y)?this.y:(bbox.y+bbox.height/2), width:bbox.width, height:bbox.height};
     },
 
     bindEvents: function(){
@@ -286,35 +321,35 @@
    * Rectangle
    * @constructor
    */
-  YOVALUE.SVGDrawer.Rect = {
-    getId: function(){},
+  YOVALUE.SVGDrawer.Rect = function(baseShape, args){
+    YOVALUE.mixin(baseShape, this);
+    this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    baseShape.setShape(this.shape);
+    baseShape.init();
+    this.setWidth(args.width);
+    this.setHeight(args.height);
 
-    setX: function(v){},
-    getX: function(){},
-    setY: function(v){},
-    getY: function(){},
+    this.bindEvents();
+  };
 
-    setDraggable: function(v){},
-    getDraggable: function(){},
-
-    setWidth: function(v){},
-    getWidth: function(){},
-    setHeight: function(v){},
-    getHeight: function(){},
-
-    setOpacity: function(v){},
-    getOpacity: function(){},
-
-    setFill: function(v){},
-    getFill: function(){},
-
-    setStroke: function(v){},
-    getStroke: function(){},
-
-    setStrokeWidth: function(v){},
-    getStrokeWidth: function(){},
-
-    remove: function(){}
+  YOVALUE.SVGDrawer.Rect.prototype = {
+    setWidth: function(v){
+      this.width = v;
+      this.getShape().setAttributeNS(null, "width",  v);
+    },
+    getWidth: function(){
+      return this.width;
+    },
+    setHeight: function(v){
+      this.height = v;
+      this.getShape().setAttributeNS(null, "height",  v);
+    },
+    getHeight: function(){
+      return this.height;
+    },
+    setShape: function(){
+      return false;
+    }
   };
 
   /**
@@ -322,23 +357,38 @@
    * @param args
    * @constructor
    */
-  YOVALUE.SVGDrawer.Path = {
-    getId: function(){},
+  YOVALUE.SVGDrawer.Path = function(baseShape, args){
+    YOVALUE.mixin(baseShape, this);
+    this.shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    baseShape.setShape(this.shape);
+    baseShape.init();
+    this.setData(args.data);
 
-    setData: function(v){},
-    getData: function(){},
+    this.bindEvents();
+  };
 
-    setDraggable: function(v){},
-    getDraggable: function(){},
+  YOVALUE.SVGDrawer.Path.prototype = {
+    setData: function(v){
+      this.data = v;
+      this.getShape().setAttributeNS(null, "d",  v);
+    },
+    getData: function(){
+      return this.width;
+    },
+    setShape: function(){
+      return false;
+    },
 
-    setOpacity: function(v){},
-    getOpacity: function(){},
-
-    setStroke: function(v){},
-    getStroke: function(){},
-
-    setStrokeWidth: function(v){},
-    getStrokeWidth: function(){}
+    /**
+     * Path can not be draggable in this implementation
+     * @param v boolean
+     */
+    setDraggable: function(v){
+      return false;
+    },
+    getDraggable: function(){
+      return false;
+    }
   };
 
   /**
@@ -374,31 +424,46 @@
    * @param args
    * @constructor
    */
-  YOVALUE.SVGDrawer.Text = {
-    getId: function(){},
+  YOVALUE.SVGDrawer.Text = function(baseShape, args){
+    YOVALUE.mixin(baseShape, this);
+    this.shape = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    baseShape.setShape(this.shape);
+    baseShape.init();
+    this.setText(args.text);
+    this.setFontFamily(args.fontFamily);
+    this.setFontSize(args.fontSize);
 
-    setX: function(v){},
-    getX: function(){},
-    setY: function(v){},
-    getY: function(){},
+    this.bindEvents();
+  };
 
-    setText: function(v){},
-    getText: function(){},
+  YOVALUE.SVGDrawer.Text.prototype = {
+    setText: function(v){
+      this.text = v;
+      this.getShape().innerHTML = v;
+    },
+    getText: function(){
+      return this.text;
+    },
 
-    setFontSize: function(v){},
-    getFontSize: function(){},
+    setFontFamily: function(v){
+      this.fontFamily = v;
+      this.getShape().setAttributeNS(null, "font-family",  v);
+    },
+    getFontFamily: function(){
+      return this.fontFamily;
+    },
 
-    setFontFamily: function(v){},
-    getFontFamily: function(){},
+    setFontSize: function(v){
+      this.fontSize = v;
+      this.getShape().setAttributeNS(null, "font-size",  v);
+    },
+    getFontSize: function(){
+      return this.fontSize;
+    },
 
-    setDraggable: function(v){},
-    getDraggable: function(){},
-
-    setOpacity: function(v){},
-    getOpacity: function(){},
-
-    setFill: function(v){},
-    getFill: function(){}
+    setShape: function(){
+      return false;
+    }
   };
 
   /**
