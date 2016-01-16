@@ -1,5 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!doctype html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <script src="../lib/client/jquery.js"></script>
@@ -14,26 +13,22 @@
 //    var shape1 = drawer.createShape('circle', {x:100, y:100, radius:50, color:'blue'});
   //  var shape1 = drawer.createShape('rectangle', {x:100, y:100, width:50, height:50, color:'blue'});
   //  drawer.addShape('layerOne', shape1);
-    //var shape2 = drawer.createShape('rectangle', {x:120, y:100, width:50, height:50, fill:'red'});
-    //drawer.addShape('layerOne', shape2);
+    var shape2 = drawer.createShape('rectangle', {x:120, y:100, width:50, height:50, fill:'red'});
+    drawer.addShape('layerOne', shape2);
     var shape3 = drawer.createShape('circle', {x:120, y:100, radius:20, fill:'green'});
     drawer.addShape('layerOne', shape3);
-//    var shape4 = drawer.createShape('path', {data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
-  //  drawer.addShape('layerOne', shape4);
+    var shape4 = drawer.createShape('path', {data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
+    drawer.addShape('layerOne', shape4);
     var shape5 = drawer.createShape('text', {x:120, y:100, text:'Привет всем!', fill:'black'});
     drawer.addShape('layerOne', shape5);
-//    shape2.setDraggable(false);
- //   shape3.setDraggable(true);
-    shape5.setDraggable(true);
-
+    shape3.setDraggable(true);
     var p = shape5.getBBox();
-    var shape2 = drawer.createShape('rectangle', {x:p.x, y:p.y, width:p.width, height:p.height, fill:'none', stroke:'blue', strokeWidth:2});
-    drawer.addShape('layerOne', shape2);
+    var shape6 = drawer.createShape('rectangle', {x:p.x, y:p.y, width:p.width, height:p.height, fill:'none', stroke:'blue', strokeWidth:2});
+    drawer.addShape('layerOne', shape6);
 
  //   shape2.setDraggable(true);
    // shape2.setY(200);
-//    console.log(drawer.getIntersections(125,100));
-    console.log(shape2.getBBox());
+    console.log(drawer.getIntersections(120,100));
   });
 
 
@@ -134,15 +129,17 @@
      * @return {*}
      */
     getIntersections: function(x,y){
-      if(this.svgroot.getIntersectionList) {
+      if(this.svgroot.getIntersectionList && YOVALUE.getBrowserInfo().type != "Safari") {
         var hitRect = this.svgroot.createSVGRect();
         hitRect.height = 1;
         hitRect.width = 1;
         hitRect.y = y;
         hitRect.x = x;
         return this.svgroot.getIntersectionList(hitRect, null);
-      } else {
-        // hack for firefox (ver 43.0.4 still does not support getIntersectionList)
+      }
+      // hack for firefox (ver 43.0.4 still does not support getIntersectionList)
+      // safari 5.1.7 under windows also does not seem to getIntersectionList properly
+      else {
         var i, id, shapePointerEvents = {}, shapesUnderPoint = [];
         // save attribute pointer-events for all shapes
         for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().getAttribute('pointer-events');
@@ -150,7 +147,8 @@
         for(id in this.shapes){
           for(i in this.shapes) this.shapes[i].getShape().setAttribute('pointer-events', 'none');
           this.shapes[id].getShape().setAttributeNS(null, 'pointer-events', 'visiblePainted');
-          shapesUnderPoint.push(document.elementFromPoint(x, y));
+          var el = document.elementFromPoint(x, y);
+          if(!YOVALUE.isObjectInArray(shapesUnderPoint, el)) shapesUnderPoint.push(el);
         }
         // restore original pointer-events attribute
         for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().setAttribute('pointer-events', shapePointerEvents[id]);
@@ -222,18 +220,15 @@
 
       }
       if(evt.type == "mousedown"){
-        console.log(evt);
         this.mousedown = true;
       }
       if(evt.type == "mouseup"){
-        console.log(evt);
         this.mousedown = false;
-
       }
       if(evt.type == "mousemove"){
         if(this.mousedown && this.draggable){
           // move shape to front
-          this.getShape().parentElement.appendChild(this.getShape());
+          this.getShape().parentNode.appendChild(this.getShape());
           // update shapes (x, y)
           this.setXY({x:evt.clientX, y:evt.clientY});
         }
@@ -244,7 +239,7 @@
      * Set center of shape to x, y
      */
     setXY: function(p){
-      if(!Number.isInteger(p.x) || !Number.isInteger(p.y)) return false;
+      if(YOVALUE.typeof(p.x)!='number' || YOVALUE.typeof(p.y)!='number') return false;
       this.x = p.x;
       this.y = p.y;
       // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
@@ -303,7 +298,7 @@
 
     getBBox: function(){
       var bbox = this.getShape().getBBox();
-      return {x:Number.isInteger(this.x)?this.x:(bbox.x+bbox.width/2), y:Number.isInteger(this.y)?this.y:(bbox.y+bbox.height/2), width:bbox.width, height:bbox.height};
+      return {x:YOVALUE.typeof(this.x)=='number'?this.x:(bbox.x+bbox.width/2), y:YOVALUE.typeof(this.y)=='number'?this.y:(bbox.y+bbox.height/2), width:bbox.width, height:bbox.height};
     },
 
     bindEvents: function(){
@@ -439,7 +434,7 @@
   YOVALUE.SVGDrawer.Text.prototype = {
     setText: function(v){
       this.text = v;
-      this.getShape().innerHTML = v;
+      this.getShape().textContent  = v;
     },
     getText: function(){
       return this.text;
@@ -461,9 +456,21 @@
       return this.fontSize;
     },
 
-    setShape: function(){
+    setShape: function() {
+      return false;
+    },
+
+    /**
+     * Text can not be draggable in this implementation
+     * @param v boolean
+     */
+    setDraggable: function(v){
+      return false;
+    },
+    getDraggable: function(){
       return false;
     }
+
   };
 
   /**
@@ -480,6 +487,38 @@
         extendme[prop] = base[prop].bind(base);
       }
     }
+  };
+
+
+  YOVALUE.typeof = function(obj) {
+    return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
+  };
+
+  YOVALUE.isObjectInArray = function (array, obj) {
+    var i;
+    for (i = 0; i < array.length; i++) {
+      if (array[i] === obj) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  YOVALUE.getBrowserInfo = function(){
+    var ua= navigator.userAgent, tem,
+      M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+      tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+      return 'IE '+(tem[1] || '');
+    }
+    if(M[1]=== 'Chrome'){
+      tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+      if(tem!= null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    return {'type':M[0], 'ver':M[1]};
   };
 /*--------------------------------------*/
 
