@@ -16,7 +16,7 @@
     var shape2 = drawer.createShape('rectangle', {x:120, y:100, width:50, height:50, fill:'red'});
     drawer.addShape('layerOne', shape2);
     for(var i=0; i<=50; i++){
-      var shape3 = drawer.createShape('circle', {x:10+10*i, y:10+10*i, radius:50, fill:'green'});
+      var shape3 = drawer.createShape('circle', {x:10+10*i, y:10+10*i, radius:50, fill:'green', opacity:0.2});
       drawer.addShape('layerOne', shape3);
       shape3.setDraggable(true);
       var shape4 = drawer.createShape('path', {x:10+10*i, y:10+10*i, data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
@@ -56,6 +56,8 @@
     this.svgroot.setAttribute("height", stageContainerHeight);
     this.shapes = {}; // all shapes added by addShape()
     document.getElementById(stageContainerId).appendChild(this.svgroot);
+    this._createSVGDragEvent();
+    this._makeShapesDraggable();
   };
 
   YOVALUE.SVGDrawer.prototype = {
@@ -170,9 +172,87 @@
       }else if(type == 'text'){
         return new YOVALUE.SVGDrawer.Text(new YOVALUE.SVGDrawer.BaseShape(args), args);
       }
-    }
-  };
+    },
 
+    /**
+     * Adds callback for events of type ['click', 'mouseenter', 'mouseleave', 'drag', 'drop'] on all shapes with class classname
+     */
+    addEventListener: function(event, callback, classname){
+      var that = this;
+      document.addEventListener(event, function(e){
+        for(var id in that.shapes){
+          var targetId;
+
+          if(e.type == 'drag' || e.type == 'drop') targetId = e.detail.id;
+          else targetId = e.target.id;
+
+          if(
+              targetId == id
+                  && (typeof(classname) == 'undefined' || (typeof(classname) != 'undefined' && that.shapes[id].getClass() == classname))){
+            callback(e, that.shapes[id]);
+          }
+        }
+      });
+    },
+
+    _createSVGDragEvent: function(){
+      var that = this;
+      var handler = function(evt){
+        var shape;
+        var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX : evt.changedTouches[0].clientX;
+        var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY : evt.changedTouches[0].clientY;
+
+        // ignore 2 touch gestures
+        if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
+
+        // fix for firefox image dragging do not interfere with our custom dragging
+        if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
+
+        if(evt.type != "mousemove" && evt.type != "touchmove"){
+          for(var id in that.shapes){
+            if(evt.target.id == id) shape = that.shapes[id];
+            if(shape && (evt.type == "mousedown" || evt.type == "touchstart")){
+              shape.mousedown = true;
+            }
+
+            if(shape && (evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
+              shape.mousedown = false;
+              var myEvent = new CustomEvent("drop", {detail:{id: that.getId()}});
+              document.dispatchEvent(myEvent);
+            }
+          }
+        }else{
+          // do not drag screen on touch device
+          evt.preventDefault();
+          for(var id in that.shapes){
+            shape = that.shapes[id];
+            if(shape.mousedown && shape.getDraggable){
+              var myEvent = new CustomEvent("drag", {detail:{id: shape.getId(), x:x, y:y}});
+              document.dispatchEvent(myEvent);
+            }
+          }
+        }
+      };
+
+      document.addEventListener('mousedown', handler, false);
+      document.addEventListener('touchstart', handler, false);
+      document.addEventListener('mousemove', handler, false);
+      document.addEventListener('touchmove', handler, false);
+      document.addEventListener("mouseup", handler, false);
+      document.addEventListener("touchend", handler, false);
+    },
+
+
+    _makeShapesDraggable: function(){
+     this.addEventListener('drag', function(evt, shape){
+       // move shape to front
+       shape.getShape().parentNode.appendChild(shape.getShape());
+       // update shapes (x, y)
+       shape.setXY({x:evt.detail.x, y:evt.detail.y});
+     });
+    }
+
+  };
   /**
    * Circle
    * @param args
@@ -205,9 +285,16 @@
       this.id = v;
       this.shape.setAttributeNS(null, "id", v);
     },
-
     getId: function(){
       return this.id;
+    },
+
+    setClass: function(v){
+      this.class = v;
+      this.shape.setAttributeNS(null, "class", v);
+    },
+    getClass: function(){
+      return this.class;
     },
 
     getShape: function(){
@@ -215,52 +302,6 @@
     },
     setShape: function(v){
       return this.shape = v;
-    },
-
-    bindEvents: function(){
-      var i;
-      var mouseEvents = [
-        "mouseover", "mouseout", "mousedown", "click", "dblclick",
-        "touchstart",
-      ];
-      for(i in mouseEvents){
-        this.getShape().addEventListener(mouseEvents[i],this,false);
-      }
-      document.addEventListener('mousemove',this,false);
-      document.addEventListener('touchmove',this,false);
-      document.addEventListener("mouseup",this,false);
-      document.addEventListener("touchend",this,false);
-    },
-
-    handleEvent: function(evt){
-      // ignote 2 touch gestures 
-      if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
-      
-      // fix for firefox image dragging do not interfere with our custom dragging
-      if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
-
-      if(evt.type == "dblclick"){
-
-      }
-      if(evt.type == "mousedown" || evt.type == "touchstart"){
-        this.mousedown = true;
-      }
-      if((evt.type == "mouseup"  || evt.type == "touchend") && this.mousedown){
-        this.mousedown = false;
-      }
-      if(evt.type == "mousemove" || evt.type == "touchmove"){
-        if(this.mousedown && this.draggable){
-          // do not drag screen on touch device
-          evt.preventDefault();
-          
-          // move shape to front
-          this.getShape().parentNode.appendChild(this.getShape());
-          // update shapes (x, y)
-          var x = evt.type == "mousemove" ? evt.clientX : evt.changedTouches[0].clientX;
-          var y = evt.type == "mousemove" ? evt.clientY : evt.changedTouches[0].clientY;
-          this.setXY({x:x, y:y});
-        }
-      }
     },
 
     /**
@@ -350,8 +391,6 @@
     baseShape.init();
     this.setWidth(args.width);
     this.setHeight(args.height);
-
-    this.bindEvents();
   };
 
   YOVALUE.SVGDrawer.Rect.prototype = {
@@ -385,8 +424,6 @@
     baseShape.setShape(this.shape);
     baseShape.init();
     this.setData(args.data);
-
-    this.bindEvents();
   };
 
   YOVALUE.SVGDrawer.Path.prototype = {
@@ -424,8 +461,6 @@
     baseShape.setShape(this.shape);
     baseShape.init();
     this.setRadius(args.radius);
-
-    this.bindEvents();
   };
 
   YOVALUE.SVGDrawer.Circle.prototype = {
@@ -454,8 +489,6 @@
     this.setText(args.text);
     this.setFontFamily(args.fontFamily);
     this.setFontSize(args.fontSize);
-
-    this.bindEvents();
   };
 
   YOVALUE.SVGDrawer.Text.prototype = {
