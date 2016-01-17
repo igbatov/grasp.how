@@ -8,20 +8,24 @@
 <script>
 
   $( document ).ready(function() {
-    var drawer = new YOVALUE.SVGDrawer('container', 500, 500);
+    var drawer = new YOVALUE.SVGDrawer('container', 1000, 1000);
     drawer.addLayer('layerOne');
 //    var shape1 = drawer.createShape('circle', {x:100, y:100, radius:50, color:'blue'});
   //  var shape1 = drawer.createShape('rectangle', {x:100, y:100, width:50, height:50, color:'blue'});
   //  drawer.addShape('layerOne', shape1);
     var shape2 = drawer.createShape('rectangle', {x:120, y:100, width:50, height:50, fill:'red'});
     drawer.addShape('layerOne', shape2);
-    var shape3 = drawer.createShape('circle', {x:120, y:100, radius:20, fill:'green'});
-    drawer.addShape('layerOne', shape3);
-    var shape4 = drawer.createShape('path', {data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
-    drawer.addShape('layerOne', shape4);
-    var shape5 = drawer.createShape('text', {x:120, y:100, text:'Привет всем!', fill:'black'});
-    drawer.addShape('layerOne', shape5);
-    shape3.setDraggable(true);
+    for(var i=0; i<=50; i++){
+      var shape3 = drawer.createShape('circle', {x:10+10*i, y:10+10*i, radius:10, fill:'green'});
+      drawer.addShape('layerOne', shape3);
+      shape3.setDraggable(true);
+      var shape4 = drawer.createShape('path', {x:10+10*i, y:10+10*i, data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
+      drawer.addShape('layerOne', shape4);
+      var shape5 = drawer.createShape('text', {x:10+10*i, y:10+10*i, text:'Привет всем!', fill:'black'});
+      drawer.addShape('layerOne', shape5);
+      shape5.setPointerEvents('none');
+
+    }
     var p = shape5.getBBox();
     var shape6 = drawer.createShape('rectangle', {x:p.x, y:p.y, width:p.width, height:p.height, fill:'none', stroke:'blue', strokeWidth:2});
     drawer.addShape('layerOne', shape6);
@@ -213,19 +217,34 @@
       return this.shape = v;
     },
 
+    bindEvents: function(){
+      var i;
+      var mouseEvents = [
+        "mouseover", "mouseout", "mousedown", "click", "dblclick",
+        "touchstart",
+      ];
+      for(i in mouseEvents){
+        this.getShape().addEventListener(mouseEvents[i],this,false);
+      }
+      document.addEventListener('mousemove',this,false);
+      document.addEventListener('touchmove',this,false);
+      document.addEventListener("mouseup",this,false);
+      document.addEventListener("touchend",this,false);
+    },
+
     handleEvent: function(evt){
       evt.preventDefault(); // fix for firefox image dragging do not interfere with our custom dragging
 
       if(evt.type == "dblclick"){
 
       }
-      if(evt.type == "mousedown"){
+      if(evt.type == "mousedown" || evt.type == "touchstart"){
         this.mousedown = true;
       }
-      if(evt.type == "mouseup"){
+      if((evt.type == "mouseup"  || evt.type == "touchend") && this.mousedown){
         this.mousedown = false;
       }
-      if(evt.type == "mousemove"){
+      if(evt.type == "mousemove" || evt.type == "touchmove"){
         if(this.mousedown && this.draggable){
           // move shape to front
           this.getShape().parentNode.appendChild(this.getShape());
@@ -296,18 +315,17 @@
       return this.strokeWidth;
     },
 
+    setPointerEvents: function(v){
+      this.pointerEvents = v;
+      this.shape.setAttributeNS(null, "pointer-events", v);
+    },
+    getPointerEvents: function(){
+      return this.pointerEvents;
+    },
+
     getBBox: function(){
       var bbox = this.getShape().getBBox();
       return {x:YOVALUE.typeof(this.x)=='number'?this.x:(bbox.x+bbox.width/2), y:YOVALUE.typeof(this.y)=='number'?this.y:(bbox.y+bbox.height/2), width:bbox.width, height:bbox.height};
-    },
-
-    bindEvents: function(){
-      var i;
-      var mouseEvents = ["mouseover", "mouseout", "mousedown", "mouseup", "click", "dblclick"];
-      for(i in mouseEvents){
-        this.getShape().addEventListener(mouseEvents[i],this,false);
-      }
-      document.addEventListener('mousemove',this,false);
     }
   };
 

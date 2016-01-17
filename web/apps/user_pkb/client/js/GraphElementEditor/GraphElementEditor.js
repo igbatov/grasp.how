@@ -180,7 +180,7 @@ YOVALUE.GraphElementEditor.prototype = {
       that.UI.createItemsBox(
         '#'+sourceListId,
         {
-          'source_type':{'type':'select','label':'тип','options':{'book':'книга','monography':'монография','textbook':'учебник','news':'новость', 'article':'научная статья'},'value':'book'},
+          'source_type':{'type':'select','label':'тип','options':{'book':'книга','monography':'монография','textbook':'учебник','news':'новость', 'article':'научная статья', 'personal experience':'личный опыт'},'value':'book'},
           'field_type':{'type':'text','label':'область','value':''},
           'name':{'type':'text','label':'Название','value':''},
           'url':{'type':'text','label':'url',value:''},
