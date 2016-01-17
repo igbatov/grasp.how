@@ -233,9 +233,11 @@
     },
 
     handleEvent: function(evt){
+      // ignote 2 touch gestures 
+      if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
+      
       // fix for firefox image dragging do not interfere with our custom dragging
-      // still need default behaviour for touch zoom
-      if(evt.type.substr(0, 5) != 'touch' || (evt.type.substr(0, 5) == 'touch' && evt.touches.length == 1)) evt.preventDefault();
+      if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
 
       if(evt.type == "dblclick"){
 
@@ -248,6 +250,9 @@
       }
       if(evt.type == "mousemove" || evt.type == "touchmove"){
         if(this.mousedown && this.draggable){
+          // do not drag screen on touch device
+          evt.preventDefault();
+          
           // move shape to front
           this.getShape().parentNode.appendChild(this.getShape());
           // update shapes (x, y)
