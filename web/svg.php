@@ -235,7 +235,7 @@
     handleEvent: function(evt){
       // fix for firefox image dragging do not interfere with our custom dragging
       // still need default behaviour for touch zoom
-      if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
+      if(evt.type.substr(0, 5) != 'touch' || (evt.type.substr(0, 5) == 'touch' && evt.touches.length == 1)) evt.preventDefault();
 
       if(evt.type == "dblclick"){
 
