@@ -203,10 +203,8 @@
         var shape;
         var xOffset=Math.max(document.documentElement.scrollLeft,document.body.scrollLeft);
         var yOffset=Math.max(document.documentElement.scrollTop,document.body.scrollTop);
-        var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX : evt.changedTouches[0].clientX;
-        var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY : evt.changedTouches[0].clientY;
-        x += xOffset;
-        y += yOffset;
+        var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX + xOffset : evt.changedTouches[0].clientX;
+        var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY + yOffset : evt.changedTouches[0].clientY;
 
         // ignore 2 touch gestures
         if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
@@ -231,11 +229,11 @@
             }
           }
         }else{
-          // do not drag screen on touch device
-          evt.preventDefault();
           for(var id in that.shapes){
             shape = that.shapes[id];
-            if(shape.mousedown && shape.getDraggable){
+            if(shape.mousedown && shape.getDraggable()){
+              // do not drag screen on touch device              
+              evt.preventDefault();             
               var myEvent = new CustomEvent("drag", {detail:{id: shape.getId(), x:x, y:y}});
               document.dispatchEvent(myEvent);
             }
