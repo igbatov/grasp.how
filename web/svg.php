@@ -32,7 +32,9 @@
 
  //   shape2.setDraggable(true);
    // shape2.setY(200);
-    console.log(drawer.getIntersections(120,100));
+    var intersections = drawer.getIntersections(120,100);
+    console.log(intersections);
+    //for(var i in intersections)  console.log(intersections[i]);
   });
 
 
@@ -199,8 +201,12 @@
       var that = this;
       var handler = function(evt){
         var shape;
+        var xOffset=Math.max(document.documentElement.scrollLeft,document.body.scrollLeft);
+        var yOffset=Math.max(document.documentElement.scrollTop,document.body.scrollTop);
         var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX : evt.changedTouches[0].clientX;
         var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY : evt.changedTouches[0].clientY;
+        x += xOffset;
+        y += yOffset;
 
         // ignore 2 touch gestures
         if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
@@ -208,9 +214,12 @@
         // fix for firefox image dragging do not interfere with our custom dragging
         if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
 
+        // if not mousemove
         if(evt.type != "mousemove" && evt.type != "touchmove"){
           for(var id in that.shapes){
             if(evt.target.id == id) shape = that.shapes[id];
+            if(shape && !shape.getDraggable()) return;
+
             if(shape && (evt.type == "mousedown" || evt.type == "touchstart")){
               shape.mousedown = true;
             }
@@ -580,6 +589,20 @@
     if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
     return {'type':M[0], 'ver':M[1]};
   };
+
+  // CustomEvent for IE
+  (function () {
+    function CustomEvent ( event, params ) {
+      params = params || { bubbles: false, cancelable: false, detail: undefined };
+      var evt = document.createEvent( 'CustomEvent' );
+      evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+      return evt;
+    }
+
+    CustomEvent.prototype = window.Event.prototype;
+
+    window.CustomEvent = CustomEvent;
+  })();
 /*--------------------------------------*/
 
 </script>
