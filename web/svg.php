@@ -16,7 +16,7 @@
     var shape2 = drawer.createShape('rectangle', {x:120, y:100, width:50, height:50, fill:'red'});
     drawer.addShape('layerOne', shape2);
     for(var i=0; i<=50; i++){
-      var shape3 = drawer.createShape('circle', {x:10+10*i, y:10+10*i, radius:10, fill:'green'});
+      var shape3 = drawer.createShape('circle', {x:10+10*i, y:10+10*i, radius:50, fill:'green'});
       drawer.addShape('layerOne', shape3);
       shape3.setDraggable(true);
       var shape4 = drawer.createShape('path', {x:10+10*i, y:10+10*i, data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
@@ -233,7 +233,9 @@
     },
 
     handleEvent: function(evt){
-      evt.preventDefault(); // fix for firefox image dragging do not interfere with our custom dragging
+      // fix for firefox image dragging do not interfere with our custom dragging
+      // still need default behaviour for touch zoom
+      if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
 
       if(evt.type == "dblclick"){
 
@@ -249,7 +251,9 @@
           // move shape to front
           this.getShape().parentNode.appendChild(this.getShape());
           // update shapes (x, y)
-          this.setXY({x:evt.clientX, y:evt.clientY});
+          var x = evt.type == "mousemove" ? evt.clientX : evt.changedTouches[0].clientX;
+          var y = evt.type == "mousemove" ? evt.clientY : evt.changedTouches[0].clientY;
+          this.setXY({x:x, y:y});
         }
       }
     },
