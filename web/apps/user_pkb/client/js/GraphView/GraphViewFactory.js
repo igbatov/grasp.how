@@ -5,7 +5,7 @@ YOVALUE.GraphViewFactory = function(nodeFactory, edgeFactory, labelFactory){
 };
 
 YOVALUE.GraphViewFactory.prototype = {
-  create: function(graphId, canvasDrawer){
-    return new YOVALUE.GraphView(graphId, canvasDrawer, this.nodeFactory, this.edgeFactory, this.labelFactory);
+  create: function(graphId, drawer){
+    return new YOVALUE.GraphView(graphId, drawer, this.nodeFactory, this.edgeFactory, this.labelFactory);
   }
 };

@@ -5,11 +5,12 @@
  * @param args - {labelId, nodeType, graphId, x, y, text, size, angle, opacity}
  * @constructor
  */
-YOVALUE.GraphViewNodeLabel = function(graphViewElement, args){
+YOVALUE.GraphViewNodeLabel = function(drawer, graphViewElement, args){
+  this.drawer = drawer;
   this.graphViewElement = graphViewElement;
   YOVALUE.mixin(graphViewElement, this);
 
-  this.shape = new YOVALUE.CanvasDrawer.Text({
+  this.shape = this.drawer.createShape('text', {
     x: args.x,
     y: args.y,
     text: args.text,
@@ -22,7 +23,7 @@ YOVALUE.GraphViewNodeLabel = function(graphViewElement, args){
 
   this.maxSize = args.maxSize;
   this.shape.setListening(false);
-  graphViewElement.setCanvasDrawerShape(this.shape);
+  graphViewElement.setDrawerShape(this.shape);
 };
 
 YOVALUE.GraphViewNodeLabel.prototype = {

@@ -15,15 +15,15 @@
  * @param publisher
  * @param graphViewFactory
  * @param viewManager
- * @param canvasDrawerFactory
+ * @param drawerFactory
  * @constructor
  */
-YOVALUE.GraphViewsPubSub = function (subscriber, publisher, graphViewFactory, viewManager, canvasDrawerFactory) {
+YOVALUE.GraphViewsPubSub = function (subscriber, publisher, graphViewFactory, viewManager, drawerFactory) {
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.graphViewFactory = graphViewFactory;
   var container = viewManager.getViewContainer('graphViews');
-  this.canvasDrawer = canvasDrawerFactory.create(container.id, container.width, container.height);
+  this.drawer = drawerFactory.create(container.id, container.width, container.height);
 
   //array of all created GraphViews per se
   this.graphViewList = {};
@@ -47,7 +47,7 @@ YOVALUE.GraphViewsPubSub = function (subscriber, publisher, graphViewFactory, vi
   ]);
 
   // GraphView that is used to get text width and height (event get_graph_view_label_area)
-  this.dummyGraphView = this.graphViewFactory.create('dummyGraphView', this.canvasDrawer);
+  this.dummyGraphView = this.graphViewFactory.create('dummyGraphView', this.drawer);
 };
 
 YOVALUE.GraphViewsPubSub.prototype = {
@@ -73,7 +73,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }
 
         if(typeof(this.graphViewList[graphId]) == 'undefined'){
-          this.graphViewList[graphId] = this.graphViewFactory.create(graphId, this.canvasDrawer);
+          this.graphViewList[graphId] = this.graphViewFactory.create(graphId, this.drawer);
           this.graphViewList[graphId].setGraphArea(graphViewSettings['graphArea']);
           this.graphViewList[graphId].setModel(graphViewSettings['graphModel']);
           this.graphViewList[graphId].setNodeMapping(graphViewSettings['nodeMapping']);
@@ -248,7 +248,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         var eventData;
 
         // 'dragendnode' is special event because we can drag node from one graphView to another
-        // That is why graphView can only report the canvasDrawer shape the node was dropped on
+        // That is why graphView can only report the drawer shape the node was dropped on
         // and here we must find graphView and element that corresponds to shape the node was dropped on
         if(e.eventType == 'dragendnode'){
           var graphId, j, el, droppedOnGraphId, droppedOnElement;
@@ -265,8 +265,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
           }
 
           // ugly hack:
-          // GraphView ( = CanvasDrawer = kineticjs) are sometimes fire "dragstartnode" instead of "clicknode"
-          // (I do not know why)
+          // GraphView ( -> CanvasDrawer -> kineticjs) are sometimes fire "dragstartnode" instead of "clicknode"
           // Such "dragging" always ended dropping on the same node
           // If this is the case we fire here "clicknode" in addition to "dragendnode" event
           if(droppedOnElement && e.fromGraphId == droppedOnGraphId && e.draggedModelElement.element.id == droppedOnElement.element.id){

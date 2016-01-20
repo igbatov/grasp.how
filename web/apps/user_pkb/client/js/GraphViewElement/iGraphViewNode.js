@@ -4,7 +4,7 @@
  * @constructor
  */
 YOVALUE.iGraphViewNode = {
-  getCanvasDrawerShape: function(){},
+  getDrawerShape: function(){},
   getElementType: function(){},
   getElementId: function(){},
   setNodeType: function(v){},

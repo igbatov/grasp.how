@@ -4,7 +4,7 @@
  * @constructor
  */
 YOVALUE.iGraphViewNodeLabel = {
-  getCanvasDrawerShape: function(){},
+  getDrawerShape: function(){},
   getLabelId: function(){},
   getGraphId: function(){},
   getElementType: function(){},

@@ -1,38 +1,31 @@
 /**
- * Constructs canvasDrawer shape for graph edge.
+ * Constructs shape for graph edge.
  * Implements IGraphViewEdge interface so that GraphView knows how to work with it.
+ * @param drawer
+ * @param graphViewElement
  * @param args - {edgeId, edgeType, graphId, start, stop, opacity}
  * @constructor
  */
-YOVALUE.GraphViewEdge = function(graphViewElement, args){
+YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
   this.start =  args.start;
   this.stop =  args.stop;
   this.edgeType = args.edgeType;
   this.width = args.width;
+  this.drawer = drawer;
 
   this.graphViewElement = graphViewElement;
   YOVALUE.mixin(graphViewElement, this);
 
-  var that = this;
-  this.shape = new YOVALUE.CanvasDrawer.Path({
+  this.shape = this.drawer.createShape('path', {
     data: this._getQuadPathData(args.start, args.stop),
+    hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
-    opacity: args.opacity,
-
-    drawHitFunc: function(canvas) {
-      var shape = new YOVALUE.CanvasDrawer.Path({
-        data: that._getQuadPathData(that.start, that.stop, 10),
-        strokeWidth: 1
-      });
-      shape.drawFunc(canvas);
-      canvas.fillStrokeShape(this);
-    }
-
+    opacity: args.opacity
   });
 
   this.setWidth(this.width);
 
-  graphViewElement.setCanvasDrawerShape(this.shape);
+  graphViewElement.setDrawerShape(this.shape);
   this.setEdgeType(this.edgeType);
 };
 

@@ -1,8 +1,8 @@
 /**
- * Interface for CanvasDrawer and SVGDrawer
+ * Interface for Drawer and SVGDrawer
  * @type {Object}
  */
-YOVALUE.iCanvasDrawer = {
+YOVALUE.iDrawer = {
   /**
    * Adds layer
    * All shapes lie in a layer
@@ -71,7 +71,7 @@ YOVALUE.iCanvasDrawer = {
  * Rectangle
  * @constructor
  */
-YOVALUE.iCanvasDrawer.Rect = {
+YOVALUE.iDrawer.Rect = {
   getId: function(){},
 
   setX: function(v){},
@@ -107,7 +107,7 @@ YOVALUE.iCanvasDrawer.Rect = {
  * @param args
  * @constructor
  */
-YOVALUE.iCanvasDrawer.Path = {
+YOVALUE.iDrawer.Path = {
   getId: function(){},
 
   setData: function(v){},
@@ -131,7 +131,7 @@ YOVALUE.iCanvasDrawer.Path = {
  * @param args
  * @constructor
  */
-YOVALUE.iCanvasDrawer.Circle = {
+YOVALUE.iDrawer.Circle = {
   getId: function(){},
 
   setX: function(v){},
@@ -160,7 +160,7 @@ YOVALUE.iCanvasDrawer.Circle = {
  * @param args
  * @constructor
  */
-YOVALUE.iCanvasDrawer.Text = {
+YOVALUE.iDrawer.Text = {
   getId: function(){},
 
   setX: function(v){},

@@ -1,6 +1,5 @@
 /**
- * Constructs canvasDrawer shape for graph node.
- * Implements IGraphViewNode interface so that GraphView knows how to work with it.
+ * Constructs base shape for graph node.
  * @param args - {elementId, elementType, graphId}
  * @constructor
  */
@@ -11,24 +10,24 @@ YOVALUE.GraphViewElement = function(args){
 };
 
 YOVALUE.GraphViewElement.prototype = {
-  setCanvasDrawerShape: function(shape){
+  setDrawerShape: function(shape){
     this.shape = shape;
     this.shape.setId(shape._id);
   },
 
-  getCanvasDrawerShape: function(){
+  getDrawerShape: function(){
     return this.shape;
   },
 
-  getCanvasDrawerShapeWidth: function(){
+  getDrawerShapeWidth: function(){
     return this.shape.getWidth();
   },
 
-  getCanvasDrawerShapeHeight: function(){
+  getDrawerShapeHeight: function(){
     return this.shape.getHeight();
   },
 
-  getCanvasDrawerShapeId: function(){
+  getDrawerShapeId: function(){
     return this.shape.getId();
   },
 

@@ -1,16 +1,16 @@
 /**
- * Constructs canvasDrawer shape for graph node.
+ * Constructs drawer shape for graph node.
  * Implements IGraphViewNode interface so that GraphView knows how to work with it.
  * @param args - {nodeId, nodeType, graphId, x, y, size, color, opacity, stickers} merged with skin.node.attr definitions
  * @constructor
  */
-YOVALUE.GraphViewNode = function(graphViewElement, args){
+YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
   this.stickers = args.stickers; // definition of stickers pictures in a form {'stickerName':<svg picture>, ...}
-
+  this.drawer = drawer;
   this.graphViewElement = graphViewElement;
   YOVALUE.mixin(graphViewElement, this);
 
-  this.shape = new YOVALUE.CanvasDrawer.Circle({
+  this.shape = this.drawer.createShape('circle', {
     x: args.x,
     y: args.y,
     radius: args.size,
@@ -21,7 +21,7 @@ YOVALUE.GraphViewNode = function(graphViewElement, args){
     draggable: true
   });
 
-  graphViewElement.setCanvasDrawerShape(this.shape);
+  graphViewElement.setDrawerShape(this.shape);
 };
 
 YOVALUE.GraphViewNode.prototype = {
@@ -78,6 +78,7 @@ YOVALUE.GraphViewNode.prototype = {
 
   clone: function (){
     return new YOVALUE.GraphViewNode(
+      this.drawer,
       new YOVALUE.GraphViewElement({graphId:this.getGraphId(), elementId:this.getElementId(), elementType:'node'}),
       {
         nodeId: this.getElementId(),

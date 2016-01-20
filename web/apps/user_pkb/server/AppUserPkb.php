@@ -820,10 +820,12 @@ class AppUserPkb extends App
       'ViewManager.js',
       'UIElements.js',
 
-//      'CanvasDrawer/kinetic-v5.0.0.js',
-      'CanvasDrawer/kinetic-v4.7.0.js',
-      'CanvasDrawer/CanvasDrawer.js',
-      'CanvasDrawer/CanvasDrawerFactory.js',
+      'Drawer/kinetic-v4.7.0.js',
+      'Drawer/CanvasDrawer.js',
+      'Drawer/CanvasDrawerFactory.js',
+
+     // 'Drawer/SVGDrawer.js',
+     // 'Drawer/SVGDrawerFactory.js',
 
       'GraphViewElement/GraphViewElement.js',
       'GraphViewElement/iGraphViewNode.js',

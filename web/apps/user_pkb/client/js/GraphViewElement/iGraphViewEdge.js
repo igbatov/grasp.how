@@ -4,7 +4,7 @@
  * @constructor
  */
 YOVALUE.iGraphViewEdge = {
-  getCanvasDrawerShape: function(){},
+  getDrawerShape: function(){},
   getElementType: function(){},
   getElementId: function(){},
   getGraphId: function(){},

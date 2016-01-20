@@ -4,8 +4,9 @@
  * @param args - {nodeId, nodeType, graphId, x, y, size, color, opacity, stickers} merged with skin.node.attr definitions
  * @constructor
  */
-YOVALUE.GraphViewNodeImage = function(graphViewElement, args){
+YOVALUE.GraphViewNodeImage = function(drawer, graphViewElement, args){
   this.stickers = args.stickers; // definition of stickers pictures in a form {'stickerName':<svg picture>, ...}
+  this.drawer = drawer;
 
   this.graphViewElement = graphViewElement;
   YOVALUE.mixin(graphViewElement, this);
@@ -13,7 +14,7 @@ YOVALUE.GraphViewNodeImage = function(graphViewElement, args){
   this.args = args;
   this.image = this.getIconImage(args.icon, args.color);
 
-  this.shape = new YOVALUE.CanvasDrawer.Image({
+  this.shape = this.drawer.createShape('image', {
     x: args.x,
     y: args.y,
     image: this.image,
@@ -21,20 +22,21 @@ YOVALUE.GraphViewNodeImage = function(graphViewElement, args){
     height: 0,
     draggable: true
   });
+
   //set original values, so we can use it later in image processing
   this.color = args.color;
   this.x = args.x;
   this.y = args.y;
 
   this.size = args.size;
-  this.graphViewElement.setCanvasDrawerShape(this.shape);
+  this.graphViewElement.setDrawerShape(this.shape);
 
   var dim = this.convertSizeToDim(args.size, this.image.width, this.image.height);
   this.shape.setSize(dim);
   this.shape.setOpacity(args.opacity);
   this.shape.setX(args.x - dim.width/2);
   this.shape.setY(args.y - dim.height/2);
-  graphViewElement.setCanvasDrawerShape(this.shape);
+  graphViewElement.setDrawerShape(this.shape);
 };
 
 YOVALUE.GraphViewNodeImage.prototype = {

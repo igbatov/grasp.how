@@ -203,6 +203,38 @@ YOVALUE.CanvasDrawer.prototype = {
 
   hideLayer: function(layer_id){
     this.layers[layer_id].hide();
+  },
+
+  createShape: function(type, args){
+    if(type == 'path'){
+      return new YOVALUE.CanvasDrawer.Path({
+        data: args.data,
+        stroke: args.stroke,
+        opacity: args.opacity,
+
+        drawHitFunc: function(canvas) {
+          var shape = new YOVALUE.CanvasDrawer.Path({
+            data: args.hitData,
+            strokeWidth: 1
+          });
+          shape.drawFunc(canvas);
+          canvas.fillStrokeShape(this);
+        }
+      });
+    }
+    if(type == 'circle'){
+      return new YOVALUE.CanvasDrawer.Circle(args);
+    }
+    if(type == 'text'){
+      return new YOVALUE.CanvasDrawer.Text(args);
+    }
+    if(type == 'image'){
+      return new YOVALUE.CanvasDrawer.Image(args);
+    }
+    if(type == 'rectangle'){
+      return new YOVALUE.CanvasDrawer.Rect(args);
+    }
+
   }
 };
 

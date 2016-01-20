@@ -24,8 +24,9 @@ YOVALUE.GraphViewEdgeFactory.prototype = {
    * @param c
    * @returns {skin.edge.constr}
    */
-  create: function(skin, c){
+  create: function(skin, c, drawer){
     return new skin.edge.constr(
+      drawer,
       new YOVALUE.GraphViewElement({graphId:c.graphId, elementId:c.edgeId, elementType:'edge'}),
       YOVALUE.extend(skin.edge.attr, c)
     );

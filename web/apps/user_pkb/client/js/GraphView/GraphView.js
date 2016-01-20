@@ -2,22 +2,22 @@
  * Instance of this constructor draws graph model on canvas
  * and bind events to node drag'n'drops, clicks, double clicks, mousemove
  * @param graphId
- * @param canvasDrawer
+ * @param drawer
  * @param nodeFactory
  * @param edgeFactory
  * @param labelFactory
  * @constructor
  */
-YOVALUE.GraphView = function (graphId, canvasDrawer, nodeFactory, edgeFactory, labelFactory) {
+YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFactory) {
   this.graphId = graphId;
-  this.canvasDrawer = canvasDrawer;
+  this.drawer = drawer;
 
   //table for GraphView elements: nodes, edges and node labels
   // element = GraphViewEdge or GraphViewNode
   // elementType = 'node' or 'edge'
   // elementId = model node or edge id
-  // canvasDrawerShapeId = id of CanvasDrawer object
-  this.graphViewElements = new YOVALUE.Table(['element', 'elementType', 'elementId', 'canvasDrawerShapeId']);
+  // drawerShapeId = id of drawer object
+  this.graphViewElements = new YOVALUE.Table(['element', 'elementType', 'elementId', 'drawerShapeId']);
 
   //GraphView element factories
   this.nodeFactory = nodeFactory;
@@ -33,20 +33,20 @@ YOVALUE.GraphView = function (graphId, canvasDrawer, nodeFactory, edgeFactory, l
   this.skin = {};
 
   //create background layer and rectangle that will fill the full graph area
-  this.backgroundLayerId = canvasDrawer.addLayer(graphId+"_background");
-  this.backgroundShape = new YOVALUE.CanvasDrawer.Rect({
+  this.backgroundLayerId = drawer.addLayer(graphId+"_background");
+  this.backgroundShape = drawer.createShape('rectangle', {
     x: 0,
     y: 0,
     width: 0,
     height: 0
   });
   this.backgroundShape.setId(this.backgroundShape._id);
-  this.canvasDrawer.addShape(this.backgroundLayerId, this.backgroundShape);
+  this.drawer.addShape(this.backgroundLayerId, this.backgroundShape);
 
-  //create three layers on a canvasDrawer stage - for nodes, edges and labels
-  this.edgeLayerId = canvasDrawer.addLayer(graphId+"_edges");
-  this.nodeLayerId = canvasDrawer.addLayer(graphId+"_nodes");
-  this.nodeLabelLayerId = canvasDrawer.addLayer(graphId+"_node_labels");
+  //create three layers on a drawer stage - for nodes, edges and labels
+  this.edgeLayerId = drawer.addLayer(graphId+"_edges");
+  this.nodeLayerId = drawer.addLayer(graphId+"_nodes");
+  this.nodeLabelLayerId = drawer.addLayer(graphId+"_node_labels");
 
 
   //event types that can be passed to bind() method
@@ -85,6 +85,7 @@ YOVALUE.GraphView = function (graphId, canvasDrawer, nodeFactory, edgeFactory, l
 
   //visibility of the whole graph
   this.graphIsVisible = true;
+
 };
 
 /**
@@ -103,10 +104,10 @@ YOVALUE.GraphView.prototype = {
     }
 
     //remove layers and all its shapes
-    this.canvasDrawer.removeLayer(this.backgroundLayerId);
-    this.canvasDrawer.removeLayer(this.edgeLayerId);
-    this.canvasDrawer.removeLayer(this.nodeLayerId);
-    this.canvasDrawer.removeLayer(this.nodeLabelLayerId);
+    this.drawer.removeLayer(this.backgroundLayerId);
+    this.drawer.removeLayer(this.edgeLayerId);
+    this.drawer.removeLayer(this.nodeLayerId);
+    this.drawer.removeLayer(this.nodeLabelLayerId);
   },
 
   /**
@@ -115,10 +116,10 @@ YOVALUE.GraphView.prototype = {
   hide: function(){
     if(!this.graphIsVisible) return;
 
-    this.canvasDrawer.hideLayer(this.backgroundLayerId);
-    this.canvasDrawer.hideLayer(this.edgeLayerId);
-    this.canvasDrawer.hideLayer(this.nodeLayerId);
-    this.canvasDrawer.hideLayer(this.nodeLabelLayerId);
+    this.drawer.hideLayer(this.backgroundLayerId);
+    this.drawer.hideLayer(this.edgeLayerId);
+    this.drawer.hideLayer(this.nodeLayerId);
+    this.drawer.hideLayer(this.nodeLabelLayerId);
     this.muteCallbacks();
     this.graphIsVisible = false;
   },
@@ -129,10 +130,10 @@ YOVALUE.GraphView.prototype = {
   show: function(){
     if(this.graphIsVisible) return;
     //show layers
-    this.canvasDrawer.showLayer(this.backgroundLayerId);
-    this.canvasDrawer.showLayer(this.edgeLayerId);
-    this.canvasDrawer.showLayer(this.nodeLayerId);
-    this.canvasDrawer.showLayer(this.nodeLabelLayerId);
+    this.drawer.showLayer(this.backgroundLayerId);
+    this.drawer.showLayer(this.edgeLayerId);
+    this.drawer.showLayer(this.nodeLayerId);
+    this.drawer.showLayer(this.nodeLabelLayerId);
     this.muteCallbacks(false);
     this.graphIsVisible = true;
   },
@@ -189,12 +190,12 @@ YOVALUE.GraphView.prototype = {
     var startX = parseInt(this.graphArea.centerX - this.graphArea.width/2);
     var startY = parseInt(this.graphArea.centerY - this.graphArea.height/2);
 
-    this.canvasDrawer.showLayer(this.backgroundLayerId);
+    this.drawer.showLayer(this.backgroundLayerId);
     this.backgroundShape.setX(startX);
     this.backgroundShape.setY(startY);
     this.backgroundShape.setWidth(this.graphArea.width);
     this.backgroundShape.setHeight(this.graphArea.height);
-    this.canvasDrawer.drawLayer(this.backgroundLayerId);
+    this.drawer.drawLayer(this.backgroundLayerId);
 
     // rebind mousemove to new area
     this.unbind('mousemove');
@@ -264,20 +265,20 @@ YOVALUE.GraphView.prototype = {
     if(this.dragMode == 'copy' && this.isNodeDraggedStarted) return;
 
     if(this.arrangeNodeShapes()){
-      this.canvasDrawer.drawLayer(this.nodeLayerId);
+      this.drawer.drawLayer(this.nodeLayerId);
     }
 
     if(this.arrangeNodeLabelShapes()){
-      this.canvasDrawer.drawLayer(this.nodeLabelLayerId);
+      this.drawer.drawLayer(this.nodeLabelLayerId);
     }
 
     if(this.arrangeEdgeShapes()){
-      this.canvasDrawer.drawLayer(this.edgeLayerId);
+      this.drawer.drawLayer(this.edgeLayerId);
     }
   },
 
   /**
-   * Create or adjust CanvasDrawer shapes for edges
+   * Create or adjust drawer shapes for edges
    */
   arrangeEdgeShapes: function(){
     var doNeedRedraw = false,
@@ -313,11 +314,12 @@ YOVALUE.GraphView.prototype = {
         color:this.decoration.edges[edge.id].color,
         opacity:this.decoration.edges[edge.id].opacity,
         width:this.decoration.edges[edge.id].width
-      });
+      },
+      this.drawer);
 
-      this.graphViewElements.insertRow({'element':elEdge, 'elementType':elEdge.getElementType(),'elementId':elEdge.getElementId(),'canvasDrawerShapeId':elEdge.getCanvasDrawerShapeId()});
+      this.graphViewElements.insertRow({'element':elEdge, 'elementType':elEdge.getElementType(),'elementId':elEdge.getElementId(),'drawerShapeId':elEdge.getDrawerShapeId()});
       //add node shape to node layer
-      this.canvasDrawer.addShape(this.edgeLayerId, elEdge.getCanvasDrawerShape());
+      this.drawer.addShape(this.edgeLayerId, elEdge.getDrawerShape());
 
       //bind to new edge all user callbacks (that was registered with bind() on all other edges)
       var edgeEvents = ['mouseenteredge', 'mouseleaveedge', 'clickedge'];
@@ -365,14 +367,14 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
       edgeId = obsoleteEdgeIdsArray[i];
       rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':edgeId});
-      this._removeElement(rows[0]['element'].getCanvasDrawerShapeId());
+      this._removeElement(rows[0]['element'].getDrawerShapeId());
     }
 
     return doNeedRedraw;
   },
 
   /**
-   * Create or adjust CanvasDrawer shapes for nodes
+   * Create or adjust Drawer shapes for nodes
    */
   arrangeNodeShapes: function(){
     var doNeedRedraw = false, // this will indicate if there were changes that need to be drawn on canvas
@@ -409,11 +411,12 @@ YOVALUE.GraphView.prototype = {
         color:this.decoration.nodes[node.id].color,
         opacity:this.decoration.nodes[node.id].opacity,
         stickers:this.decoration.nodes[node.id].stickers
-      });
+      },
+      this.drawer);
 
-      this.graphViewElements.insertRow({'element':elNode, 'elementType':elNode.getElementType(),'elementId':elNode.getElementId(),'canvasDrawerShapeId':elNode.getCanvasDrawerShapeId()});
+      this.graphViewElements.insertRow({'element':elNode, 'elementType':elNode.getElementType(),'elementId':elNode.getElementId(),'drawerShapeId':elNode.getDrawerShapeId()});
       //add node shape to node layer
-      this.canvasDrawer.addShape(this.nodeLayerId, elNode.getCanvasDrawerShape());
+      this.drawer.addShape(this.nodeLayerId, elNode.getDrawerShape());
 
       //bind event helpers
       this._bindToElement('dragstartnode', elNode, this._dragStartNodeHandler.bind(this));
@@ -427,6 +430,7 @@ YOVALUE.GraphView.prototype = {
           this._bindToElement(nodeEvents[i], elNode, rows[j].callback);
         }
       }
+
     }
 
     //adjust shapes that already exists and has correspondent node in model
@@ -466,14 +470,14 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
       nodeId = obsoleteNodeIdsArray[i];
       rows = this.graphViewElements.getRows({'elementType':'node', 'elementId':nodeId});
-      this._removeElement(rows[0]['element'].getCanvasDrawerShapeId());
+      this._removeElement(rows[0]['element'].getDrawerShapeId());
     }
 
     return doNeedRedraw;
   },
 
   /**
-   * Create or adjust CanvasDrawer shapes for labels
+   * Create or adjust Drawer shapes for labels
    */
   arrangeNodeLabelShapes: function(){
     var doNeedRedraw = false,
@@ -509,10 +513,12 @@ YOVALUE.GraphView.prototype = {
         angle:nodeLabelMapping[node.id].angle,
         size:this.decoration.nodeLabels[node.id].size,
         opacity:this.decoration.nodeLabels[node.id].opacity
-      });
-      this.graphViewElements.insertRow({'element':elNodeLabel, 'elementType':elNodeLabel.getElementType(),'elementId':elNodeLabel.getElementId(),'canvasDrawerShapeId':elNodeLabel.getCanvasDrawerShapeId()});
+      },
+      this.drawer
+      );
+      this.graphViewElements.insertRow({'element':elNodeLabel, 'elementType':elNodeLabel.getElementType(),'elementId':elNodeLabel.getElementId(),'drawerShapeId':elNodeLabel.getDrawerShapeId()});
       //add label shape to node layer
-      this.canvasDrawer.addShape(this.nodeLabelLayerId, elNodeLabel.getCanvasDrawerShape());
+      this.drawer.addShape(this.nodeLabelLayerId, elNodeLabel.getDrawerShape());
     }
 
     //adjust shapes that already exists and has correspondent node in model
@@ -545,7 +551,7 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
       nodeId = obsoleteNodeIdsArray[i];
       rows = this.graphViewElements.getRows({'elementType':'nodeLabel', 'elementId':nodeId});
-      this._removeElement(rows[0]['element'].getCanvasDrawerShapeId());
+      this._removeElement(rows[0]['element'].getDrawerShapeId());
     }
 
     return doNeedRedraw;
@@ -556,11 +562,11 @@ YOVALUE.GraphView.prototype = {
   },
 
   unbind: function(eventType){
-    //unbind all callbacks of this eventType in canvasDrawer
+    //unbind all callbacks of this eventType in drawer
     var cbRows = this.callbackBindsTable.getRows({'eventType':eventType});
     for(var i in cbRows){
-      if(eventType == 'mousemove') this.canvasDrawer.unbindStage(cbRows[i]['bindId']);
-      else this.canvasDrawer.unbindShape(cbRows[i]['bindId']);
+      if(eventType == 'mousemove') this.drawer.unbindStage(cbRows[i]['bindId']);
+      else this.drawer.unbindShape(cbRows[i]['bindId']);
     }
 
     //remove these callbacks from our table
@@ -576,14 +582,14 @@ YOVALUE.GraphView.prototype = {
     if(typeof(mute) == 'undefined') mute = true;
     var cbRows = this.callbackBindsTable.getRows();
     for(var i in cbRows){
-      if(cbRows[i].eventType == 'mousemove') this.canvasDrawer.muteStage(cbRows[i].bindId, mute);
+      if(cbRows[i].eventType == 'mousemove') this.drawer.muteStage(cbRows[i].bindId, mute);
     }
 
 
     var eRows = this.graphViewElements.getRows();
     for(i in eRows){
-      if(this.callbackBindsTable.getRows({shapeId: eRows[i].canvasDrawerShapeId}).length){
-        this.canvasDrawer.muteShape(eRows[i].canvasDrawerShapeId, mute);
+      if(this.callbackBindsTable.getRows({shapeId: eRows[i].drawerShapeId}).length){
+        this.drawer.muteShape(eRows[i].drawerShapeId, mute);
       }
     }
   },
@@ -596,13 +602,13 @@ YOVALUE.GraphView.prototype = {
   bind: function(eventType, callback){
     var cbId, i= 0;
     if(eventType == 'mousemove'){
-      cbId = this.canvasDrawer.bindStage('mousemove', this._createCallback(eventType, callback), this.graphArea);
+      cbId = this.drawer.bindStage('mousemove', this._createCallback(eventType, callback), this.graphArea);
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }if(eventType == 'draggingnode'){
-      cbId = this.canvasDrawer.bindStage('mousemove', this._createCallback(eventType, callback), this.graphArea);
+      cbId = this.drawer.bindStage('mousemove', this._createCallback(eventType, callback), this.graphArea);
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }if(eventType == 'clickbackground'){
-      cbId = this.canvasDrawer.bindShape('click', this.backgroundShape, this._createCallback(eventType, callback));
+      cbId = this.drawer.bindShape('click', this.backgroundShape, this._createCallback(eventType, callback));
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }else{
       // determine element type from event type
@@ -632,7 +638,7 @@ YOVALUE.GraphView.prototype = {
         redrawLayers = ['node', 'edge', 'nodeLabel'];
 
     if(typeof(opt_elementTypes) !== 'undefined') redrawLayers = opt_elementTypes;
-    for(var i in redrawLayers) this.canvasDrawer.drawLayer(layers[redrawLayers[i]]);
+    for(var i in redrawLayers) this.drawer.drawLayer(layers[redrawLayers[i]]);
   },
 
   /**
@@ -643,10 +649,10 @@ YOVALUE.GraphView.prototype = {
    * @private
    */
   _bindToElement: function(eventType, element, cb){
-    //removing last 4 characters (i.e. substring 'node' or 'edge') from event name makes it exactly the name of canvasDrawer mouse event
-    var canvasDrawerEventName = eventType.substr(0, eventType.length - 4);
-    var cbId = this.canvasDrawer.bindShape(canvasDrawerEventName, element.getCanvasDrawerShape(), cb);
-    this.callbackBindsTable.insertRow({eventType:eventType, shapeId:element.getCanvasDrawerShapeId(), callback:cb, bindId:cbId});
+    //removing last 4 characters (i.e. substring 'node' or 'edge') from event name makes it exactly the name of drawer mouse event
+    var drawerEventName = eventType.substr(0, eventType.length - 4);
+    var cbId = this.drawer.bindShape(drawerEventName, element.getDrawerShape(), cb);
+    this.callbackBindsTable.insertRow({eventType:eventType, shapeId:element.getDrawerShapeId(), callback:cb, bindId:cbId});
   },
 
   /**
@@ -659,8 +665,8 @@ YOVALUE.GraphView.prototype = {
       this.isNodeDraggedStarted = true;
 
       this.currentDraggedShapeId = e.targetNode.getId();
-      this.draggedElement = this.graphViewElements.getRows({elementType:'node', canvasDrawerShapeId:this.currentDraggedShapeId})[0]['element'];
-      this.draggedModelElement = this.findModelElementByShapeId(this.draggedElement.getCanvasDrawerShapeId());
+      this.draggedElement = this.graphViewElements.getRows({elementType:'node', drawerShapeId:this.currentDraggedShapeId})[0]['element'];
+      this.draggedModelElement = this.findModelElementByShapeId(this.draggedElement.getDrawerShapeId());
       // create clone and set moving node semi-transparent
       if(this.dragMode == 'copy'){
         var el = this._cloneElement(this.currentDraggedShapeId);
@@ -699,7 +705,7 @@ YOVALUE.GraphView.prototype = {
 
       if(this.dragMode == 'copy'){
         // get all shapes the node was dropped on
-        var shapes = this.canvasDrawer.getIntersections(e.layerX, e.layerY);
+        var shapes = this.drawer.getIntersections(e.layerX, e.layerY);
         this.droppedOnShapeIds = [];
         for(var i in shapes){
           // if we have found something this it is not the node we dragged - it is the element we dropped node on
@@ -716,13 +722,13 @@ YOVALUE.GraphView.prototype = {
       if(this.dragendCallbackCallsCount == this.callbackBindsTable.getRowsCount({eventType:'dragendnode', shapeId:this.currentDraggedShapeId})){
         this.dragendCallbackCallsCount = 0;
         this._removeElement(e.targetNode.getId());
-        this.canvasDrawer.drawLayer(this.nodeLayerId);
+        this.drawer.drawLayer(this.nodeLayerId);
       }
     }
   },
 
   /**
-   * Wrap external callback with a function that parse CanvasDrawer events (which contain shapes)
+   * Wrap external callback with a function that parse Drawer events (which contain shapes)
    * to a nice set of arguments to pass (which contains graph nodes and edges instead)
    * Also call helper functions to clear canvas after action where it is necessary (_dragEndNodeHandler).
    * @param eventType
@@ -772,7 +778,7 @@ YOVALUE.GraphView.prototype = {
   },
 
   /**
-   * This method takes canvasDrawer shape id and try to find correspondent model element.
+   * This method takes drawer shape id and try to find correspondent model element.
    * Once found it returns model element and its type in a form
    * {'type':'node', element: graphModelNode} or {'type':'edge', element: graphModelEdge}.
    * Otherwise returns false
@@ -780,7 +786,7 @@ YOVALUE.GraphView.prototype = {
    * @return {*}
    */
   findModelElementByShapeId: function(shapeId){
-    var rows = this.graphViewElements.getRows({canvasDrawerShapeId:shapeId});
+    var rows = this.graphViewElements.getRows({drawerShapeId:shapeId});
     if(rows.length > 0){
       if(rows[0]['elementType'] == 'edge') return {type:'edge', element:this.model.edges[rows[0]['elementId']]};
       if(rows[0]['elementType'] == 'node') return {type:'node', element:this.model.nodes[rows[0]['elementId']]};
@@ -808,8 +814,10 @@ YOVALUE.GraphView.prototype = {
       angle: 0,
       size: size,
       opacity: 1
-    }),
-    result = {width:label.getCanvasDrawerShapeWidth(), height:label.getCanvasDrawerShapeHeight()};
+    },
+    this.drawer
+    );
+    result = {width:label.getDrawerShapeWidth(), height:label.getDrawerShapeHeight()};
     label.remove();
 
     return result;
@@ -823,12 +831,12 @@ YOVALUE.GraphView.prototype = {
    */
   _cloneElement: function(shapeId){
     //clone element
-    var clone = this.graphViewElements.getRows({canvasDrawerShapeId:shapeId})[0]['element'].clone();
-    this.canvasDrawer.addShape(this.nodeLayerId, clone.getCanvasDrawerShape());
-    this.canvasDrawer.drawLayer(this.nodeLayerId);
+    var clone = this.graphViewElements.getRows({drawerShapeId:shapeId})[0]['element'].clone();
+    this.drawer.addShape(this.nodeLayerId, clone.getDrawerShape());
+    this.drawer.drawLayer(this.nodeLayerId);
 
     //insert it to our elements list
-    this.graphViewElements.insertRow({element:clone, elementType:clone.getElementType(), elementId:clone.getElementId(), canvasDrawerShapeId:clone.getCanvasDrawerShapeId()});
+    this.graphViewElements.insertRow({element:clone, elementType:clone.getElementType(), elementId:clone.getElementId(), drawerShapeId:clone.getDrawerShapeId()});
 
     //bind all callback from original element
     var rows = this.callbackBindsTable.getRows({shapeId:shapeId});
@@ -847,14 +855,14 @@ YOVALUE.GraphView.prototype = {
     // unbind all callbacks from element
     var i, rows = this.callbackBindsTable.getRows({shapeId: shapeId});
     for(i in rows){
-      this.canvasDrawer.unbindShape(rows[i]['bindId']);
+      this.drawer.unbindShape(rows[i]['bindId']);
     }
 
     // remove shape
-    rows = this.graphViewElements.getRows({canvasDrawerShapeId:shapeId});
+    rows = this.graphViewElements.getRows({drawerShapeId:shapeId});
     rows[0]['element'].remove();
 
     // remove element from the list of elements
-    this.graphViewElements.removeRows({canvasDrawerShapeId:shapeId});
+    this.graphViewElements.removeRows({drawerShapeId:shapeId});
   }
 };

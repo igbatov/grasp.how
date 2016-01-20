@@ -1035,7 +1035,48 @@ YOVALUE.deepCompare = function () {
   return true;
 }
 
+YOVALUE.getUniqId = function(){
+  return Math.floor(new Date().getTime() / 1000)+""+Math.floor((Math.random() * 1000) + 1);
+};
 
+YOVALUE.isObjectInArray = function (array, obj) {
+  var i;
+  for (i = 0; i < array.length; i++) {
+    if (array[i] === obj) {
+      return true;
+    }
+  }
 
+  return false;
+};
 
+YOVALUE.getBrowserInfo = function(){
+  var ua= navigator.userAgent, tem,
+      M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+  if(/trident/i.test(M[1])){
+    tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+    return 'IE '+(tem[1] || '');
+  }
+  if(M[1]=== 'Chrome'){
+    tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+    if(tem!= null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+  }
+  M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+  if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+  return {'type':M[0], 'ver':M[1]};
+};
+
+// CustomEvent for IE
+(function () {
+  function CustomEvent ( event, params ) {
+    params = params || { bubbles: false, cancelable: false, detail: undefined };
+    var evt = document.createEvent( 'CustomEvent' );
+    evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+    return evt;
+  }
+
+  CustomEvent.prototype = window.Event.prototype;
+
+  window.CustomEvent = CustomEvent;
+})();
 

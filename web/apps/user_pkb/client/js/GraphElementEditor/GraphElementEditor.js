@@ -117,6 +117,7 @@ YOVALUE.GraphElementEditor.prototype = {
   },
 
   _createEdgeForm: function(parentSelector, graphId, isEditable, edgeTypes, edge){
+    var parent = this.jQuery(parentSelector);
     if(!isEditable) return '';
 
     var i, typeOptions = '';
@@ -126,12 +127,14 @@ YOVALUE.GraphElementEditor.prototype = {
       typeOptions += '<option '+selected+' value="'+type+'">'+type+'</option>';
     }
 
-    return '<input type="text" name="label" value="'+edge.label+'">'
+    var form = '<input type="text" name="label" value="'+edge.label+'">'
     +'<select name="type">'+typeOptions+'</select>'
     +'<input type="hidden" name="elementType" value="edge">'
     +'<input type="hidden" name="elementId" value="'+edge.id+'">'
     +'<input type="hidden" name="elementContentId" value="'+edge.edgeContentId+'">'
     +'<input type="hidden" name="graphId" value="'+graphId+'">';
+
+    parent.append(form);
   },
 
   _createNodeForm: function(parentSelector, graphId, isEditable, nodeTypes, node){
