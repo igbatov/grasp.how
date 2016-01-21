@@ -94,7 +94,7 @@ YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFa
  */
 YOVALUE.GraphView.prototype = {
   /**
-   * Remove this graph view with all its canvas elements and its callback bindings
+   * Remove this graph view with all its elements and its callback bindings
    */
   remove: function(){
     //unbind all callbacks
@@ -649,7 +649,7 @@ YOVALUE.GraphView.prototype = {
    * @private
    */
   _bindToElement: function(eventType, element, cb){
-    //removing last 4 characters (i.e. substring 'node' or 'edge') from event name makes it exactly the name of drawer mouse event
+    // removing last 4 characters (i.e. substring 'node' or 'edge') from event name makes it exactly the name of drawer mouse event
     var drawerEventName = eventType.substr(0, eventType.length - 4);
     var cbId = this.drawer.bindShape(drawerEventName, element.getDrawerShape(), cb);
     this.callbackBindsTable.insertRow({eventType:eventType, shapeId:element.getDrawerShapeId(), callback:cb, bindId:cbId});

@@ -32,7 +32,9 @@ YOVALUE.SVGDrawer.prototype = {
     g.setAttributeNS(null, "id", layer_id);
     this.svgroot.appendChild(g);
   },
-  removeLayer: function(layer_id){},
+  removeLayer: function(layer_id){
+    document.getElementById(layer_id).parentNode.removeChild(document.getElementById(layer_id));
+  },
   drawLayer: function(layer_id){},
 
 
@@ -41,13 +43,17 @@ YOVALUE.SVGDrawer.prototype = {
    * Hide layer
    * @param layer_id
    */
-  hideLayer: function(layer_id){},
+  hideLayer: function(layer_id){
+    document.getElementById(layer_id).style.display = 'none';
+  },
 
   /**
    * Show layer
    * @param layer_id
    */
-  showLayer: function(layer_id){},
+  showLayer: function(layer_id){
+    document.getElementById(layer_id).style.display = 'block';
+  },
 
   /**
    * Adds shape to the layer
@@ -62,12 +68,14 @@ YOVALUE.SVGDrawer.prototype = {
 
   /**
    * Bind callback to shape event
-   * @param eventType - one of this names ['click', 'dblclick', 'mouseenter', 'mouseleave', 'dragstart', 'dragend']
+   * @param eventType - one of this names ['click', 'mouseenter', 'mouseleave', 'dragstart', 'dragend']
    * @param shape
    * @param callback
    * @return {Number} - bindId which can be used later in unbindShape
    */
-  bindShape: function(eventType, shape, callback){},
+  bindShape: function(eventType, shape, callback){
+
+  },
   unbindShape: function(bindId){},
   muteShape: function(shapeId, mute){},
 
@@ -131,7 +139,8 @@ YOVALUE.SVGDrawer.prototype = {
   },
 
   /**
-   * Adds callback for events of type ['click', 'mouseenter', 'mouseleave', 'drag', 'drop'] on all shapes with class classname
+   * Adds callback for events of type ['click', 'mouseenter', 'mouseleave', 'drag', 'drop']
+   * on all shapes with class classname
    */
   addEventListener: function(event, callback, classname){
     var that = this;
