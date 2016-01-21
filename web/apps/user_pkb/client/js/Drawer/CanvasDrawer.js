@@ -94,9 +94,7 @@ YOVALUE.CanvasDrawer.prototype = {
    * positioned 10 pixels to the right and 10 to bottom from left top corner of stage.
    * @return callbackId - id of callback that can be used later in unbindStage to unbind this callback
    */
-  bindStage: function(eventType, callback, area){
-    if(eventType != "mousemove") return false;
-
+  bindStageMove: function(callback, area){
     var that = this,
       x1 = area.centerX - area.width/ 2,
       x2 = area.centerX  + area.width/ 2,
@@ -114,7 +112,7 @@ YOVALUE.CanvasDrawer.prototype = {
     return callbackId;
   },
 
-  unbindStage: function(bindId){
+  unbindStageMove: function(bindId){
     this.jQuery(this.stage.getContainer()).unbind('mousemove', this.stageCallbacks[bindId]);
     delete this.stageCallbacks[bindId];
   },
@@ -124,7 +122,7 @@ YOVALUE.CanvasDrawer.prototype = {
    * @param bindId
    * @param {Boolean=} unMute
    */
-  muteStage: function(bindId, mute){
+  muteStageMove: function(bindId, mute){
     if(mute == true) this.jQuery(this.stage.getContainer()).unbind('mousemove', this.stageCallbacks[bindId]);
     else this.jQuery(this.stage.getContainer()).bind('mousemove', this.stageCallbacks[bindId]);
   },

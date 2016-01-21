@@ -54,9 +54,9 @@ YOVALUE.iDrawer = {
    * positioned 10 pixels to the right and 10 to bottom from left top corner of stage.
    * @return callbackId - id of callback that can be used later in unbindStage to unbind this callback
    */
-  bindStage: function(eventType, callback, area){},
-  unbindStage: function(bindId){},
-  muteStage: function(bindId, mute){},
+  bindStageMove: function(callback, area){},
+  unbindStageMove: function(bindId){},
+  muteStageMove: function(bindId, mute){},
 
   /**
    * Get all shapes that have (x,y) point

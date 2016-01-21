@@ -1,6 +1,6 @@
 /**
  * Instance of this constructor draws graph model on canvas
- * and bind events to node drag'n'drops, clicks, double clicks, mousemove
+ * and bind events to node drag'n'drops, clicks, mousemove
  * @param graphId
  * @param drawer
  * @param nodeFactory
@@ -43,13 +43,13 @@ YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFa
   this.backgroundShape.setId(this.backgroundShape._id);
   this.drawer.addShape(this.backgroundLayerId, this.backgroundShape);
 
-  //create three layers on a drawer stage - for nodes, edges and labels
+  // create three layers on a drawer stage - for nodes, edges and labels
   this.edgeLayerId = drawer.addLayer(graphId+"_edges");
   this.nodeLayerId = drawer.addLayer(graphId+"_nodes");
   this.nodeLabelLayerId = drawer.addLayer(graphId+"_node_labels");
 
 
-  //event types that can be passed to bind() method
+  // event types that can be passed to bind() method
   this.eventTypes = [
     'mousemove',
     'clicknode',
@@ -64,10 +64,10 @@ YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFa
     'clickbackground'
   ];
 
-  //table of all callbacks bindIds
+  // table of all callbacks bindIds
   this.callbackBindsTable = new YOVALUE.Table(['eventType','shapeId', 'callback','bindId']);
 
-  //table of all user (i.e. registered with this.bind()) callbacks
+  // table of all user (i.e. registered with this.bind()) callbacks
   this.userCallbacksTable = new YOVALUE.Table(['eventType', 'callback']);
 
   // Modes can by 'copy' and 'move'. While in the latter mode
@@ -75,13 +75,13 @@ YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFa
   // it stays on its place only showing were it will be moved
   this.dragMode = 'copy';
 
-  //drag'n'drop state variables
-  this.isNodeDraggedStarted = false;
-  this.currentDraggedShapeId = null;
-  this.draggedElement = null; // dragging GraphView element
-  this.draggedModelElement = null; // dragging model element
-  this.droppedOnShapeIds = null;
-  this.dragendCallbackCallsCount = 0;
+  // drag'n'drop state variables
+  this.isNodeDraggedStarted = false; // needed to prevent dragMode change in course of dragging
+  this.currentDraggedShapeId = null; // needed to exclude dragged node from array of elements under mouse on drop event
+  this.draggedElement = null;        // dragging GraphView element (needed to send in drag event)
+  this.draggedModelElement = null;   // dragging model element (needed to send in drag event)
+  this.droppedOnShapeIds = null;     // needed to send in drag event
+  this.dragendCallbackCallsCount = 0;// needed to remove clone after all user callbacks fired
 
   //visibility of the whole graph
   this.graphIsVisible = true;
@@ -142,7 +142,7 @@ YOVALUE.GraphView.prototype = {
    * @param mapping must implement YOVALUE.iMapping
    */
   setNodeMapping: function(mapping){
-    //sanity check
+    // sanity check
     if(!YOVALUE.implements(mapping, YOVALUE.iMapping)){
       YOVALUE.errorHandler.throwError('mapping does not implement iMapping');
     }
@@ -565,7 +565,7 @@ YOVALUE.GraphView.prototype = {
     //unbind all callbacks of this eventType in drawer
     var cbRows = this.callbackBindsTable.getRows({'eventType':eventType});
     for(var i in cbRows){
-      if(eventType == 'mousemove') this.drawer.unbindStage(cbRows[i]['bindId']);
+      if(eventType == 'mousemove') this.drawer.unbindStageMove(cbRows[i]['bindId']);
       else this.drawer.unbindShape(cbRows[i]['bindId']);
     }
 
@@ -582,7 +582,7 @@ YOVALUE.GraphView.prototype = {
     if(typeof(mute) == 'undefined') mute = true;
     var cbRows = this.callbackBindsTable.getRows();
     for(var i in cbRows){
-      if(cbRows[i].eventType == 'mousemove') this.drawer.muteStage(cbRows[i].bindId, mute);
+      if(cbRows[i].eventType == 'mousemove') this.drawer.muteStageMove(cbRows[i].bindId, mute);
     }
 
 
@@ -602,10 +602,10 @@ YOVALUE.GraphView.prototype = {
   bind: function(eventType, callback){
     var cbId, i= 0;
     if(eventType == 'mousemove'){
-      cbId = this.drawer.bindStage('mousemove', this._createCallback(eventType, callback), this.graphArea);
+      cbId = this.drawer.bindStageMove(this._createCallback(eventType, callback), this.graphArea);
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }if(eventType == 'draggingnode'){
-      cbId = this.drawer.bindStage('mousemove', this._createCallback(eventType, callback), this.graphArea);
+      cbId = this.drawer.bindStageMove(this._createCallback(eventType, callback), this.graphArea);
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }if(eventType == 'clickbackground'){
       cbId = this.drawer.bindShape('click', this.backgroundShape, this._createCallback(eventType, callback));
@@ -675,7 +675,7 @@ YOVALUE.GraphView.prototype = {
       }
     }
   },
-
+/**
   _draggingNodeHandler: function(e){
     if(this.isNodeDraggedStarted && this.dragMode == 'move'){
       var rows, i;
@@ -692,7 +692,7 @@ YOVALUE.GraphView.prototype = {
       }
     }
   },
-
+*/
   /**
    * Remove dragged node and fill in this.droppedOnShapeIds
    * @param e
@@ -806,18 +806,18 @@ YOVALUE.GraphView.prototype = {
    */
   getTextArea: function(text, size){
     var label = this.labelFactory.create(this.skin, {
-      nodeLabelId: 1,
-      text: text,
-      graphId: this.graphId,
-      x: 0,
-      y: 0,
-      angle: 0,
-      size: size,
-      opacity: 1
-    },
-    this.drawer
+        nodeLabelId: 1,
+        text: text,
+        graphId: this.graphId,
+        x: 0,
+        y: 0,
+        angle: 0,
+        size: size,
+        opacity: 1
+      },
+      this.drawer
     );
-    result = {width:label.getDrawerShapeWidth(), height:label.getDrawerShapeHeight()};
+    var result = {width:label.getDrawerShapeWidth(), height:label.getDrawerShapeHeight()};
     label.remove();
 
     return result;
