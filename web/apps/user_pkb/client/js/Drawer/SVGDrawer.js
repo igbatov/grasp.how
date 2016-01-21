@@ -11,8 +11,11 @@ YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContain
   this.svgroot.setAttribute("width", stageContainerWidth);
   this.svgroot.setAttribute("height", stageContainerHeight);
   this.shapes = {}; // all shapes added by addShape()
+  this.shapeCallbacks = {};
+  this.stageCallbacks = {};
   document.getElementById(stageContainerId).appendChild(this.svgroot);
   this._createSVGDragEvent();
+  this._initEventBinder();
   this._makeShapesDraggable();
 };
 
@@ -61,15 +64,27 @@ YOVALUE.SVGDrawer.prototype = {
   },
 
   /**
-   * Bind callback to shape event
-   * @param eventType - one of this names ['click', 'dblclick', 'mouseenter', 'mouseleave', 'dragstart', 'dragend']
+   * Bind callback to shape
+   * @param eventName - one of this names SVGDrawer.eventNames
    * @param shape
    * @param callback
    * @return {Number} - bindId which can be used later in unbindShape
    */
-  bindShape: function(eventType, shape, callback){},
-  unbindShape: function(bindId){},
-  muteShape: function(shapeId, mute){},
+  bindShape: function(eventName, shape, callback){
+    return this.addEventListener(eventName, callback, null, shape.getId());
+  },
+  unbindShape: function(bindId){
+    this.removeEventListener(bindId);
+  },
+  /**
+   * Mute and unmute certain shapes
+   * @param shapeId
+   * @param mute - boolean: true to mute, false to unmute
+   */
+  muteShape: function(shapeId, mute){
+    var callbacks = this.shapeCallbacks.getRows({shapeId:shapeId});
+    for(var i in callbacks) callbacks[i]['isMuted'] = mute;
+  },
 
   /**
    * Bind 'mousemove' to stage
@@ -80,9 +95,33 @@ YOVALUE.SVGDrawer.prototype = {
    * positioned 10 pixels to the right and 10 to bottom from left top corner of stage.
    * @return callbackId - id of callback that can be used later in unbindStage to unbind this callback
    */
-  bindStage: function(eventType, callback, area){},
-  unbindStage: function(bindId){},
-  muteStage: function(bindId, mute){},
+  bindStage: function(eventType, callback, area){
+    if(eventType != "mousemove") return false;
+
+    var that = this, uniqId = YOVALUE.getUniqId(),
+      x1 = area.centerX - area.width/ 2,
+      x2 = area.centerX  + area.width/ 2,
+      y1 = area.centerY - area.height/ 2,
+      y2 = area.centerY + area.height/2;
+    this.stageCallbacks[uniqId] = function(e){
+      var xy = that._getEventAbsXY(e);
+      var relX = xy.x - that.svgroot.getBoundingClientRect().left;
+      var relY = xy.y - that.svgroot.getContent().getBoundingClientRect().top;
+      if( relX > x1 && relX < x2 && relY > y1 && relY < y2){
+        callback({x:relX, y:relY});
+      }
+    };
+    this.svgroot.addEventListener('mousemove', this.stageCallbacks[uniqId], false);
+    return uniqId;
+  },
+  unbindStage: function(bindId){
+    this.svgroot.removeEventListener('mousemove', this.stageCallbacks[bindId], false);
+    delete this.stageCallbacks[bindId];
+  },
+  muteStage: function(bindId, mute){
+    if(mute) this.svgroot.removeEventListener('mousemove', this.stageCallbacks[bindId], false);
+    else this.svgroot.addEventListener('mousemove', this.stageCallbacks[bindId], false);
+  },
 
   /**
    * Get all shapes that have (x,y) point
@@ -131,34 +170,84 @@ YOVALUE.SVGDrawer.prototype = {
   },
 
   /**
-   * Adds callback for events of type ['click', 'mouseenter', 'mouseleave', 'drag', 'drop'] on all shapes with class classname
+   * Adds SVGDrawer callback for events of type SVGDrawer.eventNames
+   * on all shapes with class classname
+   * @private
    */
-  addEventListener: function(event, callback, classname){
+  _initEventBinder: function(){
+    var i, event;
+    this.eventNames = ['click', 'mouseenter', 'mouseleave', 'drag', 'drop'];
+    this.shapeCallbacks = new YOVALUE.Table(['id', 'eventName', 'shapeId', 'shapeClass', 'callback', 'isMuted']);
     var that = this;
-    document.addEventListener(event, function(e){
-      for(var id in that.shapes){
-        var targetId;
+    for(i in this.eventNames){
+      event = this.eventNames[i];
+      document.addEventListener(event, function(e){
+        var j;
 
-        if(e.type == 'drag' || e.type == 'drop') targetId = e.detail.id;
-        else targetId = e.target.id;
+        for(var id in that.shapes){
+          var targetId;
 
-        if(
-            targetId == id
-                && (typeof(classname) == 'undefined' || (typeof(classname) != 'undefined' && that.shapes[id].getClass() == classname))){
-          callback(e, that.shapes[id]);
+          if(e.type == 'drag' || e.type == 'drop') targetId = e.detail.id;
+          else targetId = e.target.id;
+
+          // if we found shape event was fired on
+          if(targetId == id){
+            var shape = that.shapes[id];
+            // callbacks registered for all shapes
+            var generalCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: null, shapeClass: null, isMuted:false});
+            // callbacks registered for shape class
+            var shapeClassCallbacks = typeof shape.getClass() == 'undefined' ? [] : that.shapeCallbacks.getRows({eventName:e.type, shapeClass: shape.getClass(), isMuted:false});
+            // callbacks registered for this shape id
+            var shapeIdCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: shape.getId(), isMuted:false});
+            console.log(e.type, generalCallbacks);
+            for(j in generalCallbacks) generalCallbacks[j]['callback'](e, shape);
+            for(j in shapeClassCallbacks) shapeClassCallbacks[j]['callback'](e, shape);
+            for(j in shapeIdCallbacks) shapeIdCallbacks[j]['callback'](e, shape);
+          }
         }
-      }
+      });
+
+    }
+  },
+
+  /**
+   * Register user callback for events SVGDrawer.eventNames
+   */
+  addEventListener: function(eventName, callback, className, shapeId){
+    var uniqId = YOVALUE.getUniqId();
+    this.shapeCallbacks.insertRow({
+      id:uniqId,
+      eventName:eventName,
+      callback:callback,
+      shapeClass: typeof className == 'undefined' ? null : className,
+      shapeId: typeof shapeId == 'undefined' ? null : shapeId,
+      isMuted: false
     });
+    return uniqId;
+  },
+
+  /**
+   * Remove event callback
+   * @param uniqId
+   */
+  removeEventListener: function(uniqId){
+    this.shapeCallbacks.removeRows({id:uniqId});
+  },
+
+  _getEventAbsXY: function(evt){
+    var xOffset=Math.max(document.documentElement.scrollLeft,document.body.scrollLeft);
+    var yOffset=Math.max(document.documentElement.scrollTop,document.body.scrollTop);
+    var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX + xOffset : evt.changedTouches[0].clientX;
+    var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY + yOffset : evt.changedTouches[0].clientY;
+    return {x:x, y:y};
   },
 
   _createSVGDragEvent: function(){
     var that = this;
     var handler = function(evt){
       var shape;
-      var xOffset=Math.max(document.documentElement.scrollLeft,document.body.scrollLeft);
-      var yOffset=Math.max(document.documentElement.scrollTop,document.body.scrollTop);
-      var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX + xOffset : evt.changedTouches[0].clientX;
-      var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY + yOffset : evt.changedTouches[0].clientY;
+
+      var xy = that._getEventAbsXY(evt);
 
       // ignore 2 touch gestures
       if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
@@ -188,7 +277,7 @@ YOVALUE.SVGDrawer.prototype = {
           if(shape.mousedown && shape.getDraggable()){
             // do not drag screen on touch device
             evt.preventDefault();
-            var myEvent = new CustomEvent("drag", {detail:{id: shape.getId(), x:x, y:y}});
+            var myEvent = new CustomEvent("drag", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
             document.dispatchEvent(myEvent);
           }
         }
