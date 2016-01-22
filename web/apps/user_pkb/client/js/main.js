@@ -19,6 +19,9 @@ var Modules = {
   CanvasDrawer: YOVALUE.CanvasDrawer,
   CanvasDrawerFactory: YOVALUE.CanvasDrawerFactory,
 
+  SVGDrawer: YOVALUE.SVGDrawer,
+  SVGDrawerFactory: YOVALUE.SVGDrawerFactory,
+
   GraphViewNodeFactory: YOVALUE.GraphViewNodeFactory,
   GraphViewNodeLabelFactory: YOVALUE.GraphViewNodeLabelFactory,
   GraphViewEdgeFactory: YOVALUE.GraphViewEdgeFactory,
@@ -102,8 +105,9 @@ var DI = {
   GraphViewEdgeFactory:[],
   GraphViewNodeLabelFactory:[],
   CanvasDrawerFactory:['kinetic', 'jQuery'],
+  SVGDrawerFactory:[],
   GraphViewFactory:['GraphViewNodeFactory', 'GraphViewEdgeFactory', 'GraphViewNodeLabelFactory'],
-  GraphViewsPubSub:['Subscriber', 'Publisher', 'GraphViewFactory', 'ViewManager', 'CanvasDrawerFactory'],
+  GraphViewsPubSub:['Subscriber', 'Publisher', 'GraphViewFactory', 'ViewManager', 'SVGDrawerFactory'],
 
   AddRemoveElementController:['Publisher'],
   HistoryController:['Publisher'],

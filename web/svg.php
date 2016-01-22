@@ -15,8 +15,12 @@
 //    var shape1 = drawer.createShape('circle', {x:100, y:100, radius:50, color:'blue'});
   //  var shape1 = drawer.createShape('rectangle', {x:100, y:100, width:50, height:50, color:'blue'});
   //  drawer.addShape('layerOne', shape1);
-    var shape2 = drawer.createShape('rectangle', {x:120, y:100, width:50, height:50, fill:'red'});
+    var shape2 = drawer.createShape('rectangle', {x:0, y:0, width:0, height:0, fill:'red'});
     drawer.addShape('layerOne', shape2);
+    shape2.setXY({x:120, y:100});
+    shape2.setWidth(50);
+    shape2.setHeight(50);
+    /*
     for(var i=0; i<=50; i++){
       var shape3 = drawer.createShape('circle', {x:10+10*i, y:10+10*i, radius:50, fill:'green', opacity:0.2});
       drawer.addShape('layerOne', shape3);
@@ -28,10 +32,12 @@
       shape5.setPointerEvents('none');
 
     }
+
     var p = shape5.getBBox();
+
     var shape6 = drawer.createShape('rectangle', {x:p.x, y:p.y, width:p.width, height:p.height, fill:'none', stroke:'blue', strokeWidth:2});
     drawer.addShape('layerOne', shape6);
-
+     */
  //   shape2.setDraggable(true);
    // shape2.setY(200);
     var intersections = drawer.getIntersections(120,100);

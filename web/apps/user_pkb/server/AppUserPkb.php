@@ -824,8 +824,8 @@ class AppUserPkb extends App
       'Drawer/CanvasDrawer.js',
       'Drawer/CanvasDrawerFactory.js',
 
-     // 'Drawer/SVGDrawer.js',
-     // 'Drawer/SVGDrawerFactory.js',
+      'Drawer/SVGDrawer.js',
+      'Drawer/SVGDrawerFactory.js',
 
       'GraphViewElement/GraphViewElement.js',
       'GraphViewElement/iGraphViewNode.js',

@@ -34,6 +34,7 @@ YOVALUE.SVGDrawer.prototype = {
     var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.setAttributeNS(null, "id", layer_id);
     this.svgroot.appendChild(g);
+    return layer_id;
   },
   removeLayer: function(layer_id){
     document.getElementById(layer_id).parentNode.removeChild(document.getElementById(layer_id));
@@ -65,6 +66,7 @@ YOVALUE.SVGDrawer.prototype = {
    */
   addShape: function(layer_id, shape){
     this.shapes[shape.getId()] = shape;
+    console.log(layer_id);
     document.getElementById(layer_id).appendChild(shape.getShape());
     shape.setXY(shape.getXY());
   },
@@ -344,6 +346,8 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
   setId: function(v){
     this.id = v;
     this.shape.setAttributeNS(null, "id", v);
+    console.log(this.id);
+    console.log(printStackTrace());
   },
   getId: function(){
     return this.id;
@@ -365,21 +369,37 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
   },
 
   /**
-   * Set center of shape to x, y
+   * Set center of the shape to x, y
    */
   setXY: function(p){
-    if(YOVALUE.typeof(p.x)!='number' || YOVALUE.typeof(p.y)!='number') return false;
-    this.x = p.x;
-    this.y = p.y;
-    // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
-    this.matrix[4] = this.shape.nodeName == 'circle' ? p.x : p.x-this.getBBox().width/2;
-    this.matrix[5] = this.shape.nodeName == 'circle' ? p.y : p.y-this.getBBox().height/2;
-    if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
-    if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
-    if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    this.setX(p.x);
+    this.setY(p.y);
   },
   getXY: function(){
     return {x: this.x, y: this.y};
+  },
+
+  setX: function(v){
+    if(YOVALUE.typeof(v) != 'number') return false;
+    // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
+    this.matrix[4] = this.shape.nodeName == 'circle' ? v : v-this.getBBox().width/2;
+    if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    return true;
+  },
+  getX: function(){
+    return this.x;
+  },
+
+  setY: function(v){
+    if(YOVALUE.typeof(v) != 'number') return false;
+    // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
+    this.matrix[5] = this.shape.nodeName == 'circle' ? v : v-this.getBBox().height/2;
+    if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
+    if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    return true;
+  },
+  getY: function(){
+    return this.y;
   },
 
   /**
