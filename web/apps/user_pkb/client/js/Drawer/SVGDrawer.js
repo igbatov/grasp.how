@@ -66,9 +66,14 @@ YOVALUE.SVGDrawer.prototype = {
    */
   addShape: function(layer_id, shape){
     this.shapes[shape.getId()] = shape;
-    console.log(layer_id);
     document.getElementById(layer_id).appendChild(shape.getShape());
     shape.setXY(shape.getXY());
+  },
+
+  removeShape: function(shape){
+    delete this.shapes[shape.getId()];
+    var dom = document.getElementById(shape.getId());
+    dom.parentElement.removeChild(dom);
   },
 
   /**
@@ -135,31 +140,38 @@ YOVALUE.SVGDrawer.prototype = {
    * @return {*}
    */
   getIntersections: function(x,y){
-    if(this.svgroot.getIntersectionList && YOVALUE.getBrowserInfo().type != "Safari") {
+    var shapesUnderPoint = [], el, i;
+    if(false && this.svgroot.getIntersectionList && YOVALUE.getBrowserInfo().type != "Safari") {
       var hitRect = this.svgroot.createSVGRect();
       hitRect.height = 1;
       hitRect.width = 1;
       hitRect.y = y;
       hitRect.x = x;
-      return this.svgroot.getIntersectionList(hitRect, null);
+      var els = this.svgroot.getIntersectionList(hitRect, null);
+      var arrayLength = els.length;
+      for(i=0; i<arrayLength; i++){
+        el = els[i];
+        shapesUnderPoint.push(this.shapes[el.getAttribute('id')]);
+      }
     }
     // hack for firefox (ver 43.0.4 still does not support getIntersectionList)
     // safari 5.1.7 under windows also does not seem to getIntersectionList properly
     else {
-      var i, id, shapePointerEvents = {}, shapesUnderPoint = [];
+      var i, id, shapePointerEvents = {};
       // save attribute pointer-events for all shapes
       for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().getAttribute('pointer-events');
       // test every shape for (x, y) overlap
       for(id in this.shapes){
         for(i in this.shapes) this.shapes[i].getShape().setAttribute('pointer-events', 'none');
         this.shapes[id].getShape().setAttributeNS(null, 'pointer-events', 'visiblePainted');
-        var el = document.elementFromPoint(x, y);
-        if(!YOVALUE.isObjectInArray(shapesUnderPoint, el)) shapesUnderPoint.push(el);
+        el = document.elementFromPoint(x, y);
+        if(!YOVALUE.isObjectInArray(shapesUnderPoint, el) && typeof(this.shapes[el.getAttribute('id')]) != 'undefined') shapesUnderPoint.push(this.shapes[el.getAttribute('id')]);
       }
       // restore original pointer-events attribute
       for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().setAttribute('pointer-events', shapePointerEvents[id]);
-      return shapesUnderPoint;
     }
+
+    return shapesUnderPoint;
   },
 
   createShape: function(type, args){
@@ -190,10 +202,17 @@ YOVALUE.SVGDrawer.prototype = {
         var j;
 
         for(var id in that.shapes){
-          var targetId;
+          var targetId, layerX, layerY;
 
-          if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1) targetId = e.detail.id;
-          else targetId = e.target.id;
+          if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1){
+            targetId = e.detail.id;
+            layerX = e.detail.x;
+            layerY = e.detail.y;
+          } else{
+            targetId = e.target.id;
+            layerX = e.layerX;
+            layerY = e.layerY;
+          }
 
           // if we found shape event was fired on
           if(targetId == id){
@@ -204,10 +223,11 @@ YOVALUE.SVGDrawer.prototype = {
             var shapeClassCallbacks = typeof shape.getClass() == 'undefined' ? [] : that.shapeCallbacks.getRows({eventName:e.type, shapeClass: shape.getClass(), isMuted:false});
             // callbacks registered for this shape id
             var shapeIdCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: shape.getId(), isMuted:false});
-            console.log(e.type, generalCallbacks);
-            for(j in generalCallbacks) generalCallbacks[j]['callback'](e, shape);
-            for(j in shapeClassCallbacks) shapeClassCallbacks[j]['callback'](e, shape);
-            for(j in shapeIdCallbacks) shapeIdCallbacks[j]['callback'](e, shape);
+//            console.log(e.type, generalCallbacks);
+            var event = {targetNode:shape, layerX: layerX, layerY: layerY, x:layerX, y:layerY, pageX:layerX, pageY:layerY};
+            for(j in generalCallbacks) generalCallbacks[j]['callback'](event, shape);
+            for(j in shapeClassCallbacks) shapeClassCallbacks[j]['callback'](event, shape);
+            for(j in shapeIdCallbacks) shapeIdCallbacks[j]['callback'](event, shape);
           }
         }
       });
@@ -254,7 +274,7 @@ YOVALUE.SVGDrawer.prototype = {
       var shape;
       var xy = that._getEventAbsXY(evt);
 
-      // ignore 2 touch gestures
+      // ignore 2 touch gestures like zoom gesture
       if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
 
       // fix for firefox image dragging do not interfere with our custom dragging
@@ -273,7 +293,7 @@ YOVALUE.SVGDrawer.prototype = {
           if(shape && (evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
             shape.mousedown = false;
             that.dragstartEventSend = false;
-            var myEvent = new CustomEvent("dragend", {detail:{id: shape.getId()}});
+            var myEvent = new CustomEvent("dragend", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
             document.dispatchEvent(myEvent);
             evt.preventDefault();
           }
@@ -306,11 +326,25 @@ YOVALUE.SVGDrawer.prototype = {
 
 
   _makeShapesDraggable: function(){
+    var that = this;
+    this.addEventListener('dragend', function(evt, shape){
+      that.dragPointerStartXY = {x: evt.layerX, y: evt.layerY};
+      that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
+    });
+
+    this.addEventListener('dragstart', function(evt, shape){
+      that.dragPointerStartXY = {x: evt.layerX, y: evt.layerY};
+      that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
+    });
+
     this.addEventListener('dragging', function(evt, shape){
       // move shape to front
       shape.getShape().parentNode.appendChild(shape.getShape());
       // update shapes (x, y)
-      shape.setXY({x:evt.detail.x, y:evt.detail.y});
+      shape.setXY({
+        x:(that.dragShapeStartXY.x + evt.layerX - that.dragPointerStartXY.x),
+        y:(that.dragShapeStartXY.y + evt.layerY - that.dragPointerStartXY.y)
+      });
     });
   }
 
@@ -321,7 +355,7 @@ YOVALUE.SVGDrawer.prototype = {
  * @constructor
  */
 YOVALUE.SVGDrawer.BaseShape = function(args){
-  this.id = YOVALUE.getUniqId();
+  this.id = typeof args.id == 'undefined' ? YOVALUE.getUniqId() : args.id;
   this.x = args.x;
   this.y = args.y;
   this.matrix = [1, 0, 0, 1, args.x, args.y];
@@ -346,8 +380,8 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
   setId: function(v){
     this.id = v;
     this.shape.setAttributeNS(null, "id", v);
-    console.log(this.id);
-    console.log(printStackTrace());
+  //  console.log(this.id);
+  //  console.log(printStackTrace());
   },
   getId: function(){
     return this.id;
@@ -384,6 +418,7 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
     // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
     this.matrix[4] = this.shape.nodeName == 'circle' ? v : v-this.getBBox().width/2;
     if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    this.x = v;
     return true;
   },
   getX: function(){
@@ -396,6 +431,7 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
     this.matrix[5] = this.shape.nodeName == 'circle' ? v : v-this.getBBox().height/2;
     if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
     if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
+    this.y = v;
     return true;
   },
   getY: function(){

@@ -89,6 +89,10 @@ class AppUserPkb extends App
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
+    $this->writeActions = array('updateGraphName', 'setGraphAttributes', 'changeGraphPosition', 'addGraphHistoryItem', 'updateNodeMapping', 'updateGraphElementContent', 'createNewGraph', 'copyGraph', 'cloneGraph', 'getGraphDiff', 'removeGraph','addNodeContentSource','removeNodeContentSource');
+    if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
+    if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
+
     // else process action defined by url
     switch($action){
 
@@ -194,10 +198,8 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($s));
         break;
 
-      /* MODIFY METHODS */
+      /* MODIFY ACTIONS */
       case 'updateGraphName':
-        if($access_level == 'read') exit();
-
         $r = $this->getRequest();
         $query = "SELECT graph FROM `graph` WHERE id=".$r['graphId'];
         $row = $this->db->execute($query)[0];
@@ -245,8 +247,6 @@ class AppUserPkb extends App
         break;
 
       case 'addGraphHistoryItem':
-        if($access_level == 'read') exit();
-
         $r = $this->getRequest();
         $query = 'INSERT INTO graph_history SET graph_id = "'.$r['graphId'].'", step = "'.$r['step'].'", timestamp = "'.$r['timestamp'].'", elements = "'.$this->db->escape(json_encode($r['elements'], JSON_FORCE_OBJECT)).'", node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
         if($this->db->execute($query)){
@@ -257,9 +257,6 @@ class AppUserPkb extends App
         break;
 
       case 'updateNodeMapping':
-        //exit();
-        if($access_level == 'read') exit();
-
         $r = $this->getRequest();
         $query = 'UPDATE graph_history SET node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'], JSON_FORCE_OBJECT)).'" WHERE graph_id = "'.$r['graphId'].'" AND step = "'.$r['step'].'"';
         if($this->db->execute($query)){
@@ -270,8 +267,6 @@ class AppUserPkb extends App
         break;
 
       case 'updateGraphElementContent':
-        if($access_level == 'read') exit();
-
         $r = $this->getRequest();
 
         if($r['type'] == 'updateNodeText' || $r['type'] == 'updateNodeAttribute' || $r['type'] == 'addIcon'){
@@ -382,7 +377,7 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($clone_list));
         break;
 
-      case "addNodeContentSource":
+      case 'addNodeContentSource':
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
@@ -392,7 +387,7 @@ class AppUserPkb extends App
         $this->showRawData(json_encode(array('result'=>'SUCCESS')));
         break;
 
-      case "removeNodeContentSource":
+      case 'removeNodeContentSource':
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
@@ -402,7 +397,7 @@ class AppUserPkb extends App
         $this->showRawData(json_encode(array('result'=>'SUCCESS')));
         break;
 
-      case "getNodeContentSourceList":
+      case 'getNodeContentSourceList':
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);

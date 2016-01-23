@@ -68,6 +68,10 @@ YOVALUE.CanvasDrawer.prototype = {
     this.shapes[shape.getId()] = shape;
   },
 
+  removeShape: function(shape){
+    shape.remove();
+  },
+
   getStageDataUrl: function(mimeType,callback){
     return this.stage.toDataURL({mimeType:mimeType, callback:callback});
   },
@@ -204,8 +208,9 @@ YOVALUE.CanvasDrawer.prototype = {
   },
 
   createShape: function(type, args){
+    var shape;
     if(type == 'path'){
-      return new YOVALUE.CanvasDrawer.Path({
+      shape = new YOVALUE.CanvasDrawer.Path({
         data: args.data,
         stroke: args.stroke,
         opacity: args.opacity,
@@ -221,18 +226,19 @@ YOVALUE.CanvasDrawer.prototype = {
       });
     }
     if(type == 'circle'){
-      return new YOVALUE.CanvasDrawer.Circle(args);
+      shape =  new YOVALUE.CanvasDrawer.Circle(args);
     }
     if(type == 'text'){
-      return new YOVALUE.CanvasDrawer.Text(args);
+      shape =  new YOVALUE.CanvasDrawer.Text(args);
     }
     if(type == 'image'){
-      return new YOVALUE.CanvasDrawer.Image(args);
+      shape =  new YOVALUE.CanvasDrawer.Image(args);
     }
     if(type == 'rectangle'){
-      return new YOVALUE.CanvasDrawer.Rect(args);
+      shape =  new YOVALUE.CanvasDrawer.Rect(args);
     }
-
+    shape.setId(shape._id);
+    return shape;
   }
 };
 

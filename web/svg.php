@@ -20,14 +20,15 @@
     shape2.setXY({x:120, y:100});
     shape2.setWidth(50);
     shape2.setHeight(50);
-    /*
-    for(var i=0; i<=50; i++){
-      var shape3 = drawer.createShape('circle', {x:10+10*i, y:10+10*i, radius:50, fill:'green', opacity:0.2});
+
+    var step = 50;
+    for(var i=0; i<=10; i++){
+      var shape3 = drawer.createShape('circle', {x:10+step*i, y:10+step*i, radius:10, fill:'green', opacity:0.2});
       drawer.addShape('layerOne', shape3);
       shape3.setDraggable(true);
-      var shape4 = drawer.createShape('path', {x:10+10*i, y:10+10*i, data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
+      var shape4 = drawer.createShape('path', {x:10+step*i, y:10+step*i, data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
       drawer.addShape('layerOne', shape4);
-      var shape5 = drawer.createShape('text', {x:10+10*i, y:10+10*i, text:'Привет всем!', fill:'black'});
+      var shape5 = drawer.createShape('text', {x:10+step*i, y:10+step*i, text:'Привет всем!', fill:'black'});
       drawer.addShape('layerOne', shape5);
       shape5.setPointerEvents('none');
 
@@ -37,7 +38,7 @@
 
     var shape6 = drawer.createShape('rectangle', {x:p.x, y:p.y, width:p.width, height:p.height, fill:'none', stroke:'blue', strokeWidth:2});
     drawer.addShape('layerOne', shape6);
-     */
+
  //   shape2.setDraggable(true);
    // shape2.setY(200);
     var intersections = drawer.getIntersections(120,100);

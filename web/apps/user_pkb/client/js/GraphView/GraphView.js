@@ -306,7 +306,7 @@ YOVALUE.GraphView.prototype = {
       p1 = {x:nodeMapping[edge.source].x, y:nodeMapping[edge.source].y};
       p2 = {x:nodeMapping[edge.target].x, y:nodeMapping[edge.target].y};
 
-      elEdge = this.edgeFactory.create(this.skin, {
+      elEdge = this._createElement('edge', this.skin, {
         edgeId: edge.id,
         edgeType: edge.type,
         start: p1,
@@ -314,8 +314,7 @@ YOVALUE.GraphView.prototype = {
         color:this.decoration.edges[edge.id].color,
         opacity:this.decoration.edges[edge.id].opacity,
         width:this.decoration.edges[edge.id].width
-      },
-      this.drawer);
+      });
 
       this.graphViewElements.insertRow({'element':elEdge, 'elementType':elEdge.getElementType(),'elementId':elEdge.getElementId(),'drawerShapeId':elEdge.getDrawerShapeId()});
       //add node shape to node layer
@@ -400,7 +399,7 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
 
       node = nodes[freeNodeIdsArray[i]];
-      elNode = this.nodeFactory.create(this.skin, {
+      elNode = this._createElement('node', this.skin, {
         nodeId:node.id,
         nodeType:node.type,
         icon:node.icon,
@@ -411,8 +410,7 @@ YOVALUE.GraphView.prototype = {
         color:this.decoration.nodes[node.id].color,
         opacity:this.decoration.nodes[node.id].opacity,
         stickers:this.decoration.nodes[node.id].stickers
-      },
-      this.drawer);
+      });
 
       this.graphViewElements.insertRow({'element':elNode, 'elementType':elNode.getElementType(),'elementId':elNode.getElementId(),'drawerShapeId':elNode.getDrawerShapeId()});
       //add node shape to node layer
@@ -472,7 +470,7 @@ YOVALUE.GraphView.prototype = {
       rows = this.graphViewElements.getRows({'elementType':'node', 'elementId':nodeId});
       this._removeElement(rows[0]['element'].getDrawerShapeId());
     }
-
+    console.log('dddx');
     return doNeedRedraw;
   },
 
@@ -504,7 +502,7 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
       nodeId = freeNodeIdsArray[i];
       node = nodes[nodeId];
-      elNodeLabel = this.labelFactory.create(this.skin, {
+      elNodeLabel = this._createElement('label', this.skin, {
         nodeLabelId:node.id,
         text:node.label,
         graphId: this.graphId,
@@ -513,9 +511,7 @@ YOVALUE.GraphView.prototype = {
         angle:nodeLabelMapping[node.id].angle,
         size:this.decoration.nodeLabels[node.id].size,
         opacity:this.decoration.nodeLabels[node.id].opacity
-      },
-      this.drawer
-      );
+      });
       this.graphViewElements.insertRow({'element':elNodeLabel, 'elementType':elNodeLabel.getElementType(),'elementId':elNodeLabel.getElementId(),'drawerShapeId':elNodeLabel.getDrawerShapeId()});
       //add label shape to node layer
       this.drawer.addShape(this.nodeLabelLayerId, elNodeLabel.getDrawerShape());
@@ -657,21 +653,21 @@ YOVALUE.GraphView.prototype = {
 
   /**
    * Create clone of dragged node and put it on original place
-   * @param e
+   * @param evt
    * @private
    */
-  _dragStartNodeHandler: function(e){
+  _dragStartNodeHandler: function(evt){
     if(this.isNodeDraggedStarted === false){
       this.isNodeDraggedStarted = true;
 
-      this.currentDraggedShapeId = e.targetNode.getId();
+      this.currentDraggedShapeId = evt.targetNode.getId();
       this.draggedElement = this.graphViewElements.getRows({elementType:'node', drawerShapeId:this.currentDraggedShapeId})[0]['element'];
       this.draggedModelElement = this.findModelElementByShapeId(this.draggedElement.getDrawerShapeId());
       // create clone and set moving node semi-transparent
       if(this.dragMode == 'copy'){
         var el = this._cloneElement(this.currentDraggedShapeId);
         el.setXY(this.nodeMapping.mapping[el.getElementId()].x, this.nodeMapping.mapping[el.getElementId()].y);
-        e.targetNode.setOpacity(0.6);
+        evt.targetNode.setOpacity(0.6);
       }
     }
   },
@@ -695,17 +691,18 @@ YOVALUE.GraphView.prototype = {
 */
   /**
    * Remove dragged node and fill in this.droppedOnShapeIds
-   * @param e
+   * @param evt
    * @private
    */
-  _dragEndNodeHandler: function(e){
+  _dragEndNodeHandler: function(evt){
     // calculate variables for callback args
     if(this.isNodeDraggedStarted === true){
       this.isNodeDraggedStarted = false;
 
       if(this.dragMode == 'copy'){
         // get all shapes the node was dropped on
-        var shapes = this.drawer.getIntersections(e.layerX, e.layerY);
+        var shapes = this.drawer.getIntersections(evt.layerX, evt.layerY);
+        console.log(evt.layerX, evt.layerY, shapes);
         this.droppedOnShapeIds = [];
         for(var i in shapes){
           // if we have found something this it is not the node we dragged - it is the element we dropped node on
@@ -713,6 +710,7 @@ YOVALUE.GraphView.prototype = {
             this.droppedOnShapeIds.push(shapes[i].getId());
           }
         }
+        console.log(this.droppedOnShapeIds);
       }
     }
 
@@ -721,7 +719,7 @@ YOVALUE.GraphView.prototype = {
       this.dragendCallbackCallsCount++;
       if(this.dragendCallbackCallsCount == this.callbackBindsTable.getRowsCount({eventType:'dragendnode', shapeId:this.currentDraggedShapeId})){
         this.dragendCallbackCallsCount = 0;
-        this._removeElement(e.targetNode.getId());
+        this._removeElement(evt.targetNode.getId());
         this.drawer.drawLayer(this.nodeLayerId);
       }
     }
@@ -739,37 +737,37 @@ YOVALUE.GraphView.prototype = {
   _createCallback: function(eventType, callback){
     var that = this, cb;
     if(eventType == "dragendnode"){
-      cb = function(e){
+      cb = function(evt){
         callback({
           eventType: eventType,
           fromGraphId: that.draggedElement.getGraphId(),
           draggedModelElement: that.draggedModelElement,
           droppedOnShapeIds: that.droppedOnShapeIds
         });
-        that._dragEndNodeHandler(e);
+        that._dragEndNodeHandler(evt);
       }
     }else if(eventType == "mousemove"){
-      cb = function(e){
-        callback({graphId: that.graphId, eventType: "mousemove", x: e.x, y: e.y});
+      cb = function(evt){
+        callback({graphId: that.graphId, eventType: "mousemove", x: evt.x, y: evt.y});
       };
     }else if(eventType == "draggingnode"){
-      cb = function(e){
+      cb = function(evt){
         if(that.isNodeDraggedStarted) callback({
           graphId: that.draggedElement.getGraphId(),
           draggedModelElement: that.draggedModelElement,
           eventType: "draggingnode",
-          x: e.x,
-          y: e.y
+          x: evt.x,
+          y: evt.y
         });
       };
     }else if(eventType == "clickbackground"){
-      cb = function(e){
-        callback({graphId: that.graphId, eventType:eventType, x: e.pageX, y: e.pageY});
+      cb = function(evt){
+        callback({graphId: that.graphId, eventType:eventType});
       };
     }else if(this.eventTypes.indexOf(eventType) != -1){
-      cb = function(e){
+      cb = function(evt){
         //call binded callback
-        var modelElement = that.findModelElementByShapeId(e.targetNode.getId());
+        var modelElement = that.findModelElementByShapeId(evt.targetNode.getId());
         callback({graphId: that.graphId, eventType: eventType, elementType:modelElement.type, element: modelElement.element});
       };
     }
@@ -805,7 +803,7 @@ YOVALUE.GraphView.prototype = {
    * @return {Object}
    */
   getTextArea: function(text, size){
-    var label = this.labelFactory.create(this.skin, {
+    var label = this._createElement('label', this.skin, {
         nodeLabelId: 1,
         text: text,
         graphId: this.graphId,
@@ -814,11 +812,9 @@ YOVALUE.GraphView.prototype = {
         angle: 0,
         size: size,
         opacity: 1
-      },
-      this.drawer
-    );
+      });
     var result = {width:label.getDrawerShapeWidth(), height:label.getDrawerShapeHeight()};
-    label.remove();
+    this._removeElement(label.getShape().getId());
 
     return result;
   },
@@ -860,9 +856,55 @@ YOVALUE.GraphView.prototype = {
 
     // remove shape
     rows = this.graphViewElements.getRows({drawerShapeId:shapeId});
-    rows[0]['element'].remove();
+    this.drawer.removeShape(rows[0]['element'].getDrawerShape());
 
     // remove element from the list of elements
     this.graphViewElements.removeRows({drawerShapeId:shapeId});
+  },
+
+  /**
+   *
+   * @param skin in form {
+      node:{
+        constructor: YOVALUE.GraphViewNode,
+        attr: {}
+      },
+      edge:{
+        constructor: YOVALUE.GraphViewEdge,
+        attr: {}
+      },
+      nodeLabel:{
+        constructor: YOVALUE.GraphViewNodeLabel,
+        attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
+      }
+    }
+   * @param c
+   * @returns {skin.edge.constr}
+   */
+  _createElement: function(type, skin, settings){
+    if(type == 'edge'){
+      return new skin.edge.constr(
+          this.drawer,
+          new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.edgeId, elementType:'edge'}),
+          YOVALUE.extend(skin.edge.attr, settings)
+      );
+    }else if(type == 'node'){
+      var constructor;
+
+      if(settings.icon == null || typeof(settings.icon) == 'undefined') constructor = skin.node.constr.withoutIcon;
+      else constructor = skin.node.constr.withIcon;
+
+      return new constructor(
+          this.drawer,
+          new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeId, elementType:'node'}),
+          YOVALUE.extend(skin.node.attr, settings)
+      );
+    }else if(type == 'label'){
+      return new skin.nodeLabel.constr(
+          this.drawer,
+          new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeLabelId, elementType:'nodeLabel'}),
+          YOVALUE.extend(skin.nodeLabel.attr, settings)
+      );
+    }
   }
 };

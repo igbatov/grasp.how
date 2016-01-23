@@ -12,7 +12,6 @@ YOVALUE.GraphViewElement = function(args){
 YOVALUE.GraphViewElement.prototype = {
   setDrawerShape: function(shape){
     this.shape = shape;
-    this.shape.setId(shape._id);
   },
 
   getDrawerShape: function(){
@@ -29,11 +28,6 @@ YOVALUE.GraphViewElement.prototype = {
 
   getDrawerShapeId: function(){
     return this.shape.getId();
-  },
-
-  remove: function(){
-    this.shape.remove();
-    delete this;
   },
 
   getElementType: function(){
