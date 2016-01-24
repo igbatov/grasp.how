@@ -80,8 +80,8 @@ class AppUserPkb extends App
       || $deviceType != 'computer'
       || $os_checker->getName() != \Sinergi\BrowserDetector\Os::WINDOWS
     ){
-      include($this->getAppDir("template", false)."/browserUnsupported.php");
-      exit();
+     // include($this->getAppDir("template", false)."/browserUnsupported.php");
+     // exit();
     }
 
     // define node and edge attributes (must be the same as db table column names)
