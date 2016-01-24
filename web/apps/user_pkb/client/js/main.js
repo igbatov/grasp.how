@@ -22,9 +22,6 @@ var Modules = {
   SVGDrawer: YOVALUE.SVGDrawer,
   SVGDrawerFactory: YOVALUE.SVGDrawerFactory,
 
-  GraphViewNodeFactory: YOVALUE.GraphViewNodeFactory,
-  GraphViewNodeLabelFactory: YOVALUE.GraphViewNodeLabelFactory,
-  GraphViewEdgeFactory: YOVALUE.GraphViewEdgeFactory,
   GraphViewFactory: YOVALUE.GraphViewFactory,
   GraphViewsPubSub: YOVALUE.GraphViewsPubSub,
 
@@ -106,7 +103,7 @@ var DI = {
   GraphViewNodeLabelFactory:[],
   CanvasDrawerFactory:['kinetic', 'jQuery'],
   SVGDrawerFactory:[],
-  GraphViewFactory:['GraphViewNodeFactory', 'GraphViewEdgeFactory', 'GraphViewNodeLabelFactory'],
+  GraphViewFactory:[],
   GraphViewsPubSub:['Subscriber', 'Publisher', 'GraphViewFactory', 'ViewManager', 'SVGDrawerFactory'],
 
   AddRemoveElementController:['Publisher'],
@@ -154,14 +151,18 @@ var DI = {
     {
       "node":{
         "constr":{"withoutIcon":"GraphViewNode","withIcon":"GraphViewNodeImage"},
-        "attr":{"typeColors":{"text":"#00BFFF","question":"#87CEFA","value":"#3CB371","fact":"#8FBC8F","hypothesis":"#FF69B4","belief":"#FF0000"}}},
+        "attr":{"typeColors":{"text":"#00BFFF","question":"#87CEFA","value":"#3CB371","fact":"#8FBC8F","hypothesis":"#FF69B4","belief":"#FF0000"}}
+      },
       "edge":{
         "constr":"GraphViewEdge",
-        "attr":{"typeColors":{"link":"#00BFFF","in_favour_of":"#87CEFA","contrary_to":"#3CB371"}}},
+        "attr":{"typeColors":{"link":"#00BFFF","in_favour_of":"#87CEFA","contrary_to":"#3CB371"}}
+      },
       "nodeLabel":{
         "constr":"GraphViewNodeLabel",
-        "attr":{"font":"Calibri","fill":"#BBBBBB","maxSize":24
-        }
+        "attr":{"font":"Calibri","fill":"#BBBBBB","maxSize":24}
+      },
+      "background":{
+        "attr": {"fill":'#2B2B2B'}
       }
     }
   ],

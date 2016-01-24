@@ -8,7 +8,7 @@
  * @param labelFactory
  * @constructor
  */
-YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFactory) {
+YOVALUE.GraphView = function (graphId, drawer) {
   this.graphId = graphId;
   this.drawer = drawer;
 
@@ -18,11 +18,6 @@ YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFa
   // elementId = model node or edge id
   // drawerShapeId = id of drawer object
   this.graphViewElements = new YOVALUE.Table(['element', 'elementType', 'elementId', 'drawerShapeId']);
-
-  //GraphView element factories
-  this.nodeFactory = nodeFactory;
-  this.edgeFactory = edgeFactory;
-  this.labelFactory = labelFactory;
 
   //GraphView settings
   this.graphArea = null;
@@ -40,7 +35,6 @@ YOVALUE.GraphView = function (graphId, drawer, nodeFactory, edgeFactory, labelFa
     width: 0,
     height: 0
   });
-  this.backgroundShape.setId(this.backgroundShape._id);
   this.drawer.addShape(this.backgroundLayerId, this.backgroundShape);
 
   // create three layers on a drawer stage - for nodes, edges and labels
@@ -232,6 +226,7 @@ YOVALUE.GraphView.prototype = {
 
   setSkin: function(skin){
     this.skin = skin;
+    this.backgroundShape.setFill(this.skin.background.attr.fill);
   },
 
   /**
@@ -470,7 +465,7 @@ YOVALUE.GraphView.prototype = {
       rows = this.graphViewElements.getRows({'elementType':'node', 'elementId':nodeId});
       this._removeElement(rows[0]['element'].getDrawerShapeId());
     }
-    console.log('dddx');
+
     return doNeedRedraw;
   },
 
@@ -502,6 +497,7 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
       nodeId = freeNodeIdsArray[i];
       node = nodes[nodeId];
+      console.log('dddd');
       elNodeLabel = this._createElement('label', this.skin, {
         nodeLabelId:node.id,
         text:node.label,
@@ -702,11 +698,10 @@ YOVALUE.GraphView.prototype = {
       if(this.dragMode == 'copy'){
         // get all shapes the node was dropped on
         var shapes = this.drawer.getIntersections(evt.layerX, evt.layerY);
-        console.log(evt.layerX, evt.layerY, shapes);
         this.droppedOnShapeIds = [];
         for(var i in shapes){
           // if we have found something this it is not the node we dragged - it is the element we dropped node on
-          if(shapes[i].getId() != this.currentDraggedShapeId){
+          if(shapes[i].getId() != this.currentDraggedShapeId && typeof(shapes[i].getId()) != 'undefinedx  '){
             this.droppedOnShapeIds.push(shapes[i].getId());
           }
         }
@@ -876,6 +871,9 @@ YOVALUE.GraphView.prototype = {
       nodeLabel:{
         constructor: YOVALUE.GraphViewNodeLabel,
         attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
+      },
+      background:{
+        attr: {fill:'#2B2B2B'}
       }
     }
    * @param c

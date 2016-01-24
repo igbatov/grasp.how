@@ -835,9 +835,6 @@ class AppUserPkb extends App
       'SelectGraphLayout/SelectGraphLayoutModel.js',
       'SelectGraphSkin/SelectGraphSkinModel.js',
 
-      'GraphView/GraphViewEdgeFactory.js',
-      'GraphView/GraphViewNodeFactory.js',
-      'GraphView/GraphViewNodeLabelFactory.js',
       'GraphView/iGraphViewModel.js',
       'GraphView/iGraphView.js',
       'GraphView/GraphView.js',
