@@ -497,7 +497,7 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
       nodeId = freeNodeIdsArray[i];
       node = nodes[nodeId];
-      console.log('dddd');
+
       elNodeLabel = this._createElement('label', this.skin, {
         nodeLabelId:node.id,
         text:node.label,
@@ -508,6 +508,7 @@ YOVALUE.GraphView.prototype = {
         size:this.decoration.nodeLabels[node.id].size,
         opacity:this.decoration.nodeLabels[node.id].opacity
       });
+
       this.graphViewElements.insertRow({'element':elNodeLabel, 'elementType':elNodeLabel.getElementType(),'elementId':elNodeLabel.getElementId(),'drawerShapeId':elNodeLabel.getDrawerShapeId()});
       //add label shape to node layer
       this.drawer.addShape(this.nodeLabelLayerId, elNodeLabel.getDrawerShape());
@@ -581,7 +582,7 @@ YOVALUE.GraphView.prototype = {
     var eRows = this.graphViewElements.getRows();
     for(i in eRows){
       if(this.callbackBindsTable.getRows({shapeId: eRows[i].drawerShapeId}).length){
-        this.drawer.muteShape(eRows[i].drawerShapeId, mute);
+        this.drawer.muteShape(eRows[i]['element'].getDrawerShape(), mute);
       }
     }
   },
@@ -745,6 +746,21 @@ YOVALUE.GraphView.prototype = {
       cb = function(evt){
         callback({graphId: that.graphId, eventType: "mousemove", x: evt.x, y: evt.y});
       };
+    }else if(eventType == "dragstartnode"){
+      cb = function(evt){
+        console.log(evt);
+        //call binded callback
+        var modelElement = that.findModelElementByShapeId(evt.targetNode.getId());
+        callback({
+          graphId: that.graphId,
+          eventType: eventType,
+          elementType:modelElement.type,
+          element: modelElement.element,
+          // quick ugly hack: CanvasDrawer sends layerX, layerY, SVGDrawer send x, y in evt
+          x:typeof(evt.layerX) != 'undefined' ? evt.layerX : evt.x,
+          y:typeof(evt.layerY) != 'undefined' ? evt.layerY : evt.y
+        });
+      };
     }else if(eventType == "draggingnode"){
       cb = function(evt){
         if(that.isNodeDraggedStarted) callback({
@@ -882,9 +898,9 @@ YOVALUE.GraphView.prototype = {
   _createElement: function(type, skin, settings){
     if(type == 'edge'){
       return new skin.edge.constr(
-          this.drawer,
-          new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.edgeId, elementType:'edge'}),
-          YOVALUE.extend(skin.edge.attr, settings)
+        this.drawer,
+        new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.edgeId, elementType:'edge'}),
+        YOVALUE.extend(skin.edge.attr, settings)
       );
     }else if(type == 'node'){
       var constructor;
@@ -893,15 +909,15 @@ YOVALUE.GraphView.prototype = {
       else constructor = skin.node.constr.withIcon;
 
       return new constructor(
-          this.drawer,
-          new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeId, elementType:'node'}),
-          YOVALUE.extend(skin.node.attr, settings)
+        this.drawer,
+        new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeId, elementType:'node'}),
+        YOVALUE.extend(skin.node.attr, settings)
       );
     }else if(type == 'label'){
       return new skin.nodeLabel.constr(
-          this.drawer,
-          new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeLabelId, elementType:'nodeLabel'}),
-          YOVALUE.extend(skin.nodeLabel.attr, settings)
+        this.drawer,
+        new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeLabelId, elementType:'nodeLabel'}),
+        YOVALUE.extend(skin.nodeLabel.attr, settings)
       );
     }
   }

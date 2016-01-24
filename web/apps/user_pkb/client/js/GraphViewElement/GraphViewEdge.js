@@ -20,7 +20,8 @@ YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
     data: this._getQuadPathData(args.start, args.stop),
     hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
-    opacity: args.opacity
+    opacity: args.opacity,
+    fill: 'none'
   });
 
   this.setWidth(this.width);

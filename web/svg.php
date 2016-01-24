@@ -20,9 +20,10 @@
     shape2.setXY({x:120, y:100});
     shape2.setWidth(50);
     shape2.setHeight(50);
+    shape2.setDraggable(true);
 
     var step = 50;
-    for(var i=0; i<=10; i++){
+    for(var i=0; i<=1; i++){
       var shape3 = drawer.createShape('circle', {x:10+step*i, y:10+step*i, radius:10, fill:'green', opacity:0.2});
       drawer.addShape('layerOne', shape3);
       shape3.setDraggable(true);
@@ -53,7 +54,7 @@
 /*--------------------------------------*/
 
 </script>
-
+<div id="padding" style="height:50px; border: 2px;"></div>
 <div id="container"></div>
 
 </body>

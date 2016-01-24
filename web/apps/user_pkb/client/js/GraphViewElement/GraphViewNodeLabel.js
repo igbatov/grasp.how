@@ -1,6 +1,7 @@
 /**
  * Constructs canvasDrawer shape for graph node label.
  * Implements IGraphViewNodeLabel interface so that GraphView knows how to work with it.
+ * @param drawer
  * @param graphViewElement
  * @param args - {labelId, nodeType, graphId, x, y, text, size, angle, opacity}
  * @constructor
@@ -22,7 +23,9 @@ YOVALUE.GraphViewNodeLabel = function(drawer, graphViewElement, args){
   });
 
   this.maxSize = args.maxSize;
-  this.shape.setListening(false);
+
+  this.drawer.muteShape(this.shape, true);
+
   graphViewElement.setDrawerShape(this.shape);
 };
 

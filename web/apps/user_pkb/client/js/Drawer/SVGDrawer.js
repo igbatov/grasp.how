@@ -89,14 +89,16 @@ YOVALUE.SVGDrawer.prototype = {
   unbindShape: function(bindId){
     this.removeEventListener(bindId);
   },
+
   /**
    * Mute and unmute certain shapes
    * @param shapeId
    * @param mute - boolean: true to mute, false to unmute
    */
-  muteShape: function(shapeId, mute){
-    var callbacks = this.shapeCallbacks.getRows({shapeId:shapeId});
+  muteShape: function(shape, mute){
+    var callbacks = this.shapeCallbacks.getRows({shapeId:shape.getId()});
     for(var i in callbacks) callbacks[i]['isMuted'] = mute;
+    shape.getShape().setAttribute('pointer-events', mute ? 'none' : 'visiblePainted');
   },
 
   /**
@@ -330,16 +332,20 @@ YOVALUE.SVGDrawer.prototype = {
     this.addEventListener('dragend', function(evt, shape){
       that.dragPointerStartXY = {x: evt.layerX, y: evt.layerY};
       that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
+      // move shape to its layer
+      that.dragShapeLayer.appendChild(shape.getShape());
+      that.dragShapeLayer = null;
     });
 
     this.addEventListener('dragstart', function(evt, shape){
       that.dragPointerStartXY = {x: evt.layerX, y: evt.layerY};
       that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
+      // move shape to front
+      that.dragShapeLayer = shape.getShape().parentNode;
+      that.svgroot.appendChild(shape.getShape());
     });
 
     this.addEventListener('dragging', function(evt, shape){
-      // move shape to front
-      shape.getShape().parentNode.appendChild(shape.getShape());
       // update shapes (x, y)
       shape.setXY({
         x:(that.dragShapeStartXY.x + evt.layerX - that.dragPointerStartXY.x),
@@ -642,6 +648,15 @@ YOVALUE.SVGDrawer.Text.prototype = {
 
   setShape: function() {
     return false;
+  },
+
+  // not implemented yet
+  setRotation: function(v){
+    // do smth with transform
+  },
+
+  getRotation: function(){
+
   },
 
   /**

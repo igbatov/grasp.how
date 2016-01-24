@@ -157,8 +157,7 @@ YOVALUE.CanvasDrawer.prototype = {
     delete this.bindedShapes[bindId];
   },
 
-  muteShape: function(shapeId, mute){
-    var shape = this.shapes[shapeId];
+  muteShape: function(shape, mute){
     if(mute) shape.setListening(false);
     else shape.setListening(true);
   },

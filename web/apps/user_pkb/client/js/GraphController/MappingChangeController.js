@@ -18,7 +18,7 @@ YOVALUE.MappingChangeController.prototype = {
         m, eventName = event.getName(),
         dragMode,
         graphId = (eventName == 'dragendnode' ? event.getData()['fromGraphId'] : event.getData()['graphId']),
-        acceptedEvents = ['draggingnode', 'dragendnode'];
+        acceptedEvents = ['dragstartnode', 'draggingnode', 'dragendnode'];
 
     // reject in the explicit form all events except those in acceptedEvents
     if(acceptedEvents.indexOf(eventName) == -1) return;
@@ -27,10 +27,25 @@ YOVALUE.MappingChangeController.prototype = {
     dragMode = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_drag_mode', {graphId: graphId}));
     if(dragMode != 'move') return;
 
+    if(eventName == 'dragstartnode'){
+      console.log(event.getData());
+      m = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId}));
+      this.nodeStartXY = {
+        x: m.mapping[event.getData()['element'].id].x,
+        y: m.mapping[event.getData()['element'].id].y
+      };
+      this.pointerStartXY = {
+        x: event.getData()['x'],
+        y: event.getData()['y']
+      };
+
+      console.log(this.nodeStartXY);
+      console.log(this.pointerStartXY);
+    }
     if(eventName == 'draggingnode'){
       m = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId}));
-      m.mapping[event.getData()['draggedModelElement']['element'].id].x = event.getData()['x'];
-      m.mapping[event.getData()['draggedModelElement']['element'].id].y = event.getData()['y'];
+      m.mapping[event.getData()['draggedModelElement']['element'].id].x = this.nodeStartXY.x + (event.getData()['x'] - this.pointerStartXY.x);
+      m.mapping[event.getData()['draggedModelElement']['element'].id].y = this.nodeStartXY.y + (event.getData()['y'] - this.pointerStartXY.y);
       var graphViewSettings = {
         graphId: graphId,
         nodeMapping: m,
