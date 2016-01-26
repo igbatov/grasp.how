@@ -286,7 +286,7 @@ YOVALUE.SVGDrawer.prototype = {
       if(evt.type.substr(0, 5) == 'touch' && evt.touches.length == 2) return true;
 
       // fix for firefox image dragging do not interfere with our custom dragging
-      if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
+   //   if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
 
       // if not mousemove
       if(evt.type != "mousemove" && evt.type != "touchmove"){
