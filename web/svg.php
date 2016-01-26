@@ -39,7 +39,9 @@
 
     var shape6 = drawer.createShape('rectangle', {x:p.x, y:p.y, width:p.width, height:p.height, fill:'none', stroke:'blue', strokeWidth:2});
     drawer.addShape('layerOne', shape6);
-
+    drawer.bindShape('mouseenter', shape2, function(e){
+      console.log(e);
+    });
  //   shape2.setDraggable(true);
    // shape2.setY(200);
     var intersections = drawer.getIntersections(120,100);
@@ -47,7 +49,7 @@
     //for(var i in intersections)  console.log(intersections[i]);
 
     drawer.bindStageMove(function(e){
-      console.log(e);
+      //console.log(e);
     }, {centerX:120, centerY:100, width:50, height:50})
   });
 

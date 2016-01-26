@@ -15,7 +15,7 @@ YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContain
   this.stageCallbacks = {};
   document.getElementById(stageContainerId).appendChild(this.svgroot);
   this._createSVGDragEvent();
-  this._initEventBinder();
+  this._initEventHandler();
   this._makeShapesDraggable();
 };
 
@@ -68,6 +68,15 @@ YOVALUE.SVGDrawer.prototype = {
     this.shapes[shape.getId()] = shape;
     document.getElementById(layer_id).appendChild(shape.getShape());
     shape.setXY(shape.getXY());
+
+    var that = this;
+    this.elementEventNames = ['mouseenter', 'mouseleave'];
+    for(var i in this.elementEventNames){
+      var event = this.elementEventNames[i];
+      shape.getShape().addEventListener(event, function(e){
+        that._eventHandler(e, that);
+      }, false);
+    }
   },
 
   removeShape: function(shape){
@@ -193,48 +202,45 @@ YOVALUE.SVGDrawer.prototype = {
    * on all shapes with class classname
    * @private
    */
-  _initEventBinder: function(){
+  _initEventHandler: function(){
     var i, event;
-    this.eventNames = ['click', 'mouseenter', 'mouseleave', 'dragstart', 'dragging', 'dragend'];
+    this.documentEventNames = ['click', 'dragstart', 'dragging', 'dragend'];
     this.shapeCallbacks = new YOVALUE.Table(['id', 'eventName', 'shapeId', 'shapeClass', 'callback', 'isMuted']);
     var that = this;
-    for(i in this.eventNames){
-      event = this.eventNames[i];
-      document.addEventListener(event, function(e){
-        var j;
 
-        for(var id in that.shapes){
-          var targetId, layerX, layerY;
-
-          if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1){
-            targetId = e.detail.id;
-            layerX = e.detail.x;
-            layerY = e.detail.y;
-          } else{
-            targetId = e.target.id;
-            layerX = e.layerX;
-            layerY = e.layerY;
-          }
-
-          // if we found shape event was fired on
-          if(targetId == id){
-            var shape = that.shapes[id];
-            // callbacks registered for all shapes
-            var generalCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: null, shapeClass: null, isMuted:false});
-            // callbacks registered for shape class
-            var shapeClassCallbacks = typeof shape.getClass() == 'undefined' ? [] : that.shapeCallbacks.getRows({eventName:e.type, shapeClass: shape.getClass(), isMuted:false});
-            // callbacks registered for this shape id
-            var shapeIdCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: shape.getId(), isMuted:false});
-//            console.log(e.type, generalCallbacks);
-            var event = {targetNode:shape, layerX: layerX, layerY: layerY, x:layerX, y:layerY, pageX:layerX, pageY:layerY};
-            for(j in generalCallbacks) generalCallbacks[j]['callback'](event, shape);
-            for(j in shapeClassCallbacks) shapeClassCallbacks[j]['callback'](event, shape);
-            for(j in shapeIdCallbacks) shapeIdCallbacks[j]['callback'](event, shape);
-          }
-        }
-      });
-
+    for(i in this.documentEventNames){
+      event = this.documentEventNames[i];
+      this.svgroot.addEventListener(event, function(e){
+        that._eventHandler(e, that);
+      }, false);
     }
+  },
+
+  _eventHandler: function(e, that){
+    var j, targetId, layerX, layerY;
+    console.log(e.type);
+    if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1){
+      targetId = e.detail.id;
+      layerX = e.detail.x;
+      layerY = e.detail.y;
+    } else{
+      targetId = e.target.id;
+      layerX = e.layerX;
+      layerY = e.layerY;
+    }
+    var shape = that.shapes[targetId];
+
+    // callbacks registered for all shapes
+    var generalCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: null, shapeClass: null, isMuted:false});
+    // callbacks registered for shape class
+    var shapeClassCallbacks = typeof shape.getClass() == 'undefined' ? [] : that.shapeCallbacks.getRows({eventName:e.type, shapeClass: shape.getClass(), isMuted:false});
+    // callbacks registered for this shape id
+    var shapeIdCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: shape.getId(), isMuted:false});
+//            console.log(e.type, generalCallbacks);
+    var event = {targetNode:shape, layerX: layerX, layerY: layerY, x:layerX, y:layerY, pageX:layerX, pageY:layerY};
+    for(j in generalCallbacks) generalCallbacks[j]['callback'](event, shape);
+    for(j in shapeClassCallbacks) shapeClassCallbacks[j]['callback'](event, shape);
+    for(j in shapeIdCallbacks) shapeIdCallbacks[j]['callback'](event, shape);
   },
 
   /**
@@ -284,22 +290,26 @@ YOVALUE.SVGDrawer.prototype = {
 
       // if not mousemove
       if(evt.type != "mousemove" && evt.type != "touchmove"){
-        for(var id in that.shapes){
-          if(evt.target.id == id) shape = that.shapes[id];
-          if(shape && !shape.getDraggable()) return;
 
-          if(shape && (evt.type == "mousedown" || evt.type == "touchstart")){
-            shape.mousedown = true;
-          }
+        shape = that.shapes[evt.target.id];
 
-          if(shape && (evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
-            shape.mousedown = false;
-            that.dragstartEventSend = false;
+        if(!shape) return;
+        if(!shape.getDraggable()) return;
+
+        if(evt.type == "mousedown" || evt.type == "touchstart"){
+          shape.mousedown = true;
+        }
+
+        if((evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
+          shape.mousedown = false;
+          if(that.dragstartEventSend === true){
             var myEvent = new CustomEvent("dragend", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
-            document.dispatchEvent(myEvent);
+            that.svgroot.dispatchEvent(myEvent);
+            that.dragstartEventSend = false;
             evt.preventDefault();
           }
         }
+
       }else{
         for(var id in that.shapes){
           shape = that.shapes[id];
@@ -309,10 +319,10 @@ YOVALUE.SVGDrawer.prototype = {
             if(!that.dragstartEventSend){
               var myEvent = new CustomEvent("dragstart", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
               that.dragstartEventSend = true;
-              document.dispatchEvent(myEvent);
+              that.svgroot.dispatchEvent(myEvent);
             }
             var myEvent = new CustomEvent("dragging", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
-            document.dispatchEvent(myEvent);
+            that.svgroot.dispatchEvent(myEvent);
           }
         }
       }
@@ -330,6 +340,7 @@ YOVALUE.SVGDrawer.prototype = {
   _makeShapesDraggable: function(){
     var that = this;
     this.addEventListener('dragend', function(evt, shape){
+      if(that.dragShapeLayer == null) return;
       that.dragPointerStartXY = {x: evt.layerX, y: evt.layerY};
       that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
       // move shape to its layer
