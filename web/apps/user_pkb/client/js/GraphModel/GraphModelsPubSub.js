@@ -186,7 +186,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
     //  apply changes
     var changes = graphModel.applyChanges(c);
 
-    // fire event that model was successfully changed
+    // if changes are not empty fire event that model was successfully changed
     if(YOVALUE.compare(changes, YOVALUE.iGraphModelChanges) !== true) this.publisher.publish("graph_model_changed", {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)});
   },
 

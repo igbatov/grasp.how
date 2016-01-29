@@ -373,7 +373,8 @@ YOVALUE.GraphView.prototype = {
   arrangeNodeShapes: function(){
     var doNeedRedraw = false, // this will indicate if there were changes that need to be drawn on canvas
       i, nodeId, elNode, node, rows, nodeMapping = this.nodeMapping.mapping;
-
+console.log(this.graphId);
+    console.log(printStackTrace());
     //create array of model node ids
     var nodes = this.model.nodes;
     var nodeIds = [];
