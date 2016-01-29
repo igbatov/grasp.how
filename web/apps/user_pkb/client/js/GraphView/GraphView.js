@@ -278,101 +278,6 @@ YOVALUE.GraphView.prototype = {
   },
 
   /**
-   * Create or adjust drawer shapes for edges
-   */
-  arrangeEdgeShapes: function(){
-    var doNeedRedraw = false,
-      i, edgeId, elEdge, edge, rows, p1, p2, nodeMapping = this.nodeMapping.mapping;
-
-    //create array of model edge ids
-    var edges = this.model.edges;
-    var edgeIds = [];
-    for(i in edges){
-      edgeIds.push(edges[i].id);
-    }
-
-    //create array of edge ids that already has corresponding canvas shape
-    rows = this.graphViewElements.getRows({'elementType':'edge'});
-    var shapeEdgeIds = [];
-    for(i in rows){
-      shapeEdgeIds.push(rows[i]['elementId']);
-    }
-
-    //create shapes to all edges from model that does not yet has shapes
-    var freeEdgeIdsArray = YOVALUE.arrayHelper.difference(edgeIds, shapeEdgeIds);
-    for(i in freeEdgeIdsArray){
-      doNeedRedraw = true;
-      edge = edges[freeEdgeIdsArray[i]];
-      p1 = {x:nodeMapping[edge.source].x, y:nodeMapping[edge.source].y};
-      p2 = {x:nodeMapping[edge.target].x, y:nodeMapping[edge.target].y};
-
-      elEdge = this._createElement('edge', this.skin, {
-        edgeId: edge.id,
-        edgeType: edge.type,
-        start: p1,
-        stop: p2,
-        color:this.decoration.edges[edge.id].color,
-        opacity:this.decoration.edges[edge.id].opacity,
-        width:this.decoration.edges[edge.id].width
-      });
-
-      this.graphViewElements.insertRow({'element':elEdge, 'elementType':elEdge.getElementType(),'elementId':elEdge.getElementId(),'drawerShapeId':elEdge.getDrawerShapeId()});
-      //add node shape to node layer
-      this.drawer.addShape(this.edgeLayerId, elEdge.getDrawerShape());
-
-      //bind to new edge all user callbacks (that was registered with bind() on all other edges)
-      var edgeEvents = ['mouseenteredge', 'mouseleaveedge', 'clickedge'];
-      for(i in edgeEvents){
-        var rows = this.userCallbacksTable.getRows({'eventType':edgeEvents[i]});
-        for(var j in rows){
-          this._bindToElement(edgeEvents[i], elEdge, rows[j].callback);
-        }
-      }
-    }
-
-    //adjust shapes that already exists and has correspondent edge in model
-    var usedEdgeIdsArray = YOVALUE.arrayHelper.intersection(shapeEdgeIds, edgeIds);
-    for(i in usedEdgeIdsArray){
-      edgeId = usedEdgeIdsArray[i];
-      rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':edgeId});
-      elEdge = rows[0]['element'];
-      p1 = {x:nodeMapping[edges[edgeId].source].x, y:nodeMapping[edges[edgeId].source].y};
-      p2 = {x:nodeMapping[edges[edgeId].target].x, y:nodeMapping[edges[edgeId].target].y};
-
-      if(
-        elEdge.getEdgeType() != edges[edgeId].type ||
-        elEdge.getStart().x != p1.x ||
-        elEdge.getStart().y != p1.y ||
-        elEdge.getStop().x != p2.x ||
-        elEdge.getStop().y != p2.y ||
-        elEdge.getColor() != this.decoration.edges[edgeId].color ||
-        elEdge.getOpacity() != this.decoration.edges[edgeId].opacity ||
-        elEdge.getWidth() != this.decoration.edges[edgeId].width
-      ){
-        doNeedRedraw = true;
-        elEdge.setEdgeType(edges[edgeId].type);
-        elEdge.setStart(p1);
-        elEdge.setStop(p2);
-        elEdge.setColor(this.decoration.edges[edgeId].color);
-        elEdge.setOpacity(this.decoration.edges[edgeId].opacity);
-        elEdge.setWidth(this.decoration.edges[edgeId].width);
-      }
-    }
-
-
-    //remove node shapes that do not has correspondent model node
-    var obsoleteEdgeIdsArray = YOVALUE.arrayHelper.difference(shapeEdgeIds, edgeIds);
-    for(i in obsoleteEdgeIdsArray){
-      doNeedRedraw = true;
-      edgeId = obsoleteEdgeIdsArray[i];
-      rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':edgeId});
-      this._removeElement(rows[0]['element'].getDrawerShapeId());
-    }
-
-    return doNeedRedraw;
-  },
-
-  /**
    * Create or adjust Drawer shapes for nodes
    */
   arrangeNodeShapes: function(){
@@ -468,6 +373,102 @@ YOVALUE.GraphView.prototype = {
       doNeedRedraw = true;
       nodeId = obsoleteNodeIdsArray[i];
       rows = this.graphViewElements.getRows({'elementType':'node', 'elementId':nodeId});
+      this._removeElement(rows[0]['element'].getDrawerShapeId());
+    }
+
+    return doNeedRedraw;
+  },
+
+
+  /**
+   * Create or adjust drawer shapes for edges
+   */
+  arrangeEdgeShapes: function(){
+    var doNeedRedraw = false,
+      i, edgeId, elEdge, edge, rows, p1, p2, nodeMapping = this.nodeMapping.mapping;
+
+    //create array of model edge ids
+    var edges = this.model.edges;
+    var edgeIds = [];
+    for(i in edges){
+      edgeIds.push(edges[i].id);
+    }
+
+    //create array of edge ids that already has corresponding canvas shape
+    rows = this.graphViewElements.getRows({'elementType':'edge'});
+    var shapeEdgeIds = [];
+    for(i in rows){
+      shapeEdgeIds.push(rows[i]['elementId']);
+    }
+
+    //create shapes to all edges from model that does not yet has shapes
+    var freeEdgeIdsArray = YOVALUE.arrayHelper.difference(edgeIds, shapeEdgeIds);
+    for(i in freeEdgeIdsArray){
+      doNeedRedraw = true;
+      edge = edges[freeEdgeIdsArray[i]];
+      p1 = {x:nodeMapping[edge.source].x, y:nodeMapping[edge.source].y};
+      p2 = {x:nodeMapping[edge.target].x, y:nodeMapping[edge.target].y};
+
+      elEdge = this._createElement('edge', this.skin, {
+        edgeId: edge.id,
+        edgeType: edge.type,
+        start: p1,
+        stop: p2,
+        color:this.decoration.edges[edge.id].color,
+        opacity:this.decoration.edges[edge.id].opacity,
+        width:this.decoration.edges[edge.id].width
+      });
+
+      this.graphViewElements.insertRow({'element':elEdge, 'elementType':elEdge.getElementType(),'elementId':elEdge.getElementId(),'drawerShapeId':elEdge.getDrawerShapeId()});
+      //add node shape to node layer
+      this.drawer.addShape(this.edgeLayerId, elEdge.getDrawerShape());
+
+      //bind to new edge all user callbacks (that was registered with bind() on all other edges)
+      var edgeEvents = ['mouseenteredge', 'mouseleaveedge', 'clickedge'];
+      for(i in edgeEvents){
+        var rows = this.userCallbacksTable.getRows({'eventType':edgeEvents[i]});
+        for(var j in rows){
+          this._bindToElement(edgeEvents[i], elEdge, rows[j].callback);
+        }
+      }
+    }
+
+    //adjust shapes that already exists and has correspondent edge in model
+    var usedEdgeIdsArray = YOVALUE.arrayHelper.intersection(shapeEdgeIds, edgeIds);
+    for(i in usedEdgeIdsArray){
+      edgeId = usedEdgeIdsArray[i];
+      rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':edgeId});
+      elEdge = rows[0]['element'];
+      p1 = {x:nodeMapping[edges[edgeId].source].x, y:nodeMapping[edges[edgeId].source].y};
+      p2 = {x:nodeMapping[edges[edgeId].target].x, y:nodeMapping[edges[edgeId].target].y};
+
+      if(
+        elEdge.getEdgeType() != edges[edgeId].type ||
+        elEdge.getStart().x != p1.x ||
+        elEdge.getStart().y != p1.y ||
+        elEdge.getStop().x != p2.x ||
+        elEdge.getStop().y != p2.y ||
+        elEdge.getColor() != this.decoration.edges[edgeId].color ||
+        elEdge.getOpacity() != this.decoration.edges[edgeId].opacity ||
+        elEdge.getWidth() != this.decoration.edges[edgeId].width
+      ){
+        doNeedRedraw = true;
+        elEdge.setEdgeType(edges[edgeId].type);
+        elEdge.setStart(p1);
+        elEdge.setStop(p2);
+        elEdge.setColor(this.decoration.edges[edgeId].color);
+        elEdge.setOpacity(this.decoration.edges[edgeId].opacity);
+        elEdge.setWidth(this.decoration.edges[edgeId].width);
+      }
+    }
+
+
+    //remove node shapes that do not has correspondent model node
+    var obsoleteEdgeIdsArray = YOVALUE.arrayHelper.difference(shapeEdgeIds, edgeIds);
+    for(i in obsoleteEdgeIdsArray){
+      doNeedRedraw = true;
+      edgeId = obsoleteEdgeIdsArray[i];
+      rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':edgeId});
       this._removeElement(rows[0]['element'].getDrawerShapeId());
     }
 

@@ -104,7 +104,7 @@ YOVALUE.GraphViewEdge.prototype = {
    * @private
    */
   _getQuadPathData: function (start, stop, opt_width){
-    var path;
+    var path, delim = " ";
 
     //perpendicular
     var p = {x:-(stop.y-start.y)/4, y:(stop.x-start.x)/4};
@@ -127,9 +127,9 @@ YOVALUE.GraphViewEdge.prototype = {
       //up end
       var ue = {x:(start.x+p.x/norm), y:(start.y+p.y/norm)};
 
-      path = "M"+bs.x+","+bs.y+",Q"+bm.x+","+bm.y+","+be.x+","+be.y+",L"+us.x+","+us.y+",Q"+um.x+","+um.y+","+ue.x+","+ue.y+"Z";
+      path = "M "+Math.round(bs.x)+delim+Math.round(bs.y)+delim+"Q "+Math.round(bm.x)+delim+Math.round(bm.y)+delim+Math.round(be.x)+delim+Math.round(be.y)+delim+"L "+Math.round(us.x)+delim+Math.round(us.y)+delim+"Q "+Math.round(um.x)+delim+Math.round(um.y)+delim+Math.round(ue.x)+delim+Math.round(ue.y)+delim+"Z";
     }else{
-      path = "M"+start.x+","+start.y+",Q"+middle.x+","+middle.y+","+stop.x+","+stop.y;
+      path = "M "+Math.round(start.x)+delim+Math.round(start.y)+delim+"Q "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(stop.x)+delim+Math.round(stop.y);
     }
 
     return path;

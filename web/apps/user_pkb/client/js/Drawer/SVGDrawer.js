@@ -82,7 +82,7 @@ YOVALUE.SVGDrawer.prototype = {
   removeShape: function(shape){
     delete this.shapes[shape.getId()];
     var dom = document.getElementById(shape.getId());
-    dom.parentElement.removeChild(dom);
+    dom.parentNode.removeChild(dom);
   },
 
   /**
@@ -229,6 +229,8 @@ YOVALUE.SVGDrawer.prototype = {
       layerY = e.layerY;
     }
     var shape = that.shapes[targetId];
+
+    if(typeof shape == 'undefined') return;
 
     // callbacks registered for all shapes
     var generalCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: null, shapeClass: null, isMuted:false});

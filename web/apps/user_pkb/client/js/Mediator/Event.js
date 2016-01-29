@@ -31,7 +31,12 @@ YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
     if(DEBUG_MODE){
       var stack = printStackTrace();
       for(var i = 0; i < stack.length; i++){
-        if(stack[i].indexOf("YOVALUE.extend.setResponse") > 0) break;
+        if(YOVALUE.getBrowserInfo().type == 'IE'){
+          if(stack[i].indexOf("setResponse") > 0) break;
+        }else{
+          if(stack[i].indexOf("YOVALUE.extend.setResponse") > 0) break;
+        }
+
       }
       var str = stack[i+1];
       console.log(" <--- " + this.getName() + "(Response) ---- " + str.substr(str.lastIndexOf("/")));
