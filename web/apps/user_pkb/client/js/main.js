@@ -1,4 +1,4 @@
-var DEBUG_MODE = true;
+var DEBUG_MODE = false;
 /**
  * M is a list of modules
  * @type {Object}

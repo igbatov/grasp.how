@@ -218,7 +218,7 @@ YOVALUE.SVGDrawer.prototype = {
 
   _eventHandler: function(e, that){
     var j, targetId, layerX, layerY;
-    console.log(e.type);
+
     if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1){
       targetId = e.detail.id;
       layerX = e.detail.x;
@@ -430,10 +430,17 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
     return {x: this.x, y: this.y};
   },
 
+  /**
+   * Circle in svg is positioned by center coordinates,
+   * rectangle by its left up corner, text by its left bottom corner.
+   *
+   * We position circle by center, rectangle and text by its left up corner
+   * @param v
+   * @returns {boolean}
+   */
   setX: function(v){
     if(YOVALUE.typeof(v) != 'number') return false;
-    // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
-    this.matrix[4] = this.shape.nodeName == 'circle' ? v : v-this.getBBox().width/2;
+    this.matrix[4] = v;
     if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
     this.x = v;
     return true;
@@ -445,7 +452,7 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
   setY: function(v){
     if(YOVALUE.typeof(v) != 'number') return false;
     // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
-    this.matrix[5] = this.shape.nodeName == 'circle' ? v : v-this.getBBox().height/2;
+    this.matrix[5] = v;
     if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
     if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
     this.y = v;
