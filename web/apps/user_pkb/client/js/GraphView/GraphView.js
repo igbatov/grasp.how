@@ -781,6 +781,16 @@ YOVALUE.GraphView.prototype = {
       cb = function(evt){
         callback({graphId: that.graphId, eventType:eventType});
       };
+    }else if(eventType == "mouseenternode" || eventType == "mouseleavenode"){
+      cb = function(evt){
+        var modelElement = that.findModelElementByShapeId(evt.targetNode.getId());
+        if(modelElement.type == 'node') callback({graphId: that.graphId, eventType: eventType, elementType:modelElement.type, element: modelElement.element});
+      };
+    }else if(eventType == "mouseenteredge" || eventType == "mouseleaveedge"){
+      cb = function(evt){
+        var modelElement = that.findModelElementByShapeId(evt.targetNode.getId());
+        if(modelElement.type == 'edge') callback({graphId: that.graphId, eventType: eventType, elementType:modelElement.type, element: modelElement.element});
+      };
     }else if(this.eventTypes.indexOf(eventType) != -1){
       cb = function(evt){
         //call binded callback

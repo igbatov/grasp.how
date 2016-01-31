@@ -236,7 +236,12 @@ YOVALUE.SVGDrawer.prototype = {
 
   _eventHandler: function(e, that){
     var j, targetId, layerX, layerY;
-if(e.type == 'mouseenter' || e.type == 'mouseleave') console.log(e.type);
+
+    if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
+     // console.log(e.type);
+     // e.preventDefault();
+    }
+
     if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1){
       targetId = e.detail.id;
       layerX = e.detail.x;
