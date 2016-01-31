@@ -29,7 +29,7 @@
       shape3.setDraggable(true);
       var shape4 = drawer.createShape('path', {x:10+step*i, y:10+step*i, data:'M 100 350 q 150 -300 300 0', fill:'none', stroke:'blue', strokeWidth:2});
       drawer.addShape('layerOne', shape4);
-      var shape5 = drawer.createShape('text', {x:10+step*i, y:10+step*i, text:'Привет всем!', fill:'black'});
+      var shape5 = drawer.createShape('text', {x:10+step*i, y:10+step*i, text:'Привет всем\n матросам!', fill:'black'});
       drawer.addShape('layerOne', shape5);
       shape5.setPointerEvents('none');
 

@@ -173,6 +173,9 @@ YOVALUE.ModelChangeController.prototype = {
           nodeMapping:nodeMapping
       };
       that.publisher.publish("draw_graph_view", graphViewSettings);
+
+      // hide ajax loader
+      that.viewManager.hideAjaxLoader();
     });
     this.publisher.publishEvent(e1, e2, e3);
   },

@@ -52,5 +52,9 @@ YOVALUE.ViewManager.prototype = {
     }else{
       return false;
     }
+  },
+
+  hideAjaxLoader: function(){
+    this.jQuery('#ajaxLoader').hide();
   }
 };

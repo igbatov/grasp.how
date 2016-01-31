@@ -168,7 +168,24 @@ YOVALUE.SVGDrawer.prototype = {
     // hack for firefox (ver 43.0.4 still does not support getIntersectionList)
     // safari 5.1.7 under windows also does not seem to getIntersectionList properly
     else {
-      var i, id, shapePointerEvents = {};
+      var i, id = null, shapePointerEvents = {}, count = 0;
+
+      while(id != this.svgroot.getAttribute('id') && count<10){
+        count++;
+        el = document.elementFromPoint(x, y);
+        id = el.getAttribute('id');
+
+        if(typeof(this.shapes[id]) != 'undefined'){
+          if(!YOVALUE.isObjectInArray(shapesUnderPoint, this.shapes[id])) shapesUnderPoint.push(this.shapes[id]);
+          shapePointerEvents[id] = this.shapes[id].getShape().getAttribute('pointer-events');
+          this.shapes[id].getShape().setAttribute('pointer-events', 'none');
+        }
+      }
+
+      // restore original pointer-events attribute
+      for(id in shapePointerEvents) this.shapes[id].getShape().setAttribute('pointer-events', shapePointerEvents[id]);
+/*
+
       // save attribute pointer-events for all shapes
       for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().getAttribute('pointer-events');
       // test every shape for (x, y) overlap
@@ -180,6 +197,7 @@ YOVALUE.SVGDrawer.prototype = {
       }
       // restore original pointer-events attribute
       for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().setAttribute('pointer-events', shapePointerEvents[id]);
+ */
     }
 
     return shapesUnderPoint;
@@ -218,7 +236,7 @@ YOVALUE.SVGDrawer.prototype = {
 
   _eventHandler: function(e, that){
     var j, targetId, layerX, layerY;
-
+if(e.type == 'mouseenter' || e.type == 'mouseleave') console.log(e.type);
     if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1){
       targetId = e.detail.id;
       layerX = e.detail.x;
@@ -455,7 +473,7 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
     if(YOVALUE.typeof(v) != 'number') return false;
     // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
     this.matrix[5] = v;
-    if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
+   // if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
     if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
     this.y = v;
     return true;
@@ -644,7 +662,18 @@ YOVALUE.SVGDrawer.Text = function(baseShape, args){
 YOVALUE.SVGDrawer.Text.prototype = {
   setText: function(v){
     this.text = v;
-    this.getShape().textContent  = v;
+    while (this.getShape().firstChild) {
+      this.getShape().removeChild(this.getShape().firstChild);
+    }
+    var lines = v.split("\n");
+    for(var i in lines){
+      var tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspan.textContent = lines[i];
+      tspan.setAttributeNS(null, "x",  "0");
+      tspan.setAttributeNS(null, "dy",  "1em");
+      this.getShape().appendChild(tspan);
+    }
+   // this.getShape().textContent  = v;
   },
   getText: function(){
     return this.text;

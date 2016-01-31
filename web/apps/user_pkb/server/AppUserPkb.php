@@ -91,7 +91,7 @@ class AppUserPkb extends App
 
     $this->writeActions = array('updateGraphName', 'setGraphAttributes', 'changeGraphPosition', 'addGraphHistoryItem', 'updateNodeMapping', 'updateGraphElementContent', 'createNewGraph', 'copyGraph', 'cloneGraph', 'getGraphDiff', 'removeGraph','addNodeContentSource','removeNodeContentSource');
     if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
-    if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
+   // if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
 
     // else process action defined by url
     switch($action){
