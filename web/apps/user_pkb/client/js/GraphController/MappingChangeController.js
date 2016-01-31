@@ -3,7 +3,7 @@
  * - it redraws graph when user moves node
  * - it saves mapping of nodes after user stopped drag node
  * Note that it react only when dragMode is 'move'
- * Node mapping saving in case of model change (dragNode is 'copy') handled by ModelChangeController
+ * Node mapping saving in case of model change (dragNode is 'connect') handled by ModelChangeController
  * @param publisher
  * @constructor
  */
@@ -23,7 +23,7 @@ YOVALUE.MappingChangeController.prototype = {
     // reject in the explicit form all events except those in acceptedEvents
     if(acceptedEvents.indexOf(eventName) == -1) return;
 
-    // we work with dragendnode only if the mode of dragging is 'copy'
+    // we work with dragendnode only if the mode of dragging is 'connect'
     dragMode = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_drag_mode', {graphId: graphId}));
     if(dragMode != 'move') return;
 

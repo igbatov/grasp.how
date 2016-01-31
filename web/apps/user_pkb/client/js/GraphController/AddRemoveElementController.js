@@ -1,5 +1,5 @@
 /**
- * This controller reacts on node's drag'n'drop in 'copy' mode.
+ * This controller reacts on node's drag'n'drop in 'connect' mode.
  * On 'dragendnode' it starts process of model change
  * This started process would be finished somewhere else with 'graph_model_changed' event fire 
  * @param publisher
@@ -16,10 +16,10 @@ YOVALUE.AddRemoveElementController.prototype = {
     // reject in the explicit form all events except those in acceptedEvents
     if(acceptedEvents.indexOf(eventName) == -1) return;
 
-    // we work with dragendnode only if the mode of dragging is 'copy'
+    // we work with dragendnode only if the mode of dragging is 'connect'
     if(eventName == 'dragendnode'){
       dragMode = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_drag_mode', {graphId: event.getData()['fromGraphId']}));
-      if(dragMode != 'copy') return;
+      if(dragMode != 'connect') return;
     }
 
     if(eventName === 'dragendnode'){

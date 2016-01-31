@@ -64,10 +64,10 @@ YOVALUE.GraphView = function (graphId, drawer) {
   // table of all user (i.e. registered with this.bind()) callbacks
   this.userCallbacksTable = new YOVALUE.Table(['eventType', 'callback']);
 
-  // Modes can by 'copy' and 'move'. While in the latter mode
+  // Modes can by 'connect' and 'move'. While in the latter mode
   // node actually changes its position, in the former
-  // it stays on its place only showing were it will be moved
-  this.dragMode = 'copy';
+  // it stays on its place while its clone only showing were it will be moved
+  this.dragMode = 'move';
 
   // drag'n'drop state variables
   this.isNodeDraggedStarted = false; // needed to prevent dragMode change in course of dragging
@@ -240,8 +240,8 @@ YOVALUE.GraphView.prototype = {
    * @returns {boolean}
    */
   setDragMode: function(mode){
-    if(mode != 'copy' && mode != 'move'){
-      YOVALUE.errorHandler.notifyError("drag mode is not 'copy' nor 'move'");
+    if(mode != 'connect' && mode != 'move'){
+      YOVALUE.errorHandler.notifyError("drag mode is not 'connect' nor 'move'");
       return false;
     }
 
@@ -262,7 +262,7 @@ YOVALUE.GraphView.prototype = {
   drawGraph: function(){
     this.show();
 
-    if(this.dragMode == 'copy' && this.isNodeDraggedStarted) return;
+    if(this.dragMode == 'connect' && this.isNodeDraggedStarted) return;
 
     if(this.arrangeNodeShapes()){
       this.drawer.drawLayer(this.nodeLayerId);
@@ -667,7 +667,7 @@ YOVALUE.GraphView.prototype = {
       this.draggedElement = this.graphViewElements.getRows({elementType:'node', drawerShapeId:this.currentDraggedShapeId})[0]['element'];
       this.draggedModelElement = this.findModelElementByShapeId(this.draggedElement.getDrawerShapeId());
       // create clone and set moving node semi-transparent
-      if(this.dragMode == 'copy'){
+      if(this.dragMode == 'connect'){
         var el = this._cloneElement(this.currentDraggedShapeId);
         el.setXY(this.nodeMapping.mapping[el.getElementId()].x, this.nodeMapping.mapping[el.getElementId()].y);
         evt.targetNode.setOpacity(0.6);
@@ -702,7 +702,7 @@ YOVALUE.GraphView.prototype = {
     if(this.isNodeDraggedStarted === true){
       this.isNodeDraggedStarted = false;
 
-      if(this.dragMode == 'copy'){
+      if(this.dragMode == 'connect'){
         // get all shapes the node was dropped on
         var shapes = this.drawer.getIntersections(evt.layerX, evt.layerY);
         this.droppedOnShapeIds = [];
@@ -716,7 +716,7 @@ YOVALUE.GraphView.prototype = {
       }
     }
 
-    if(this.dragMode == 'copy'){
+    if(this.dragMode == 'connect'){
       // remove dragged node after all callbacks was called
       this.dragendCallbackCallsCount++;
       if(this.dragendCallbackCallsCount == this.callbackBindsTable.getRowsCount({eventType:'dragendnode', shapeId:this.currentDraggedShapeId})){

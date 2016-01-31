@@ -675,7 +675,7 @@ YOVALUE.SVGDrawer.Text.prototype = {
       var tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
       tspan.textContent = lines[i];
       tspan.setAttributeNS(null, "x",  "0");
-      tspan.setAttributeNS(null, "dy",  "1em");
+      tspan.setAttributeNS(null, "dy",  "0.8em");
       this.getShape().appendChild(tspan);
     }
    // this.getShape().textContent  = v;

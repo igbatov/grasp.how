@@ -139,12 +139,12 @@ YOVALUE.GraphViewsPubSub.prototype = {
 
       case 'ctrl_on':
         for(var i in this.graphViewList){
-          this.graphViewList[i].setDragMode('move');
+          this.graphViewList[i].setDragMode('connect');
         }
         break;
 
       case 'ctrl_off':
-        for(var i in this.graphViewList) this.graphViewList[i].setDragMode('copy');
+        for(var i in this.graphViewList) this.graphViewList[i].setDragMode('move');
         break;
 
       default:
