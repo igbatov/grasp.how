@@ -609,6 +609,9 @@ YOVALUE.GraphView.prototype = {
     }if(eventType == 'clickbackground'){
       cbId = this.drawer.bindShape('click', this.backgroundShape, this._createCallback(eventType, callback));
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
+    }if(eventType == 'dblclickbackground'){
+      cbId = this.drawer.bindShape('dblclick', this.backgroundShape, this._createCallback(eventType, callback));
+      this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }else{
       // determine element type from event type
       var elementType = eventType.substr(eventType.length - 4, 4);
@@ -777,9 +780,9 @@ YOVALUE.GraphView.prototype = {
           y: evt.y
         });
       };
-    }else if(eventType == "clickbackground"){
+    }else if(eventType == "clickbackground" || eventType == "dblclickbackground"){
       cb = function(evt){
-        callback({graphId: that.graphId, eventType:eventType});
+        callback({graphId: that.graphId, eventType:eventType, x: evt.x, y: evt.y});
       };
     }else if(eventType == "mouseenternode" || eventType == "mouseleavenode"){
       cb = function(evt){

@@ -234,7 +234,8 @@ YOVALUE.GraphViewsPubSub.prototype = {
       'clickedge',
       'mouseenteredge',
       'mouseleaveedge',
-      'clickbackground'
+      'clickbackground',
+      'dblclickbackground'
     ];
 
     // Sanity check

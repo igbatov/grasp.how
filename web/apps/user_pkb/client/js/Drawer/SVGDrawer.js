@@ -222,7 +222,7 @@ YOVALUE.SVGDrawer.prototype = {
    */
   _initEventHandler: function(){
     var i, event;
-    this.documentEventNames = ['click', 'dragstart', 'dragging', 'dragend'];
+    this.documentEventNames = ['dblclick', 'click', 'dragstart', 'dragging', 'dragend'];
     this.shapeCallbacks = new YOVALUE.Table(['id', 'eventName', 'shapeId', 'shapeClass', 'callback', 'isMuted']);
     var that = this;
 
@@ -236,7 +236,7 @@ YOVALUE.SVGDrawer.prototype = {
 
   _eventHandler: function(e, that){
     var j, targetId, layerX, layerY;
-
+console.log(e.type, e);
     if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
      // console.log(e.type);
      // e.preventDefault();
