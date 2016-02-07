@@ -15,6 +15,7 @@ YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContain
   this.stageCallbacks = {};
   document.getElementById(stageContainerId).appendChild(this.svgroot);
   this._createSVGDragEvent();
+  this._createDoubleTapEvent();
   this._initEventHandler();
   this._makeShapesDraggable();
 };
@@ -236,17 +237,22 @@ YOVALUE.SVGDrawer.prototype = {
 
   _eventHandler: function(e, that){
     var j, targetId, layerX, layerY;
-console.log(e.type, e);
+    //console.log(e.type, e);
+    // e.preventDefault(); 
     if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
-     // console.log(e.type);
-     // e.preventDefault();
+      // console.log(e.type);
+      // e.preventDefault();
     }
 
-    if(['dragstart', 'dragging', 'dragend'].indexOf(e.type) != -1){
+    if(e.type == 'dblclick'){
+      console.log(e);
+    }
+
+    if(['dragstart', 'dragging', 'dragend','dblclick'].indexOf(e.type) != -1){
       targetId = e.detail.id;
       layerX = e.detail.x;
       layerY = e.detail.y;
-    } else{
+    } else {
       targetId = e.target.id;
       layerX = e.layerX;
       layerY = e.layerY;
@@ -298,6 +304,38 @@ console.log(e.type, e);
     var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX + xOffset : evt.changedTouches[0].clientX;
     var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY + yOffset : evt.changedTouches[0].clientY;
     return {x:x, y:y};
+  },
+
+  _createDoubleTapEvent: function(){
+    var latesttap = 0;
+    var that = this;
+    this.svgroot.addEventListener('touchstart', function(evt){
+      // skip gestures with more than two fingers
+      if(evt.touches.length > 1) return;
+
+      var now = new Date().getTime();
+      var timesince = now - latesttap;
+      if((timesince < 600) && (timesince > 0)){
+        // this is doubletap, baby
+        evt.preventDefault();
+        shape = that.shapes[evt.target.id];
+        var myEvent = new CustomEvent("dblclick", {detail:{id: shape.getId(), x:evt.touches[0].x, y:evt.touches[0].y}});
+        that.svgroot.dispatchEvent(myEvent);
+      }else{
+        // too much time to be a doubletap
+      }
+      latesttap = new Date().getTime();
+
+    }, false);
+
+    this.svgroot.addEventListener("dblclick", function(evt){
+      evt.preventDefault();
+      shape = that.shapes[evt.target.id];
+      if(typeof shape == 'undefined') return;
+//console.log(that.shapes, evt)
+      var myEvent = new CustomEvent("dblclick", {detail:{id: shape.getId(), x:evt.x, y:evt.y}});
+      that.svgroot.dispatchEvent(myEvent);
+    }, false);
   },
 
   _createSVGDragEvent: function(){

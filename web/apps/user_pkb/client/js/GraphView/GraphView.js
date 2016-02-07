@@ -780,7 +780,12 @@ YOVALUE.GraphView.prototype = {
           y: evt.y
         });
       };
-    }else if(eventType == "clickbackground" || eventType == "dblclickbackground"){
+    }else if(eventType == "clickbackground"){
+      cb = function(evt){
+        callback({graphId: that.graphId, eventType:eventType, x: evt.x, y: evt.y});
+      };
+    }else if(eventType == "dblclickbackground"){
+console.log(evt);
       cb = function(evt){
         callback({graphId: that.graphId, eventType:eventType, x: evt.x, y: evt.y});
       };
