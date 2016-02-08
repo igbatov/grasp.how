@@ -223,7 +223,7 @@ YOVALUE.SVGDrawer.prototype = {
    */
   _initEventHandler: function(){
     var i, event;
-    this.documentEventNames = ['dblclick', 'click', 'dragstart', 'dragging', 'dragend'];
+    this.documentEventNames = ['dblclick', 'dbltap', 'click', 'dragstart', 'dragging', 'dragend'];
     this.shapeCallbacks = new YOVALUE.Table(['id', 'eventName', 'shapeId', 'shapeClass', 'callback', 'isMuted']);
     var that = this;
 
@@ -244,11 +244,13 @@ YOVALUE.SVGDrawer.prototype = {
       // e.preventDefault();
     }
 
-    if(e.type == 'dblclick'){
-      console.log(e);
+    if(e.type == 'dbltap'){
+      var eventType = 'dblclick'
+    }else{
+      var eventType = e.type;
     }
 
-    if(['dragstart', 'dragging', 'dragend','dblclick'].indexOf(e.type) != -1){
+    if(['dragstart', 'dragging', 'dragend','dbltap'].indexOf(e.type) != -1){
       targetId = e.detail.id;
       layerX = e.detail.x;
       layerY = e.detail.y;
@@ -266,9 +268,9 @@ YOVALUE.SVGDrawer.prototype = {
     // callbacks registered for shape class
     var shapeClassCallbacks = typeof shape.getClass() == 'undefined' ? [] : that.shapeCallbacks.getRows({eventName:e.type, shapeClass: shape.getClass(), isMuted:false});
     // callbacks registered for this shape id
-    var shapeIdCallbacks = that.shapeCallbacks.getRows({eventName:e.type, shapeId: shape.getId(), isMuted:false});
+    var shapeIdCallbacks = that.shapeCallbacks.getRows({eventName:eventType, shapeId: shape.getId(), isMuted:false});
 //            console.log(e.type, generalCallbacks);
-    var event = {targetNode:shape, layerX: layerX, layerY: layerY, x:layerX, y:layerY, pageX:layerX, pageY:layerY};
+    var event = {type:eventType, targetNode:shape, layerX: layerX, layerY: layerY, x:layerX, y:layerY, pageX:layerX, pageY:layerY};
     for(j in generalCallbacks) generalCallbacks[j]['callback'](event, shape);
     for(j in shapeClassCallbacks) shapeClassCallbacks[j]['callback'](event, shape);
     for(j in shapeIdCallbacks) shapeIdCallbacks[j]['callback'](event, shape);
@@ -319,22 +321,12 @@ YOVALUE.SVGDrawer.prototype = {
         // this is doubletap, baby
         evt.preventDefault();
         var shape = that.shapes[evt.target.id];
-        var myEvent = new CustomEvent("dblclick", {detail:{id: shape.getId(), x:evt.touches[0].x, y:evt.touches[0].y}});
+        var myEvent = new CustomEvent("dbltap", {detail:{id: shape.getId(), x:evt.touches[0].clientX, y:evt.touches[0].clientY}});
         that.svgroot.dispatchEvent(myEvent);
       }else{
         // too much time to be a doubletap
       }
       latesttap = new Date().getTime();
-
-    }, false);
-
-    this.svgroot.addEventListener("dblclick", function(evt){
-      evt.preventDefault();
-      var shape = that.shapes[evt.target.id];
-      if(typeof shape == 'undefined') return;
-//console.log(that.shapes, evt)
-      var myEvent = new CustomEvent("dblclick", {detail:{id: shape.getId(), x:evt.x, y:evt.y}});
-      that.svgroot.dispatchEvent(myEvent);
     }, false);
   },
 
