@@ -733,7 +733,6 @@ YOVALUE.GraphView.prototype = {
   /**
    * Wrap external callback with a function that parse Drawer events (which contain shapes)
    * to a nice set of arguments to pass (which contains graph nodes and edges instead)
-   * Also call helper functions to clear canvas after action where it is necessary (_dragEndNodeHandler).
    * @param eventType
    * @param callback
    * @returns {*}
@@ -757,7 +756,6 @@ YOVALUE.GraphView.prototype = {
       };
     }else if(eventType == "dragstartnode"){
       cb = function(evt){
-        console.log(evt);
         //call binded callback
         var modelElement = that.findModelElementByShapeId(evt.targetNode.getId());
         callback({
@@ -786,7 +784,6 @@ YOVALUE.GraphView.prototype = {
       };
     }else if(eventType == "dblclickbackground"){
       cb = function(evt){
-        console.log(evt);
         callback({graphId: that.graphId, eventType:eventType, x: evt.x, y: evt.y});
       };
     }else if(eventType == "mouseenternode" || eventType == "mouseleavenode"){

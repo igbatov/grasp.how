@@ -41,9 +41,7 @@ YOVALUE.GraphViewsPubSub = function (subscriber, publisher, graphViewFactory, vi
     'set_graph_view_drag_mode',
     'get_graph_view_drag_mode',
 
-    // do not know, maybe this events will look better in one of the GraphController modules?
-    'ctrl_on',
-    'ctrl_off'
+    'set_drag_mode'
   ]);
 
   // GraphView that is used to get text width and height (event get_graph_view_label_area)
@@ -137,14 +135,8 @@ YOVALUE.GraphViewsPubSub.prototype = {
         event.setResponse(this.graphViewList[graphId].getDragMode());
         break;
 
-      case 'ctrl_on':
-        for(var i in this.graphViewList){
-          this.graphViewList[i].setDragMode('connect');
-        }
-        break;
-
-      case 'ctrl_off':
-        for(var i in this.graphViewList) this.graphViewList[i].setDragMode('move');
+      case 'set_drag_mode':
+        for(var i in this.graphViewList) this.graphViewList[i].setDragMode(event.getData()['drag_mode']);
         break;
 
       default:
@@ -289,6 +281,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }else{
           eventData = e;
         }
+       // console.log(eventData.eventType, eventData);
         that.publisher.publish(eventData.eventType, eventData);
       });
     }

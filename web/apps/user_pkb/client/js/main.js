@@ -31,13 +31,14 @@ var Modules = {
   MappingChangeController: YOVALUE.MappingChangeController,
   SelectElementController: YOVALUE.SelectElementController,
   ShowEditorController: YOVALUE.ShowEditorController,
+  DragModeChangeController: YOVALUE.DragModeChangeController,
   GraphControllerPubSub: YOVALUE.GraphControllerPubSub,
   GraphControllerModules: Array,
 
   Repository: YOVALUE.Repository,
 
   KeyManager: YOVALUE.KeyManager,
-  ServerStatus: YOVALUE.ServerStatus,
+  StatusString: YOVALUE.StatusString,
 
   GraphLayoutNamesConfig: YOVALUE.GraphLayoutNamesConfig,
   GraphSkinNamesConfig: YOVALUE.GraphSkinNamesConfig,
@@ -91,12 +92,12 @@ var DI = {
     leftGraphElementEditor: {id:'leftGraphElementEditorContainer',padding:[0,0]},
     rightGraphElementEditor: {id:'rightGraphElementEditorContainer',padding:[0,0]},
     graphViews: {id:'graphViews',padding:[15,0]},
-    serverStatus: {id:'serverStatus'}
+    statusString: {id:'statusString'}
   }],
   UIElements: ['jQuery'],
 
   KeyManager: ['Publisher'],
-  ServerStatus: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
+  StatusString: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
 
   GraphViewNodeFactory:[],
   GraphViewEdgeFactory:[],
@@ -112,6 +113,7 @@ var DI = {
   MappingChangeController:['Publisher'],
   SelectElementController:['Publisher'],
   ShowEditorController:['Publisher'],
+  DragModeChangeController:['Publisher'],
   GraphControllerModules:[
     'HistoryController',
     'ModelChangeController',
@@ -119,8 +121,10 @@ var DI = {
     'SelectElementController',
     'ShowEditorController',
     'MappingChangeController',
+    'DragModeChangeController'
   ],
   GraphControllerPubSub:['Subscriber', 'Publisher', 'GraphControllerModules'],
+
 
   Ajax: ['jQuery'],
   imageLoader: ['Promise'],

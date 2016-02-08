@@ -31,7 +31,11 @@ YOVALUE.GraphControllerPubSub = function(subscriber, publisher, controllerModule
     'redo_pressed',
 
     'element_editor_focusin',
-    'element_editor_focusout'
+    'element_editor_focusout',
+
+    'dblclickbackground',
+    'ctrl_on',
+    'ctrl_off'
   ]);
 };
 

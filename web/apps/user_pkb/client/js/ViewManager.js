@@ -8,7 +8,7 @@
  *  'graphViews': {id,padding},
  *  'leftGraphView': {id,padding},
  *  'rightGraphView': {id,padding},
- *  'serverStatus': {id,padding},
+ *  'statusString': {id,padding},
  * }
  * @constructor
  */
@@ -45,8 +45,8 @@ YOVALUE.ViewManager.prototype = {
       return {id: gv.attr('id'), centerX: x, centerY:y, width:w, height:h};
     }else if(componentName === 'rightGraphView'){
       return {id: gv.attr('id'), centerX: gv.width()*(3/4), centerY:gv.height()/2, width:w/2, height:h};
-    }else if(componentName === 'serverStatus'){
-      return {id: this.settings.serverStatus.id};
+    }else if(componentName === 'statusString'){
+      return {id: this.settings.statusString.id};
     }else if(componentName === 'horizontalMenu'){
       return {id: this.settings.horizontalMenu.id};
     }else{

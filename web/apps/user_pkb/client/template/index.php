@@ -14,7 +14,7 @@
     <div id="graphViews">
       <img class="ajax" id="ajaxLoader" src="<?php echo $this->getAppDir('img'); ?>/ajax.gif">
     </div>
-    <div id="serverStatus"></div>
+    <div id="statusString"></div>
   </div>
 
   <!-- General js libs -->

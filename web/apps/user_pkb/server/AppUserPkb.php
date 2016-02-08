@@ -802,7 +802,7 @@ class AppUserPkb extends App
       'Repository.js',
       'GraphHistory.js',
       'KeyManager.js',
-      'ServerStatus.js',
+      'StatusString.js',
 
       'GraphElementsContent/interfaces.js',
       'GraphElementsContent/GraphElementsContent.js',
@@ -849,6 +849,7 @@ class AppUserPkb extends App
       'GraphController/ModelChangeController.js',
       'GraphController/MappingChangeController.js',
       'GraphController/ShowEditorController.js',
+      'GraphController/DragModeChangeController.js',
       'GraphController/GraphControllerPubSub.js',
 
       'GraphNodeMappings/GraphNodeMappingsPubSub.js',
