@@ -318,7 +318,7 @@ YOVALUE.SVGDrawer.prototype = {
       if((timesince < 600) && (timesince > 0)){
         // this is doubletap, baby
         evt.preventDefault();
-        shape = that.shapes[evt.target.id];
+        var shape = that.shapes[evt.target.id];
         var myEvent = new CustomEvent("dblclick", {detail:{id: shape.getId(), x:evt.touches[0].x, y:evt.touches[0].y}});
         that.svgroot.dispatchEvent(myEvent);
       }else{
@@ -330,7 +330,7 @@ YOVALUE.SVGDrawer.prototype = {
 
     this.svgroot.addEventListener("dblclick", function(evt){
       evt.preventDefault();
-      shape = that.shapes[evt.target.id];
+      var shape = that.shapes[evt.target.id];
       if(typeof shape == 'undefined') return;
 //console.log(that.shapes, evt)
       var myEvent = new CustomEvent("dblclick", {detail:{id: shape.getId(), x:evt.x, y:evt.y}});

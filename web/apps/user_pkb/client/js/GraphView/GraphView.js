@@ -785,8 +785,8 @@ YOVALUE.GraphView.prototype = {
         callback({graphId: that.graphId, eventType:eventType, x: evt.x, y: evt.y});
       };
     }else if(eventType == "dblclickbackground"){
-console.log(evt);
       cb = function(evt){
+        console.log(evt);
         callback({graphId: that.graphId, eventType:eventType, x: evt.x, y: evt.y});
       };
     }else if(eventType == "mouseenternode" || eventType == "mouseleavenode"){
