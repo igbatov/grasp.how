@@ -138,7 +138,11 @@ YOVALUE.GraphViewsPubSub.prototype = {
         break;
 
       case 'set_drag_mode':
-        for(var i in this.graphViewList) if(!this.isNewNodeGraph(this.graphViewList[i].getId())) this.graphViewList[i].setDragMode(event.getData()['drag_mode']);
+        for(var i in this.graphViewList){
+          if(!this.isNewNodeGraph(this.graphViewList[i].getId())){
+            this.graphViewList[this.graphViewList[i].getId()].setDragMode(event.getData()['drag_mode']);
+          }
+        }
         break;
 
       default:
