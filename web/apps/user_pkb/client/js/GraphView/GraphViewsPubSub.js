@@ -61,6 +61,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         break;
 
       case "draw_graph_view":
+
         // GraphViewSettings can be in two forms - iGraphViewSettingsStructOne or iGraphViewSettingsStructTwo
         // If it is in iGraphViewSettingsStructTwo convert it to iGraphViewSettingsStructOne
         var graphViewSettings = {};
@@ -78,6 +79,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
           this.graphViewList[graphId].setNodeLabelMapping(graphViewSettings['nodeLabelMapping']);
           this.graphViewList[graphId].setDecoration(graphViewSettings['decoration']);
           this.graphViewList[graphId].setSkin(graphViewSettings['skin']);
+          this.graphViewList[graphId].setDragMode(graphViewSettings['dragMode']);
           this.graphViewList[graphId].drawGraph();
           //bind event fire for various graphView manipulations
           this.bindPublishers(graphId, graphViewSettings['eventsToListen']);
@@ -136,13 +138,17 @@ YOVALUE.GraphViewsPubSub.prototype = {
         break;
 
       case 'set_drag_mode':
-        for(var i in this.graphViewList) this.graphViewList[i].setDragMode(event.getData()['drag_mode']);
+        for(var i in this.graphViewList) if(!this.isNewNodeGraph(this.graphViewList[i].getId())) this.graphViewList[i].setDragMode(event.getData()['drag_mode']);
         break;
 
       default:
         break;
     }
     return true;
+  },
+
+  isNewNodeGraph: function(graphId){
+    return graphId.indexOf('newNodes') != -1;
   },
 
   /**
@@ -203,7 +209,8 @@ YOVALUE.GraphViewsPubSub.prototype = {
       nodeMapping: nodeMapping,
       nodeLabelMapping: nodeMapping,
       decoration: decoration,
-      skin: skin
+      skin: skin,
+      dragMode: graphViewSettingsStructTwo.dragMode
     };
 
     return graphViewSettings;

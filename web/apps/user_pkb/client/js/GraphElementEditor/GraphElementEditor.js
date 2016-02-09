@@ -37,7 +37,7 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
   });
 
   // Fire event on element content change
-  $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('keyup change', 'file, input, select, textarea', function(e){
+  $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('keyup click change', 'file, input, select, textarea, button', function(e){
     var fieldName = $(this).attr('name'),
       containerId = $(this).parent().attr('id'),
       elementType = $('#'+containerId+' [name=elementType]').val();
@@ -50,6 +50,10 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
           nodeContentId: $('#'+containerId+' [name=elementContentId]').val(),
           text: e.target.value
         });
+      }else if(fieldName == 'removeButton'){
+        if(confirm('Are you sure?')){
+          that.publisher.publish('delete_pressed',{});
+        }
       }else if(fieldName == 'icon'){
         that.publisher.publish('request_for_graph_element_content_change', {
           graphId: $('#'+containerId+' [name=graphId]').val(),
@@ -66,12 +70,18 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
         });
       }
     }else if(elementType == 'edge'){
-      that.publisher.publish('request_for_graph_element_content_change', {
-        graphId: $('#'+containerId+' [name=graphId]').val(),
-        type: 'updateEdgeAttribute',
-        edgeContentId: $('#'+containerId+' [name=elementContentId]').val(),
-        edgeAttribute: {name:fieldName, value:e.target.value}
-      });
+     if(fieldName == 'removeButton'){
+        if(confirm('Are you sure?')){
+          that.publisher.publish('delete_pressed',{});
+        }
+     }else{
+       that.publisher.publish('request_for_graph_element_content_change', {
+         graphId: $('#'+containerId+' [name=graphId]').val(),
+         type: 'updateEdgeAttribute',
+         edgeContentId: $('#'+containerId+' [name=elementContentId]').val(),
+         edgeAttribute: {name:fieldName, value:e.target.value}
+       });
+     }
     }
   });
 };
@@ -129,6 +139,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var form = '<input type="text" name="label" value="'+edge.label+'">'
     +'<select name="type">'+typeOptions+'</select>'
+    +'<button name="removeButton" class="removeButton">Remove edge</button>'
     +'<input type="hidden" name="elementType" value="edge">'
     +'<input type="hidden" name="elementId" value="'+edge.id+'">'
     +'<input type="hidden" name="elementContentId" value="'+edge.edgeContentId+'">'
@@ -168,6 +179,7 @@ YOVALUE.GraphElementEditor.prototype = {
       +'<select name="type">'+typeOptions+'</select>'
       +'<select name="importance">'+importanceOptions+'</select>'
       +'<select name="reliability">'+reliabilityOptions+'</select>'
+      +'<button  name="removeButton"  class="removeButton">Remove node</button>'
       +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText" class="nodeText '+node.type+'NodeText"></textarea>'
       + (node.type == 'fact' ? '<div id="'+sourceListId+'" class="nodeSourceList"></div>' : '')
      // +'<input type="file" name="icon" />'

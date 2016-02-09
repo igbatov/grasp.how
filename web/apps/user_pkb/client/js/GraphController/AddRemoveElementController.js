@@ -47,7 +47,7 @@ YOVALUE.AddRemoveElementController.prototype = {
       }else{
         var graphId = data['droppedOnGraphId'];
         var e1 = this.publisher.createEvent("get_graph_models", [data['droppedOnGraphId']]);
-        if(this.isFromNewNodeGraph(data['fromGraphId'])) data['draggedModelElement'].element.nodeContentId = null;
+        if(this.isNewNodeGraph(data['fromGraphId'])) data['draggedModelElement'].element.nodeContentId = null;
 
         var e2 = that.publisher.createEvent("request_for_graph_element_content_change", {type: 'addNode', graphId: data['droppedOnGraphId'], element: data['draggedModelElement'].element});
         this.publisher.when(e1, e2).then(function(graphModels, nodeContent){
@@ -80,7 +80,7 @@ YOVALUE.AddRemoveElementController.prototype = {
     }
   },
 
-  isFromNewNodeGraph: function(graphId){
+  isNewNodeGraph: function(graphId){
     return graphId.indexOf('newNodes') != -1;
   }
 };
