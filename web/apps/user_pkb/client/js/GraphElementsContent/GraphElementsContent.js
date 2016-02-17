@@ -68,6 +68,9 @@ YOVALUE.GraphElementsContent.prototype = {
 
           // function to save new node (here and in repo) and to set response with new node
           var saveNewNode = function(graphId, newNode){
+            if(typeof(graphId) == 'undefined') YOVALUE.errorHandler.throwError('no graphId');
+            if(typeof(newNode) == 'undefined') YOVALUE.errorHandler.throwError('no newNode');
+
             e = that.publisher.createEvent("graph_element_content_changed",  {graphId:graphId, type:'addNode',  node:newNode});
             that.publisher.when(e).then(function(nodeContentId){
               newNode.nodeContentId = nodeContentId;
@@ -78,7 +81,7 @@ YOVALUE.GraphElementsContent.prototype = {
             that.publisher.publishEvent(e);
           };
 
-          // if this is copy from already existing node, then get its data? copy and call saveNewNode
+          // if this is copy from already existing node, then get its data, copy and call saveNewNode
           if(event.getData().element.nodeContentId != null){
             //retrieve node attributes and text
             var e1 = this.publisher.createEvent("get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]});

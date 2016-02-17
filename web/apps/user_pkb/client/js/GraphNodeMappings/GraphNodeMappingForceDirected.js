@@ -25,8 +25,11 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
     this.springs = [];
     this.area = area;
     var hintMapping;
-    hint.mapping = YOVALUE.arrayToObject(hint.mapping);
-    hintMapping = YOVALUE.clone(hint);
+
+    if(hint){
+      hint.mapping = YOVALUE.arrayToObject(hint.mapping);
+      hintMapping = YOVALUE.clone(hint);
+    }
 
     // adjust hint to area we need to map to
     if(hintMapping && !YOVALUE.deepCompare(hintMapping.area, area)) hintMapping = YOVALUE.MappingHelper.adjustMappingToArea(hintMapping, area);

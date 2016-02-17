@@ -10,5 +10,6 @@ YOVALUE.iGraphViewSettingsStructTwo = {
   graphNodeAttributes:{},
   graphEdgeAttributes:{},
   decoration:{},
-  nodeMapping:{}
+  nodeMapping:{},
+  dragMode:''
 };

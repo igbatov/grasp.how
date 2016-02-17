@@ -46,6 +46,9 @@ YOVALUE.AddRemoveElementController.prototype = {
       // else add new node to graph
       }else{
         var graphId = data['droppedOnGraphId'];
+
+        if(typeof(graphId) == 'undefined') YOVALUE.errorHandler.throwError('no droppedOnGraphId');
+
         var e1 = this.publisher.createEvent("get_graph_models", [data['droppedOnGraphId']]);
         if(this.isNewNodeGraph(data['fromGraphId'])) data['draggedModelElement'].element.nodeContentId = null;
 
