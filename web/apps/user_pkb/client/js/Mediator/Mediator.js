@@ -112,7 +112,7 @@ YOVALUE.Mediator.prototype = {
         if(stack[i].indexOf("Publisher.js") > 0 && stack[i+1].indexOf("Publisher.js") < 0) break;
       }
       var str = stack[i+1];
-      console.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName());
+      console.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), event.getData(), YOVALUE.getObjectId(event));
     }
     // endof debugging
 

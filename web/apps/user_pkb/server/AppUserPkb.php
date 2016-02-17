@@ -258,6 +258,7 @@ class AppUserPkb extends App
 
       case 'updateNodeMapping':
         $r = $this->getRequest();
+        if(!isset($r['node_mapping'])) return 'no node_mapping';
         $query = 'UPDATE graph_history SET node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'], JSON_FORCE_OBJECT)).'" WHERE graph_id = "'.$r['graphId'].'" AND step = "'.$r['step'].'"';
         if($this->db->execute($query)){
           $this->showRawData('success');

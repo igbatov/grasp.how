@@ -39,7 +39,7 @@ YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
 
       }
       var str = stack[i+1];
-      console.log(" <--- " + this.getName() + "(Response) ---- " + str.substr(str.lastIndexOf("/")));
+      console.log(" <--- " + this.getName() + "(Response) ---- " + str.substr(str.lastIndexOf("/")), v, YOVALUE.getObjectId(this));
     }
     // endof debugging
 

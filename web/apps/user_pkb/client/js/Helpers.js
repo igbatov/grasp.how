@@ -1033,10 +1033,29 @@ YOVALUE.deepCompare = function () {
   }
 
   return true;
-}
+};
 
 YOVALUE.getUniqId = function(){
   return Math.floor(new Date().getTime() / 1000)+""+Math.floor((Math.random() * 1000) + 1);
+};
+
+/**
+ * Retrieve unique id (or 'sign') of any javascript object
+ * @param o
+ * @returns {*}
+ */
+YOVALUE.getObjectId = function(o) {
+  if ( typeof o.__grasphowUniqueId == "undefined" ) {
+    Object.defineProperty(o, "__grasphowUniqueId", {
+      value: YOVALUE.getUniqId(),
+      enumerable: false,
+      // This could go either way, depending on your
+      // interpretation of what an "id" is
+      writable: false
+    });
+  }
+
+  return o.__grasphowUniqueId;
 };
 
 YOVALUE.isObjectInArray = function (array, obj) {
