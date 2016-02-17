@@ -42,6 +42,7 @@ YOVALUE.SelectElementController.prototype = {
       if(eventName === 'mouseenternode'){
         var model = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_models', [graphId]))[graphId];
         nodesToSelect = [e.id];
+        console.log(nodesToSelect);
         nodesToSelect = nodesToSelect.concat(model.getNeighbourIds([e.id]));
         edgesToSelect = model.getNeighbourEdgeIds(e.id);
       }

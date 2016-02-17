@@ -281,7 +281,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }else{
           eventData = e;
         }
-       // console.log(eventData.eventType, eventData);
+        if(eventData.eventType == 'mouseenternode') console.log(eventData.eventType, eventData);
         that.publisher.publish(eventData.eventType, eventData);
       });
     }

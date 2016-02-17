@@ -239,10 +239,7 @@ YOVALUE.SVGDrawer.prototype = {
     var j, targetId, layerX, layerY;
     //console.log(e.type, e);
     // e.preventDefault(); 
-    if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
-      // console.log(e.type);
-      // e.preventDefault();
-    }
+
 
     if(e.type == 'dbltap'){
       var eventType = 'dblclick'
@@ -260,6 +257,10 @@ YOVALUE.SVGDrawer.prototype = {
       layerY = e.layerY;
     }
     var shape = that.shapes[targetId];
+
+    if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
+       console.log(shape);
+    }
 
     if(typeof shape == 'undefined') return;
 
