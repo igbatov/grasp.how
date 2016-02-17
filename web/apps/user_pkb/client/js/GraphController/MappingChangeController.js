@@ -28,7 +28,6 @@ YOVALUE.MappingChangeController.prototype = {
     if(dragMode != 'move') return;
 
     if(eventName == 'dragstartnode'){
-      console.log(event.getData());
       m = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId}));
       this.nodeStartXY = {
         x: m.mapping[event.getData()['element'].id].x,
@@ -38,9 +37,6 @@ YOVALUE.MappingChangeController.prototype = {
         x: event.getData()['x'],
         y: event.getData()['y']
       };
-
-      console.log(this.nodeStartXY);
-      console.log(this.pointerStartXY);
     }
     if(eventName == 'draggingnode'){
       m = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId}));

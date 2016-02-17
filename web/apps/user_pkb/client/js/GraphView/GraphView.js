@@ -87,6 +87,9 @@ YOVALUE.GraphView = function (graphId, drawer) {
  * @type {Object}
  */
 YOVALUE.GraphView.prototype = {
+  getId: function(){
+    return this.graphId;
+  },
   /**
    * Remove this graph view with all its elements and its callback bindings
    */
@@ -715,7 +718,6 @@ YOVALUE.GraphView.prototype = {
             this.droppedOnShapeIds.push(shapes[i].getId());
           }
         }
-        console.log(this.droppedOnShapeIds);
       }
     }
 

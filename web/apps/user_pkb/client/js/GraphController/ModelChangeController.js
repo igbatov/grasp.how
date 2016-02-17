@@ -170,8 +170,10 @@ YOVALUE.ModelChangeController.prototype = {
           graphNodeAttributes:graphNodeAttributes,
           graphEdgeAttributes:graphEdgeAttributes,
           decoration:decoration,
-          nodeMapping:nodeMapping
+          nodeMapping:nodeMapping,
+          dragMode:'move'
       };
+
       that.publisher.publish("draw_graph_view", graphViewSettings);
 
       // hide ajax loader
@@ -193,6 +195,7 @@ YOVALUE.ModelChangeController.prototype = {
    // nnGraphViewSettings.eventsToListen = ['dragendnode'];
     nnGraphViewSettings.graphArea = graphArea;
     nnGraphViewSettings.graphId = 'newNodes:' + graphId;
+    nnGraphViewSettings.dragMode = 'connect';
 
     // create node for each nodeType
     for(i in nodeTypes){
