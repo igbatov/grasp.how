@@ -37,10 +37,10 @@ YOVALUE.StatusString.prototype = {
       }
     }
     if(e.getName() === 'repository_requests_send'){
-      this.serverStatusContainer.html('All changed saved');
+      this.serverStatusContainer.html('All changes saved');
     }
     if(e.getName() === 'repository_processing'){
-      this.serverStatusContainer.html('Loading/saving data...');
+      this.serverStatusContainer.html('Working with server...');
     }
     if(e.getName() === 'set_drag_mode'){
       this.dragModeStatusContainer.html('Drag mode: '+ e.getData()['drag_mode']+'; ');
