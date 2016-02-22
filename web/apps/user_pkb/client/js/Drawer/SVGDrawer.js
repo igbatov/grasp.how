@@ -237,7 +237,7 @@ YOVALUE.SVGDrawer.prototype = {
 
   _eventHandler: function(e, that){
     var j, targetId, layerX, layerY;
-    //console.log(e.type, e);
+    // console.log(e.type, e);
     // e.preventDefault(); 
 
 
@@ -259,7 +259,7 @@ YOVALUE.SVGDrawer.prototype = {
     var shape = that.shapes[targetId];
 
     if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
-       console.log(shape);
+     //  console.log(shape);
     }
 
     if(typeof shape == 'undefined') return;
@@ -345,7 +345,7 @@ YOVALUE.SVGDrawer.prototype = {
    //   if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
 
       // if not mousemove
-      if(evt.type != "mousemove" && evt.type != "touchmove"){
+      if(evt.type == "mousedown" || evt.type == "mouseup" || evt.type == "touchstart" || evt.type == "touchend"){
 
         shape = that.shapes[evt.target.id];
 
@@ -354,6 +354,7 @@ YOVALUE.SVGDrawer.prototype = {
 
         if(evt.type == "mousedown" || evt.type == "touchstart"){
           shape.mousedown = true;
+          shape.mousedownXY = {x:evt.clientX, y:evt.clientY};
         }
 
         if((evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
@@ -366,10 +367,14 @@ YOVALUE.SVGDrawer.prototype = {
           }
         }
 
-      }else{
+      }else if(evt.type == "mousemove" || evt.type == "touchmove"){
         for(var id in that.shapes){
           shape = that.shapes[id];
           if(shape.mousedown && shape.getDraggable()){
+
+            // if mousemove has the same xy as mousedown it is not real move, we ignore it
+            if(shape.mousedownXY.x == evt.clientX && shape.mousedownXY.y == evt.clientY) continue;
+
             // do not drag screen on touch device
             evt.preventDefault();
             if(!that.dragstartEventSend){
