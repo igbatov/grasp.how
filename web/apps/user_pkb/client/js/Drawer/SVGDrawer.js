@@ -75,7 +75,7 @@ YOVALUE.SVGDrawer.prototype = {
     for(var i in this.elementEventNames){
       var event = this.elementEventNames[i];
       shape.getShape().addEventListener(event, function(e){
-        that._eventHandler(e, that);
+        that._eventHandler(e, that, shape.getId());
       }, false);
     }
   },
@@ -235,17 +235,17 @@ YOVALUE.SVGDrawer.prototype = {
     }
   },
 
-  _eventHandler: function(e, that){
-    var j, targetId, layerX, layerY;
+  /**
+   *
+   * @param e
+   * @param that
+   * @param opt_shapeId - optional
+   * @private
+   */
+  _eventHandler: function(e, that, opt_shapeId){
+    var j, targetId, layerX, layerY, eventType;
     // console.log(e.type, e);
     // e.preventDefault(); 
-
-
-    if(e.type == 'dbltap'){
-      var eventType = 'dblclick'
-    }else{
-      var eventType = e.type;
-    }
 
     if(['dragstart', 'dragging', 'dragend','dbltap'].indexOf(e.type) != -1){
       targetId = e.detail.id;
@@ -258,8 +258,14 @@ YOVALUE.SVGDrawer.prototype = {
     }
     var shape = that.shapes[targetId];
 
+    if(e.type == 'dbltap'){
+      eventType = 'dblclick'
+    }else{
+      eventType = e.type;
+    }
+
     if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
-     //  console.log(shape);
+       console.log('SVGDrawer received event shapeId = ',shape.getId(), opt_shapeId);
     }
 
     if(typeof shape == 'undefined') return;
