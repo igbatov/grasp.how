@@ -1035,8 +1035,9 @@ YOVALUE.deepCompare = function () {
   return true;
 };
 
+YOVALUE.__UNIQID = 0;
 YOVALUE.getUniqId = function(){
-  return Math.floor(new Date().getTime() / 1000)+""+Math.floor((Math.random() * 1000) + 1);
+  return ++YOVALUE.__UNIQID;
 };
 
 /**

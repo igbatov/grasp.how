@@ -265,7 +265,7 @@ YOVALUE.SVGDrawer.prototype = {
     }
 
     if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
-       console.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, opt_shapeId, that.shapes[targetId].getXY(), that.shapes[opt_shapeId].getXY());
+       console.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, opt_shapeId, that.shapes[opt_shapeId], that.shapes[targetId],  that.shapes[targetId].getXY());
     }
 
     if(typeof shape == 'undefined') return;
