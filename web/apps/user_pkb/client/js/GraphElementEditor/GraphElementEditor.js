@@ -195,7 +195,7 @@ YOVALUE.GraphElementEditor.prototype = {
       that.UI.createItemsBox(
         '#'+sourceListId,
         {
-          'source_type':{'type':'select','label':'тип','options':{'book':'книга','monography':'монография','textbook':'учебник','news':'новость', 'article':'научная статья', 'personal experience':'личный опыт'},'value':'book'},
+          'source_type':{'type':'select','label':'тип','options':{'article':'научн. статья', 'meta-article':'мета-исследование', 'textbook':'учебник', 'book':'книга', 'monography':'монография','news':'новость', 'personal experience':'личный опыт'},'value':'article'},
           'field_type':{'type':'text','label':'область','value':''},
           'name':{'type':'text','label':'Название','value':''},
           'url':{'type':'text','label':'url',value:''},
