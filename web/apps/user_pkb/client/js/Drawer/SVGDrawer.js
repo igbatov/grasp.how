@@ -126,10 +126,11 @@ YOVALUE.SVGDrawer.prototype = {
       y1 = area.centerY - area.height/2,
       y2 = area.centerY + area.height/2;
     this.stageCallbacks[uniqId] = function(e){
+      var xy = that._getEventAbsXY(e);
       var relX = e.clientX - that.svgroot.getBoundingClientRect().left;
       var relY = e.clientY - that.svgroot.getBoundingClientRect().top;
       if( relX > x1 && relX < x2 && relY > y1 && relY < y2){
-        callback({x:relX, y:relY});
+        callback(xy);
       }
     };
     this.svgroot.addEventListener('mousemove', this.stageCallbacks[uniqId], false);
@@ -243,18 +244,19 @@ YOVALUE.SVGDrawer.prototype = {
    * @private
    */
   _eventHandler: function(e, that, opt_shapeId){
-    var j, targetId, layerX, layerY, eventType;
+    var j, targetId, xy, eventType;
     // console.log(e.type, e);
     // e.preventDefault(); 
 
+    // our custom events
     if(['dragstart', 'dragging', 'dragend','dbltap'].indexOf(e.type) != -1){
       targetId = e.detail.id;
-      layerX = e.detail.x;
-      layerY = e.detail.y;
-    } else {
+      xy = {x:e.detail.x, y:e.detail.y};
+    }
+    // standard double click events
+    else {
       targetId = e.target.id;
-      layerX = e.layerX;
-      layerY = e.layerY;
+      xy = this._getEventAbsXY(e);
     }
     var shape = that.shapes[targetId];
 
@@ -264,8 +266,13 @@ YOVALUE.SVGDrawer.prototype = {
       eventType = e.type;
     }
 
+    /*
     if(e.type == 'mouseenter' || e.type == 'mouseleave' || e.type == 'mouseover' || e.type == 'mouseout'){
        console.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, opt_shapeId, that.shapes[opt_shapeId], that.shapes[targetId],  that.shapes[targetId].getXY());
+    }
+    */
+    if(DEBUG_MODE){
+      YOVALUE.logger.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, YOVALUE.clone(that.shapes[targetId].getXY()), YOVALUE.clone(that.shapes[targetId]));
     }
 
     if(typeof shape == 'undefined') return;
@@ -277,7 +284,12 @@ YOVALUE.SVGDrawer.prototype = {
     // callbacks registered for this shape id
     var shapeIdCallbacks = that.shapeCallbacks.getRows({eventName:eventType, shapeId: shape.getId(), isMuted:false});
 //            console.log(e.type, generalCallbacks);
-    var event = {type:eventType, targetNode:shape, layerX: layerX, layerY: layerY, x:layerX, y:layerY, pageX:layerX, pageY:layerY};
+    var event = {type:eventType, targetNode:shape, x:xy.x, y:xy.y};
+
+    if(DEBUG_MODE){
+      YOVALUE.logger.log('SVGDrawer is going to fire event ',YOVALUE.clone(event));
+    }
+
     for(j in generalCallbacks) generalCallbacks[j]['callback'](event, shape);
     for(j in shapeClassCallbacks) shapeClassCallbacks[j]['callback'](event, shape);
     for(j in shapeIdCallbacks) shapeIdCallbacks[j]['callback'](event, shape);
@@ -307,11 +319,21 @@ YOVALUE.SVGDrawer.prototype = {
     this.shapeCallbacks.removeRows({id:uniqId});
   },
 
+  /**
+   * Return x, y from
+   * @param evt
+   * @returns {*}
+   * @private
+   */
   _getEventAbsXY: function(evt){
+    if(typeof evt == 'undefined' || typeof evt.type == 'undefined') return false;
+/*
     var xOffset=Math.max(document.documentElement.scrollLeft,document.body.scrollLeft);
     var yOffset=Math.max(document.documentElement.scrollTop,document.body.scrollTop);
-    var x = evt.type.substr(0, 5) == "mouse" ? evt.clientX + xOffset : evt.changedTouches[0].clientX;
-    var y = evt.type.substr(0, 5) == "mouse" ? evt.clientY + yOffset : evt.changedTouches[0].clientY;
+    */
+    var x = evt.type.indexOf("touch") == -1 ? evt.pageX : evt.changedTouches[0].pageX;
+    var y = evt.type.indexOf("touch") == -1 ? evt.pageY : evt.changedTouches[0].pageY;
+
     return {x:x, y:y};
   },
 
@@ -322,13 +344,15 @@ YOVALUE.SVGDrawer.prototype = {
       // skip gestures with more than two fingers
       if(evt.touches.length > 1) return;
 
+      var xy = that._getEventAbsXY(evt);
+
       var now = new Date().getTime();
       var timesince = now - latesttap;
       if((timesince < 600) && (timesince > 0)){
         // this is doubletap, baby
         evt.preventDefault();
         var shape = that.shapes[evt.target.id];
-        var myEvent = new CustomEvent("dbltap", {detail:{id: shape.getId(), x:evt.touches[0].clientX, y:evt.touches[0].clientY}});
+        var myEvent = new CustomEvent("dbltap", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
         that.svgroot.dispatchEvent(myEvent);
       }else{
         // too much time to be a doubletap
@@ -360,7 +384,7 @@ YOVALUE.SVGDrawer.prototype = {
 
         if(evt.type == "mousedown" || evt.type == "touchstart"){
           shape.mousedown = true;
-          shape.mousedownXY = {x:evt.clientX, y:evt.clientY};
+          shape.mousedownXY = xy;
         }
 
         if((evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
@@ -379,7 +403,7 @@ YOVALUE.SVGDrawer.prototype = {
           if(shape.mousedown && shape.getDraggable()){
 
             // if mousemove has the same xy as mousedown it is not real move, we ignore it
-            if(shape.mousedownXY.x == evt.clientX && shape.mousedownXY.y == evt.clientY) continue;
+            if(shape.mousedownXY.x == xy.x && shape.mousedownXY.y == xy.y) continue;
 
             // do not drag screen on touch device
             evt.preventDefault();
@@ -408,7 +432,7 @@ YOVALUE.SVGDrawer.prototype = {
     var that = this;
     this.addEventListener('dragend', function(evt, shape){
       if(that.dragShapeLayer == null) return;
-      that.dragPointerStartXY = {x: evt.layerX, y: evt.layerY};
+      that.dragPointerStartXY = {x:evt.x, y:evt.y};
       that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
       // move shape to its layer
       that.dragShapeLayer.appendChild(shape.getShape());
@@ -416,7 +440,7 @@ YOVALUE.SVGDrawer.prototype = {
     });
 
     this.addEventListener('dragstart', function(evt, shape){
-      that.dragPointerStartXY = {x: evt.layerX, y: evt.layerY};
+      that.dragPointerStartXY = {x:evt.x, y:evt.y};
       that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
       // move shape to front
       that.dragShapeLayer = shape.getShape().parentNode;
@@ -426,8 +450,8 @@ YOVALUE.SVGDrawer.prototype = {
     this.addEventListener('dragging', function(evt, shape){
       // update shapes (x, y)
       shape.setXY({
-        x:(that.dragShapeStartXY.x + evt.layerX - that.dragPointerStartXY.x),
-        y:(that.dragShapeStartXY.y + evt.layerY - that.dragPointerStartXY.y)
+        x:(that.dragShapeStartXY.x + evt.x - that.dragPointerStartXY.x),
+        y:(that.dragShapeStartXY.y + evt.y - that.dragPointerStartXY.y)
       });
     });
   }

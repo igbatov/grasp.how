@@ -710,11 +710,11 @@ YOVALUE.GraphView.prototype = {
 
       if(this.dragMode == 'connect'){
         // get all shapes the node was dropped on
-        var shapes = this.drawer.getIntersections(evt.layerX, evt.layerY);
+        var shapes = this.drawer.getIntersections(evt.x, evt.y);
         this.droppedOnShapeIds = [];
         for(var i in shapes){
           // if we have found something this it is not the node we dragged - it is the element we dropped node on
-          if(shapes[i].getId() != this.currentDraggedShapeId && typeof(shapes[i].getId()) != 'undefinedx  '){
+          if(shapes[i].getId() != this.currentDraggedShapeId && typeof(shapes[i].getId()) != 'undefined'){
             this.droppedOnShapeIds.push(shapes[i].getId());
           }
         }
@@ -765,9 +765,8 @@ YOVALUE.GraphView.prototype = {
           eventType: eventType,
           elementType:modelElement.type,
           element: modelElement.element,
-          // quick ugly hack: CanvasDrawer sends layerX, layerY, SVGDrawer send x, y in evt
-          x:typeof(evt.layerX) != 'undefined' ? evt.layerX : evt.x,
-          y:typeof(evt.layerY) != 'undefined' ? evt.layerY : evt.y
+          x: evt.x,
+          y: evt.y
         });
       };
     }else if(eventType == "draggingnode"){

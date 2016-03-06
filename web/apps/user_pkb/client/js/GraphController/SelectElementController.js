@@ -81,10 +81,11 @@ YOVALUE.SelectElementController.prototype = {
 
     }
     // if  node type, reliability or importance changed
-    else if(eventName == 'graph_element_content_changed'){
-      if(event.getData()['type'] == 'updateNodeText' ||
-          (event.getData()['type'] == 'updateNodeAttribute' && event.getData()['nodeAttribute']['name'] == 'label')) return;
-
+    else if(
+        eventName == 'graph_element_content_changed' &&
+        event.getData()['type'] == 'updateNodeAttribute' &&
+        ['type', 'reliability', 'importance'].indexOf(event.getData()['nodeAttribute']['name']) != -1
+        ){
       graphId = event.getData()['graphId'];
       this.initDecorations(graphId);
 

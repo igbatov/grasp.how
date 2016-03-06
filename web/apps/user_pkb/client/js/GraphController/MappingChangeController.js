@@ -23,12 +23,12 @@ YOVALUE.MappingChangeController.prototype = {
     // reject in the explicit form all events except those in acceptedEvents
     if(acceptedEvents.indexOf(eventName) == -1) return;
 
-    // we work with dragendnode only if the mode of dragging is 'connect'
+    // we work only if the mode of dragging is 'move'
     dragMode = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_drag_mode', {graphId: graphId}));
     if(dragMode != 'move') return;
 
     if(eventName == 'dragstartnode'){
-      m = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId}));
+      m = YOVALUE.clone(this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId})));
       this.nodeStartXY = {
         x: m.mapping[event.getData()['element'].id].x,
         y: m.mapping[event.getData()['element'].id].y

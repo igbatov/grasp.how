@@ -249,6 +249,7 @@ class AppUserPkb extends App
       case 'addGraphHistoryItem':
         $r = $this->getRequest();
         $query = 'INSERT INTO graph_history SET graph_id = "'.$r['graphId'].'", step = "'.$r['step'].'", timestamp = "'.$r['timestamp'].'", elements = "'.$this->db->escape(json_encode($r['elements'], JSON_FORCE_OBJECT)).'", node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
+        error_log($query);
         if($this->db->execute($query)){
           $this->showRawData('success');
         }else{

@@ -149,6 +149,24 @@ YOVALUE.errorHandler = {
   }
 };
 
+
+YOVALUE.logger = (function(){
+  var logger = {};
+  logger.counter = 0;
+  logger.log = function(){
+    var args = Array.prototype.slice.call(arguments);
+    logger.counter++;
+    console.log.apply(console, [logger.counter].concat(args));
+  };
+  logger.sendLogToServer = function(){
+
+  };
+  logger.takeScreenShot = function(){
+
+  };
+  return logger;
+})();
+
 /**
  * This will create clone from Object o (thanks to Rick Waldron)
  * @param o
@@ -156,7 +174,7 @@ YOVALUE.errorHandler = {
  * @return {*} - clone of o
  */
 YOVALUE.clone = function clone( obj, forceDescriptor ) {
-  if(typeof(obj) === 'undefined' || obj === null) return obj;
+  if(typeof(obj) === 'undefined' || obj === null || typeof(obj) === 'string') return obj;
 
   var val, length, i,
     temp = [];
@@ -393,6 +411,15 @@ YOVALUE.MappingHelper.adjustMappingToArea = function(mapping, area){
 
   if(!YOVALUE.implements(mapping, YOVALUE.iMapping)){
     YOVALUE.errorHandler.throwError('mapping does not implement YOVALUE.iMapping');
+  }
+
+  if(
+      mapping.area.centerX == area.centerX &&
+          mapping.area.centerY == area.centerY &&
+          mapping.area.height == area.height &&
+          mapping.area.width == area.width
+      ){
+    return YOVALUE.clone(mapping);
   }
 
   var n, i,
@@ -1035,6 +1062,11 @@ YOVALUE.deepCompare = function () {
   return true;
 };
 
+/**
+ * Generate unique id
+ * @type {number}
+ * @private
+ */
 YOVALUE.__UNIQID = 0;
 YOVALUE.getUniqId = function(){
   return ++YOVALUE.__UNIQID;
