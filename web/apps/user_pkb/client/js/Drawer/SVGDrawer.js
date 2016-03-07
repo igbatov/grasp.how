@@ -272,7 +272,7 @@ YOVALUE.SVGDrawer.prototype = {
     }
     */
     if(DEBUG_MODE){
-      YOVALUE.logger.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, YOVALUE.clone(that.shapes[targetId].getXY()), YOVALUE.clone(that.shapes[targetId]));
+      //YOVALUE.logger.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, YOVALUE.clone(that.shapes[targetId].getXY()), YOVALUE.clone(that.shapes[targetId]));
     }
 
     if(typeof shape == 'undefined') return;
@@ -287,7 +287,9 @@ YOVALUE.SVGDrawer.prototype = {
     var event = {type:eventType, targetNode:shape, x:xy.x, y:xy.y};
 
     if(DEBUG_MODE){
-      YOVALUE.logger.log('SVGDrawer is going to fire event ',YOVALUE.clone(event));
+      YOVALUE.debug.print('SVGDrawer', '295:5', 'fire', event.type, event, YOVALUE.getObjectId(event));
+
+      //YOVALUE.logger.log('SVGDrawer is going to fire event ',YOVALUE.clone(event));
     }
 
     for(j in generalCallbacks) generalCallbacks[j]['callback'](event, shape);

@@ -15,7 +15,7 @@ YOVALUE.iEvent = {
 YOVALUE.Event = function (name, data, deferred) {
   this._name = name;
   this._data = data;
-  this._response;
+  this._response = null;
   YOVALUE.mixin(deferred, this);
 };
 
@@ -39,7 +39,14 @@ YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
 
       }
       var str = stack[i+1];
-      YOVALUE.logger.log(" <--- " + this.getName() + "(Response) ---- " + str.substr(str.lastIndexOf("/")), YOVALUE.clone(v), YOVALUE.getObjectId(this));
+      // str decoration
+      var src = str.substr(str.lastIndexOf("/"));
+      var fileName = src.substr(1,src.indexOf(":")-1);
+      var codeLine = src.substr(src.indexOf(":")+1);
+      if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
+      // log it
+      YOVALUE.debug.print(fileName,codeLine,'response',this.getName(), v, YOVALUE.getObjectId(this));
+    //  YOVALUE.debug.print(" <--- " + this.getName() + "(Response) ---- " + str.substr(str.lastIndexOf("/")), YOVALUE.clone(v), YOVALUE.getObjectId(this));
     }
     // endof debugging
 

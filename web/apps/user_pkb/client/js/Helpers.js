@@ -125,6 +125,147 @@ YOVALUE.wireModules = function(Modules, DI) {
 };
 
 /**
+ * A multiindex table data structure. Just like well-known SQL table.
+ * @param columns
+ * @constructor
+ */
+YOVALUE.Table = function(columnNames){
+  this.columnNames = columnNames;
+  this.rows = [];
+};
+YOVALUE.Table.prototype = {
+  /**
+   * add row to table
+   * @param data - row in a form {columnName1: columnValue1, columnName2: columnValue2, ...}
+   */
+  insertRow: function(data){
+    // create row from data, silently ignore columnName1 that is absent in columnNames
+    var row = {};
+    this.columnNames.forEach(function(name){
+      row[name] = data[name];
+    });
+    this.rows.push(row);
+    return this.rows.length-1;
+  },
+
+  /**
+   * Update rows with updateColumnValues where given columns have criteriaColumnValues
+   * @param {Object=} criteriaColumnValues - search criteria in form {columnName1: columnValue1, columnName2: columnValue2, ...}
+   * @param {Object=} updateColumnValues - in form {columnName1: columnValue1, columnName2: columnValue2, ...}
+   * @returns {number} number of updated rows
+   */
+  updateRows: function(criteriaColumnValues, updateColumnValues){
+    var rows = this.getRows(criteriaColumnValues);
+    var cnt = 0;
+    for(var i in rows){
+      cnt++;
+      for(var j in updateColumnValues){
+        rows[i][j] = updateColumnValues[j];
+      }
+    }
+    return cnt;
+  },
+
+  removeRowByIds: function(ids){
+    for(var i in ids) delete this.rows[ids[i]];
+  },
+
+  removeRows: function(columnValues){
+    this.removeRowByIds(this.getRowIds(columnValues));
+  },
+
+  getRowByIds: function(ids){
+    var rows = [];
+    for(var i in ids){
+      rows.push(this.rows[ids[i]]);
+    }
+    return rows;
+  },
+
+  getRowById: function(id){
+    return  this.getRowByIds([id])[0];
+  },
+
+  /**
+   * get all rows ids where given columns have given values
+   * @param columnValues - {columnName1: columnValue1, columnName2: columnValue2, ...}
+   */
+  getRowIds: function(columnValues){
+    var isRowFitsCriteria = true;
+    var resultIds = [];
+    for(var i in this.rows){
+      isRowFitsCriteria = true;
+      for(var columnName in columnValues){
+        if(this.rows[i][columnName] != columnValues[columnName]){
+          isRowFitsCriteria = false;
+          break;
+        }
+      }
+      if(isRowFitsCriteria) resultIds.push(i);
+    }
+    return resultIds;
+  },
+
+
+  /**
+   * Get all rows where given columns have given values
+   * @param {Object=} opt_columnValues - {columnName1: columnValue1, columnName2: columnValue2, ...}
+   */
+  getRows: function(opt_columnValues){
+    return this.getRowByIds(this.getRowIds(opt_columnValues));
+  },
+
+  /**
+   * Return number of rows where
+   * @param {Object=} opt_columnValues
+   * @return {*}
+   */
+  getRowsCount: function(opt_columnValues){
+    return this.getRowIds(opt_columnValues).length;
+  }
+};
+/**
+ * Table of given size that tracks every row hit count and
+ * removes the least popular rows if size limit is exceeded
+ * @param columnNames
+ * @param sizeLimit in bytes
+ * @constructor
+ */
+YOVALUE.Cache = function(columnNames, sizeLimit){
+  columnNames.push('hitCount');
+  columnNames.push('lastHitTimestamp');
+  this.table = new YOVALUE.Table(columnNames);
+  this.sizeLimit = sizeLimit;
+};
+YOVALUE.Cache.prototype = {
+  getSize: function(){
+    return this.sizeLimit;
+  },
+  add: function(item){
+    item['hitCount'] = 0;
+    item['lastHitTimestamp'] = (new Date()).getTime();
+    this.table.insertRow(item)
+  },
+  get: function(opt_columnValues){
+    var i, rows = this.table.getRows(opt_columnValues);
+
+    // refresh cache invalidation params
+    for(i in rows){
+      rows[i]['hitCount']++;
+      rows[i]['lastHitTimestamp'] = (new Date()).getTime();
+    }
+
+    return rows;
+  },
+  update: function(criteriaColumnValues, updateColumnValues){
+    return this.table.updateRows(criteriaColumnValues, updateColumnValues);
+  },
+  remove: function(columnValues){
+    this.table.removeRows(columnValues);
+  }
+};
+
+/**
  *
  * Object to log and throw errors from elsewhere
  */
@@ -149,14 +290,46 @@ YOVALUE.errorHandler = {
   }
 };
 
-
-YOVALUE.logger = (function(){
+/**
+ * Module used in DEBUG mode to print and log event flow
+ */
+YOVALUE.debug = (function(Table){
   var logger = {};
-  logger.counter = 0;
-  logger.log = function(){
-    var args = Array.prototype.slice.call(arguments);
-    logger.counter++;
-    console.log.apply(console, [logger.counter].concat(args));
+  logger.printCounter = 0;
+  logger.logCounter = 0;
+  var eventTable = new Table(['id','time','moduleName','codeLine','direction','eventName','eventData','eventId']);
+
+  /**
+   *
+   * @param moduleName
+   * @param codeLine
+   * @param direction - 'fire','receive','response'
+   * @param eventName
+   * @param eventData
+   * @param eventId
+   */
+  logger.print = function(moduleName,codeLine,direction,eventName,eventData,eventId){
+    logger.printCounter++;
+    var data = YOVALUE.clone(eventData);
+
+    var moduleCSS = 'color:hsl(0, 0%, 80%);background-color:hsl(0, 0%, 0%);';
+    var eventCSS = 'color:hsl(0, 100%, 90%);background-color:hsl(0, 100%, 50%);';
+    if(direction == 'fire'){
+      console.log(logger.printCounter+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,moduleCSS,eventCSS, data, eventId);
+    }
+    if(direction == 'receive'){
+      console.log(logger.printCounter+' ----> '+'%c'+moduleName+' %c'+eventName,moduleCSS,eventCSS, data, eventId);
+    }
+    if(direction == 'response'){
+      console.log(logger.printCounter+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId);
+    }
+  };
+  logger.log = function(moduleName,codeLine,direction,eventName,eventData,eventId){
+    logger.logCounter++;
+    var data = YOVALUE.clone(eventData);
+    var time = (new Date()).getTime();
+    var row = {'id':logger.logCounter,'time':time,'moduleName':moduleName,'codeLine':codeLine,'direction':direction,'eventName':eventName,'eventData':data,'eventId':eventId};
+    eventTable.insertRow(row);
   };
   logger.sendLogToServer = function(){
 
@@ -165,7 +338,7 @@ YOVALUE.logger = (function(){
 
   };
   return logger;
-})();
+})(YOVALUE.Table);
 
 /**
  * This will create clone from Object o (thanks to Rick Waldron)
@@ -483,142 +656,6 @@ YOVALUE.decorationHelper.adjustDecorationToArea = function(decoration, area){
     edges: adjustedEdges,
     nodeLabels: adjustedNodeLabels
   };
-};
-/**
- * Table of given size that tracks every row hit count and
- * removes the least popular rows if size limit is exceeded
- * @param columnNames
- * @param sizeLimit in bytes
- * @constructor
- */
-YOVALUE.Cache = function(columnNames, sizeLimit){
-  columnNames.push('hitCount');
-  columnNames.push('lastHitTimestamp');
-  this.table = new YOVALUE.Table(columnNames);
-  this.sizeLimit = sizeLimit;
-};
-YOVALUE.Cache.prototype = {
-  getSize: function(){
-    return this.sizeLimit;
-  },
-  add: function(item){
-    item['hitCount'] = 0;
-    item['lastHitTimestamp'] = (new Date()).getTime();
-    this.table.insertRow(item)
-  },
-  get: function(opt_columnValues){
-    var i, rows = this.table.getRows(opt_columnValues);
-
-    // refresh cache invalidation params
-    for(i in rows){
-      rows[i]['hitCount']++;
-      rows[i]['lastHitTimestamp'] = (new Date()).getTime();
-    }
-
-    return rows;
-  },
-  update: function(criteriaColumnValues, updateColumnValues){
-    return this.table.updateRows(criteriaColumnValues, updateColumnValues);
-  },
-  remove: function(columnValues){
-    this.table.removeRows(columnValues);
-  }
-};
-
-/**
- * A multiindex table data structure. Just like well-known MySql table.
- * @param columns
- * @constructor
- */
-YOVALUE.Table = function(columnNames){
-  this.columnNames = columnNames;
-  this.rows = [];
-};
-YOVALUE.Table.prototype = {
-  /**
-   * add row to table
-   * @param row in a form {columnName1: columnValue1, columnName2: columnValue2, ...}
-   */
-  insertRow: function(row){
-    this.rows.push(row);
-    return this.rows.length-1;
-  },
-
-  /**
-   * Update rows with updateColumnValues where given columns have criteriaColumnValues
-   * @param {Object=} criteriaColumnValues - search criteria in form {columnName1: columnValue1, columnName2: columnValue2, ...}
-   * @param {Object=} updateColumnValues - in form {columnName1: columnValue1, columnName2: columnValue2, ...}
-   * @returns {number} number of updated rows
-   */
-  updateRows: function(criteriaColumnValues, updateColumnValues){
-    var rows = this.getRows(criteriaColumnValues);
-    var cnt = 0;
-    for(var i in rows){
-      cnt++;
-      for(var j in updateColumnValues){
-        rows[i][j] = updateColumnValues[j];
-      }
-    }
-    return cnt;
-  },
-
-  removeRowByIds: function(ids){
-    for(var i in ids) delete this.rows[ids[i]];
-  },
-
-  removeRows: function(columnValues){
-    this.removeRowByIds(this.getRowIds(columnValues));
-  },
-
-  getRowByIds: function(ids){
-    var rows = [];
-    for(var i in ids){
-      rows.push(this.rows[ids[i]]);
-    }
-    return rows;
-  },
-
-  getRowById: function(id){
-    return  this.getRowByIds([id])[0];
-  },
-
-  /**
-   * get all rows ids where given columns have given values
-   * @param columnValues - {columnName1: columnValue1, columnName2: columnValue2, ...}
-   */
-  getRowIds: function(columnValues){
-    var isRowFitsCriteria = true;
-    var resultIds = [];
-    for(var i in this.rows){
-      isRowFitsCriteria = true;
-      for(var columnName in columnValues){
-        if(this.rows[i][columnName] != columnValues[columnName]){
-          isRowFitsCriteria = false;
-          break;
-        }
-      }
-      if(isRowFitsCriteria) resultIds.push(i);
-    }
-    return resultIds;
-  },
-
-
-  /**
-   * Get all rows where given columns have given values
-   * @param {Object=} opt_columnValues - {columnName1: columnValue1, columnName2: columnValue2, ...}
-   */
-  getRows: function(opt_columnValues){
-   return this.getRowByIds(this.getRowIds(opt_columnValues));
-  },
-
-  /**
-   * Return number of rows where
-   * @param {Object=} opt_columnValues
-   * @return {*}
-   */
-  getRowsCount: function(opt_columnValues){
-    return this.getRowIds(opt_columnValues).length;
-  }
 };
 
 /**

@@ -112,7 +112,14 @@ YOVALUE.Mediator.prototype = {
         if(stack[i].indexOf("Publisher.js") > 0 && stack[i+1].indexOf("Publisher.js") < 0) break;
       }
       var str = stack[i+1];
-      YOVALUE.logger.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), YOVALUE.clone(event.getData()), YOVALUE.getObjectId(event));
+      // str decoration
+      var src = str.substr(str.lastIndexOf("/"));
+      var fileName = src.substr(1,src.indexOf(":")-1);
+      var codeLine = src.substr(src.indexOf(":")+1);
+      if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
+      // log it
+      YOVALUE.debug.print(fileName,codeLine,'fire',event.getName(),event.getData(), YOVALUE.getObjectId(event));
+      //YOVALUE.logger.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), YOVALUE.clone(event.getData()), YOVALUE.getObjectId(event));
     }
     // endof debugging
 
@@ -121,7 +128,7 @@ YOVALUE.Mediator.prototype = {
 
         // for debugging
         if(DEBUG_MODE){
-          YOVALUE.logger.log("---->"+listeners[i].moduleName, event.getName(), YOVALUE.clone(event.getData()), YOVALUE.getObjectId(event));
+          YOVALUE.debug.print(listeners[i].moduleName,'','receive',event.getName(),event.getData(), YOVALUE.getObjectId(event));
         }
         // endof debugging
 

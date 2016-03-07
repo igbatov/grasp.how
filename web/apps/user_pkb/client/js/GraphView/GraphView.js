@@ -604,16 +604,16 @@ YOVALUE.GraphView.prototype = {
   bind: function(eventType, callback){
     var cbId, i= 0;
     if(eventType == 'mousemove'){
-      cbId = this.drawer.bindStageMove(this._createCallback(eventType, callback), this.graphArea);
+      cbId = this.drawer.bindStageMove(this._wrapCallback(eventType, callback), this.graphArea);
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }if(eventType == 'draggingnode'){
-      cbId = this.drawer.bindStageMove(this._createCallback(eventType, callback), this.graphArea);
+      cbId = this.drawer.bindStageMove(this._wrapCallback(eventType, callback), this.graphArea);
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }if(eventType == 'clickbackground'){
-      cbId = this.drawer.bindShape('click', this.backgroundShape, this._createCallback(eventType, callback));
+      cbId = this.drawer.bindShape('click', this.backgroundShape, this._wrapCallback(eventType, callback));
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }if(eventType == 'dblclickbackground'){
-      cbId = this.drawer.bindShape('dblclick', this.backgroundShape, this._createCallback(eventType, callback));
+      cbId = this.drawer.bindShape('dblclick', this.backgroundShape, this._wrapCallback(eventType, callback));
       this.callbackBindsTable.insertRow({eventType:eventType, shapeId:null, bindId:cbId});
     }else{
       // determine element type from event type
@@ -622,11 +622,11 @@ YOVALUE.GraphView.prototype = {
       var els = this.graphViewElements.getRows({elementType:elementType});
       // for all GraphView nodes craft callback function
       for(i in els){
-        this._bindToElement(eventType, els[i]['element'], this._createCallback(eventType, callback));
+        this._bindToElement(eventType, els[i]['element'], this._wrapCallback(eventType, callback));
       }
     }
 
-    this.userCallbacksTable.insertRow({eventType:eventType, callback:this._createCallback(eventType, callback)});
+    this.userCallbacksTable.insertRow({eventType:eventType, callback:this._wrapCallback(eventType, callback)});
   },
 
   /**
@@ -734,13 +734,13 @@ YOVALUE.GraphView.prototype = {
 
   /**
    * Wrap external callback with a function that parse Drawer events (which contain shapes)
-   * to a nice set of arguments to pass (which contains graph nodes and edges instead)
+   * to a nice set of arguments to pass (which contains graph nodes and edges)
    * @param eventType
    * @param callback
    * @returns {*}
    * @private
    */
-  _createCallback: function(eventType, callback){
+  _wrapCallback: function(eventType, callback){
     var that = this, cb;
     if(eventType == "dragendnode"){
       cb = function(evt){
