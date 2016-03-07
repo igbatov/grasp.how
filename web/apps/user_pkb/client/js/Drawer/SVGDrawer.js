@@ -127,8 +127,8 @@ YOVALUE.SVGDrawer.prototype = {
       y2 = area.centerY + area.height/2;
     this.stageCallbacks[uniqId] = function(e){
       var xy = that._getEventAbsXY(e);
-      var relX = e.clientX - that.svgroot.getBoundingClientRect().left;
-      var relY = e.clientY - that.svgroot.getBoundingClientRect().top;
+      var relX = xy.x - that.svgroot.getBoundingClientRect().left;
+      var relY = xy.y - that.svgroot.getBoundingClientRect().top;
       if( relX > x1 && relX < x2 && relY > y1 && relY < y2){
         callback(xy);
       }
