@@ -179,7 +179,8 @@ YOVALUE.GraphElementEditor.prototype = {
       +'<select name="type">'+typeOptions+'</select>'
       +'<select name="importance">'+importanceOptions+'</select>'
       +'<select name="reliability">'+reliabilityOptions+'</select>'
-      +'<button  name="removeButton"  class="removeButton">Remove node</button>'
+      +'<button name="addSource" class="addSource">Add source</button>'
+      +'<button name="removeButton" class="removeButton">Remove node</button>'
       +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText" class="nodeText '+node.type+'NodeText"></textarea>'
       + (node.type == 'fact' ? '<div id="'+sourceListId+'" class="nodeSourceList"></div>' : '')
      // +'<input type="file" name="icon" />'
@@ -195,14 +196,13 @@ YOVALUE.GraphElementEditor.prototype = {
       that.UI.createItemsBox(
         '#'+sourceListId,
         {
-          'source_type':{'type':'select','label':'тип','options':{'article':'научн. статья', 'meta-article':'мета-исследование', 'textbook':'учебник', 'book':'книга', 'monography':'монография','news':'новость', 'personal experience':'личный опыт'},'value':'article'},
+          'source_type':{'type':'select','label':'тип','options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
           'field_type':{'type':'text','label':'область','value':''},
           'name':{'type':'text','label':'Название','value':''},
           'url':{'type':'text','label':'url',value:''},
           'author':{'type':'text', label:'Автор', value:''},
           'editor':{'type':'text', label:'Рецензент', value:''},
           'publisher':{'type':'text', label:'Издатель', value:''},
-          'primacy':{'type':'select', label:'Первичность', 'options':{'1':'первичный','2':'вторичный',3:'третичный'}, value:''},
           'publish_date':{'type':'text', label:'Дата издания', value:''},
           'pages':{'type':'text', label:'Том, страницы', value:''}
         },

@@ -59,7 +59,7 @@
 /*
  Graph element editor form style
 */
-input, textarea, select, button.removeButton {
+input, textarea, select, button.removeButton, button.addSource {
     display: block;
     width:90%;
     border-radius:2px;
@@ -79,11 +79,17 @@ textarea.labelTextArea{
 
 select {
     float: left;
-    width: 20%;
+    width: 10%;
     margin-left: 25px;
 }
 
 button.removeButton {
+    float: left;
+    width: 20%;
+    margin-left: 25px;
+}
+
+button.addSource {
     float: left;
     width: 20%;
     margin-left: 25px;
