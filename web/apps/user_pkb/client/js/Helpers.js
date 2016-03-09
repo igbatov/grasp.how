@@ -1169,3 +1169,23 @@ YOVALUE.getBrowserInfo = function(){
   window.CustomEvent = CustomEvent;
 })();
 
+/**
+ * Syntax sugar to create DOM element
+ * @param tag
+ * @param attrs
+ * @param text
+ */
+YOVALUE.createElement = function(tag, attrs, text){
+  var e = document.createElement(tag);
+  for(var i in attrs){
+    e.setAttribute(i, attrs[i]);
+  }
+  e.appendChild(document.createTextNode(text));
+  return e;
+};
+YOVALUE.getDisplay = function(el){
+  return window.getComputedStyle(el, null)["display"];
+};
+YOVALUE.setDisplay = function(el, v){
+  el.style.display = v;
+};

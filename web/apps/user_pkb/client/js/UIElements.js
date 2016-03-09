@@ -21,19 +21,33 @@ YOVALUE.UIElements.prototype = {
    * @param defaultValue - selected item name
    * @param opt_className
    */
-  createSelectBox: function(parentSelector, name, items, onSelectCallback, defaultValue, opt_className){
-    var $ = this.jQuery,
-        uniqId = this.generateId(),
-        value,
-        selectedItem = defaultValue == null ? '<span class="selected" value="none">none</span>' : '<span class="selected" value="'+defaultValue+'">'+items[defaultValue]+'</span>';
+  createSelectBox: function(name, items, onSelectCallback, defaultValue){
+    var uniqId = this.generateId(),
+        selectedItem = defaultValue == null ?
+            YOVALUE.createElement('span',{class:'selected',value:'none'},'none') :
+            YOVALUE.createElement('span',{class:'selected',value:defaultValue},items[defaultValue]);
 
-    var itemList = '';
-    for(value in items){
-      itemList += '<li value="'+value+'">'+(items[value].length > 25 ? items[value].substr(0, 25)+'...' :  items[value])+'</li>';
-    }
-    var selectBox = '<div class="ui_select '+opt_className+'" id="'+uniqId+'">'+selectedItem+'<ul>'+itemList+'</ul></div>';
-    $(parentSelector).append(selectBox);
+    var selectBox = YOVALUE.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
+    // create list of items
+    var ul = YOVALUE.createElement('ul',{},'');
+    Object.keys(items).forEach(function(key){
+      var value = items[key];
+      ul.appendChild(YOVALUE.createElement('li',{value:key},(value.length > 25 ? value.substr(0, 25)+'...' : value)));
+    });
+
+    selectBox.appendChild(selectedItem);
+    selectBox.appendChild(ul);
+
+    document.body.addEventListener('click', function(evt){
+      // toggle show/hide of menu
+      if(evt.target == selectedItem){
+        if(YOVALUE.getDisplay(ul) == 'none'){
+          YOVALUE.setDisplay(ul,'block');
+        }
+      }
+    });
+    /*
     // toggle show/hide of menu
     $('#'+uniqId+' .selected').click(function(){
       var ul = $('#'+uniqId+' ul');
@@ -54,15 +68,16 @@ YOVALUE.UIElements.prototype = {
       // call callback
       onSelectCallback(name, $(this).attr('value'));
     });
-
-    return true;
+*/
+    return selectBox;
   },
 
   /**
    * Show form in modal window
-   * @param fields as array - for example {
-   *                                         'title':{'type'=>'input', 'label'=>'Write Title:'},
-   *                                         'textType':{'type'=>'select', 'label'=>'Choose Text Type:'},
+   * @param fields as array {name:{attr}, ...}- for example {
+   *                                         'title':{'type':'input', 'label':'Write Title:'},
+   *                                         'textType':{'type':'select', 'label':'Choose Text Type:'},
+   *                                         'addButton':{'type':'button', 'label':'Add'},
    *                                         ...
    *                                       }
    * @param callback - callback will get form values as array 'name'=>'value'
@@ -84,21 +99,24 @@ YOVALUE.UIElements.prototype = {
     c = $("#"+uniqId+' .ui_modal_content');
 
     for(name in fields){
-      if(fields[name]['type'] == 'input') c.append('<input name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
+      if(fields[name]['type'] == 'input') c.append('<input name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'" placeholder="'+fields[name]['label']+'">');
       if(fields[name]['type'] == 'hidden') c.append('<input type="hidden" name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
       if(fields[name]['type'] == 'title') c.append('<div class="ui_modal_title">'+fields[name]['value']+'</div>');
       if(fields[name]['type'] == 'html') c.append(fields[name]['value']);
+      if(fields[name]['type'] == 'select'){
+        var options = "";
+        for(var v in fields[name]['options']) options += '<option value="'+v+'" '+(v == fields[name]['selected'] ? 'selected':'')+'>'+fields[name]['options'][v]+'</option>';
+        c.append('<select  name="'+name+'">'+options+'</select>');
+      }
       if(fields[name]['type'] == 'confirm'){
         var yesButtonId = this.generateId();
         var noButtonId = this.generateId();
         c.append('<button id="'+yesButtonId+'" class="confirm_button">yes</button><button id="'+noButtonId+'" class="confirm_button">no</button>');
         $('#'+yesButtonId).click(function(){
-          callback('yes');
-          w.remove();
+          callback('yes',w);
         });
         $('#'+noButtonId).click(function(){
-          callback('no');
-          w.remove();
+          callback('no',w);
         });
       }
       if(fields[name]['type'] == 'button'){
@@ -109,14 +127,13 @@ YOVALUE.UIElements.prototype = {
           $('#'+uniqId+' .UIModalField').each(function(){
             data[$(this).attr('name')] = $(this).val();
           });
-          callback(data);
-          w.remove();
+          callback(data,w);
         });
       }
     }
 
     // correct windows position with respect to window size
-    w.css('top', (window.innerHeight/3 - c.height()/2)+'px');
+    w.css('top', (window.innerHeight/2 - c.height()/2)+'px');
     w.css('left', (window.innerWidth/2 - c.width()/2)+'px');
   },
 
@@ -126,7 +143,7 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get 'yes' or 'no'
    */
   showConfirm: function(text, callback){
-    this.showModal({'title':{'type':'title', 'value':text}, 'confirm':{'type':'confirm'}}, callback);
+    this.showModal({'title':{'type':'title', 'value':text}, 'confirm':{'type':'confirm'}}, function(v,w){callback(v); w.remove();});
   },
 
   /**
@@ -146,7 +163,7 @@ YOVALUE.UIElements.prototype = {
   },
 
   /**
-   *
+   * Show list of items with action buttons next to each
    * @param items
    * @param actionName
    * @param actionCallback

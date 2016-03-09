@@ -94,11 +94,12 @@ YOVALUE.GraphMenu.prototype = {
           'graphId':{'type':'hidden', 'label':'', 'value':graphId},
           'name':{'type':'input', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
           'submit':{'type':'button', 'label':'', 'value':'Изменить'}
-        }, function(form){
+        }, function(form,w){
           // say about this event to all subscribers
           that.publisher.publish('graph_name_changed', {graphId:form['graphId'], name:form['name']});
           // redraw menu
           that._createView();
+          w.remove();
         });
       };
 
@@ -106,7 +107,7 @@ YOVALUE.GraphMenu.prototype = {
         that.UI.showModal({
           'name':{'type':'input', 'label':'Name:', 'value':''},
           'submit':{'type':'button', 'label':'', 'value':'Создать'}
-        }, function(form){
+        }, function(form,w){
 
           var e = that.publisher.createEvent('create_new_graph', {name:form['name']});
           that.publisher.when(e).then(function(){
@@ -117,7 +118,7 @@ YOVALUE.GraphMenu.prototype = {
             that._createView();
           });
           that.publisher.publishEvent(e);
-
+          w.remove();
         });
       };
 
@@ -230,8 +231,8 @@ console.log(graphViewSettings);
       $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
 
       // create left and right select box
-      that.UI.createSelectBox('#leftSelectContainer', 'leftGraphView', items, onSelect, leftGraphId);
-      that.UI.createSelectBox('#rightSelectContainer', 'rightGraphView', items, onSelect, rightGraphId);
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createSelectBox('leftGraphView', items, onSelect, leftGraphId));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox('rightGraphView', items, onSelect, rightGraphId));
 
       // add edit and remove buttons to the right of select boxes
       that.UI.createButton('#leftSelectContainer', 'Edit name', function(){onEdit('leftGraphView')});

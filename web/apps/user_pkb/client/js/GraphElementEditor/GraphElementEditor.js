@@ -50,6 +50,24 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
           nodeContentId: $('#'+containerId+' [name=elementContentId]').val(),
           text: e.target.value
         });
+      }else if(fieldName == 'addSource'){
+console.log('fffff');
+        that.UI.showModal({
+          'source_type':{'type':'select','label':'тип','options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
+          'field_type':{'type':'input','label':'область','value':''},
+          'name':{'type':'input',label:'Название',value:''},
+          'url':{'type':'input',label:'url',value:''},
+          'author':{'type':'input', label:'Автор', value:''},
+          'editor':{'type':'input', label:'Рецензент', value:''},
+          'publisher':{'type':'input', label:'Издатель', value:''},
+          'publish_date':{'type':'input', label:'Дата издания', value:''},
+          'pages':{'type':'input', label:'Том, страницы', value:''}
+        }, function(form,w){
+          console.log(form);
+          //that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+
+        });
+
       }else if(fieldName == 'removeButton'){
         if(confirm('Are you sure?')){
           that.publisher.publish('delete_pressed',{});
