@@ -1176,12 +1176,19 @@ YOVALUE.getBrowserInfo = function(){
  * @param text
  */
 YOVALUE.createElement = function(tag, attrs, text){
-  var e = document.createElement(tag);
+  var el = document.createElement(tag);
   for(var i in attrs){
-    e.setAttribute(i, attrs[i]);
+    el.setAttribute(i, attrs[i]);
   }
-  e.appendChild(document.createTextNode(text));
-  return e;
+  el.appendChild(document.createTextNode(text));
+  return el;
+};
+YOVALUE.updateElement = function(el, attrs, text){
+  for(var i in attrs){
+    el.setAttribute(i, attrs[i]);
+  }
+  el.innerText = text;
+  return el;
 };
 YOVALUE.getDisplay = function(el){
   return window.getComputedStyle(el, null)["display"];

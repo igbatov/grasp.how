@@ -23,17 +23,20 @@ YOVALUE.UIElements.prototype = {
    */
   createSelectBox: function(name, items, onSelectCallback, defaultValue){
     var uniqId = this.generateId(),
-        selectedItem = defaultValue == null ?
-            YOVALUE.createElement('span',{class:'selected',value:'none'},'none') :
-            YOVALUE.createElement('span',{class:'selected',value:defaultValue},items[defaultValue]);
+        selectedItem = YOVALUE.createElement('span',{class:'selected',value:'none'},'none');
+
+    if(defaultValue) YOVALUE.updateElement(selectedItem, {value:defaultValue}, items[defaultValue]);
 
     var selectBox = YOVALUE.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
     // create list of items
+    var lis = Object.keys(items).map(function(key){
+      return YOVALUE.createElement('li',{value:key},(items[key].length > 25 ? items[key].substr(0, 25)+'...' : items[key]))
+    });
+
     var ul = YOVALUE.createElement('ul',{},'');
-    Object.keys(items).forEach(function(key){
-      var value = items[key];
-      ul.appendChild(YOVALUE.createElement('li',{value:key},(value.length > 25 ? value.substr(0, 25)+'...' : value)));
+    lis.forEach(function(li){
+      ul.appendChild(li);
     });
 
     selectBox.appendChild(selectedItem);
@@ -46,29 +49,15 @@ YOVALUE.UIElements.prototype = {
           YOVALUE.setDisplay(ul,'block');
         }
       }
-    });
-    /*
-    // toggle show/hide of menu
-    $('#'+uniqId+' .selected').click(function(){
-      var ul = $('#'+uniqId+' ul');
-      if(ul.is(":visible")) ul.hide();
-      else ul.show();
+      // click on item - select new graph
+      else if(lis.indexOf(evt.target) != -1 ){
+        var value = evt.target.getAttribute('value');
+        YOVALUE.updateElement(selectedItem, {value:value}, evt.target.innerText);
+        onSelectCallback(name, value);
+        YOVALUE.setDisplay(ul,'none');
+      }
     });
 
-    // select option event
-    $('#'+uniqId+' li').click(function(e){
-      var value = $(this).attr('value');   // id of newly selected graph
-
-      // change selected item
-      $('#'+uniqId+' .selected').text($(this).text());
-      $('#'+uniqId+' .selected').attr('value', $(this).attr('value'));
-      $(this).parent().hide();
-      e.preventDefault();
-
-      // call callback
-      onSelectCallback(name, $(this).attr('value'));
-    });
-*/
     return selectBox;
   },
 
