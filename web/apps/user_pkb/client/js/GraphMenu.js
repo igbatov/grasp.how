@@ -193,7 +193,7 @@ YOVALUE.GraphMenu.prototype = {
               nodeLabelAreaList:nodeLabelAreaList,
               area:graphArea
             }));
-console.log(graphViewSettings);
+
            // that.publisher.publish('hide_all_graphs');
             that.publisher.publish("draw_graph_view", graphViewSettings);
           });
@@ -223,8 +223,8 @@ console.log(graphViewSettings);
       $('#'+c.id).html('');
 
       // create New and Trash Buttons
-      that.UI.createButton('#'+c.id, 'New', showNew);
-      that.UI.createButton('#'+c.id, 'Trash', showTrash);
+      document.getElementById(c.id).appendChild(that.UI.createButton('New', showNew));
+      document.getElementById(c.id).appendChild(that.UI.createButton('Trash', showTrash));
 
       // create containers for select boxes
       $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');
@@ -235,11 +235,11 @@ console.log(graphViewSettings);
       document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox('rightGraphView', items, onSelect, rightGraphId));
 
       // add edit and remove buttons to the right of select boxes
-      that.UI.createButton('#leftSelectContainer', 'Edit name', function(){onEdit('leftGraphView')});
-      that.UI.createButton('#leftSelectContainer', 'Remove', function(){onRemove('leftGraphView')});
-      that.UI.createButton('#leftSelectContainer', 'Clones', function(){showClones('leftGraphView')});
-      that.UI.createButton('#rightSelectContainer', 'Edit', function(){onEdit('rightGraphView')});
-      that.UI.createButton('#rightSelectContainer', 'Remove', function(){onRemove('rightGraphView')});
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Edit name', function(){onEdit('leftGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Remove', function(){onRemove('leftGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Clones', function(){showClones('leftGraphView')}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Edit', function(){onEdit('rightGraphView')}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Remove', function(){onRemove('rightGraphView')}));
     });
 
     this.publisher.publishEvent(e1, e2);

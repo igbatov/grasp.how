@@ -47,6 +47,8 @@ YOVALUE.UIElements.prototype = {
       if(evt.target == selectedItem){
         if(YOVALUE.getDisplay(ul) == 'none'){
           YOVALUE.setDisplay(ul,'block');
+        }else{
+          YOVALUE.setDisplay(ul,'none');
         }
       }
       // click on item - select new graph
@@ -54,6 +56,8 @@ YOVALUE.UIElements.prototype = {
         var value = evt.target.getAttribute('value');
         YOVALUE.updateElement(selectedItem, {value:value}, evt.target.innerText);
         onSelectCallback(name, value);
+        YOVALUE.setDisplay(ul,'none');
+      }else{
         YOVALUE.setDisplay(ul,'none');
       }
     });
@@ -63,7 +67,7 @@ YOVALUE.UIElements.prototype = {
 
   /**
    * Show form in modal window
-   * @param fields as array {name:{attr}, ...}- for example {
+   * @param fields as array {name:{attr}, ...} - for example {
    *                                         'title':{'type':'input', 'label':'Write Title:'},
    *                                         'textType':{'type':'select', 'label':'Choose Text Type:'},
    *                                         'addButton':{'type':'button', 'label':'Add'},
@@ -137,18 +141,16 @@ YOVALUE.UIElements.prototype = {
 
   /**
    * Create button
-   * @param parentSelector
-   * @param text - "Are you sure ...?"
+   * @param label - "Are you sure ...?"
    * @param callback - callback will get 'yes' or 'no'
-   * @param opt_className
    */
-  createButton: function(parentSelector, text, callback, opt_className){
-    opt_className = typeof(opt_className) == 'undefined' ? '' : opt_className;
-    var $ = this.jQuery, uniqId = this.generateId();
-    $(parentSelector).append('<button id="'+uniqId+'" class="ui_button '+opt_className+'">'+text+'</button>');
-    $('#'+uniqId).click(function(){
-      callback();
+  createButton: function(label, callback){
+    var uniqId = this.generateId();
+    var el = YOVALUE.createElement('button',{id:uniqId, class:'ui_button'},label);
+    el.addEventListener('click', function(evt){
+      callback(evt);
     });
+    return el;
   },
 
   /**

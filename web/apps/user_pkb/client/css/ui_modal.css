@@ -6,7 +6,8 @@
 }
 
 .ui_modal .close_button{
-    float: right; cursor: pointer;
+    float: right;
+    cursor: pointer;
 }
 
 .ui_modal_content{
@@ -14,5 +15,6 @@
 }
 
 .ui_modal_content .confirm_button{
-    float: left; cursor: pointer;
+    float: left;
+    cursor: pointer;
 }

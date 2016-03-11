@@ -1,3 +1,16 @@
 .ui_button {
+    -webkit-border-radius: 14;
+    -moz-border-radius: 14;
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 10px;
+    background: #3498db;
     margin: 1px 5px 1px 5px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ui_button:hover {
+    background: #3cb0fd;
+    text-decoration: none;
 }
