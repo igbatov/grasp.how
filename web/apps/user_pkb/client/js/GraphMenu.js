@@ -16,6 +16,8 @@ YOVALUE.GraphMenu = function(subscriber, publisher, viewManager, UI, jQuery){
   this.UI = UI;
   this.jQuery = jQuery;
 
+  this.modalWindow = this.UI.createModal();
+
   this.subscriber.subscribe(this,[
     'get_selected_positions'    //request for graph position
   ]);
@@ -90,24 +92,24 @@ YOVALUE.GraphMenu.prototype = {
           if(that.selectedPosition[i] == position) graphId = i;
         }
         if(typeof(graphs[graphId]) == 'undefined') return true;
-        that.UI.showModal({
+        that.UI.setModalContent(that.modalWindow, that.UI.createForm({
           'graphId':{'type':'hidden', 'label':'', 'value':graphId},
           'name':{'type':'input', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
           'submit':{'type':'button', 'label':'', 'value':'Изменить'}
-        }, function(form,w){
+        }, function(form){
           // say about this event to all subscribers
           that.publisher.publish('graph_name_changed', {graphId:form['graphId'], name:form['name']});
           // redraw menu
           that._createView();
-          w.remove();
-        });
+          YOVALUE.setDisplay(that.modalWindow,'none');
+        }));
       };
 
       var showNew = function(){
-        that.UI.showModal({
+        that.UI.setModalContent(that.modalWindow, that.UI.createForm({
           'name':{'type':'input', 'label':'Name:', 'value':''},
           'submit':{'type':'button', 'label':'', 'value':'Создать'}
-        }, function(form,w){
+        }, function(form){
 
           var e = that.publisher.createEvent('create_new_graph', {name:form['name']});
           that.publisher.when(e).then(function(){
@@ -118,13 +120,13 @@ YOVALUE.GraphMenu.prototype = {
             that._createView();
           });
           that.publisher.publishEvent(e);
-          w.remove();
-        });
+          YOVALUE.setDisplay(that.modalWindow,'none');
+        }));
       };
 
       var showTrash = function(){
-        that.UI.showModalList(trashItems, 'restore', function(graphId, html){
-          html.remove();
+        that.UI.showModalList(trashItems, 'restore', function(graphId, el){
+          el.parentNode.remove(el);
           // say about this event to all subscribers
           that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:false});
           // redraw menu
@@ -223,23 +225,23 @@ YOVALUE.GraphMenu.prototype = {
       $('#'+c.id).html('');
 
       // create New and Trash Buttons
-      document.getElementById(c.id).appendChild(that.UI.createButton('New', showNew));
-      document.getElementById(c.id).appendChild(that.UI.createButton('Trash', showTrash));
+      document.getElementById(c.id).appendChild(that.UI.createButton('New','New', showNew));
+      document.getElementById(c.id).appendChild(that.UI.createButton('Trash','Trash', showTrash));
 
       // create containers for select boxes
       $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');
       $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
 
       // create left and right select box
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createSelectBox('leftGraphView', items, onSelect, leftGraphId));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox('rightGraphView', items, onSelect, rightGraphId));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createSelectBox('leftGraphView', items, leftGraphId, onSelect));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox('rightGraphView', items, rightGraphId, onSelect));
 
       // add edit and remove buttons to the right of select boxes
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Edit name', function(){onEdit('leftGraphView')}));
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Remove', function(){onRemove('leftGraphView')}));
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Clones', function(){showClones('leftGraphView')}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Edit', function(){onEdit('rightGraphView')}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Remove', function(){onRemove('rightGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('EditName','Edit name', function(){onEdit('leftGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Remove', 'Remove', function(){onRemove('leftGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Clones', 'Clones', function(){showClones('leftGraphView')}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Edit', 'Edit', function(){onEdit('rightGraphView')}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Remove', 'Remove', function(){onRemove('rightGraphView')}));
     });
 
     this.publisher.publishEvent(e1, e2);

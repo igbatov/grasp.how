@@ -1180,7 +1180,7 @@ YOVALUE.createElement = function(tag, attrs, text){
   for(var i in attrs){
     el.setAttribute(i, attrs[i]);
   }
-  el.appendChild(document.createTextNode(text));
+  if(text.length) el.appendChild(document.createTextNode(text));
   return el;
 };
 YOVALUE.updateElement = function(el, attrs, text){
@@ -1196,3 +1196,18 @@ YOVALUE.getDisplay = function(el){
 YOVALUE.setDisplay = function(el, v){
   el.style.display = v;
 };
+/**
+ * Recursively check if element 'child' is inside 'parent'
+ * @param child
+ * @param parent
+ * @returns {boolean}
+ */
+YOVALUE.isChildOf = function(child, parent) {
+  if (child.parentNode === parent) {
+    return true;
+  } else if (child.parentNode === null) {
+    return false;
+  } else {
+    return YOVALUE.isChildOf(child.parentNode, parent);
+  }
+}

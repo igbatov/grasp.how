@@ -1,14 +1,14 @@
-ul.actionItem li:hover{
+.actionItem:hover{
     background-color: #C2B9C2;
 }
-ul.actionItem li{
+.actionItem{
     padding-right: 10px;
     padding-top: 3px;
     padding-bottom: 3px;
     padding-left: 7px;
 }
 
-.actionButton {
+.actionItemButton {
     cursor: pointer;
     float: right;
     padding-left: 10px;

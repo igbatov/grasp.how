@@ -5,7 +5,8 @@
  */
 YOVALUE.UIElements = function(jQuery){
   this.jQuery = jQuery;
-  this.time = new Date();
+  this.uniqueId = 0;
+  this.modalWindow = this.createModal();
 };
 
 YOVALUE.UIElements.prototype = {
@@ -21,7 +22,7 @@ YOVALUE.UIElements.prototype = {
    * @param defaultValue - selected item name
    * @param opt_className
    */
-  createSelectBox: function(name, items, onSelectCallback, defaultValue){
+  createSelectBox: function(name, items, defaultValue, onSelectCallback){
     var uniqId = this.generateId(),
         selectedItem = YOVALUE.createElement('span',{class:'selected',value:'none'},'none');
 
@@ -65,8 +66,38 @@ YOVALUE.UIElements.prototype = {
     return selectBox;
   },
 
+  createForm: function(fields, callback){
+    var name,
+      uniqId = this.generateId(),
+      form = YOVALUE.createElement('div',{id:uniqId, class:'form'},'');
+
+    for(name in fields){
+      if(fields[name]['type'] == 'input') form.appendChild(YOVALUE.createElement('input',{name:name,value:fields[name]['value'],placeholder:fields[name]['label']}));
+      if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']}));
+      if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
+      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name,fields[name]['options']));
+      if(fields[name]['type'] == 'button'){
+        form.appendChild(this.createButton(name,fields[name]['value'],function(evt){
+          var data = {};
+          [].forEach.call(form.childNodes, function(child) {
+            // if not textNode and has attr name
+            if(child.nodeType != Node.TEXT_NODE && child.hasAttribute('name')) {
+              // if element is button then set data[element] = true if this button was pushed, false otherwise
+              if (child.tagName == 'BUTTON') data[child.getAttribute('name')] = child == evt.target;
+              // for other elements set its value
+              else data[child.getAttribute('name')] = child.getAttribute('value');
+            }
+          });
+          callback(data);
+        }));
+      }
+    }
+
+    return form;
+  },
+
   /**
-   * Show form in modal window
+   * Create modal window
    * @param fields as array {name:{attr}, ...} - for example {
    *                                         'title':{'type':'input', 'label':'Write Title:'},
    *                                         'textType':{'type':'select', 'label':'Choose Text Type:'},
@@ -75,59 +106,29 @@ YOVALUE.UIElements.prototype = {
    *                                       }
    * @param callback - callback will get form values as array 'name'=>'value'
    */
-  showModal: function(fields, callback){
-    var $ = this.jQuery, uniqId = this.generateId(), name;
-    $('body').append('<div id="'+uniqId+'" class="ui_modal"></div>');
-    var w = $('#'+uniqId), c;
-    w.css('top', window.innerHeight/2+'px');
-    w.css('left', window.innerWidth/2+'px');
+  createModal: function(){
+    var uniqId = this.generateId(),
+      modalWindow = YOVALUE.createElement('div',{id:uniqId, class:'ui_modal'},'');
+    document.body.appendChild(modalWindow);
 
-    var closeId = this.generateId();
-    w.append('<div id="'+closeId+'"  class="close_button">X</div>');
-    $('#'+closeId).click(function(){
-      w.remove();
+    var closeButton = YOVALUE.createElement('div',{class:'close_button'},'X');
+    modalWindow.appendChild(closeButton);
+    closeButton.addEventListener('click', function(evt){
+      modalWindow.parentNode.removeChild(modalWindow);
     });
 
-    w.append('<div class="ui_modal_content"></div>');
-    c = $("#"+uniqId+' .ui_modal_content');
+    return modalWindow;
+  },
 
-    for(name in fields){
-      if(fields[name]['type'] == 'input') c.append('<input name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'" placeholder="'+fields[name]['label']+'">');
-      if(fields[name]['type'] == 'hidden') c.append('<input type="hidden" name="'+name+'" class="UIModalField" value="'+fields[name]['value']+'">');
-      if(fields[name]['type'] == 'title') c.append('<div class="ui_modal_title">'+fields[name]['value']+'</div>');
-      if(fields[name]['type'] == 'html') c.append(fields[name]['value']);
-      if(fields[name]['type'] == 'select'){
-        var options = "";
-        for(var v in fields[name]['options']) options += '<option value="'+v+'" '+(v == fields[name]['selected'] ? 'selected':'')+'>'+fields[name]['options'][v]+'</option>';
-        c.append('<select  name="'+name+'">'+options+'</select>');
-      }
-      if(fields[name]['type'] == 'confirm'){
-        var yesButtonId = this.generateId();
-        var noButtonId = this.generateId();
-        c.append('<button id="'+yesButtonId+'" class="confirm_button">yes</button><button id="'+noButtonId+'" class="confirm_button">no</button>');
-        $('#'+yesButtonId).click(function(){
-          callback('yes',w);
-        });
-        $('#'+noButtonId).click(function(){
-          callback('no',w);
-        });
-      }
-      if(fields[name]['type'] == 'button'){
-        var buttonId = this.generateId();
-        c.append('<button id="'+buttonId+'" name="'+name+'">'+fields[name]['value']+'</button>');
-        $('#'+buttonId).click(function(){
-          var data = {};
-          $('#'+uniqId+' .UIModalField').each(function(){
-            data[$(this).attr('name')] = $(this).val();
-          });
-          callback(data,w);
-        });
-      }
+  setModalContent: function(modalWindow, content){
+    // remove all except close button
+    while (modalWindow.childNodes.length > 1) {
+      if(modalWindow.firstChild.getAttribute('class') != 'close_button') modalWindow.removeChild(modalWindow.firstChild);
     }
-
+    modalWindow.appendChild(content);
     // correct windows position with respect to window size
-    w.css('top', (window.innerHeight/2 - c.height()/2)+'px');
-    w.css('left', (window.innerWidth/2 - c.width()/2)+'px');
+    modalWindow.style.top = (window.innerHeight/2 - modalWindow.offsetHeight/2)+'px';
+    modalWindow.style.left = (window.innerWidth/2 - modalWindow.offsetWidth/2)+'px';
   },
 
   /**
@@ -136,7 +137,19 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get 'yes' or 'no'
    */
   showConfirm: function(text, callback){
-    this.showModal({'title':{'type':'title', 'value':text}, 'confirm':{'type':'confirm'}}, function(v,w){callback(v); w.remove();});
+    var m = this.createModal();
+    this.setModalContent(
+      m,
+      this.createForm(
+        {title:{type:'title', value:text}, yes:{type:'button',value:'Yes'}, no:{type:'button', value:'No'}},
+        function(v){
+          if(v['yes']) v = 'yes';
+          else v = 'no';
+          m.parentNode.removeChild(m);
+          callback(v);
+        }
+      )
+    );
   },
 
   /**
@@ -144,9 +157,9 @@ YOVALUE.UIElements.prototype = {
    * @param label - "Are you sure ...?"
    * @param callback - callback will get 'yes' or 'no'
    */
-  createButton: function(label, callback){
+  createButton: function(name, label, callback){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('button',{id:uniqId, class:'ui_button'},label);
+    var el = YOVALUE.createElement('button',{id:uniqId, name:name, class:'ui_button'},label);
     el.addEventListener('click', function(evt){
       callback(evt);
     });
@@ -160,13 +173,21 @@ YOVALUE.UIElements.prototype = {
    * @param actionCallback
    */
   showModalList: function(items, actionName, actionCallback){
-    var id, list={};
+    var id;
+    var uniqId = this.generateId();
+    var ul = YOVALUE.createElement('ul', {id:uniqId});
     for(id in items){
-      list[id] = {'type':'html', 'value':this._createActionItem(id, items[id], actionName, function(id, html){
-        actionCallback(id, html)
-      })};
+      var li = YOVALUE.createElement('li',{class:'actionItem'},items[id]);
+      var href = YOVALUE.createElement('a',{class:'actionItemButton'},actionName);
+      (function(id,li){
+        href.addEventListener('click', function(evt){
+          actionCallback(id, li)
+        });
+      })(id, li);
+      li.appendChild(href);
+      ul.appendChild(li);
     }
-    this.showModal(list, function(){});
+    this.setModalContent(this.modalWindow,ul);
   },
 
   /**
@@ -242,21 +263,7 @@ YOVALUE.UIElements.prototype = {
    * @private
    */
   generateId: function(){
-    return this.time.getTime() + '_' + Math.floor(Math.random()*1000);
-  },
-
-  /**
-   * Private method creates item for the list with possibility of action on this items
-   * @param itemId
-   * @param itemName
-   * @param actionName
-   * @param actionCallback
-   */
-  _createActionItem: function(itemId, itemName, actionName, actionCallback){
-    var uniqId = this.generateId(), $ = this.jQuery;
-    $(document).on('click', '#'+uniqId+' a', function(){
-      actionCallback(itemId, $('#'+uniqId));
-    });
-    return '<ul id="'+uniqId+'"  class="actionItem"><li>'+itemName+' <a href="#" class="actionButton">'+actionName+'</a></li></ul>';
+    this.uniqueId++;
+    return 'UIElement-'+this.uniqueId;
   }
 };
