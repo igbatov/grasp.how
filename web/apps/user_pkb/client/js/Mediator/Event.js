@@ -30,14 +30,11 @@ YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
     // for debugging
     if(DEBUG_MODE){
       var stack = printStackTrace();
-      for(var i = 0; i < stack.length; i++){
-        if(YOVALUE.getBrowserInfo().type == 'IE'){
-          if(stack[i].indexOf("setResponse") > 0) break;
-        }else{
-          if(stack[i].indexOf("YOVALUE.extend.setResponse") > 0) break;
-        }
 
+      for(var i = 0; i < stack.length; i++){
+          if(stack[i].indexOf("setResponse") > 0) break;
       }
+
       var str = stack[i+1];
       // str decoration
       var src = str.substr(str.lastIndexOf("/"));
@@ -46,7 +43,6 @@ YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
       if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
       // log it
       YOVALUE.debug.print(fileName,codeLine,'response',this.getName(), v, YOVALUE.getObjectId(this));
-    //  YOVALUE.debug.print(" <--- " + this.getName() + "(Response) ---- " + str.substr(str.lastIndexOf("/")), YOVALUE.clone(v), YOVALUE.getObjectId(this));
     }
     // endof debugging
 

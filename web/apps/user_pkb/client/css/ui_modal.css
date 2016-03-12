@@ -1,11 +1,16 @@
 .ui_modal{
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 1000;
     background-color: #9DE9BD;
-    padding: 2px 2px 2px 2px;
+    padding: 20px 20px 20px 20px;
 }
 
 .ui_modal .close_button{
-    float: right;
+    position: absolute;
+    right: 1px;
+    top: 1px;
     cursor: pointer;
 }

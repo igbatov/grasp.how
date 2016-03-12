@@ -311,17 +311,17 @@ YOVALUE.debug = (function(Table){
   logger.print = function(moduleName,codeLine,direction,eventName,eventData,eventId){
     logger.printCounter++;
     var data = YOVALUE.clone(eventData);
-
+    var hhmmss = (new Date()).toLocaleTimeString();
     var moduleCSS = 'color:hsl(0, 0%, 80%);background-color:hsl(0, 0%, 0%);';
     var eventCSS = 'color:hsl(0, 100%, 90%);background-color:hsl(0, 100%, 50%);';
     if(direction == 'fire'){
-      console.log(logger.printCounter+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,moduleCSS,eventCSS, data, eventId);
     }
     if(direction == 'receive'){
-      console.log(logger.printCounter+' ----> '+'%c'+moduleName+' %c'+eventName,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' ----> '+'%c'+moduleName+' %c'+eventName,moduleCSS,eventCSS, data, eventId);
     }
     if(direction == 'response'){
-      console.log(logger.printCounter+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId);
     }
   };
   logger.log = function(moduleName,codeLine,direction,eventName,eventData,eventId){
@@ -347,7 +347,8 @@ YOVALUE.debug = (function(Table){
  * @return {*} - clone of o
  */
 YOVALUE.clone = function clone( obj, forceDescriptor ) {
-  if(typeof(obj) === 'undefined' || obj === null || typeof(obj) === 'string') return obj;
+ //if(YOVALUE.typeof(obj) != 'object') console.log('=====================================',obj,typeof(obj),YOVALUE.typeof(obj));
+  if(YOVALUE.typeof(obj) != 'object' && YOVALUE.typeof(obj) != 'array') return obj;
 
   var val, length, i,
     temp = [];
@@ -1180,7 +1181,7 @@ YOVALUE.createElement = function(tag, attrs, text){
   for(var i in attrs){
     el.setAttribute(i, attrs[i]);
   }
-  if(text.length) el.appendChild(document.createTextNode(text));
+  if(typeof(text) != 'undefined' && text.length > 0) el.appendChild(document.createTextNode(text));
   return el;
 };
 YOVALUE.updateElement = function(el, attrs, text){
@@ -1210,4 +1211,4 @@ YOVALUE.isChildOf = function(child, parent) {
   } else {
     return YOVALUE.isChildOf(child.parentNode, parent);
   }
-}
+};

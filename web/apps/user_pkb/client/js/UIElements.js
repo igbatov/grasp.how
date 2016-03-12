@@ -6,7 +6,6 @@
 YOVALUE.UIElements = function(jQuery){
   this.jQuery = jQuery;
   this.uniqueId = 0;
-  this.modalWindow = this.createModal();
 };
 
 YOVALUE.UIElements.prototype = {
@@ -72,20 +71,21 @@ YOVALUE.UIElements.prototype = {
       form = YOVALUE.createElement('div',{id:uniqId, class:'form'},'');
 
     for(name in fields){
-      if(fields[name]['type'] == 'input') form.appendChild(YOVALUE.createElement('input',{name:name,value:fields[name]['value'],placeholder:fields[name]['label']}));
-      if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']}));
+      if(fields[name]['type'] == 'input') form.appendChild(YOVALUE.createElement('input',{name:name,value:fields[name]['value'],placeholder:fields[name]['label']},''));
+      if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
       if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
-      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name,fields[name]['options']));
+      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name, fields[name]['options']));
       if(fields[name]['type'] == 'button'){
         form.appendChild(this.createButton(name,fields[name]['value'],function(evt){
           var data = {};
+          // gather data from form nodes
           [].forEach.call(form.childNodes, function(child) {
             // if not textNode and has attr name
             if(child.nodeType != Node.TEXT_NODE && child.hasAttribute('name')) {
               // if element is button then set data[element] = true if this button was pushed, false otherwise
               if (child.tagName == 'BUTTON') data[child.getAttribute('name')] = child == evt.target;
               // for other elements set its value
-              else data[child.getAttribute('name')] = child.getAttribute('value');
+              else data[child.getAttribute('name')] = child.value;
             }
           });
           callback(data);
@@ -117,18 +117,23 @@ YOVALUE.UIElements.prototype = {
       modalWindow.parentNode.removeChild(modalWindow);
     });
 
+    YOVALUE.setDisplay(modalWindow, 'none');
+
     return modalWindow;
   },
 
   setModalContent: function(modalWindow, content){
+    YOVALUE.setDisplay(modalWindow, 'block');
+    YOVALUE.setDisplay(modalWindow, 'none');
+    YOVALUE.setDisplay(modalWindow, 'block');
     // remove all except close button
-    while (modalWindow.childNodes.length > 1) {
-      if(modalWindow.firstChild.getAttribute('class') != 'close_button') modalWindow.removeChild(modalWindow.firstChild);
-    }
+    [].forEach.call(modalWindow.childNodes, function(child) {
+      console.log(child);
+      if(child.getAttribute('class') != 'close_button') modalWindow.removeChild(child);
+    });
+
     modalWindow.appendChild(content);
-    // correct windows position with respect to window size
-    modalWindow.style.top = (window.innerHeight/2 - modalWindow.offsetHeight/2)+'px';
-    modalWindow.style.left = (window.innerWidth/2 - modalWindow.offsetWidth/2)+'px';
+
   },
 
   /**
@@ -187,7 +192,7 @@ YOVALUE.UIElements.prototype = {
       li.appendChild(href);
       ul.appendChild(li);
     }
-    this.setModalContent(this.modalWindow,ul);
+    this.setModalContent(this.createModal(),ul);
   },
 
   /**

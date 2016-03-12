@@ -16,8 +16,6 @@ YOVALUE.GraphMenu = function(subscriber, publisher, viewManager, UI, jQuery){
   this.UI = UI;
   this.jQuery = jQuery;
 
-  this.modalWindow = this.UI.createModal();
-
   this.subscriber.subscribe(this,[
     'get_selected_positions'    //request for graph position
   ]);
@@ -91,22 +89,24 @@ YOVALUE.GraphMenu.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == position) graphId = i;
         }
-        if(typeof(graphs[graphId]) == 'undefined') return true;
-        that.UI.setModalContent(that.modalWindow, that.UI.createForm({
-          'graphId':{'type':'hidden', 'label':'', 'value':graphId},
+        if(typeof(graphs[graphId]) == 'undefined') return;
+        var m = that.UI.createModal();
+        that.UI.setModalContent(m, that.UI.createForm({
+          'graphId':{'type':'hidden', 'value':graphId},
           'name':{'type':'input', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
-          'submit':{'type':'button', 'label':'', 'value':'Изменить'}
+          'submit':{type:'button', value:'Изменить'}
         }, function(form){
           // say about this event to all subscribers
           that.publisher.publish('graph_name_changed', {graphId:form['graphId'], name:form['name']});
           // redraw menu
           that._createView();
-          YOVALUE.setDisplay(that.modalWindow,'none');
+          m.parentNode.removeChild(m);
         }));
       };
 
       var showNew = function(){
-        that.UI.setModalContent(that.modalWindow, that.UI.createForm({
+        var m = that.UI.createModal();
+        that.UI.setModalContent(m, that.UI.createForm({
           'name':{'type':'input', 'label':'Name:', 'value':''},
           'submit':{'type':'button', 'label':'', 'value':'Создать'}
         }, function(form){
@@ -120,13 +120,13 @@ YOVALUE.GraphMenu.prototype = {
             that._createView();
           });
           that.publisher.publishEvent(e);
-          YOVALUE.setDisplay(that.modalWindow,'none');
+          m.parentNode.removeChild(m);
         }));
       };
 
       var showTrash = function(){
         that.UI.showModalList(trashItems, 'restore', function(graphId, el){
-          el.parentNode.remove(el);
+          el.parentNode.removeChild(el);
           // say about this event to all subscribers
           that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:false});
           // redraw menu
