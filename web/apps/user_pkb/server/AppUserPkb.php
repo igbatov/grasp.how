@@ -383,7 +383,7 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$this->db->escape($r['source']['field_type'])."', `name`='".$this->db->escape($r['source']['name'])."', url='".$this->db->escape($r['source']['url'])."', author='".$this->db->escape($r['source']['author'])."', editor='".$this->db->escape($r['source']['editor'])."', publisher='".$this->db->escape($r['source']['publisher'])."', primacy='".$this->db->escape($r['source']['primacy'])."', publish_date='".$this->db->escape($r['source']['publish_date'])."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
+        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$this->db->escape($r['source']['field_type'])."', `name`='".$this->db->escape($r['source']['name'])."', url='".$this->db->escape($r['source']['url'])."', author='".$this->db->escape($r['source']['author'])."', editor='".$this->db->escape($r['source']['editor'])."', publisher='".$this->db->escape($r['source']['publisher'])."', publish_date='".$this->db->escape($r['source']['publish_date'])."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
         $this->log($q);
         $this->db->execute($q);
         $this->showRawData(json_encode(array('result'=>'SUCCESS')));
@@ -393,7 +393,7 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND source_type='".$r['source']['source_type']."' AND field_type='".$r['source']['field_type']."' AND url='".$r['source']['url']."' AND author='".$r['source']['author']."' AND editor='".$r['source']['editor']."' AND publisher='".$r['source']['publisher']."' AND primacy='".$r['source']['primacy']."' AND publish_date='".$r['source']['publish_date']."' ";
+        $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND source_type='".$r['source']['source_type']."' AND field_type='".$r['source']['field_type']."' AND url='".$r['source']['url']."' AND author='".$r['source']['author']."' AND editor='".$r['source']['editor']."' AND publisher='".$r['source']['publisher']."' AND publish_date='".$r['source']['publish_date']."' ";
         $this->log($q);
         $this->db->execute($q);
         $this->showRawData(json_encode(array('result'=>'SUCCESS')));

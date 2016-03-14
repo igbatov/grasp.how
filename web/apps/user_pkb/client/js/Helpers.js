@@ -1172,16 +1172,55 @@ YOVALUE.getBrowserInfo = function(){
 
 /**
  * Syntax sugar to create DOM element
- * @param tag
- * @param attrs
- * @param text
+ * @param {String} tag - DOM element type (div, input, h1, ...)
+ * @param {Object<string, string>} attrs - DOM attributes (id, class, value), no CSS here
+ * @param {String=} text - text inside element
+ * @param {function(string,string)=} callback - callback on value change (optional)
+ * @returns {HTMLElement}
  */
-YOVALUE.createElement = function(tag, attrs, text){
+YOVALUE.createElement = function(tag, attrs, text, callback){
   var el = document.createElement(tag);
   for(var i in attrs){
     el.setAttribute(i, attrs[i]);
   }
   if(typeof(text) != 'undefined' && text.length > 0) el.appendChild(document.createTextNode(text));
+
+  // Bind callback on form field value change
+  if(typeof(callback) != 'undefined'){
+    // select
+    if(tag == 'select') el.addEventListener('change', function(evt){
+      callback(el.getAttribute('name'), el.options[el.selectedIndex].value);
+    });
+
+    // textarea
+    else if(tag == 'textarea'){
+      el.addEventListener('keyup',function(evt){
+        callback(el.getAttribute('name'), el.value);
+      });
+    }
+
+    // text input
+    else if(tag == 'input' && (attrs['type'] == 'text' || typeof(attrs['type']) == 'undefined')){
+      el.addEventListener('keyup',function(evt){
+        callback(el.getAttribute('name'), el.value);
+      });
+    }
+
+    // text input
+    else if(tag == 'input' && attrs['type'] == 'checkbox'){
+      el.addEventListener('change',function(evt){
+        callback(el.getAttribute('name'), el.checked);
+      });
+    }
+
+    // all other input elements
+    else{
+      el.addEventListener('change', function(evt){
+        callback(el.getAttribute('name'), el.value);
+      });
+    }
+  }
+
   return el;
 };
 YOVALUE.updateElement = function(el, attrs, text){

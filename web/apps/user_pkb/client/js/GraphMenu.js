@@ -93,7 +93,7 @@ YOVALUE.GraphMenu.prototype = {
         var m = that.UI.createModal();
         that.UI.setModalContent(m, that.UI.createForm({
           'graphId':{'type':'hidden', 'value':graphId},
-          'name':{'type':'input', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
+          'name':{'type':'text', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
           'submit':{type:'button', value:'Изменить'}
         }, function(form){
           // say about this event to all subscribers
@@ -107,7 +107,7 @@ YOVALUE.GraphMenu.prototype = {
       var showNew = function(){
         var m = that.UI.createModal();
         that.UI.setModalContent(m, that.UI.createForm({
-          'name':{'type':'input', 'label':'Name:', 'value':''},
+          'name':{'type':'text', 'label':'Name:', 'value':''},
           'submit':{'type':'button', 'label':'', 'value':'Создать'}
         }, function(form){
 
@@ -125,13 +125,13 @@ YOVALUE.GraphMenu.prototype = {
       };
 
       var showTrash = function(){
-        that.UI.showModalList(trashItems, 'restore', function(graphId, el){
+        that.UI.showModalList(trashItems, {'restore':function(graphId, el){
           el.parentNode.removeChild(el);
           // say about this event to all subscribers
           that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:false});
           // redraw menu
           that._createView();
-        });
+        }});
       };
 
       var showClones = function(pos){
@@ -139,7 +139,7 @@ YOVALUE.GraphMenu.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == pos) graphId = i;
         }
-        that.UI.showModalList(clones[graphId], 'show diff', function(cloneId, html){
+        that.UI.showModalList(clones[graphId], {'show diff':function(cloneId, html){
           var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
           // get graph diff and show it
           that.publisher.when(e).then(function(graphViewSettings){
@@ -201,7 +201,7 @@ YOVALUE.GraphMenu.prototype = {
           });
           that.publisher.publishEvent(e);
 
-        });
+        }});
       };
 
       var onSelect = function(position, graphId){

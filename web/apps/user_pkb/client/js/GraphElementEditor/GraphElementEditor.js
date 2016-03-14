@@ -51,22 +51,23 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
           text: e.target.value
         });
       }else if(fieldName == 'addSource'){
-console.log('fffff');
-        that.UI.showModal({
-          'source_type':{'type':'select','label':'тип','options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
-          'field_type':{'type':'input','label':'область','value':''},
-          'name':{'type':'input',label:'Название',value:''},
-          'url':{'type':'input',label:'url',value:''},
-          'author':{'type':'input', label:'Автор', value:''},
-          'editor':{'type':'input', label:'Рецензент', value:''},
-          'publisher':{'type':'input', label:'Издатель', value:''},
-          'publish_date':{'type':'input', label:'Дата издания', value:''},
-          'pages':{'type':'input', label:'Том, страницы', value:''}
-        }, function(form,w){
-          console.log(form);
-          //that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
-
-        });
+        var modalContent = YOVALUE.createElement('div',{},'');
+        modalContent.appendChild(that.UI.createForm({
+              'source_type':{'type':'select', 'label':'Тип', callback:function(name, value){console.log(name, value)}, 'options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
+              'name':{'type':'text', label:'Название',value:''},
+              'url':{'type':'text', label:'URL',value:''},
+              'author':{'type':'text', label:'Автор', value:''},
+              'editor':{'type':'text', label:'Рецензент', value:''},
+              'publisher':{'type':'text', label:'Издатель', value:''},
+              'publish_date':{'type':'date', label:'Дата издания', value:''},
+              'pages':{'type':'text', label:'Том, страницы', value:''},
+              'add':{'type':'button', label:'Добавить', value:'Добавить'}
+            },
+            function(form){
+              console.log(form);
+              //that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+            }));
+        that.UI.setModalContent(that.UI.createModal(), modalContent);
 
       }else if(fieldName == 'removeButton'){
         if(confirm('Are you sure?')){
@@ -200,7 +201,6 @@ YOVALUE.GraphElementEditor.prototype = {
       +'<button name="addSource" class="addSource">Add source</button>'
       +'<button name="removeButton" class="removeButton">Remove node</button>'
       +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText" class="nodeText '+node.type+'NodeText"></textarea>'
-      + (node.type == 'fact' ? '<div id="'+sourceListId+'" class="nodeSourceList"></div>' : '')
      // +'<input type="file" name="icon" />'
       +'<input type="hidden" name="elementType" value="node">'
       +'<input type="hidden" name="elementId" value="'+node.id+'">'
@@ -211,31 +211,30 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var e = this.publisher.createEvent('get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId});
     this.publisher.when(e).then(function(sources){
-      that.UI.createItemsBox(
-        '#'+sourceListId,
-        {
-          'source_type':{'type':'select','label':'тип','options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
-          'field_type':{'type':'text','label':'область','value':''},
-          'name':{'type':'text','label':'Название','value':''},
-          'url':{'type':'text','label':'url',value:''},
-          'author':{'type':'text', label:'Автор', value:''},
-          'editor':{'type':'text', label:'Рецензент', value:''},
-          'publisher':{'type':'text', label:'Издатель', value:''},
-          'publish_date':{'type':'text', label:'Дата издания', value:''},
-          'pages':{'type':'text', label:'Том, страницы', value:''}
-        },
-        sources,
-        function(item){
-          //console.log('addCallback', item);
-          that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
-          return true;
-        },
-        function(item){
-          //console.log('removeCallback', item);
-          that.publisher.publish('node_source_removed', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
-          return true;
+      var items = [];
+      for(var i in sources){
+        if(sources[i].url.length > 0){
+          items[sources[i].id] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+        }else{
+          items[sources[i].id] = YOVALUE.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
         }
-      );
+      }
+      console.log(items);
+      parent.append(that.UI.createList(
+        items,
+        {
+          edit:function(id, el){
+            console.log('edit', graphId, node.nodeContentId, id, el);
+            //that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+            return true;
+          },
+          remove:function(id, el){
+            console.log('remove', graphId, node.nodeContentId, id, el);
+            // that.publisher.publish('node_source_removed', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+            return true;
+          }
+        }
+      ));
     });
     this.publisher.publishEvent(e);
 
@@ -245,10 +244,10 @@ YOVALUE.GraphElementEditor.prototype = {
   _insertNodeText: function(graphId, nodeContentId, isEditable){
     var that = this, e = this.publisher.createEvent('get_graph_node_text', {graphId:graphId, nodeContentIds:[nodeContentId]});
     this.publisher.when(e).then(function(nodes){
-      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_ajax').hide();
+      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_ajax').hide();
       var text = isEditable ? nodes[nodeContentId] : that._nl2br(nodes[nodeContentId]);
-      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_text').html(text);
-      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContenId(nodeContentId)+'_text').show();
+      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').html(text);
+      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').show();
     });
     this.publisher.publishEvent(e);
   },
@@ -258,7 +257,7 @@ YOVALUE.GraphElementEditor.prototype = {
     return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
   },
 
-  _escapeNodeContenId: function(str){
+  _escapeNodeContentId: function(str){
     return str.replace('/', '\\/');
   }
 };

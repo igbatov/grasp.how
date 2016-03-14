@@ -1,8 +1,8 @@
-.form .confirm_button{
+.ui_form .confirm_button{
     float: left;
     cursor: pointer;
 }
 
-.form h1{
+.ui_form h1{
     font-size: 1em;
 }

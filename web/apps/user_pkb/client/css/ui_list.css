@@ -1,14 +1,20 @@
-.actionItem:hover{
+.ui_list{
+    background-color: aqua;
+    margin-left: 3%;
+    width: 96%;
+}
+
+.ui_list li:hover{
     background-color: #C2B9C2;
 }
-.actionItem{
+.ui_list li{
     padding-right: 10px;
     padding-top: 3px;
     padding-bottom: 3px;
     padding-left: 7px;
 }
 
-.actionItemButton {
+.ui_list li button{
     cursor: pointer;
     float: right;
     padding-left: 10px;

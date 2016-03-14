@@ -10,16 +10,12 @@ YOVALUE.UIElements = function(jQuery){
 
 YOVALUE.UIElements.prototype = {
   /**
-   * Return html that can be used to select items
-   * @param parentSelector - css selector of parent DOM element
-   * @param name - name of select box
-   * @param items as array - for example array(
-   *                                       'value'=>'label',
-   *                                       ...
-   *                                     )
-   * @param onSelectCallback - callback will receive item name on selection
-   * @param defaultValue - selected item name
-   * @param opt_className
+   * Returns DOM element that can be used to select items
+   * @param {String} name - name of select box
+   * @param {Object<string, string>} items - in form {'value'=>'label', ...}
+   * @param {String} defaultValue - selected item name
+   * @param {function(string,string)=} onSelectCallback - callback will receive select name and item name on selection
+   * @returns {HTMLElement}
    */
   createSelectBox: function(name, items, defaultValue, onSelectCallback){
     var uniqId = this.generateId(),
@@ -55,7 +51,7 @@ YOVALUE.UIElements.prototype = {
       else if(lis.indexOf(evt.target) != -1 ){
         var value = evt.target.getAttribute('value');
         YOVALUE.updateElement(selectedItem, {value:value}, evt.target.innerText);
-        onSelectCallback(name, value);
+        if(typeof(onSelectCallback) != 'undefined') onSelectCallback(name, value);
         YOVALUE.setDisplay(ul,'none');
       }else{
         YOVALUE.setDisplay(ul,'none');
@@ -65,16 +61,21 @@ YOVALUE.UIElements.prototype = {
     return selectBox;
   },
 
+  /**
+   * Creates form fields and buttons
+   * @param fields
+   * @param callback - called when any button from fields is pressed
+   * @returns {HTMLElement}
+   */
   createForm: function(fields, callback){
     var name,
       uniqId = this.generateId(),
-      form = YOVALUE.createElement('div',{id:uniqId, class:'form'},'');
+      form = YOVALUE.createElement('div',{id:uniqId, class:'ui_form'},'');
 
     for(name in fields){
-      if(fields[name]['type'] == 'input') form.appendChild(YOVALUE.createElement('input',{name:name,value:fields[name]['value'],placeholder:fields[name]['label']},''));
-      if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
-      if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
-      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name, fields[name]['options']));
+      if(fields[name]['type'] == 'text') form.appendChild(YOVALUE.createElement('input',{type:'text', name:name,value:fields[name]['value'],placeholder:fields[name]['label']},'',fields[name]['callback']));
+      if(fields[name]['type'] == 'date') form.appendChild(YOVALUE.createElement('input',{type:'date', name:name,value:fields[name]['value']},'',fields[name]['callback']));
+      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name, fields[name]['options'],fields[name]['value'],fields[name]['callback']));
       if(fields[name]['type'] == 'button'){
         form.appendChild(this.createButton(name,fields[name]['value'],function(evt){
           var data = {};
@@ -91,6 +92,8 @@ YOVALUE.UIElements.prototype = {
           callback(data);
         }));
       }
+      if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
+      if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
     }
 
     return form;
@@ -128,7 +131,6 @@ YOVALUE.UIElements.prototype = {
     YOVALUE.setDisplay(modalWindow, 'block');
     // remove all except close button
     [].forEach.call(modalWindow.childNodes, function(child) {
-      console.log(child);
       if(child.getAttribute('class') != 'close_button') modalWindow.removeChild(child);
     });
 
@@ -159,108 +161,57 @@ YOVALUE.UIElements.prototype = {
 
   /**
    * Create button
-   * @param label - "Are you sure ...?"
-   * @param callback - callback will get 'yes' or 'no'
+   * @param {String} name - i.e. "yes"
+   * @param {String} label - i.e "I agree!"
+   * @param {function(object)=} callback - callback arg is event
    */
   createButton: function(name, label, callback){
     var uniqId = this.generateId();
     var el = YOVALUE.createElement('button',{id:uniqId, name:name, class:'ui_button'},label);
-    el.addEventListener('click', function(evt){
-      callback(evt);
-    });
+    if(typeof(callback) != 'undefined'){
+      el.addEventListener('click', function(evt){
+        callback(evt);
+      });
+    }
     return el;
   },
 
   /**
-   * Show list of items with action buttons next to each
-   * @param items
-   * @param actionName
-   * @param actionCallback
+   * Shows list of items with action buttons next to each
+   * @param {Object<string, string>} items - in a form {id:label, ...}
+   * @param {Object<string, string>} actions - action that can be made to item, in a form {name:callback, ...}
    */
-  showModalList: function(items, actionName, actionCallback){
-    var id;
-    var uniqId = this.generateId();
-    var ul = YOVALUE.createElement('ul', {id:uniqId});
-    for(id in items){
-      var li = YOVALUE.createElement('li',{class:'actionItem'},items[id]);
-      var href = YOVALUE.createElement('a',{class:'actionItemButton'},actionName);
-      (function(id,li){
-        href.addEventListener('click', function(evt){
-          actionCallback(id, li)
-        });
-      })(id, li);
-      li.appendChild(href);
-      ul.appendChild(li);
-    }
-    this.setModalContent(this.createModal(),ul);
+  showModalList: function(items, actions){
+    this.setModalContent(this.createModal(),this.createList(items, actions));
   },
 
   /**
-   * Creates form and list of items created from this list
-   * @param parentSelector
-   * @param fields
-   * @param items
-   * @param addCallback
-   * @param removeCallback
+   * Creates list of items with action buttons next to each
+   * @param {Object<string, string>} items - in a form {id:label, ...}
+   * @param {Object<string, string>} actions - action that can be made to item, in a form {name:callback, ...}
    */
-  createItemsBox: function(parentSelector, fields, items, addCallback, removeCallback){
-    var that = this, i, j, form, options, list="", $ = this.jQuery, uniqId, buttonId, listId;
-
-    // create form
-    form = "<tr>";
-    for(i in fields) form += "<th>"+fields[i]['label']+"</th>";
-    form += "<th></th></tr><tr>";
-
-    for(i in fields){
-      form += '<td>';
-      if(fields[i]['type'] == 'text') form += '<input type="text" name="'+i+'" value="'+fields[i]['value']+'"></input>';
-      if(fields[i]['type'] == 'select'){
-        options = "";
-        for(var v in fields[i]['options']) options += '<option value="'+v+'" '+(v == fields[i]['selected'] ? 'selected':'')+'>'+fields[i]['options'][v]+'</option>';
-        form += '<select  name="'+i+'">'+options+'</select>';
+  createList: function(items, actions){
+    var uniqId = this.generateId();
+    var ul = YOVALUE.createElement('ul', {id:uniqId, class:'ui_list'});
+    for(var id in items){
+      var li = YOVALUE.createElement('li',{});
+      if(typeof(items[id]) == 'string'){
+        li.appendChild(document.createTextNode(items[id]));
+      }else{
+        li.appendChild(items[id]);
       }
-      form += '</td>';
+      for(var name in actions){
+        var button = this.createButton(name, name);
+        (function(button, callback, id,li){
+          button.addEventListener('click', function(evt){
+            callback(id, li);
+          });
+        })(button, actions[name], id, li);
+        li.appendChild(button);
+      }
+      ul.appendChild(li);
     }
-    // append add button to form
-    buttonId = this.generateId();
-    form += '<td><button id="'+buttonId+'" class="ui_button">+</button></td></tr>';
-
-    // create list of already added items
-    list = '';
-    for(i in items){
-      list += createItemRow(items[i], fields, removeCallback);
-    }
-
-    uniqId = this.generateId();
-    $(parentSelector).append('<table id="'+uniqId+'" class="itemsBox">'+form+list+"</table>");
-
-    $('#'+buttonId).click(function(){
-      var value = "", item = {};
-      for(i in fields){
-        if(fields[i]['type'] == 'text') value = $(this).parent().parent().find("input[name='"+i+"']").val();
-        if(fields[i]['type'] == 'select') value = $(this).parent().parent().find("select[name='"+i+"']").val();
-        item[i] = value;
-      }
-
-      if(addCallback(item)){
-        $('#'+uniqId).append(createItemRow(item, fields, removeCallback));
-      }
-    });
-
-    function createItemRow(item, fields, removeCallback){
-      var item_fields = "", id = that.generateId(), field_names = YOVALUE.getObjectKeys(fields);
-      for(j in item){
-        if(field_names.indexOf(j) != -1) item_fields += "<td>"+item[j]+"</td>";
-      }
-      item_fields = '<tr>'+item_fields+'<td id="'+id+'" style="cursor:pointer">X</td></tr>';
-      $(document).on('click', '#'+id, function(){
-        $(this).parent().remove();
-        removeCallback(item);
-      });
-      return item_fields;
-    };
-
-    return uniqId;
+    return ul;
   },
 
   /**
