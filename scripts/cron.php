@@ -1,5 +1,8 @@
 #!/usr/bin/php
 <?php
+/**
+ * Run all apps/<appname>/server/cron.[minute,hourly,daily,monthly].php
+ */
 $rootpath = dirname(dirname(__FILE__));
 include($rootpath."/web/lib/server/cli.bootstrap.php");
 
