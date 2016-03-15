@@ -64,8 +64,9 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
 
     'get_graph_diff',
 
-    'node_source_added',
-    'node_source_removed',
+    'node_source_add_request',
+    'node_source_update_request',
+    'node_source_remove_request',
     'repository_get_graph_node_sources'
 
   ]);
@@ -207,13 +208,19 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'node_source_added'){
+    }else if(name == 'node_source_add_request'){
       this.pendingRequests.push({url:'addNodeContentSource', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'node_source_removed'){
+    }else if(name == 'node_source_update_request'){
+      this.pendingRequests.push({url:'updateNodeContentSource', data:e.getData(), callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'node_source_remove_request'){
       this.pendingRequests.push({url:'removeNodeContentSource', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});

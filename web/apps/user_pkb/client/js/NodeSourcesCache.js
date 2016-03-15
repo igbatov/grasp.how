@@ -1,8 +1,8 @@
 /**
  * This module intercepts events
  * - get_graph_node_sources
- * - node_source_added
- * - node_source_removed
+ * - node_source_add_request
+ * - node_source_remove_request
  * and caches sources for all nodes
  * so that repository do not need to ask server for every get_graph_node_sources
  * @param subscriber
@@ -15,8 +15,9 @@ YOVALUE.NodeSourcesCache = function(subscriber, publisher){
   this.cache = new YOVALUE.Table(['graphId', 'nodeContentId', 'sources', 'isChanged']);
 
   this.subscriber.subscribe(this,[
-    'node_source_added',
-    'node_source_removed',
+    'node_source_add_request',
+    'node_source_update_request',
+    'node_source_remove_request',
     'get_graph_node_sources'
   ]);
 };
@@ -37,7 +38,9 @@ YOVALUE.NodeSourcesCache.prototype = {
       }else{
         event.setResponse(rows[0].sources);
       }
-    }else if(eventName === 'node_source_added' || eventName === 'node_source_removed'){
+    }else if(eventName === 'node_source_add_request'
+      || eventName === 'node_source_update_request'
+      || eventName === 'node_source_remove_request'){
       rows[0].isChanged = true;
     }
   }

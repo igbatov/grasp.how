@@ -89,7 +89,7 @@ class AppUserPkb extends App
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
-    $this->writeActions = array('updateGraphName', 'setGraphAttributes', 'changeGraphPosition', 'addGraphHistoryItem', 'updateNodeMapping', 'updateGraphElementContent', 'createNewGraph', 'copyGraph', 'cloneGraph', 'getGraphDiff', 'removeGraph','addNodeContentSource','removeNodeContentSource');
+    $this->writeActions = array('updateGraphName', 'setGraphAttributes', 'changeGraphPosition', 'addGraphHistoryItem', 'updateNodeMapping', 'updateGraphElementContent', 'createNewGraph', 'copyGraph', 'cloneGraph', 'getGraphDiff', 'removeGraph','addNodeContentSource','updateNodeContentSource','removeNodeContentSource');
     if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
    // if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
 
@@ -384,6 +384,16 @@ class AppUserPkb extends App
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
         $q = "INSERT INTO node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$this->db->escape($r['source']['field_type'])."', `name`='".$this->db->escape($r['source']['name'])."', url='".$this->db->escape($r['source']['url'])."', author='".$this->db->escape($r['source']['author'])."', editor='".$this->db->escape($r['source']['editor'])."', publisher='".$this->db->escape($r['source']['publisher'])."', publish_date='".$this->db->escape($r['source']['publish_date'])."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
+        $this->log($q);
+        $this->db->execute($q);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        break;
+
+      case 'updateNodeContentSource':
+        $r = $this->getRequest();
+        $graph_id = $r['graphId'];
+        $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
+        $q = "UPDATE node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$this->db->escape($r['source']['field_type'])."', `name`='".$this->db->escape($r['source']['name'])."', url='".$this->db->escape($r['source']['url'])."', author='".$this->db->escape($r['source']['author'])."', editor='".$this->db->escape($r['source']['editor'])."', publisher='".$this->db->escape($r['source']['publisher'])."', publish_date='".$this->db->escape($r['source']['publish_date'])."', `pages`='".$this->db->escape($r['source']['pages'])."' WHERE id = '".$this->db->escape($r['source']['id'])."'";
         $this->log($q);
         $this->db->execute($q);
         $this->showRawData(json_encode(array('result'=>'SUCCESS')));
