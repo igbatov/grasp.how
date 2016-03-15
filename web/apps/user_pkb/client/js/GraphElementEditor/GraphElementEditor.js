@@ -51,24 +51,7 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
           text: e.target.value
         });
       }else if(fieldName == 'addSource'){
-        var modalContent = YOVALUE.createElement('div',{},'');
-        modalContent.appendChild(that.UI.createForm({
-              'source_type':{'type':'select', 'label':'Тип', callback:function(name, value){console.log(name, value)}, 'options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
-              'name':{'type':'text', label:'Название',value:''},
-              'url':{'type':'text', label:'URL',value:''},
-              'author':{'type':'text', label:'Автор', value:''},
-              'editor':{'type':'text', label:'Рецензент', value:''},
-              'publisher':{'type':'text', label:'Издатель', value:''},
-              'publish_date':{'type':'date', label:'Дата издания', value:''},
-              'pages':{'type':'text', label:'Том, страницы', value:''},
-              'add':{'type':'button', label:'Добавить', value:'Добавить'}
-            },
-            function(form){
-              console.log(form);
-              //that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
-            }));
-        that.UI.setModalContent(that.UI.createModal(), modalContent);
-
+        that._editSource($('#'+containerId+' [name=graphId]').val(), $('#'+containerId+' [name=elementContentId]').val());
       }else if(fieldName == 'removeButton'){
         if(confirm('Are you sure?')){
           that.publisher.publish('delete_pressed',{});
@@ -143,6 +126,34 @@ YOVALUE.GraphElementEditor.prototype = {
       default:
         break;
     }
+  },
+
+  /**
+   *
+   * @param graphId
+   * @param nodeContentId
+   * @param item
+   * @private
+   */
+  _editSource: function(graphId, nodeContentId, item){
+    var that = this, modalContent = YOVALUE.createElement('div',{},'');
+    modalContent.appendChild(that.UI.createForm({
+          'source_type':{'type':'select', 'label':'Тип', callback:function(name, value){console.log(name, value)}, 'options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
+          'name':{'type':'text', label:'Название',value:''},
+          'url':{'type':'text', label:'URL',value:''},
+          'author':{'type':'text', label:'Автор', value:''},
+          'editor':{'type':'text', label:'Рецензент', value:''},
+          'publisher':{'type':'text', label:'Издатель', value:''},
+          'publish_date':{'type':'date', label:'Дата издания', value:''},
+          'pages':{'type':'text', label:'Том, страницы', value:''},
+          'add':{'type':'button', label:'Добавить', value:'Добавить'}
+        },
+        function(form){
+          console.log(form);
+          if(typeof(item) == 'undefined') that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:nodeContentId, source:item});
+        }));
+    that.UI.setModalContent(that.UI.createModal(), modalContent);
+
   },
 
   _createEdgeForm: function(parentSelector, graphId, isEditable, edgeTypes, edge){
@@ -225,12 +236,12 @@ YOVALUE.GraphElementEditor.prototype = {
         {
           edit:function(id, el){
             console.log('edit', graphId, node.nodeContentId, id, el);
-            //that.publisher.publish('node_source_added', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+            that._editSource(graphId, node.nodeContentId, items[id]);
             return true;
           },
           remove:function(id, el){
             console.log('remove', graphId, node.nodeContentId, id, el);
-            // that.publisher.publish('node_source_removed', {graphId:graphId, nodeContentId:node.nodeContentId, source:item});
+            that.publisher.publish('node_source_removed', {graphId:graphId, nodeContentId:node.nodeContentId, source:items[id]});
             return true;
           }
         }
