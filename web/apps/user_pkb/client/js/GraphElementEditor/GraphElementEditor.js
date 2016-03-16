@@ -163,14 +163,12 @@ YOVALUE.GraphElementEditor.prototype = {
     }
     modalContent.appendChild(that.UI.createForm(formFields,
         function(form){
-          console.log(form);
           // set form fields to item
           YOVALUE.getObjectKeys(form).forEach(function(v,k){
-             if(typeof(item[v]) != 'undefined') item[v] = form[v].value;
+             if(typeof(form[v]) != 'undefined') item[v] = form[v];
            });
-          console.log(item);
           // send item for add or update
-          if(typeof(item) == 'undefined') that.publisher.publish('node_source_add_request', {graphId:graphId, nodeContentId:nodeContentId, source:item});
+          if(typeof(item.id) == 'undefined') that.publisher.publish('node_source_add_request', {graphId:graphId, nodeContentId:nodeContentId, source:item});
           else that.publisher.publish('node_source_update_request', {graphId:graphId, nodeContentId:nodeContentId, source:item});
         }));
     that.UI.setModalContent(that.UI.createModal(), modalContent);
@@ -243,15 +241,15 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var e = this.publisher.createEvent('get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId});
     this.publisher.when(e).then(function(sources){
+      console.log(sources);
       var items = [];
       for(var i in sources){
         if(sources[i].url.length > 0){
           items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
         }else{
-          items[i] = YOVALUE.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+          items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
         }
       }
-      console.log(sources);
       parent.append(that.UI.createList(
         items,
         {

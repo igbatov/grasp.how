@@ -19,9 +19,13 @@ YOVALUE.UIElements.prototype = {
    */
   createSelectBox: function(name, items, defaultValue, onSelectCallback){
     var uniqId = this.generateId(),
-        selectedItem = YOVALUE.createElement('span',{class:'selected',value:'none'},'none');
+        selectedItem = YOVALUE.createElement('span',{class:'selected',value:'none'},'none'),
+        inputHidden = YOVALUE.createElement('input',{name:name,type:'hidden',value:null});
 
-    if(defaultValue) YOVALUE.updateElement(selectedItem, {value:defaultValue}, items[defaultValue]);
+    if(defaultValue){
+      YOVALUE.updateElement(selectedItem, {value:defaultValue}, items[defaultValue]);
+      YOVALUE.updateElement(inputHidden, {value:defaultValue});
+    }
 
     var selectBox = YOVALUE.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
@@ -36,6 +40,7 @@ YOVALUE.UIElements.prototype = {
     });
 
     selectBox.appendChild(selectedItem);
+    selectBox.appendChild(inputHidden);
     selectBox.appendChild(ul);
 
     document.body.addEventListener('click', function(evt){
@@ -51,6 +56,7 @@ YOVALUE.UIElements.prototype = {
       else if(lis.indexOf(evt.target) != -1 ){
         var value = evt.target.getAttribute('value');
         YOVALUE.updateElement(selectedItem, {value:value}, evt.target.innerText);
+        YOVALUE.updateElement(inputHidden, {value:value});
         if(typeof(onSelectCallback) != 'undefined') onSelectCallback(name, value);
         YOVALUE.setDisplay(ul,'none');
       }else{
@@ -79,16 +85,18 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'button'){
         form.appendChild(this.createButton(name,fields[name]['value'],function(evt){
           var data = {};
+
           // gather data from form nodes
-          [].forEach.call(form.childNodes, function(child) {
-            // if not textNode and has attr name
-            if(child.nodeType != Node.TEXT_NODE && child.hasAttribute('name')) {
-              // if element is button then set data[element] = true if this button was pushed, false otherwise
-              if (child.tagName == 'BUTTON') data[child.getAttribute('name')] = child == evt.target;
-              // for other elements set its value
-              else data[child.getAttribute('name')] = child.value;
-            }
+          [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
+
           });
+          [].forEach.call(form.getElementsByTagName("button"), function(child) {
+            data[child.getAttribute('name')] = child == evt.target;
+          });
+          [].forEach.call(form.getElementsByTagName("input"), function(child) {
+            data[child.getAttribute('name')] = child.value;
+          });
+
           callback(data);
         }));
       }

@@ -1223,11 +1223,18 @@ YOVALUE.createElement = function(tag, attrs, text, callback){
 
   return el;
 };
+/**
+ * Syntax sugar to update DOM element
+ * @param {HTMLElement} el - DOM element
+ * @param {Object<string, string>} attrs - DOM attributes (id, class, value), no CSS here
+ * @param {String=} text - text inside element
+ * @returns {HTMLElement}
+ */
 YOVALUE.updateElement = function(el, attrs, text){
   for(var i in attrs){
     el.setAttribute(i, attrs[i]);
   }
-  el.innerText = text;
+  if(typeof(text) != 'undefined') el.innerText = text;
   return el;
 };
 YOVALUE.getDisplay = function(el){
