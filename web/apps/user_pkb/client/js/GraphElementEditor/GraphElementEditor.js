@@ -163,18 +163,31 @@ YOVALUE.GraphElementEditor.prototype = {
         formFields['button'].value = 'Сохранить';
       });
     }
-    modalContent.appendChild(that.UI.createForm(formFields,
-        function(form){
-          // set form fields to item
-          YOVALUE.getObjectKeys(form).forEach(function(v,k){
-             if(typeof(form[v]) != 'undefined') item[v] = form[v];
-           });
-          // send item for add or update
-          if(typeof(item.id) == 'undefined') that.publisher.publish('node_source_add_request', {graphId:graphId, nodeContentId:nodeContentId, source:item});
-          else that.publisher.publish('node_source_update_request', {graphId:graphId, nodeContentId:nodeContentId, source:item});
-        }));
-    that.UI.setModalContent(that.UI.createModal(), modalContent);
 
+    var deferred = that.publisher.createEvent();
+    (function(deferred) {
+      modalContent.appendChild(that.UI.createForm(formFields,
+        function (form) {
+          // set form fields to item
+          YOVALUE.getObjectKeys(form).forEach(function (v, k) {
+            if (typeof(form[v]) != 'undefined') item[v] = form[v];
+          });
+          // send item for add or update
+          if (typeof(item.id) == 'undefined') that.publisher.publish('node_source_add_request', {
+            graphId: graphId,
+            nodeContentId: nodeContentId,
+            source: item
+          });
+          else that.publisher
+            .when(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
+            .then(function () {
+              deferred.setResponse({graphId: graphId, nodeContentId: nodeContentId, source: item});
+              console.log('HHHHHHHHHHHHHHHHHH');
+            });
+        }));
+    })(deferred);
+    that.UI.setModalContent(that.UI.createModal(), modalContent);
+    return deferred;
   },
 
   _createEdgeForm: function(parentSelector, graphId, isEditable, edgeTypes, edge){
@@ -259,6 +272,8 @@ YOVALUE.GraphElementEditor.prototype = {
             edit:function(id, el){
               that._editSource(graphId, node.nodeContentId, sources[id], function(item){
                 // update element
+              }).then(function(evt){
+                console.log(evt);
               });
               return true;
             },
