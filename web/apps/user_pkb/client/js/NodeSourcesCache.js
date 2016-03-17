@@ -28,7 +28,7 @@ YOVALUE.NodeSourcesCache.prototype = {
     var rows = this.cache.getRows({graphId: eData.graphId, nodeContentId: eData.nodeContentId});
     if (eventName === 'get_graph_node_sources') {
       if(rows.length == 0 || rows[0].isChanged == true) {
-        this.publisher.when(['repository_get_graph_node_sources', eData]).then(function (sources) {
+        this.publisher.publish(['repository_get_graph_node_sources', eData]).then(function (sources) {
           if(rows.length && rows[0].isChanged == true) that.cache.removeRows({graphId: eData.graphId, nodeContentId: eData.nodeContentId});
           that.cache.insertRow({graphId: eData.graphId, nodeContentId: eData.nodeContentId, sources:sources, isChanged:false});
           event.setResponse(sources);

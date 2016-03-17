@@ -28,7 +28,7 @@ YOVALUE.DragModeChangeController.prototype = {
       else if(this.currentDragMode == 'connect') this.currentDragMode = 'move';
     }
 
-    this.publisher.publish('set_drag_mode', {drag_mode:this.currentDragMode});
+    this.publisher.publish(['set_drag_mode', {drag_mode:this.currentDragMode}]);
   }
 
 };

@@ -65,7 +65,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
 
       case "load_graph_models":
         this.publisher
-          .when(["repository_get_graphs_model_settings", {}])
+          .publish(["repository_get_graphs_model_settings", {}])
           .then(function(graphsSettings){
             var r, graphId, graphSettings;
             for(graphId in graphsSettings){
@@ -85,10 +85,10 @@ YOVALUE.GraphModelsPubSub.prototype = {
 
             // for all graphs determine its current version (position, index, step) in history
             // (for the first time it will be just the very last version)
-            return that.publisher.publish("get_current_graph_step", YOVALUE.getObjectKeys(graphsSettings));
+            return that.publisher.publish(["get_current_graph_step", YOVALUE.getObjectKeys(graphsSettings)]);
           })
           .then(function(steps){
-            return that.publisher.publish("graph_history_get_model_elements", steps);
+            return that.publisher.publish(["graph_history_get_model_elements", steps]);
           })
           .then(function(graphsElements){
             for(graphId in graphsElements){
@@ -130,7 +130,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
 
           }else{
             this.publisher
-              .when(["request_for_graph_element_content_change", {type: 'addEdge', graphId:graphId, elementType: graphModel.getEdgeDefaultType()}])
+              .publish(["request_for_graph_element_content_change", {type: 'addEdge', graphId:graphId, elementType: graphModel.getEdgeDefaultType()}])
               .then(function(edgeContent){
                 c.nodes.add = {'newNode': {nodeContentId: event.getData()['nodeContentId']}};
                 c.edges.add = {'newEdge': {edgeContentId: edgeContent.edgeContentId, source: event.getData()['parentNodeId'], target:'newNode'}};
@@ -162,7 +162,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
         if(!graphModel.getIsEditable()) return;
 
         graphModel.setGraphElements(event.getData().elements);
-        this.publisher.publish("graph_model_changed", {type:'set_graph_model_elements', changes:null, graphModel:this._factoryReadOnyModel(graphModel)});
+        this.publisher.publish(["graph_model_changed", {type:'set_graph_model_elements', changes:null, graphModel:this._factoryReadOnyModel(graphModel)}]);
         break;
 
       case 'get_node_by_nodeContentId':
@@ -185,7 +185,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
     var changes = graphModel.applyChanges(c);
 
     // if changes are not empty fire event that model was successfully changed
-    if(YOVALUE.compare(changes, YOVALUE.iGraphModelChanges) !== true) this.publisher.publish("graph_model_changed", {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)});
+    if(YOVALUE.compare(changes, YOVALUE.iGraphModelChanges) !== true) this.publisher.publish(["graph_model_changed", {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)}]);
   },
 
   /**

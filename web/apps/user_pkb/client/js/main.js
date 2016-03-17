@@ -185,10 +185,9 @@ var DI = {
 // Creating and wiring modules according to DI array
 YOVALUE.wireModules(Modules, DI);
 
-
 var p = Modules['Publisher'];
 // init models
-p.when('load_graph_models').then(function(){
+p.publish('load_graph_models').then(function(){
   // and then show them
   p.publish('show_graphs');
 });

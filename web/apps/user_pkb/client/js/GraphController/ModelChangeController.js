@@ -16,13 +16,13 @@ YOVALUE.ModelChangeController.prototype = {
     var eventName = event.getName();
 
     if(eventName == 'show_graphs' || eventName == 'graph_position_changed'){
-      this.publisher.publish('hide_all_graphs');
+      this.publisher.publish(['hide_all_graphs']);
       var graphModels;
-      this.publisher.when("get_graph_models").then(function(models){
+      this.publisher.publish("get_graph_models").then(function(models){
         graphModels = models;
         var i, graphIds = [];
         for(i in graphModels) graphIds.push(graphModels[i].getGraphId());
-        return that.publisher.publish('get_selected_positions', graphIds);
+        return that.publisher.publish(['get_selected_positions', graphIds]);
 
       }).then(function(positions){
         for(var i in graphModels){
@@ -48,7 +48,7 @@ YOVALUE.ModelChangeController.prototype = {
       if(event.getData()['type'] ==  'updateNodeAttribute' && event.getData()['nodeAttribute']['name'] == 'label') timeout = 5000;
 
       var graphId = event.getData()['graphId'];
-      this.publisher.when(["get_graph_models", [graphId]]).then(function(graphModels){
+      this.publisher.publish(["get_graph_models", [graphId]]).then(function(graphModels){
         that.showGraph(graphModels[graphId]);
       });
 
@@ -68,7 +68,7 @@ YOVALUE.ModelChangeController.prototype = {
     // Choose left or right side of canvas for this GraphView
     var that = this;
     this.publisher
-      .when(["get_selected_positions", [graphModel.getGraphId()]])
+      .publish(["get_selected_positions", [graphModel.getGraphId()]])
       .then(function(graphPositions){
         var graphArea = that.viewManager.getViewContainer(graphPositions[graphModel.getGraphId()]);
 
@@ -114,7 +114,7 @@ YOVALUE.ModelChangeController.prototype = {
     for(i in graphModel.getNodes()) nodeContentIds.push(graphModel.getNodes()[i].nodeContentId);
     for(i in graphModel.getEdges()) edgeContentIds.push(graphModel.getEdges()[i].edgeContentId);
     this.publisher
-      .when(["get_selected_skin", graphId],
+      .publish(["get_selected_skin", graphId],
             ["get_selected_layout", graphId],
             ["get_elements_attributes", {nodes:nodeContentIds, edges:edgeContentIds}])
       .then(function(s, l, c){
@@ -161,7 +161,7 @@ YOVALUE.ModelChangeController.prototype = {
 
           // If node mapping module actually changed nodeMappingHint, then save it in repository
           // (so next time we will not make node mapping module working again)
-          if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish("node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping});
+          if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping}]);
 
           // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
           var graphViewSettings = {
@@ -176,7 +176,7 @@ YOVALUE.ModelChangeController.prototype = {
               dragMode:'move'
           };
 
-          that.publisher.publish("draw_graph_view", graphViewSettings);
+          that.publisher.publish(["draw_graph_view", graphViewSettings]);
 
           // hide ajax loader
           that.viewManager.hideAjaxLoader();
@@ -235,7 +235,7 @@ YOVALUE.ModelChangeController.prototype = {
     nnGraphViewSettings.nodeLabelMapping = nnGraphViewSettings.nodeMapping;
 
     // skin
-    this.publisher.when("get_selected_skin", graphId).then(function(s){
+    this.publisher.publish(["get_selected_skin", graphId]).then(function(s){
       nnGraphViewSettings.skin = s;
 
       nnGraphViewSettings.decoration = that.publisher.getInstant("get_graph_decoration", {
@@ -251,7 +251,7 @@ YOVALUE.ModelChangeController.prototype = {
         nnGraphViewSettings.decoration.nodeLabels[i].size = 2*size;
       }
 
-      that.publisher.publish("draw_graph_view", nnGraphViewSettings);
+      that.publisher.publish(["draw_graph_view", nnGraphViewSettings]);
     });
 
   }

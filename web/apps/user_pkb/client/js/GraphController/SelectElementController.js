@@ -57,7 +57,7 @@ YOVALUE.SelectElementController.prototype = {
         graphId: graphId,
         decoration: this.selectedDecoration[graphId]
       };
-      this.publisher.publish("draw_graph_view", graphViewSettings);
+      this.publisher.publish(["draw_graph_view", graphViewSettings]);
 
     }else if(eventName === 'mouseleavenode' || eventName === 'mouseleaveedge' || eventName === 'clickbackground'){
       graphId = event.getData().graphId;
@@ -77,7 +77,7 @@ YOVALUE.SelectElementController.prototype = {
         decoration: this.selectedDecoration[graphId],
       };
 
-      this.publisher.publish("draw_graph_view", graphViewSettings);
+      this.publisher.publish(["draw_graph_view", graphViewSettings]);
 
     }
     // if  node type, reliability or importance changed
@@ -96,7 +96,7 @@ YOVALUE.SelectElementController.prototype = {
         graphId: graphId,
         decoration: this.selectedDecoration[graphId]
       };
-      this.publisher.publish("draw_graph_view", graphViewSettings);
+      this.publisher.publish(["draw_graph_view", graphViewSettings]);
 
     }else if(eventName == 'graph_model_changed'){
 
@@ -125,7 +125,7 @@ YOVALUE.SelectElementController.prototype = {
     selectedElement.elementType = null;
     selectedElement.element = null;
     selectedElement.graphId = graphId;
-    this.publisher.publish("hide_graph_element_editor",{});
+    this.publisher.publish(["hide_graph_element_editor",{}]);
   },
 
   enlargeEdges: function(d, edgeIds){

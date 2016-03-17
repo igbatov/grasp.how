@@ -34,12 +34,12 @@ YOVALUE.AddRemoveElementController.prototype = {
         // do not add double edge between nodes
         if(data['droppedOnModelElement'].element.id == data['draggedModelElement'].element.id) return;
 
-        this.publisher.when(["get_graph_models", [data['droppedOnGraphId']]]).then(function(graphModels){
+        this.publisher.publish(["get_graph_models", [data['droppedOnGraphId']]]).then(function(graphModels){
           var graphModel = graphModels[data['droppedOnGraphId']];
-          return that.publisher.publish("request_for_graph_element_content_change", {type: 'addEdge', graphId: data['droppedOnGraphId'], elementType: graphModel.getEdgeDefaultType()});
+          return that.publisher.publish(["request_for_graph_element_content_change", {type: 'addEdge', graphId: data['droppedOnGraphId'], elementType: graphModel.getEdgeDefaultType()}]);
 
         }).then(function(edgeContent){
-            return that.publisher.publish("request_for_graph_model_change", {graphId: data['droppedOnGraphId'], type: 'addEdge', edgeContentId:edgeContent.edgeContentId, fromNodeId:data['droppedOnModelElement'].element.id, toNodeId:data['draggedModelElement'].element.id});
+            return that.publisher.publish(["request_for_graph_model_change", {graphId: data['droppedOnGraphId'], type: 'addEdge', edgeContentId:edgeContent.edgeContentId, fromNodeId:data['droppedOnModelElement'].element.id, toNodeId:data['draggedModelElement'].element.id}]);
         });
 
       // else add new node to graph
@@ -50,12 +50,12 @@ YOVALUE.AddRemoveElementController.prototype = {
 
         if(this.isNewNodeGraph(data['fromGraphId'])) data['draggedModelElement'].element.nodeContentId = null;
 
-        this.publisher.when(
-          ["get_graph_models", [data['droppedOnGraphId']]],
-          ["request_for_graph_element_content_change", {type: 'addNode', graphId: data['droppedOnGraphId'], element: data['draggedModelElement'].element}]
-        ).then(function(graphModels, nodeContent){
+        this.publisher
+          .publish(["get_graph_models", [data['droppedOnGraphId']]],
+            ["request_for_graph_element_content_change", {type: 'addNode', graphId: data['droppedOnGraphId'], element: data['draggedModelElement'].element}]
+          ).then(function(graphModels, nodeContent){
           var parentNodeId = typeof(data['droppedOnModelElement']) === 'undefined' ? null : data['droppedOnModelElement'].element.id;
-          that.publisher.publish("request_for_graph_model_change", {graphId: graphId, type: 'addNode', parentNodeId: parentNodeId, nodeContentId: nodeContent.nodeContentId});
+          that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'addNode', parentNodeId: parentNodeId, nodeContentId: nodeContent.nodeContentId}]);
         });
       }
 
@@ -66,9 +66,9 @@ YOVALUE.AddRemoveElementController.prototype = {
       // else
       if(selectedElement){
         if(selectedElement.elementType == 'node'){
-          this.publisher.publish("request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeNode', elementId: selectedElement.element.id});
+          this.publisher.publish(["request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeNode', elementId: selectedElement.element.id}]);
         }else if(selectedElement.elementType == 'edge'){
-           this.publisher.publish("request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeEdge', elementId: selectedElement.element.id});
+           this.publisher.publish(["request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeEdge', elementId: selectedElement.element.id}]);
         }
       }
 

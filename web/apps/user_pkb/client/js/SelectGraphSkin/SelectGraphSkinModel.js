@@ -25,7 +25,7 @@ YOVALUE.SelectGraphSkinModel.prototype = {
         var graphId = event.getData();
         if(typeof(this.selectedSkins[graphId]) == 'undefined'){
           this.publisher
-            .when(["repository_get_selected_skins", [graphId]])
+            .publish(["repository_get_selected_skins", [graphId]])
             .then(function(data){
               // if no skin return set to default one from main.js
               if(typeof(data[graphId]) == 'undefined') data[graphId] = that.default_skin;

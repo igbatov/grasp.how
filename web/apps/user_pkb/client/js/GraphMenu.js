@@ -38,7 +38,7 @@ YOVALUE.GraphMenu.prototype = {
 
         // request positions of unknown graphs
         if(unknownGraphIds.length > 0){
-          this.publisher.when(["repository_get_selected_positions", unknownGraphIds]).then(function(data){
+          this.publisher.publish(["repository_get_selected_positions", unknownGraphIds]).then(function(data){
             for(var i in data) that.selectedPosition[i] = data[i];
             that._createView();
             event.setResponse(YOVALUE.extractKeyValues(graphIds, that.selectedPosition));
@@ -54,7 +54,7 @@ YOVALUE.GraphMenu.prototype = {
   _createView: function(){
     var c = this.container, that = this, $ = this.jQuery;
 
-    this.publisher.when("get_graph_models", "repository_get_graphs_clone_list").then(function(graphs, clones){
+    this.publisher.publish("get_graph_models", "repository_get_graphs_clone_list").then(function(graphs, clones){
       var items = {'none':'none'}, i, trashItems={};
 
       // get our own graph names
@@ -74,7 +74,7 @@ YOVALUE.GraphMenu.prototype = {
           // set it as not to be shown
           onSelect('not to be shown', graphId);
           // say about this event to all subscribers
-          that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:true});
+          that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:true}]);
           // redraw menu
           that._createView();
         });
@@ -93,7 +93,7 @@ YOVALUE.GraphMenu.prototype = {
           'submit':{type:'button', value:'Изменить'}
         }, function(form){
           // say about this event to all subscribers
-          that.publisher.publish('graph_name_changed', {graphId:form['graphId'], name:form['name']});
+          that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
           // redraw menu
           that._createView();
           m.parentNode.removeChild(m);
@@ -109,9 +109,9 @@ YOVALUE.GraphMenu.prototype = {
             'submit':{'type':'button', 'label':'', 'value':'Создать'}
           },
           function(form){
-            that.publisher.when(['create_new_graph', {name:form['name']}]).then(function(){
+            that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(){
               // reload graphs models
-              return that.publisher.publish('load_graph_models');
+              return that.publisher.publish(['load_graph_models']);
             }).then(function(){
               // redraw menu
               that._createView();
@@ -125,7 +125,7 @@ YOVALUE.GraphMenu.prototype = {
         that.UI.showModalList(trashItems, {'restore':function(graphId, el){
           el.parentNode.removeChild(el);
           // say about this event to all subscribers
-          that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:false});
+          that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:false}]);
           // redraw menu
           that._createView();
         }});
@@ -138,13 +138,13 @@ YOVALUE.GraphMenu.prototype = {
         }
         that.UI.showModalList(clones[graphId], {'show diff':function(cloneId, html){
           // get graph diff and show it
-          that.publisher.when(['get_graph_diff', {graphId:graphId, cloneId:cloneId}]).then(function(graphViewSettings){
+          that.publisher.publish(['get_graph_diff', {graphId:graphId, cloneId:cloneId}]).then(function(graphViewSettings){
             //create graphModel for diff graph
-            that.publisher.publish("add_graph_model", {
+            that.publisher.publish(["add_graph_model", {
               graphId:graphViewSettings.graphId,
               graphSettings:graphViewSettings.graphModelSettings,
               elements:graphViewSettings.graphModel
-            });
+            }]);
 
             // set graphArea for diff graph
             var position = 'rightGraphView';
@@ -190,8 +190,8 @@ YOVALUE.GraphMenu.prototype = {
               area:graphArea
             });
 
-           // that.publisher.publish('hide_all_graphs');
-            that.publisher.publish("draw_graph_view", graphViewSettings);
+           // that.publisher.publish(['hide_all_graphs']);
+            that.publisher.publish(["draw_graph_view", graphViewSettings]);
           });
 
         }});
@@ -207,7 +207,7 @@ YOVALUE.GraphMenu.prototype = {
         that.selectedPosition[graphId] = position;
 
         // say about this event to all subscribers
-        that.publisher.publish('graph_position_changed', {graphId:graphId, position:position});
+        that.publisher.publish(['graph_position_changed', {graphId:graphId, position:position}]);
       };
 
       var leftGraphId = null, rightGraphId = null;

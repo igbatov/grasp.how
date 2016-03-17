@@ -32,15 +32,15 @@ YOVALUE.HistoryController.prototype = {
 
 
       this.publisher
-        .when([(eventName == 'undo_pressed' ? 'get_previous_graph_step' : 'get_next_graph_step'), [graphId]])
+        .publish([(eventName == 'undo_pressed' ? 'get_previous_graph_step' : 'get_next_graph_step'), [graphId]])
         .then(function(step){
-          that.publisher.publish("graph_history_set_current_step", step);
-          return that.publisher.publish("graph_history_get_model_elements", step);
+          that.publisher.publish(["graph_history_set_current_step", step]);
+          return that.publisher.publish(["graph_history_get_model_elements", step]);
         })
         .then(function(graphs){
         var elements = graphs[graphId].elements;
         // set new graph model
-        that.publisher.publish('set_graph_model_elements', {graphId:graphId, elements: elements});
+        that.publisher.publish(['set_graph_model_elements', {graphId:graphId, elements: elements}]);
       });
 
     }else if(eventName === 'element_editor_focusin'){

@@ -24,7 +24,7 @@ YOVALUE.SelectGraphLayoutModel.prototype = {
 
         if(typeof(this.selectedLayouts[graphId]) == 'undefined'){
           this.publisher
-            .when(["repository_get_selected_layouts", [graphId]])
+            .publish(["repository_get_selected_layouts", [graphId]])
             .then(function(data){
               that.selectedLayouts[graphId] = data[graphId];
               var layoutName = that.selectedLayouts[graphId];

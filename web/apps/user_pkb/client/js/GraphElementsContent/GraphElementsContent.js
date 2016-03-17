@@ -57,7 +57,7 @@ YOVALUE.GraphElementsContent.prototype = {
           newEdge.type = event.getData().elementType;
 
           this.publisher
-            .when(["graph_element_content_changed", {graphId:event.getData()['graphId'], type:event.getData()['type'],  edge:newEdge}])
+            .publish(["graph_element_content_changed", {graphId:event.getData()['graphId'], type:event.getData()['type'],  edge:newEdge}])
             .then(function(edgeContentId){
               newEdge.edgeContentId = edgeContentId;
               that.cacheElementAttributes.add({elementType:'edge', contentId:newEdge.edgeContentId, attributes:newEdge});
@@ -72,7 +72,7 @@ YOVALUE.GraphElementsContent.prototype = {
             if(typeof(newNode) == 'undefined') YOVALUE.errorHandler.throwError('no newNode');
 
             that.publisher
-              .when(["graph_element_content_changed",  {graphId:graphId, type:'addNode',  node:newNode}])
+              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode',  node:newNode}])
               .then(function(nodeContentId){
                 newNode.nodeContentId = nodeContentId;
                 that.cacheElementAttributes.add({elementType:'node', contentId:newNode.nodeContentId, attributes:newNode});
@@ -85,7 +85,7 @@ YOVALUE.GraphElementsContent.prototype = {
           if(event.getData().element.nodeContentId != null){
             //retrieve node attributes and text
             this.publisher
-              .when(["get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]}],
+              .publish(["get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]}],
                     ["get_graph_node_text", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]}])
               .then(function(attributes, texts){
                 // create new node and copy all info from old
@@ -110,7 +110,7 @@ YOVALUE.GraphElementsContent.prototype = {
           var reader  = new FileReader();
           reader.onload = function () {
             icon.src = reader.result;
-            that.publisher.publish("graph_element_content_changed", event.getData());
+            that.publisher.publish(["graph_element_content_changed", event.getData()]);
             event.setResponse({});
           };
           reader.readAsDataURL(event.getData().file);
@@ -118,7 +118,7 @@ YOVALUE.GraphElementsContent.prototype = {
 
         }
 
-        if(ed) this.publisher.publish("graph_element_content_changed", ed);
+        if(ed) this.publisher.publish(["graph_element_content_changed", ed]);
         if(er) event.setResponse(er);
         break;
 
@@ -152,7 +152,7 @@ YOVALUE.GraphElementsContent.prototype = {
         // get these absent element contents from server
         if(undefinedContentIds.edges.length > 0 || undefinedContentIds.nodes.length > 0){
           this.publisher
-            .when(["repository_get_graph_elements_attributes", undefinedContentIds])
+            .publish(["repository_get_graph_elements_attributes", undefinedContentIds])
             .then(function(data){
               var contentId;
               for(contentId in data.nodes){
@@ -189,7 +189,7 @@ YOVALUE.GraphElementsContent.prototype = {
         // retrieve absent node content from server
         if(unavaliableNodeContentIds.length > 0){
           this.publisher
-            .when(["repository_get_graph_node_text", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds}])
+            .publish(["repository_get_graph_node_text", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds}])
             .then(function(nodeTexts){
               for(var nodeContentId in nodeTexts){
                 that.cacheNodeTexts.add({nodeContentId: nodeContentId, text: nodeTexts[nodeContentId]});

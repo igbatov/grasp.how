@@ -43,7 +43,7 @@ YOVALUE.GraphHistory.prototype = {
       // retrieve it from repository
       if(emptyIds.length > 0){
         for(i in emptyIds) r[emptyIds[i]] = historyRequest[emptyIds[i]];
-        this.publisher.when(["repository_get_graphs_model_elements", r]).then(function(graphsElements){
+        this.publisher.publish(["repository_get_graphs_model_elements", r]).then(function(graphsElements){
           for(i in graphsElements){
             that.history.insertRow(graphsElements[i]);
             that._setLastStep(graphsElements[i]['graphId'], graphsElements[i]['step']);
@@ -71,7 +71,7 @@ YOVALUE.GraphHistory.prototype = {
       if(cnt == 0) YOVALUE.errorHandler.throwError('cache has no items for graphId '+graphId+', step '+step);
 
       // save in repository
-      this.publisher.publish('repository_update_node_mapping', {graphId: graphId, step: step, node_mapping: event.getData()['node_mapping']});
+      this.publisher.publish(['repository_update_node_mapping', {graphId: graphId, step: step, node_mapping: event.getData()['node_mapping']}]);
 
     }
     // create new history item from model modification
@@ -102,7 +102,7 @@ YOVALUE.GraphHistory.prototype = {
       this.historyTimeline[item.graphId][item.step] = item.timestamp;
       this.currentStep[item.graphId] = item.step;
 
-      this.publisher.publish('graph_history_item_added', {item: item, changes: event.getData()['changes']});
+      this.publisher.publish(['graph_history_item_added', {item: item, changes: event.getData()['changes']}]);
 
     }else if(eventName === 'get_previous_graph_step'){
       var i, graphIds = event.getData(), previousStep = {};
@@ -110,7 +110,7 @@ YOVALUE.GraphHistory.prototype = {
       // check that we have current step for all graphIds
       for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_previous_graph_step requested but no current step for graphId='+graphIds[i]);
 
-      that.publisher.when(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
+      that.publisher.publish(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
         for(i in graphIds) previousStep[graphIds[i]] =  that._getPreviousStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
         event.setResponse(previousStep);
       });
@@ -121,7 +121,7 @@ YOVALUE.GraphHistory.prototype = {
       // check that we have current step for all graphIds
       for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_next_graph_step requested but no current step for graphId='+graphIds[i]);
 
-      that.publisher.when(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
+      that.publisher.publish(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
         for(i in graphIds) nextStep[graphIds[i]] =  that._getNextStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
         event.setResponse(nextStep);
       });
@@ -133,7 +133,7 @@ YOVALUE.GraphHistory.prototype = {
 
       // for all such graphIds init currentStep to the last step in the timeline
       if(emptyIds.length > 0){
-        that.publisher.when(["get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
+        that.publisher.publish(["get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
           var graphId;
           for(graphId in timeline){
             if(emptyIds.indexOf(graphId) !== -1) that.currentStep[graphId] = Math.max.apply(null, YOVALUE.getObjectKeys(that.historyTimeline[graphId]));
@@ -155,7 +155,7 @@ YOVALUE.GraphHistory.prototype = {
       // get graphIds that are not yet in this.historyTimeline
       var emptyIds = YOVALUE.arrayHelper.difference(event.getData()['ids'], YOVALUE.getObjectKeys(that.historyTimeline));
       if(emptyIds.length > 0){
-        that.publisher.when(["repository_get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
+        that.publisher.publish(["repository_get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
           for(var id in timeline){
             that.historyTimeline[id] = timeline[id];
           }

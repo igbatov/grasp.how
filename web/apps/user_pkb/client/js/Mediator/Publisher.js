@@ -27,18 +27,6 @@ YOVALUE.Publisher.prototype = {
   },
 
   /**
-   * Publish one event with name "name" and data "data"
-   * @param name
-   * @param data
-   * @returns {*}
-   */
-  publish: function(name, data){
-    var e = this.createEvent(name, data);
-    this.publishEvent(e);
-    return e;
-  },
-
-  /**
    * Publish several events created by this.createEvent
    * usage:
    * e1 = this.createEvent(name, data);
@@ -65,15 +53,15 @@ YOVALUE.Publisher.prototype = {
 
   /**
    *
-   * @param events - can be array [name, data], string 'name' or YOVALUE.Event(name, data)
+   * @param events - every argument can be an array [name, data], string 'name' or YOVALUE.Event(name, data)
    */
-  when: function(events){
+  publish: function(events){
     for(var i in arguments){
       if(YOVALUE.typeof(arguments[i]) == 'array') arguments[i] = this.createEvent(arguments[i][0], arguments[i][1]);
       else if(YOVALUE.typeof(arguments[i]) == 'string') arguments[i] = this.createEvent(arguments[i]);
     }
-    var defer = this._promise.when.apply(this._promise, arguments);
+    var promise = this._promise.when.apply(this._promise, arguments);
     this.publishEvent.apply(this, arguments);
-    return defer;
+    return promise;
   }
 };

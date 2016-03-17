@@ -239,12 +239,12 @@ YOVALUE.Repository.prototype = {
     // if previous request still has no answer or there is nothing to send, do nothing
     if(!this.isLastRequestDone) return;
     if(this.pendingRequests.length === 0){
-      this.publisher.publish("repository_requests_send", {});
+      this.publisher.publish(["repository_requests_send", {}]);
       return;
     }
 
     var that = this, r = that.pendingRequests[0];
-    this.publisher.publish("repository_processing", {});
+    this.publisher.publish(["repository_processing", {}]);
 
     this.isLastRequestDone = false;
     var formData = new FormData();
@@ -277,7 +277,7 @@ YOVALUE.Repository.prototype = {
           that.pendingRequests.shift();
           that.isLastRequestDone = true;
         }
-        that.publisher.publish("repository_error", {reason:reason});
+        that.publisher.publish(["repository_error", {reason:reason}]);
       }
     });
   }

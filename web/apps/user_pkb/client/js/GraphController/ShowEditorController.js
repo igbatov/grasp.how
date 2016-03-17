@@ -16,7 +16,7 @@ YOVALUE.ShowEditorController.prototype = {
         if(selectedElement.elementType === "node")  this._showNodeEditor(selectedElement.graphId, selectedElement.element);
         if(selectedElement.elementType === "edge")  this._showEdgeEditor(selectedElement.graphId, selectedElement.element);
       }else{
-        this.publisher.publish("hide_graph_element_editor", selectedElement);
+        this.publisher.publish(["hide_graph_element_editor", selectedElement]);
       }
     }else if(eventName === 'clicknode'){
       this._showNodeEditor(selectedElement.graphId, selectedElement.element);
@@ -33,19 +33,19 @@ YOVALUE.ShowEditorController.prototype = {
     var that = this;
 
     this.publisher
-      .when(["get_graph_models", [graphId]],
+      .publish(["get_graph_models", [graphId]],
             ["get_selected_positions", [graphId]])
       .then(function(graphModels, positions){
           if(typeof(graphModels[graphId]) == 'undefined') return true;
             var graphModel = graphModels[graphId];
-            that.publisher.publish("show_graph_element_editor", {
+            that.publisher.publish(["show_graph_element_editor", {
               graphId: graphId,
               position: positions[graphId],
               isEditable: graphModel.getIsEditable(),
               elementType: 'node',
               node: node,
               nodeTypes: graphModel.getNodeTypes()
-            });
+            }]);
       });
   },
 
@@ -53,18 +53,18 @@ YOVALUE.ShowEditorController.prototype = {
     var that = this;
 
     this.publisher
-      .when(["get_graph_models", [graphId]],
+      .publish(["get_graph_models", [graphId]],
             ["get_selected_positions", [graphId]])
       .then(function(graphModels, positions){
             var graphModel = graphModels[graphId];
-            that.publisher.publish("show_graph_element_editor", {
+            that.publisher.publish(["show_graph_element_editor", {
               graphId: graphId,
               position: positions[graphId],
               isEditable: graphModel.getIsEditable(),
               elementType: 'edge',
               edge: {id: edge.id, type: edge.type, edgeContentId: edge.edgeContentId, label: edge.label},
               edgeTypes: graphModel.getEdgeTypes()
-            });
+            }]);
       });
   }
 };
