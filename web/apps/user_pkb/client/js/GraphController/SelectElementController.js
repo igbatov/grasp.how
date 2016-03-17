@@ -40,7 +40,7 @@ YOVALUE.SelectElementController.prototype = {
 
       if(eventName === 'clicknode') nodesToSelect = [e.id];
       if(eventName === 'mouseenternode'){
-        var model = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_models', [graphId]))[graphId];
+        var model = this.publisher.getInstant('get_graph_models', [graphId])[graphId];
         nodesToSelect = [e.id];
         console.log(nodesToSelect);
         nodesToSelect = nodesToSelect.concat(model.getNeighbourIds([e.id]));
@@ -89,7 +89,7 @@ YOVALUE.SelectElementController.prototype = {
       graphId = event.getData()['graphId'];
       this.initDecorations(graphId);
 
-      var node = this.publisher.publishResponseEvent(this.publisher.createEvent('get_node_by_nodeContentId', {graphId: graphId, nodeContentId: event.getData()['nodeContentId']}));
+      var node = this.publisher.getInstant('get_node_by_nodeContentId', {graphId: graphId, nodeContentId: event.getData()['nodeContentId']});
       var nodeId = node.id;
       this.selectedDecoration[graphId] = this.enlargeNodes(this.initialDecoration[graphId], [nodeId]);
       graphViewSettings = {
@@ -182,6 +182,6 @@ YOVALUE.SelectElementController.prototype = {
 
   initDecorations: function(graphId){
     // copy node, edge, label decoration
-    this.initialDecoration[graphId] = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_decoration', {graphId: graphId}));
+    this.initialDecoration[graphId] = this.publisher.getInstant('get_graph_view_decoration', {graphId: graphId});
   }
 };

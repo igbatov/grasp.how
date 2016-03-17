@@ -18,8 +18,7 @@ YOVALUE.ModelChangeController.prototype = {
     if(eventName == 'show_graphs' || eventName == 'graph_position_changed'){
       this.publisher.publish('hide_all_graphs');
       var graphModels;
-      var e = this.publisher.createEvent("get_graph_models");
-      this.publisher.when(e).then(function(models){
+      this.publisher.when("get_graph_models").then(function(models){
         graphModels = models;
         var i, graphIds = [];
         for(i in graphModels) graphIds.push(graphModels[i].getGraphId());
@@ -33,7 +32,6 @@ YOVALUE.ModelChangeController.prototype = {
           }
         }
       });
-      this.publisher.publishEvent(e);
 
     }else if(eventName == 'graph_model_changed'){
       var graphModel = event.getData()['graphModel'];
@@ -50,14 +48,13 @@ YOVALUE.ModelChangeController.prototype = {
       if(event.getData()['type'] ==  'updateNodeAttribute' && event.getData()['nodeAttribute']['name'] == 'label') timeout = 5000;
 
       var graphId = event.getData()['graphId'];
-      e = this.publisher.createEvent("get_graph_models", [graphId]);
-      this.publisher.when(e).then(function(graphModels){
+      this.publisher.when(["get_graph_models", [graphId]]).then(function(graphModels){
         that.showGraph(graphModels[graphId]);
       });
 
 //      clearTimeout(timer);
  //     timer = setTimeout(function(){
-        that.publisher.publishEvent(e);
+
    //   }, timeout);
 
     }
@@ -69,35 +66,36 @@ YOVALUE.ModelChangeController.prototype = {
    */
   showGraph: function(graphModel){
     // Choose left or right side of canvas for this GraphView
-    var that = this, e = this.publisher.createEvent("get_selected_positions", [graphModel.getGraphId()]);
-    this.publisher.when(e).then(function(graphPositions){
-      var graphArea = that.viewManager.getViewContainer(graphPositions[graphModel.getGraphId()]);
+    var that = this;
+    this.publisher
+      .when(["get_selected_positions", [graphModel.getGraphId()]])
+      .then(function(graphPositions){
+        var graphArea = that.viewManager.getViewContainer(graphPositions[graphModel.getGraphId()]);
 
-      if (!graphModel.getIsEditable()) {
-        that._drawGraphView(graphModel, graphArea);
-      } else {
-        // We want to fit in graphArea 2 graphs:
-        // - original graphModel
-        // - nnGraph (new nodes graph) - graph that user can use as a source of the new nodes for original graph
+        if (!graphModel.getIsEditable()) {
+          that._drawGraphView(graphModel, graphArea);
+        } else {
+          // We want to fit in graphArea 2 graphs:
+          // - original graphModel
+          // - nnGraph (new nodes graph) - graph that user can use as a source of the new nodes for original graph
 
-        // Cut some space for nnGraph area
-        var newNodesGraphHeight = 0.07 * graphArea.height,
-            nnGraphArea = {
-              centerX: graphArea.centerX,
-              centerY: newNodesGraphHeight / 2,
-              width: graphArea.width,
-              height: newNodesGraphHeight
-            };
-        that._drawNodesPanel(graphModel, nnGraphArea);
+          // Cut some space for nnGraph area
+          var newNodesGraphHeight = 0.07 * graphArea.height,
+              nnGraphArea = {
+                centerX: graphArea.centerX,
+                centerY: newNodesGraphHeight / 2,
+                width: graphArea.width,
+                height: newNodesGraphHeight
+              };
+          that._drawNodesPanel(graphModel, nnGraphArea);
 
-        // Calculate area for original graph
-        graphArea.height = graphArea.height - nnGraphArea.height;
-        graphArea.centerY = graphArea.centerY + nnGraphArea.height;
-        // Create data nnGraph view
-        that._drawGraphView(graphModel, graphArea);
-      }
-    });
-    this.publisher.publishEvent(e);
+          // Calculate area for original graph
+          graphArea.height = graphArea.height - nnGraphArea.height;
+          graphArea.centerY = graphArea.centerY + nnGraphArea.height;
+          // Create data nnGraph view
+          that._drawGraphView(graphModel, graphArea);
+        }
+      });
   },
 
   /**
@@ -113,73 +111,76 @@ YOVALUE.ModelChangeController.prototype = {
       nodeLabels = {}, nodeLabelAreaList, nodeId, nodeContentIds=[], edgeContentIds=[];
 
     var graphId = graphModel.getGraphId();
-    var e1 = this.publisher.createEvent("get_selected_skin", graphId);
-    var e2 = this.publisher.createEvent("get_selected_layout", graphId);
     for(i in graphModel.getNodes()) nodeContentIds.push(graphModel.getNodes()[i].nodeContentId);
     for(i in graphModel.getEdges()) edgeContentIds.push(graphModel.getEdges()[i].edgeContentId);
-    var e3 = this.publisher.createEvent("get_elements_attributes", {nodes:nodeContentIds, edges:edgeContentIds});
-    this.publisher.when(e1, e2, e3).then(function(s, l, c){
-      skin = s;
-      layout = l;
-      graphNodeAttributes = c['nodes'];
-      graphEdgeAttributes = c['edges'];
+    this.publisher
+      .when(["get_selected_skin", graphId],
+            ["get_selected_layout", graphId],
+            ["get_elements_attributes", {nodes:nodeContentIds, edges:edgeContentIds}])
+      .then(function(s, l, c){
+            skin = s;
+            layout = l;
+            graphNodeAttributes = c['nodes'];
+            graphEdgeAttributes = c['edges'];
 
-      // Decorate nodes and edges with size and color
-      decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
-            graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
-            graphNodeAttributes:graphNodeAttributes,
-            graphEdgeAttributes:graphEdgeAttributes,
-            scale:Math.min(graphArea.width, graphArea.height),
+            // Decorate nodes and edges with size and color
+            decoration = that.publisher.getInstant("get_graph_decoration", {
+                  graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
+                  graphNodeAttributes:graphNodeAttributes,
+                  graphEdgeAttributes:graphEdgeAttributes,
+                  scale:Math.min(graphArea.width, graphArea.height),
+                  skin:skin
+              }
+            );
+
+          // Create node label layout for GraphView
+          for(nodeId in graphNodes){
+            nodeLabels[graphNodes[nodeId].id] = {
+              id: graphNodes[nodeId].id,
+              label: graphNodeAttributes[graphNodes[nodeId].nodeContentId].label,
+              size: decoration.nodeLabels[nodeId].size
+            };
+          }
+          nodeLabelAreaList = that.publisher.getInstant("get_graph_view_label_area", {
+            nodeLabels:nodeLabels,
             skin:skin
-        }
-      ));
+          });
+          nodeMappingHint = that.publisher.getInstant("graph_history_get_node_mapping", {
+            graphId:graphModel.getGraphId()
+          });
 
-      // Create node label layout for GraphView
-      for(nodeId in graphNodes){
-        nodeLabels[graphNodes[nodeId].id] = {
-          id: graphNodes[nodeId].id,
-          label: graphNodeAttributes[graphNodes[nodeId].nodeContentId].label,
-          size: decoration.nodeLabels[nodeId].size
-        };
-      }
-      nodeLabelAreaList = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_view_label_area", {
-        nodeLabels:nodeLabels,
-        skin:skin
-      }));
-      nodeMappingHint = that.publisher.publishResponseEvent(that.publisher.createEvent("graph_history_get_node_mapping", {
-        graphId:graphModel.getGraphId()
-      }));
-      // Create node layout for GraphView
-      nodeMapping = that.publisher.publishResponseEvent(that.publisher.createEvent("get_node_mapping", {
-        graphId:graphModel.getGraphId(),
-        model:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
-        hint:nodeMappingHint,
-        layout:layout,
-        nodeLabelAreaList:nodeLabelAreaList,
-        area:graphArea
-      }));
-      // If node mapping module actually changed nodeMappingHint, then save it in repository
-      // (so next time we will not make node mapping module working again)
-      if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish("node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping});
-      // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
-      var graphViewSettings = {
-          graphId:graphModel.getGraphId(),
-          graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
-          skin:skin,
-          layout:layout,
-          graphNodeAttributes:graphNodeAttributes,
-          graphEdgeAttributes:graphEdgeAttributes,
-          decoration:decoration,
-          nodeMapping:nodeMapping,
-          dragMode:'move'
-      };
+          // Create node layout for GraphView
+          nodeMapping = that.publisher.getInstant("get_node_mapping", {
+            graphId:graphModel.getGraphId(),
+            model:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
+            hint:nodeMappingHint,
+            layout:layout,
+            nodeLabelAreaList:nodeLabelAreaList,
+            area:graphArea
+          });
 
-      that.publisher.publish("draw_graph_view", graphViewSettings);
+          // If node mapping module actually changed nodeMappingHint, then save it in repository
+          // (so next time we will not make node mapping module working again)
+          if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish("node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping});
 
-      // hide ajax loader
-      that.viewManager.hideAjaxLoader();
-    });
-    this.publisher.publishEvent(e1, e2, e3);
+          // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
+          var graphViewSettings = {
+              graphId:graphModel.getGraphId(),
+              graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
+              skin:skin,
+              layout:layout,
+              graphNodeAttributes:graphNodeAttributes,
+              graphEdgeAttributes:graphEdgeAttributes,
+              decoration:decoration,
+              nodeMapping:nodeMapping,
+              dragMode:'move'
+          };
+
+          that.publisher.publish("draw_graph_view", graphViewSettings);
+
+          // hide ajax loader
+          that.viewManager.hideAjaxLoader();
+      });
   },
 
   // get data to init mini-graphView that draws just node types of the graphModel
@@ -234,17 +235,16 @@ YOVALUE.ModelChangeController.prototype = {
     nnGraphViewSettings.nodeLabelMapping = nnGraphViewSettings.nodeMapping;
 
     // skin
-    var e = this.publisher.createEvent("get_selected_skin", graphId);
-    this.publisher.when(e).then(function(s){
+    this.publisher.when("get_selected_skin", graphId).then(function(s){
       nnGraphViewSettings.skin = s;
 
-      nnGraphViewSettings.decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
+      nnGraphViewSettings.decoration = that.publisher.getInstant("get_graph_decoration", {
         graphModel: {nodes: nodes, edges: {}},
         graphNodeAttributes:nodes,
         graphEdgeAttributes:{},
         scale:scale,
         skin:nnGraphViewSettings.skin
-      }));
+      });
 
       for(i in nnGraphViewSettings.decoration.nodes){
         nnGraphViewSettings.decoration.nodes[i].size = size;
@@ -254,7 +254,6 @@ YOVALUE.ModelChangeController.prototype = {
       that.publisher.publish("draw_graph_view", nnGraphViewSettings);
     });
 
-    this.publisher.publishEvent(e);
   }
 
 };

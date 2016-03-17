@@ -30,16 +30,18 @@ YOVALUE.HistoryController.prototype = {
       if(!selectedElement.graphId) return;
       else graphId = selectedElement.graphId;
 
-      var e = this.publisher.createEvent((eventName == 'undo_pressed' ? 'get_previous_graph_step' : 'get_next_graph_step'), [graphId]);
-      this.publisher.when(e).then(function(step){
-        that.publisher.publish("graph_history_set_current_step", step);
-        return that.publisher.publish("graph_history_get_model_elements", step);
-      }).then(function(graphs){
+
+      this.publisher
+        .when([(eventName == 'undo_pressed' ? 'get_previous_graph_step' : 'get_next_graph_step'), [graphId]])
+        .then(function(step){
+          that.publisher.publish("graph_history_set_current_step", step);
+          return that.publisher.publish("graph_history_get_model_elements", step);
+        })
+        .then(function(graphs){
         var elements = graphs[graphId].elements;
         // set new graph model
         that.publisher.publish('set_graph_model_elements', {graphId:graphId, elements: elements});
       });
-      this.publisher.publishEvent(e);
 
     }else if(eventName === 'element_editor_focusin'){
       this.isElementEditorFocused = true;

@@ -23,13 +23,14 @@ YOVALUE.SelectGraphLayoutModel.prototype = {
         var graphId = event.getData();
 
         if(typeof(this.selectedLayouts[graphId]) == 'undefined'){
-          var e = this.publisher.createEvent("repository_get_selected_layouts", [graphId]);
-          this.publisher.when(e).then(function(data){
-            that.selectedLayouts[graphId] = data[graphId];
-            var layoutName = that.selectedLayouts[graphId];
-            event.setResponse({layoutName:layoutName, layout: that.layouts[layoutName]});
-          });
-          this.publisher.publishEvent(e);
+          this.publisher
+            .when(["repository_get_selected_layouts", [graphId]])
+            .then(function(data){
+              that.selectedLayouts[graphId] = data[graphId];
+              var layoutName = that.selectedLayouts[graphId];
+              event.setResponse({layoutName:layoutName, layout: that.layouts[layoutName]});
+            });
+
         }else{
           var layoutName = this.selectedLayouts[graphId];
           event.setResponse({layoutName:layoutName, layout: this.layouts[layoutName]});

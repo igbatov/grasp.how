@@ -30,43 +30,41 @@ YOVALUE.ShowEditorController.prototype = {
   },
 
   _showNodeEditor: function(graphId, node){
-    var that = this,
-      e1 = this.publisher.createEvent("get_graph_models", [graphId]),
-      e2 = this.publisher.createEvent("get_selected_positions", [graphId]);
+    var that = this;
 
-    this.publisher.when(e1, e2).then(function(graphModels, positions){
-      if(typeof(graphModels[graphId]) == 'undefined') return true;
-        var graphModel = graphModels[graphId];
-        that.publisher.publish("show_graph_element_editor", {
-          graphId: graphId,
-          position: positions[graphId],
-          isEditable: graphModel.getIsEditable(),
-          elementType: 'node',
-          node: node,
-          nodeTypes: graphModel.getNodeTypes()
-        });
-    });
-
-    this.publisher.publishEvent(e1, e2);
+    this.publisher
+      .when(["get_graph_models", [graphId]],
+            ["get_selected_positions", [graphId]])
+      .then(function(graphModels, positions){
+          if(typeof(graphModels[graphId]) == 'undefined') return true;
+            var graphModel = graphModels[graphId];
+            that.publisher.publish("show_graph_element_editor", {
+              graphId: graphId,
+              position: positions[graphId],
+              isEditable: graphModel.getIsEditable(),
+              elementType: 'node',
+              node: node,
+              nodeTypes: graphModel.getNodeTypes()
+            });
+      });
   },
 
   _showEdgeEditor: function(graphId, edge){
-    var that = this,
-      e1 = this.publisher.createEvent("get_graph_models", [graphId]),
-      e2 = this.publisher.createEvent("get_selected_positions", [graphId]);
+    var that = this;
 
-    this.publisher.when(e1, e2).then(function(graphModels, positions){
-      var graphModel = graphModels[graphId];
-      that.publisher.publish("show_graph_element_editor", {
-        graphId: graphId,
-        position: positions[graphId],
-        isEditable: graphModel.getIsEditable(),
-        elementType: 'edge',
-        edge: {id: edge.id, type: edge.type, edgeContentId: edge.edgeContentId, label: edge.label},
-        edgeTypes: graphModel.getEdgeTypes()
+    this.publisher
+      .when(["get_graph_models", [graphId]],
+            ["get_selected_positions", [graphId]])
+      .then(function(graphModels, positions){
+            var graphModel = graphModels[graphId];
+            that.publisher.publish("show_graph_element_editor", {
+              graphId: graphId,
+              position: positions[graphId],
+              isEditable: graphModel.getIsEditable(),
+              elementType: 'edge',
+              edge: {id: edge.id, type: edge.type, edgeContentId: edge.edgeContentId, label: edge.label},
+              edgeTypes: graphModel.getEdgeTypes()
+            });
       });
-    });
-    this.publisher.publishEvent(e1, e2);
-
   }
 };

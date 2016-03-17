@@ -16,6 +16,12 @@ YOVALUE.Publisher = function(mediator, promise){
 };
 
 YOVALUE.Publisher.prototype = {
+  /**
+   *
+   * @param name
+   * @param data
+   * @returns {YOVALUE.Event}
+   */
   createEvent: function(name,data){
     return new YOVALUE.Event(name, data, this._promise.getDefer())
   },
@@ -47,21 +53,27 @@ YOVALUE.Publisher.prototype = {
   },
 
   /**
-   * Publish one event created by this.createEvent(name, data);
-   * and return response immediately
-   * @param event
-   * @returns {*}
+   * Get response for instant event (instant event is not defer answer, but returns it immediately)
+   * @param name
+   * @param data
    */
-  publishResponseEvent: function(event){
+  getInstant: function(name, data){
+    var event = this.createEvent(name, data);
     this._mediator.dispatch(event);
     return event.getResponse();
   },
 
   /**
    *
-   * @param {Array<YOVALUE.Event>} events
+   * @param events - can be array [name, data], string 'name' or YOVALUE.Event(name, data)
    */
-  when: function(){
-    return this._promise.when.apply(this._promise, arguments);
+  when: function(events){
+    for(var i in arguments){
+      if(YOVALUE.typeof(arguments[i]) == 'array') arguments[i] = this.createEvent(arguments[i][0], arguments[i][1]);
+      else if(YOVALUE.typeof(arguments[i]) == 'string') arguments[i] = this.createEvent(arguments[i]);
+    }
+    var defer = this._promise.when.apply(this._promise, arguments);
+    this.publishEvent.apply(this, arguments);
+    return defer;
   }
 };

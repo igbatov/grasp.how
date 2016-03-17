@@ -56,13 +56,13 @@ YOVALUE.GraphElementsContent.prototype = {
           newEdge.label = event.getData().elementType;
           newEdge.type = event.getData().elementType;
 
-          e = this.publisher.createEvent("graph_element_content_changed", {graphId:event.getData()['graphId'], type:event.getData()['type'],  edge:newEdge});
-          this.publisher.when(e).then(function(edgeContentId){
-            newEdge.edgeContentId = edgeContentId;
-            that.cacheElementAttributes.add({elementType:'edge', contentId:newEdge.edgeContentId, attributes:newEdge});
-            event.setResponse(newEdge);
-          });
-          this.publisher.publishEvent(e);
+          this.publisher
+            .when(["graph_element_content_changed", {graphId:event.getData()['graphId'], type:event.getData()['type'],  edge:newEdge}])
+            .then(function(edgeContentId){
+              newEdge.edgeContentId = edgeContentId;
+              that.cacheElementAttributes.add({elementType:'edge', contentId:newEdge.edgeContentId, attributes:newEdge});
+              event.setResponse(newEdge);
+            });
 
         }else if(event.getData()['type'] == 'addNode'){
 
@@ -71,29 +71,29 @@ YOVALUE.GraphElementsContent.prototype = {
             if(typeof(graphId) == 'undefined') YOVALUE.errorHandler.throwError('no graphId');
             if(typeof(newNode) == 'undefined') YOVALUE.errorHandler.throwError('no newNode');
 
-            e = that.publisher.createEvent("graph_element_content_changed",  {graphId:graphId, type:'addNode',  node:newNode});
-            that.publisher.when(e).then(function(nodeContentId){
-              newNode.nodeContentId = nodeContentId;
-              that.cacheElementAttributes.add({elementType:'node', contentId:newNode.nodeContentId, attributes:newNode});
-              that.cacheNodeTexts.add({contentId:newNode.nodeContentId, text:''});
-              event.setResponse(newNode);
-            });
-            that.publisher.publishEvent(e);
+            that.publisher
+              .when(["graph_element_content_changed",  {graphId:graphId, type:'addNode',  node:newNode}])
+              .then(function(nodeContentId){
+                newNode.nodeContentId = nodeContentId;
+                that.cacheElementAttributes.add({elementType:'node', contentId:newNode.nodeContentId, attributes:newNode});
+                that.cacheNodeTexts.add({contentId:newNode.nodeContentId, text:''});
+                event.setResponse(newNode);
+              });
           };
 
           // if this is copy from already existing node, then get its data, copy and call saveNewNode
           if(event.getData().element.nodeContentId != null){
             //retrieve node attributes and text
-            var e1 = this.publisher.createEvent("get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]});
-            var e2 = this.publisher.createEvent("get_graph_node_text", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]});
-            this.publisher.when(e1, e2).then(function(attributes, texts){
-              // create new node and copy all info from old
-              var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
-              newNode = attributes.nodes[event.getData().element.nodeContentId];
-              newNode.text = texts[event.getData().element.nodeContentId];
-              saveNewNode(event.getData()['graphId'], newNode);
-            });
-            this.publisher.publishEvent(e1, e2);
+            this.publisher
+              .when(["get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]}],
+                    ["get_graph_node_text", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]}])
+              .then(function(attributes, texts){
+                // create new node and copy all info from old
+                var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
+                newNode = attributes.nodes[event.getData().element.nodeContentId];
+                newNode.text = texts[event.getData().element.nodeContentId];
+                saveNewNode(event.getData()['graphId'], newNode);
+              });
           }
           // if it is brand new node just set default values and call saveNewNode
           else{
@@ -151,22 +151,22 @@ YOVALUE.GraphElementsContent.prototype = {
 
         // get these absent element contents from server
         if(undefinedContentIds.edges.length > 0 || undefinedContentIds.nodes.length > 0){
-          var e = this.publisher.createEvent("repository_get_graph_elements_attributes", undefinedContentIds);
-          this.publisher.when(e).then(function(data){
-            var contentId;
-            for(contentId in data.nodes){
-              that.cacheElementAttributes.add({elementType:'node', contentId:contentId, attributes:data.nodes[contentId]});
-              elementAttributes.nodes[contentId] = data.nodes[contentId];
-            }
+          this.publisher
+            .when(["repository_get_graph_elements_attributes", undefinedContentIds])
+            .then(function(data){
+              var contentId;
+              for(contentId in data.nodes){
+                that.cacheElementAttributes.add({elementType:'node', contentId:contentId, attributes:data.nodes[contentId]});
+                elementAttributes.nodes[contentId] = data.nodes[contentId];
+              }
 
-            for(contentId in data.edges){
-              that.cacheElementAttributes.add({elementType:'edge', contentId:contentId, attributes:data.edges[contentId]});
-              elementAttributes.edges[contentId] = data.edges[contentId];
-            }
+              for(contentId in data.edges){
+                that.cacheElementAttributes.add({elementType:'edge', contentId:contentId, attributes:data.edges[contentId]});
+                elementAttributes.edges[contentId] = data.edges[contentId];
+              }
 
-            event.setResponse(elementAttributes);
-          });
-          this.publisher.publishEvent(e);
+              event.setResponse(elementAttributes);
+            });
         }else{
           event.setResponse(elementAttributes);
         }
@@ -188,14 +188,14 @@ YOVALUE.GraphElementsContent.prototype = {
 
         // retrieve absent node content from server
         if(unavaliableNodeContentIds.length > 0){
-          var e = this.publisher.createEvent("repository_get_graph_node_text", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds});
-          this.publisher.when(e).then(function(nodeTexts){
-            for(var nodeContentId in nodeTexts){
-              that.cacheNodeTexts.add({nodeContentId: nodeContentId, text: nodeTexts[nodeContentId]});
-            }
-            event.setResponse(YOVALUE.deepmerge(cachedTexts, nodeTexts));
-          });
-          this.publisher.publishEvent(e);
+          this.publisher
+            .when(["repository_get_graph_node_text", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds}])
+            .then(function(nodeTexts){
+              for(var nodeContentId in nodeTexts){
+                that.cacheNodeTexts.add({nodeContentId: nodeContentId, text: nodeTexts[nodeContentId]});
+              }
+              event.setResponse(YOVALUE.deepmerge(cachedTexts, nodeTexts));
+            });
         }else{
           event.setResponse(cachedTexts);
         }

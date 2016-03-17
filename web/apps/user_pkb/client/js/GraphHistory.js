@@ -43,17 +43,14 @@ YOVALUE.GraphHistory.prototype = {
       // retrieve it from repository
       if(emptyIds.length > 0){
         for(i in emptyIds) r[emptyIds[i]] = historyRequest[emptyIds[i]];
-        var e = this.publisher.createEvent("repository_get_graphs_model_elements", r);
-
-        this.publisher.when(e).then(function(graphsElements){
+        this.publisher.when(["repository_get_graphs_model_elements", r]).then(function(graphsElements){
           for(i in graphsElements){
             that.history.insertRow(graphsElements[i]);
             that._setLastStep(graphsElements[i]['graphId'], graphsElements[i]['step']);
           }
-
           event.setResponse(that._getElementsFromHistory(historyRequest));
         });
-        this.publisher.publishEvent(e);
+
       }else{
         event.setResponse(graphsModelElements);
       }
@@ -113,12 +110,10 @@ YOVALUE.GraphHistory.prototype = {
       // check that we have current step for all graphIds
       for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_previous_graph_step requested but no current step for graphId='+graphIds[i]);
 
-      var e = this.publisher.createEvent("get_graphs_history_timeline", {ids:graphIds});
-      that.publisher.when(e).then(function(timeline){
+      that.publisher.when(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
         for(i in graphIds) previousStep[graphIds[i]] =  that._getPreviousStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
         event.setResponse(previousStep);
       });
-      this.publisher.publishEvent(e);
 
     }else if(eventName === 'get_next_graph_step'){
       var i, graphIds = event.getData(), nextStep = {};
@@ -126,12 +121,10 @@ YOVALUE.GraphHistory.prototype = {
       // check that we have current step for all graphIds
       for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_next_graph_step requested but no current step for graphId='+graphIds[i]);
 
-      var e = this.publisher.createEvent("get_graphs_history_timeline", {ids:graphIds});
-      that.publisher.when(e).then(function(timeline){
+      that.publisher.when(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
         for(i in graphIds) nextStep[graphIds[i]] =  that._getNextStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
         event.setResponse(nextStep);
       });
-      this.publisher.publishEvent(e);
 
     }else if(eventName === 'get_current_graph_step'){
 
@@ -140,15 +133,13 @@ YOVALUE.GraphHistory.prototype = {
 
       // for all such graphIds init currentStep to the last step in the timeline
       if(emptyIds.length > 0){
-        var e = this.publisher.createEvent("get_graphs_history_timeline", {ids:emptyIds});
-        that.publisher.when(e).then(function(timeline){
+        that.publisher.when(["get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
           var graphId;
           for(graphId in timeline){
             if(emptyIds.indexOf(graphId) !== -1) that.currentStep[graphId] = Math.max.apply(null, YOVALUE.getObjectKeys(that.historyTimeline[graphId]));
           }
           event.setResponse(that.currentStep);
         });
-        this.publisher.publishEvent(e);
       }
       // if all graphIds from event.getData() is defined, just return all currentSteps
       else{
@@ -164,14 +155,12 @@ YOVALUE.GraphHistory.prototype = {
       // get graphIds that are not yet in this.historyTimeline
       var emptyIds = YOVALUE.arrayHelper.difference(event.getData()['ids'], YOVALUE.getObjectKeys(that.historyTimeline));
       if(emptyIds.length > 0){
-        var e = this.publisher.createEvent("repository_get_graphs_history_timeline", {ids:emptyIds});
-        that.publisher.when(e).then(function(timeline){
+        that.publisher.when(["repository_get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
           for(var id in timeline){
             that.historyTimeline[id] = timeline[id];
           }
           event.setResponse(that.historyTimeline);
         });
-        this.publisher.publishEvent(e);
       }else{
         event.setResponse(that.historyTimeline);
       }

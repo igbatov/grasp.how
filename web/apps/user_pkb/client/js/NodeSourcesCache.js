@@ -28,13 +28,11 @@ YOVALUE.NodeSourcesCache.prototype = {
     var rows = this.cache.getRows({graphId: eData.graphId, nodeContentId: eData.nodeContentId});
     if (eventName === 'get_graph_node_sources') {
       if(rows.length == 0 || rows[0].isChanged == true) {
-        var e = this.publisher.createEvent('repository_get_graph_node_sources', eData);
-        this.publisher.when(e).then(function (sources) {
+        this.publisher.when(['repository_get_graph_node_sources', eData]).then(function (sources) {
           if(rows.length && rows[0].isChanged == true) that.cache.removeRows({graphId: eData.graphId, nodeContentId: eData.nodeContentId});
           that.cache.insertRow({graphId: eData.graphId, nodeContentId: eData.nodeContentId, sources:sources, isChanged:false});
           event.setResponse(sources);
         });
-        this.publisher.publishEvent(e);
       }else{
         event.setResponse(rows[0].sources);
       }

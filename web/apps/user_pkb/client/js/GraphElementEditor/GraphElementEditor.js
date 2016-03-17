@@ -241,46 +241,48 @@ YOVALUE.GraphElementEditor.prototype = {
 
     parent.append(form);
 
-    var e = this.publisher.createEvent('get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId});
-    this.publisher.when(e).then(function(sources){
-       var items = [];
-      for(var i in sources){
-        if(sources[i].url.length > 0){
-          items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
-        }else{
-          items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
-        }
-      }
-      parent.append(that.UI.createList(
-        items,
-        {
-          edit:function(id, el){
-            that._editSource(graphId, node.nodeContentId, sources[id], function(item){
-              // update element
-            });
-            return true;
-          },
-          remove:function(id, el){
-            that.publisher.publish('node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]});
-            return true;
+    this.publisher
+      .when(['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}])
+      .then(function(sources){
+        var items = [];
+        for(var i in sources){
+          if(sources[i].url.length > 0){
+            items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+          }else{
+            items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
           }
         }
-      ));
-    });
-    this.publisher.publishEvent(e);
+
+        parent.append(that.UI.createList(
+          items,
+          {
+            edit:function(id, el){
+              that._editSource(graphId, node.nodeContentId, sources[id], function(item){
+                // update element
+              });
+              return true;
+            },
+            remove:function(id, el){
+              that.publisher.publish('node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]});
+              return true;
+            }
+          }
+        ));
+      });
 
   //  return form;
   },
 
   _insertNodeText: function(graphId, nodeContentId, isEditable){
-    var that = this, e = this.publisher.createEvent('get_graph_node_text', {graphId:graphId, nodeContentIds:[nodeContentId]});
-    this.publisher.when(e).then(function(nodes){
-      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_ajax').hide();
-      var text = isEditable ? nodes[nodeContentId] : that._nl2br(nodes[nodeContentId]);
-      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').html(text);
-      that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').show();
-    });
-    this.publisher.publishEvent(e);
+    var that = this;
+    this.publisher
+      .when(['get_graph_node_text', {graphId:graphId, nodeContentIds:[nodeContentId]}])
+      .then(function(nodes){
+        that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_ajax').hide();
+        var text = isEditable ? nodes[nodeContentId] : that._nl2br(nodes[nodeContentId]);
+        that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').html(text);
+        that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').show();
+      });
   },
 
   _nl2br: function(str, is_xhtml) {
