@@ -51,7 +51,9 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
           text: e.target.value
         });
       }else if(fieldName == 'addSource'){
-        that._editSource($('#'+containerId+' [name=graphId]').val(), $('#'+containerId+' [name=elementContentId]').val());
+        that._editSource($('#'+containerId+' [name=graphId]').val(), $('#'+containerId+' [name=elementContentId]').val(),{},function(item){
+          // add item
+        });
       }else if(fieldName == 'removeButton'){
         if(confirm('Are you sure?')){
           that.publisher.publish('delete_pressed',{});
@@ -241,8 +243,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var e = this.publisher.createEvent('get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId});
     this.publisher.when(e).then(function(sources){
-      console.log(sources);
-      var items = [];
+       var items = [];
       for(var i in sources){
         if(sources[i].url.length > 0){
           items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
@@ -254,13 +255,13 @@ YOVALUE.GraphElementEditor.prototype = {
         items,
         {
           edit:function(id, el){
-            console.log('edit', graphId, node.nodeContentId, id,  sources[id], el);
-            that._editSource(graphId, node.nodeContentId, sources[id]);
+            that._editSource(graphId, node.nodeContentId, sources[id], function(item){
+              // update element
+            });
             return true;
           },
           remove:function(id, el){
-            console.log('remove', graphId, node.nodeContentId, id, el);
-            that.publisher.publish('node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:items[id]});
+            that.publisher.publish('node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]});
             return true;
           }
         }

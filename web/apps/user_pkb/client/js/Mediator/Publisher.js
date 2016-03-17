@@ -59,7 +59,7 @@ YOVALUE.Publisher.prototype = {
 
   /**
    *
-   * @param events {Array} in a form [{name:n, data:d}, {name:n, data:d}, ...]
+   * @param {Array<YOVALUE.Event>} events
    */
   when: function(){
     return this._promise.when.apply(this._promise, arguments);
