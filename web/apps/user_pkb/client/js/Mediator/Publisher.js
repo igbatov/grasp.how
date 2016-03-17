@@ -19,7 +19,7 @@ YOVALUE.Publisher.prototype = {
   /**
    *
    * @param name
-   * @param data
+   * @param {Object=} data
    * @returns {YOVALUE.Event}
    */
   createEvent: function(name,data){
@@ -52,7 +52,7 @@ YOVALUE.Publisher.prototype = {
   },
 
   /**
-   *
+   * Publish events
    * @param events - every argument can be an array [name, data], string 'name' or YOVALUE.Event(name, data)
    */
   publish: function(events){

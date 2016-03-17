@@ -844,8 +844,8 @@ class AppUserPkb extends App
       'GraphViewElement/GraphViewEdge.js',
 
       'GraphMenu.js',
-      'SelectGraphLayout/SelectGraphLayoutModel.js',
-      'SelectGraphSkin/SelectGraphSkinModel.js',
+      'SelectGraphLayoutModel.js',
+      'SelectGraphSkinModel.js',
 
       'GraphView/iGraphViewModel.js',
       'GraphView/iGraphView.js',
@@ -877,7 +877,7 @@ class AppUserPkb extends App
       'GraphDecorations/GraphDecorationByType.js',
       //'GraphDecorations/iDecoration.js',
 
-      'GraphElementEditor/GraphElementEditor.js',
+      'GraphElementEditor.js',
       'NodeSourcesCache.js'
     );
   }
