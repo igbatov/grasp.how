@@ -73,19 +73,6 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
           nodeAttribute: {name:fieldName, value:e.target.value}
         }]);
       }
-    }else if(elementType == 'edge'){
-     if(fieldName == 'removeButton'){
-        if(confirm('Are you sure?')){
-          that.publisher.publish(['delete_pressed',{}]);
-        }
-     }else{
-       that.publisher.publish(['request_for_graph_element_content_change', {
-         graphId: $('#'+containerId+' [name=graphId]').val(),
-         type: 'updateEdgeAttribute',
-         edgeContentId: $('#'+containerId+' [name=elementContentId]').val(),
-         edgeAttribute: {name:fieldName, value:e.target.value}
-       }]);
-     }
     }
   });
 };
@@ -111,13 +98,13 @@ YOVALUE.GraphElementEditor.prototype = {
           );
           this._insertNodeText(event.getData().graphId, event.getData().node.nodeContentId, event.getData().isEditable);
         }else if(event.getData().elementType == 'edge'){
-          this._createEdgeForm(
-            '#'+v.attr('id'),
-            event.getData().graphId,
-            event.getData().isEditable,
-            event.getData().edgeTypes,
-            event.getData().edge
-          );
+          document.getElementById(v.attr('id')).appendChild(
+            this._createEdgeForm(
+              event.getData().graphId,
+              event.getData().isEditable,
+              event.getData().edgeTypes,
+              event.getData().edge
+          ));
         }
         v.show();
         break;
@@ -180,7 +167,6 @@ YOVALUE.GraphElementEditor.prototype = {
           .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
           .then(function () {
             callback({graphId: graphId, nodeContentId: nodeContentId, source: item});
-            console.log('HHHHHHHHHHHHHHHHHH');
           });
       })
     );
@@ -188,9 +174,41 @@ YOVALUE.GraphElementEditor.prototype = {
     that.UI.setModalContent(that.UI.createModal(), modalContent);
   },
 
-  _createEdgeForm: function(parentSelector, graphId, isEditable, edgeTypes, edge){
-    var parent = this.jQuery(parentSelector);
+  _createEdgeForm: function(graphId, isEditable, edgeTypes, edge){
+    var that = this;
     if(!isEditable) return '';
+    var onchange = function(name, value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateEdgeAttribute',
+        edgeContentId: edge.edgeContentId,
+        edgeAttribute: {name:name, value:value}
+      }]);
+    };
+    var form = this.UI.createForm({
+      'label':{
+        type:'text',
+        value:edge.label,
+        callback:onchange
+      },
+      'removeButton':{
+        type:'button',
+        value:'Remove edge',
+        callback:function(){
+          if(confirm('Are you sure?')){
+            that.publisher.publish(['delete_pressed',{}]);
+          }
+        }
+      },
+      'type':{
+        type:'select',
+        options:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
+        value:edge.type,
+        callback:onchange
+      }
+    });
+
+    return form;
 
     var i, typeOptions = '';
     for(i in edgeTypes){
@@ -206,8 +224,6 @@ YOVALUE.GraphElementEditor.prototype = {
     +'<input type="hidden" name="elementId" value="'+edge.id+'">'
     +'<input type="hidden" name="elementContentId" value="'+edge.edgeContentId+'">'
     +'<input type="hidden" name="graphId" value="'+graphId+'">';
-
-    parent.append(form);
   },
 
   _createNodeForm: function(parentSelector, graphId, isEditable, nodeTypes, node){

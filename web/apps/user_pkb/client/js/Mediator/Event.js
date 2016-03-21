@@ -9,7 +9,7 @@ YOVALUE.iEvent = {
  * You can think of it as a promise object which is resolved after call of setResponse() method
  * @param name
  * @param {Object=} data optional data of event
- * @param {Object=} deferred in a CommonJS Promises/A design (must implement method resolve)
+ * @param {Object=} deferred (must implement method resolve)
  * @constructor
  */
 YOVALUE.Event = function (name, data, deferred) {

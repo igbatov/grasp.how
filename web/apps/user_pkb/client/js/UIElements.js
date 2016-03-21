@@ -70,7 +70,7 @@ YOVALUE.UIElements.prototype = {
   /**
    * Creates form fields and buttons
    * @param fields
-   * @param callback - called when any button from fields is pressed
+   * @param {Function=} callback - called when any button from fields is pressed
    * @returns {HTMLElement}
    */
   createForm: function(fields, callback){
@@ -80,15 +80,16 @@ YOVALUE.UIElements.prototype = {
 
     for(name in fields){
       if(fields[name]['type'] == 'text') form.appendChild(YOVALUE.createElement('input',{type:'text', name:name,value:fields[name]['value'],placeholder:fields[name]['label']},'',fields[name]['callback']));
+      if(fields[name]['type'] == 'textarea') form.appendChild(YOVALUE.createElement('textarea',{name:name,placeholder:fields[name]['label']},fields[name]['value'],fields[name]['callback']));
       if(fields[name]['type'] == 'date') form.appendChild(YOVALUE.createElement('input',{type:'date', name:name,value:fields[name]['value']},'',fields[name]['callback']));
       if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name, fields[name]['options'],fields[name]['value'],fields[name]['callback']));
       if(fields[name]['type'] == 'button'){
-        form.appendChild(this.createButton(name,fields[name]['value'],function(evt){
+        // if button field has callback - use it, if no - use general form callback and pass form data to it
+        form.appendChild(this.createButton(name,fields[name]['value'],fields[name]['callback'] ? fields[name]['callback'] : function(evt){
           var data = {};
-
-          // gather data from form nodes
+          // gather data from form fields
           [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
-
+            data[child.getAttribute('name')] = child.innerText;
           });
           [].forEach.call(form.getElementsByTagName("button"), function(child) {
             data[child.getAttribute('name')] = child == evt.target;
@@ -96,7 +97,6 @@ YOVALUE.UIElements.prototype = {
           [].forEach.call(form.getElementsByTagName("input"), function(child) {
             data[child.getAttribute('name')] = child.value;
           });
-
           callback(data);
         }));
       }

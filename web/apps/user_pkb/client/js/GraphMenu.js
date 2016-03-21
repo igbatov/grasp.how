@@ -218,8 +218,10 @@ YOVALUE.GraphMenu.prototype = {
       $('#'+c.id).html('');
 
       // create New and Trash Buttons
-      document.getElementById(c.id).appendChild(that.UI.createButton('New','New', showNew));
-      document.getElementById(c.id).appendChild(that.UI.createButton('Trash','Trash', showTrash));
+      var generalButtonsContainer = YOVALUE.createElement('div',{class:'GeneralButtons'});
+      document.getElementById(c.id).appendChild(generalButtonsContainer);
+      generalButtonsContainer.appendChild(that.UI.createButton('New','New', showNew));
+      generalButtonsContainer.appendChild(that.UI.createButton('Trash','Trash', showTrash));
 
       // create containers for select boxes
       $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');

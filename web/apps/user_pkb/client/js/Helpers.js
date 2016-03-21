@@ -822,6 +822,52 @@ YOVALUE.compare = function(a, b){
 };
 
 /**
+ * Very simple and slow Promise just for debug purposes
+ * @param fn
+ * @constructor
+ */
+
+/*
+YOVALUE.Promise = function(fn){
+   var that = this;
+   this.thenFns = [];
+
+   this.resolve = function(){
+     // User can pass to resolve several arguments
+     var args = Array.prototype.slice.call(arguments);
+     // plan it to call after that.thenFn will be defined by then()
+     setTimeout(function(){
+       if(that.thenFns.length == 0) return;
+       var thenFn = that.thenFns.shift();
+       var res = thenFn.apply(this,args);
+       // if user's thenFn returned Promise, push to it all thenFns we have in this promise
+       if(res && typeof(res.then) != 'undefined')  res.then(that.thenFns);
+     }, 0);
+   };
+
+   this.then = function(thenFn){
+     if(Array.isArray(thenFn)) that.thenFns = thenFn;
+    else if(thenFn) that.thenFns.push(thenFn);
+     return that;
+   };
+
+   fn(this.resolve);
+};
+
+YOVALUE.Promise.all = function(promises) {
+  var accumulator = [];
+  return new YOVALUE.Promise(function(resolve){
+    if(typeof(resolve) != 'function') return;
+    promises.forEach(function (promise) {
+      promise.then(function (value) {
+        accumulator.push(value);
+        if(accumulator.length == promises.length) resolve.apply(this,accumulator);
+      });
+    });
+  });
+};
+*/
+/**
  * Convert array of strings to array of integers
  * @param myArray
  * @returns {*}

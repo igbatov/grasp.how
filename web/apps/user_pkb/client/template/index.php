@@ -2,15 +2,13 @@
 <html>
   <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/reset.css">
   <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
-  <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/ui.css">
   </head>
   <body>
   <div id="container">
     <div id="horizontalMenu"></div>
-    <div id="leftGraphElementEditorContainer"></div>
-    <div id="rightGraphElementEditorContainer"></div>
+    <div id="leftGraphElementEditorContainer" class="graphElementEditorContainer"></div>
+    <div id="rightGraphElementEditorContainer" class="graphElementEditorContainer"></div>
     <div id="graphViews">
       <img class="ajax" id="ajaxLoader" src="<?php echo $this->getAppDir('img'); ?>/ajax.gif">
     </div>

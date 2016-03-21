@@ -1,0 +1,27 @@
+.graphElementEditorContainer{
+    position:  absolute;
+    display: none;
+    opacity:0.8;
+    width: 40%;
+    z-index: 1;
+    background-color: aqua;
+}
+/*
+ * Position right editor
+ */
+#rightGraphElementEditorContainer{
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 75%;
+}
+
+/*
+ * Position left editor
+ */
+#leftGraphElementEditorContainer{
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 25%;
+}
+
+

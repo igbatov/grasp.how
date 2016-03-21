@@ -1,10 +1,10 @@
 /**
  *
  * @param mediator
- * @param promise is the implementation of CommonJS Promises/A and must have interface
+ * @param promise must have interface
  * {
- *  getDefer:function,  // create new defer (like jQuery.Deferred). Defer should implement one method - resolve()
- *  when:function,      // schedule callback on defer resolve (like jQuery.when)
+ *  getDefer:function,  // create new defer (like jQuery.Deferred). Defer should implement resolve() and then()
+ *  when:function,      // schedule callback on defer resolve() (like jQuery.when)
  *  then:function       // schedule callback on next defer (like jQuery.then)
  * }
  *
