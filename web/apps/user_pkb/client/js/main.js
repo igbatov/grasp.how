@@ -177,7 +177,7 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['Subscriber', 'GraphDecoration'],
 
-  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', jQuery('#ajaxLoader').attr('src')],
+  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', YOVALUE.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
 
   NodeSourcesCache: ['Subscriber', 'Publisher']
 };

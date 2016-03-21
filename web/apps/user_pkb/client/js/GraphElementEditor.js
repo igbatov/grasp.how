@@ -8,14 +8,14 @@
  * @param jQuery
  * @constructor
  */
-YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQuery, ajaxLoaderSrc){
+YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQuery, ajaxIndicator){
   this.subscriber = subscriber;
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
   this.UI = UI;
 
-  this.ajaxLoaderSrc = ajaxLoaderSrc;
+  this.ajaxIndicator = ajaxIndicator;
 
   this.subscriber.subscribe(this,[
     'show_graph_element_editor',
@@ -66,12 +66,6 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
           nodeContentId: $('#'+containerId+' [name=elementContentId]').val()
         }]);
       }else if(['label', 'type', 'importance', 'reliability'].indexOf[fieldName] != -1 ){
-        that.publisher.publish(['request_for_graph_element_content_change', {
-          graphId: $('#'+containerId+' [name=graphId]').val(),
-          type: 'updateNodeAttribute',
-          nodeContentId: $('#'+containerId+' [name=elementContentId]').val(),
-          nodeAttribute: {name:fieldName, value:e.target.value}
-        }]);
       }
     }
   });
@@ -89,13 +83,14 @@ YOVALUE.GraphElementEditor.prototype = {
       case "show_graph_element_editor":
         v.html('');
         if(event.getData().elementType == 'node'){
-          this._createNodeForm(
-            '#'+v.attr('id'),
+          // show in view-only form
+          if(!event.getData().isEditable) document.getElementById(v.attr('id')).append(this.ajaxIndicator);
+          document.getElementById(v.attr('id')).appendChild(this._createNodeForm(
             event.getData().graphId,
             event.getData().isEditable,
             event.getData().nodeTypes,
             event.getData().node
-          );
+          ));
           this._insertNodeText(event.getData().graphId, event.getData().node.nodeContentId, event.getData().isEditable);
         }else if(event.getData().elementType == 'edge'){
           document.getElementById(v.attr('id')).appendChild(
@@ -191,6 +186,12 @@ YOVALUE.GraphElementEditor.prototype = {
         value:edge.label,
         callback:onchange
       },
+      'type':{
+        type:'select',
+        options:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
+        value:edge.type,
+        callback:onchange
+      },
       'removeButton':{
         type:'button',
         value:'Remove edge',
@@ -199,40 +200,36 @@ YOVALUE.GraphElementEditor.prototype = {
             that.publisher.publish(['delete_pressed',{}]);
           }
         }
-      },
-      'type':{
-        type:'select',
-        options:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
-        value:edge.type,
-        callback:onchange
       }
     });
 
     return form;
-
-    var i, typeOptions = '';
-    for(i in edgeTypes){
-      var type = edgeTypes[i],
-        selected = type == edge.type ? 'selected' : '';
-      typeOptions += '<option '+selected+' value="'+type+'">'+type+'</option>';
-    }
-
-    var form = '<input type="text" name="label" value="'+edge.label+'">'
-    +'<select name="type">'+typeOptions+'</select>'
-    +'<button name="removeButton" class="removeButton">Remove edge</button>'
-    +'<input type="hidden" name="elementType" value="edge">'
-    +'<input type="hidden" name="elementId" value="'+edge.id+'">'
-    +'<input type="hidden" name="elementContentId" value="'+edge.edgeContentId+'">'
-    +'<input type="hidden" name="graphId" value="'+graphId+'">';
   },
 
-  _createNodeForm: function(parentSelector, graphId, isEditable, nodeTypes, node){
-    var parent = this.jQuery(parentSelector), that = this;
-    // show in view-only form
-    if(!isEditable) parent.append('<div><img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"></div><div style="display:none" id="node_'+graphId+'_'+node.nodeContentId+'_text" class="nodeText" name="nodeText"></div>');
-
+  _createNodeForm: function(graphId, isEditable, nodeTypes, node){
     // select list for node types
-    var i, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
+    var i, that = this, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
+
+    // define callbacks for fields
+    var attrChange = function(name,value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateNodeAttribute',
+        nodeContentId: node.nodeContentId,
+        nodeAttribute: {name:name, value:value}
+      }]);
+    };
+
+    this.UI.createForm({
+      label: {type:'textarea',callback:attrChange},
+      type: {type:'select',callback:attrChange},
+      importance: {type:'select',callback:attrChange},
+      reliability: {type:'select',callback:attrChange},
+      addSource: {type:'button',value:'addSource',callback:attrChange},
+      removeButton: {type:'button',value:'removeButton',callback:attrChange},
+      nodeText: {type:'textarea',callback:attrChange}
+    });
+
     for(i in nodeTypes){
       var type = nodeTypes[i],
       selected = type == node.type ? 'selected' : '';

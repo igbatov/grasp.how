@@ -2,7 +2,7 @@
     position:  absolute;
     display: none;
     opacity:0.8;
-    width: 40%;
+    padding: 1em;
     z-index: 1;
     background-color: aqua;
 }
@@ -22,6 +22,20 @@
     transform: translate(-50%, -50%);
     top: 50%;
     left: 25%;
+}
+
+.graphElementEditorContainer .ui_form {
+    text-align: center;
+}
+.graphElementEditorContainer input, .graphElementEditorContainer .ui_button  {
+    display: block;
+    margin: 1em auto;
+}
+.graphElementEditorContainer .ui_select:before  {
+    clear: both;
+}
+.graphElementEditorContainer .ui_select:after  {
+    clear: both;
 }
 
 
