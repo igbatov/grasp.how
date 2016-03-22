@@ -5,6 +5,7 @@
     padding: 1em;
     z-index: 1;
     background-color: aqua;
+    width: 40%;
 }
 /*
  * Position right editor
@@ -24,18 +25,33 @@
     left: 25%;
 }
 
+.graphElementEditorContainer textarea {
+    width: 100%;
+}
+.graphElementEditorContainer textarea[name=nodeText] {
+    width: 100%;
+    height: 20em;
+}
 .graphElementEditorContainer .ui_form {
     text-align: center;
 }
-.graphElementEditorContainer input, .graphElementEditorContainer .ui_button  {
+.graphElementEditorContainer input {
     display: block;
     margin: 1em auto;
 }
-.graphElementEditorContainer .ui_select:before  {
-    clear: both;
+.graphElementEditorContainer .ui_button {
+    float:left;
+    margin-right: 1em;
 }
-.graphElementEditorContainer .ui_select:after  {
-    clear: both;
+.graphElementEditorContainer .ui_select {
+    float:left;
+    margin-right: 1em;
+}
+.graphElementEditorContainer .ui_list li {
+    line-height: 1.5em;
+}
+.graphElementEditorContainer .ui_list li button {
+    float:right;
 }
 
 

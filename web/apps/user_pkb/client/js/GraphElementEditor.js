@@ -25,7 +25,7 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
   this.leftContainer = this.ViewManager.getViewContainer('leftGraphElementEditor');
   this.rightContainer = this.ViewManager.getViewContainer('rightGraphElementEditor');
 
-  var $ = this.jQuery, that = this, elementType;
+  var $ = this.jQuery, that = this;
 
 
   // Fire event on editor focusin and focusout
@@ -51,13 +51,13 @@ YOVALUE.GraphElementEditor.prototype = {
         if(event.getData().elementType == 'node'){
           // show in view-only form
           if(!event.getData().isEditable) document.getElementById(v.attr('id')).append(this.ajaxIndicator);
-          document.getElementById(v.attr('id')).appendChild(this._createNodeForm(
-            event.getData().graphId,
-            event.getData().isEditable,
-            event.getData().nodeTypes,
-            event.getData().node
+          document.getElementById(v.attr('id')).appendChild(
+            this._createNodeForm(
+              event.getData().graphId,
+              event.getData().isEditable,
+              event.getData().nodeTypes,
+              event.getData().node
           ));
-          this._insertNodeText(event.getData().graphId, event.getData().node.nodeContentId, event.getData().isEditable);
         }else if(event.getData().elementType == 'edge'){
           document.getElementById(v.attr('id')).appendChild(
             this._createEdgeForm(
@@ -76,6 +76,163 @@ YOVALUE.GraphElementEditor.prototype = {
       default:
         break;
     }
+  },
+
+  _createNodeForm: function(graphId, isEditable, nodeTypes, node){
+    // select list for node types
+    var i, that = this, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
+
+    // define callbacks for fields
+    var attrChange = function(name,value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateNodeAttribute',
+        nodeContentId: node.nodeContentId,
+        nodeAttribute: {name:name, value:value}
+      }]);
+    };
+
+    var editNodeText = function(name, value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateNodeText',
+        nodeContentId: node.nodeContentId,
+        text: value
+      }]);
+    };
+
+    var addSource = function(name, value){
+      that._editSource(graphId, node.nodeContentId,{},function(item){
+        // add item
+      });
+    };
+
+    var removeNode = function(){
+      if(confirm('Are you sure?')){
+        that.publisher.publish(['delete_pressed',{}]);
+      }
+    };
+
+    var addIcon = function(files,ul){
+      console.log(files);
+      /*
+       that.publisher.publish(['request_for_graph_element_content_change', {
+       graphId: graphId,
+       type: 'addIcon',
+       file: files,
+       nodeContentId: node.nodeContentId
+       }]);
+       */
+    };
+    var removeIcon = function(){};
+
+    var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
+    var importance = {}; for(i=1;i<100;i++) importance[i]=i;
+    var reliability = {}; for(i=1;i<100;i++) reliability[i]=i;
+
+    var form = this.UI.createForm({
+      label:       {type:'textarea',value:node.label,callback:attrChange},
+      type:        {type:'select',options:types,value:node.type,callback:attrChange},
+      importance:  {type:'select',options:importance,value:node.importance,callback:attrChange},
+      reliability: {type:'select',options:reliability,value:node.reliability,callback:attrChange},
+      addSource:   {type:'button',value:'addSource',callback:addSource},
+      //  icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
+      removeButton:{type:'button',value:'removeButton',callback:removeNode},
+    });
+console.log('111111111111111111111');
+    form.appendChild(this.ajaxIndicator);
+    console.log('2222222222222222222222');
+    // add text
+    this.publisher
+      .publish(['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}])
+      .then(function(nodes){
+        console.log('333333333333333333333333333333');
+        YOVALUE.setDisplay(that.ajaxIndicator,'none');
+        if(isEditable){
+          form.appendChild(YOVALUE.createElement(
+            'textarea',
+            {name:'nodeText'},
+            nodes[node.nodeContentId],
+            editNodeText
+          ));
+        }else{
+          form.appendChild(YOVALUE.createElement(
+            'div',
+            {name:'nodeText'},
+            that._nl2br(nodes[node.nodeContentId])
+          ));
+        }
+      });
+
+    // add sources
+    this.publisher
+      .publish(['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}])
+      .then(function(sources){
+        console.log('44444444444444444444444444444');
+        var items = [];
+        for(var i in sources){
+          if(sources[i].url.length > 0){
+            items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+          }else{
+            items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+          }
+        }
+
+        form.appendChild(that.UI.createList(
+          items,
+          {
+            edit:function(id, el){
+              that._editSource(graphId, node.nodeContentId, sources[id], function(evt){
+                console.log(evt);
+              });
+              return true;
+            },
+            remove:function(id, el){
+              that.publisher.publish(['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]);
+              return true;
+            }
+          }
+        ));
+      });
+
+    return form;
+  },
+
+  _createEdgeForm: function(graphId, isEditable, edgeTypes, edge){
+    var that = this;
+    if(!isEditable) return '';
+    var onchange = function(name, value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateEdgeAttribute',
+        edgeContentId: edge.edgeContentId,
+        edgeAttribute: {name:name, value:value}
+      }]);
+    };
+    var form = this.UI.createForm({
+      'label':{
+        type:'text',
+        value:edge.label,
+        callback:onchange
+      },
+      'type':{
+        type:'select',
+        options:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
+        value:edge.type,
+        callback:onchange
+      },
+      'removeButton':{
+        type:'button',
+        value:'Remove edge',
+        callback:function(){
+          if(confirm('Are you sure?')){
+            that.publisher.publish(['delete_pressed',{}]);
+          }
+        }
+      }
+    });
+
+    return form;
   },
 
   /**
@@ -128,154 +285,6 @@ YOVALUE.GraphElementEditor.prototype = {
     );
 
     that.UI.setModalContent(that.UI.createModal(), modalContent);
-  },
-
-  _createEdgeForm: function(graphId, isEditable, edgeTypes, edge){
-    var that = this;
-    if(!isEditable) return '';
-    var onchange = function(name, value){
-      that.publisher.publish(['request_for_graph_element_content_change', {
-        graphId: graphId,
-        type: 'updateEdgeAttribute',
-        edgeContentId: edge.edgeContentId,
-        edgeAttribute: {name:name, value:value}
-      }]);
-    };
-    var form = this.UI.createForm({
-      'label':{
-        type:'text',
-        value:edge.label,
-        callback:onchange
-      },
-      'type':{
-        type:'select',
-        options:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
-        value:edge.type,
-        callback:onchange
-      },
-      'removeButton':{
-        type:'button',
-        value:'Remove edge',
-        callback:function(){
-          if(confirm('Are you sure?')){
-            that.publisher.publish(['delete_pressed',{}]);
-          }
-        }
-      }
-    });
-
-    return form;
-  },
-
-  _createNodeForm: function(graphId, isEditable, nodeTypes, node){
-    // select list for node types
-    var i, that = this, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
-
-    // define callbacks for fields
-    var attrChange = function(name,value){
-      that.publisher.publish(['request_for_graph_element_content_change', {
-        graphId: graphId,
-        type: 'updateNodeAttribute',
-        nodeContentId: node.nodeContentId,
-        nodeAttribute: {name:name, value:value}
-      }]);
-    };
-
-    var editNodeText = function(name, value){
-      that.publisher.publish(['request_for_graph_element_content_change', {
-        graphId: graphId,
-        type: 'updateNodeText',
-        nodeContentId: node.nodeContentId,
-        text: value
-      }]);
-    };
-
-    var addSource = function(name, value){
-      that._editSource(graphId, node.nodeContentId,{},function(item){
-        // add item
-      });
-    };
-
-    var removeNode = function(){
-      if(confirm('Are you sure?')){
-        that.publisher.publish(['delete_pressed',{}]);
-      }
-    };
-
-    var addIcon = function(files,ul){
-      console.log(files);
-      /*
-      that.publisher.publish(['request_for_graph_element_content_change', {
-        graphId: graphId,
-        type: 'addIcon',
-        file: files,
-        nodeContentId: node.nodeContentId
-      }]);
-      */
-    };
-
-    var removeIcon = function(){
-
-    };
-
-    var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
-    var importance = {}; for(i=1;i<100;i++) importance[i]=i;
-    var reliability = {}; for(i=1;i<100;i++) reliability[i]=i;
-
-    var form = this.UI.createForm({
-      label:       {type:'textarea',callback:attrChange},
-      type:        {type:'select',options:types,value:node.type,callback:attrChange},
-      importance:  {type:'select',options:importance,value:node.importance,callback:attrChange},
-      reliability: {type:'select',options:reliability,value:node.reliability,callback:attrChange},
-      addSource:   {type:'button',value:'addSource',callback:addSource},
-      icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
-      removeButton:{type:'button',value:'removeButton',callback:removeNode},
-      nodeText:    {type:'textarea',callback:editNodeText}
-    });
-
-    // add sources
-    this.publisher
-    .publish(['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}])
-    .then(function(sources){
-      var items = [];
-      for(var i in sources){
-        if(sources[i].url.length > 0){
-          items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
-        }else{
-          items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
-        }
-      }
-
-      form.appendChild(that.UI.createList(
-        items,
-        {
-          edit:function(id, el){
-            that._editSource(graphId, node.nodeContentId, sources[id], function(evt){
-              console.log(evt);
-            });
-            return true;
-          },
-          remove:function(id, el){
-            that.publisher.publish(['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]);
-            return true;
-          }
-        }
-      ));
-    });
-
-    return form;
-  },
-
-  _insertNodeText: function(graphId, nodeContentId, isEditable){
-    var that = this;
-    this.publisher
-      .publish(['get_graph_node_text', {graphId:graphId, nodeContentIds:[nodeContentId]}])
-      .then(function(nodes){
-        that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_ajax').hide();
-        var text = isEditable ? nodes[nodeContentId] : that._nl2br(nodes[nodeContentId]);
-        that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').html(text);
-        that.jQuery('#node_'+graphId+'_'+that._escapeNodeContentId(nodeContentId)+'_text').show();
-      });
   },
 
   _nl2br: function(str, is_xhtml) {
