@@ -35,40 +35,6 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
   $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('focusout', 'input, select, textarea', function(e){
     that.publisher.publish(['element_editor_focusout', {}]);
   });
-
-  // Fire event on element content change
-  $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('keyup click change', 'file, input, select, textarea, button', function(e){
-    var fieldName = $(this).attr('name'),
-      containerId = $(this).parent().attr('id'),
-      elementType = $('#'+containerId+' [name=elementType]').val();
-
-    if(elementType == 'node'){
-      if(fieldName == 'nodeText'){
-        that.publisher.publish(['request_for_graph_element_content_change', {
-          graphId: $('#'+containerId+' [name=graphId]').val(),
-          type: 'updateNodeText',
-          nodeContentId: $('#'+containerId+' [name=elementContentId]').val(),
-          text: e.target.value
-        }]);
-      }else if(fieldName == 'addSource'){
-        that._editSource($('#'+containerId+' [name=graphId]').val(), $('#'+containerId+' [name=elementContentId]').val(),{},function(item){
-          // add item
-        });
-      }else if(fieldName == 'removeButton'){
-        if(confirm('Are you sure?')){
-          that.publisher.publish(['delete_pressed',{}]);
-        }
-      }else if(fieldName == 'icon'){
-        that.publisher.publish(['request_for_graph_element_content_change', {
-          graphId: $('#'+containerId+' [name=graphId]').val(),
-          type: 'addIcon',
-          file: this.files[0],
-          nodeContentId: $('#'+containerId+' [name=elementContentId]').val()
-        }]);
-      }else if(['label', 'type', 'importance', 'reliability'].indexOf[fieldName] != -1 ){
-      }
-    }
-  });
 };
 
 YOVALUE.GraphElementEditor.prototype = {
@@ -103,12 +69,6 @@ YOVALUE.GraphElementEditor.prototype = {
         }
         v.show();
         break;
-      case 'node_source_added':
-        break;
-      case 'node_source_updated':
-        break;
-      case 'node_source_removed':
-        break;
       case 'hide_graph_element_editor':
         $('#'+this.leftContainer.id).hide();
         $('#'+this.rightContainer.id).hide();
@@ -123,6 +83,7 @@ YOVALUE.GraphElementEditor.prototype = {
    * @param graphId
    * @param nodeContentId
    * @param item
+   * @param callback
    * @private
    */
   _editSource: function(graphId, nodeContentId, item, callback){
@@ -220,81 +181,89 @@ YOVALUE.GraphElementEditor.prototype = {
       }]);
     };
 
-    this.UI.createForm({
-      label: {type:'textarea',callback:attrChange},
-      type: {type:'select',callback:attrChange},
-      importance: {type:'select',callback:attrChange},
-      reliability: {type:'select',callback:attrChange},
-      addSource: {type:'button',value:'addSource',callback:attrChange},
-      removeButton: {type:'button',value:'removeButton',callback:attrChange},
-      nodeText: {type:'textarea',callback:attrChange}
+    var editNodeText = function(name, value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateNodeText',
+        nodeContentId: node.nodeContentId,
+        text: value
+      }]);
+    };
+
+    var addSource = function(name, value){
+      that._editSource(graphId, node.nodeContentId,{},function(item){
+        // add item
+      });
+    };
+
+    var removeNode = function(){
+      if(confirm('Are you sure?')){
+        that.publisher.publish(['delete_pressed',{}]);
+      }
+    };
+
+    var addIcon = function(files,ul){
+      console.log(files);
+      /*
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'addIcon',
+        file: files,
+        nodeContentId: node.nodeContentId
+      }]);
+      */
+    };
+
+    var removeIcon = function(){
+
+    };
+
+    var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
+    var importance = {}; for(i=1;i<100;i++) importance[i]=i;
+    var reliability = {}; for(i=1;i<100;i++) reliability[i]=i;
+
+    var form = this.UI.createForm({
+      label:       {type:'textarea',callback:attrChange},
+      type:        {type:'select',options:types,value:node.type,callback:attrChange},
+      importance:  {type:'select',options:importance,value:node.importance,callback:attrChange},
+      reliability: {type:'select',options:reliability,value:node.reliability,callback:attrChange},
+      addSource:   {type:'button',value:'addSource',callback:addSource},
+      icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
+      removeButton:{type:'button',value:'removeButton',callback:removeNode},
+      nodeText:    {type:'textarea',callback:editNodeText}
     });
 
-    for(i in nodeTypes){
-      var type = nodeTypes[i],
-      selected = type == node.type ? 'selected' : '';
-      typeOptions += '<option '+selected+' value="'+type+'">'+type+'</option>';
-    }
-
-    // select list for importance options
-    for(i=0; i<100; i++){
-      selected = i == node.importance ? 'selected' : '';
-      importanceOptions += '<option '+selected+' value="'+i+'">'+i+'</option>';
-    }
-
-    // select list for reliability options
-    for(i=0; i<100; i++){
-      selected = i == node.reliability ? 'selected' : '';
-      reliabilityOptions += '<option '+selected+' value="'+i+'">'+i+'</option>';
-    }
-
-    var bgStyle = node.icon == null ? '' : 'background-image:url(\''+node.icon.src+'\'); background-repeat:no-repeat; background-position: center center;';
-    var sourceListId = this.UI.generateId();
-    var form = '<textarea class="labelTextArea" name="label">'+node.label+'</textarea>'
-      +'<select name="type">'+typeOptions+'</select>'
-      +'<select name="importance">'+importanceOptions+'</select>'
-      +'<select name="reliability">'+reliabilityOptions+'</select>'
-      +'<button name="addSource" class="addSource">Add source</button>'
-      +'<button name="removeButton" class="removeButton">Remove node</button>'
-      +'<img class="ajax" id="node_'+graphId+'_'+node.nodeContentId+'_ajax" src="'+this.ajaxLoaderSrc+'"><textarea style="display:none; '+bgStyle+'" id="node_'+graphId+'_'+node.nodeContentId+'_text" name="nodeText" class="nodeText '+node.type+'NodeText"></textarea>'
-     // +'<input type="file" name="icon" />'
-      +'<input type="hidden" name="elementType" value="node">'
-      +'<input type="hidden" name="elementId" value="'+node.id+'">'
-      +'<input type="hidden" name="elementContentId" value="'+node.nodeContentId+'">'
-      +'<input type="hidden" name="graphId" value="'+graphId+'">';
-
-    parent.append(form);
-
+    // add sources
     this.publisher
-      .publish(['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}])
-      .then(function(sources){
-        var items = [];
-        for(var i in sources){
-          if(sources[i].url.length > 0){
-            items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
-          }else{
-            items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+    .publish(['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}])
+    .then(function(sources){
+      var items = [];
+      for(var i in sources){
+        if(sources[i].url.length > 0){
+          items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+        }else{
+          items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
+        }
+      }
+
+      form.appendChild(that.UI.createList(
+        items,
+        {
+          edit:function(id, el){
+            that._editSource(graphId, node.nodeContentId, sources[id], function(evt){
+              console.log(evt);
+            });
+            return true;
+          },
+          remove:function(id, el){
+            that.publisher.publish(['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]);
+            return true;
           }
         }
+      ));
+    });
 
-        parent.append(that.UI.createList(
-          items,
-          {
-            edit:function(id, el){
-              that._editSource(graphId, node.nodeContentId, sources[id], function(evt){
-                console.log(evt);
-              });
-              return true;
-            },
-            remove:function(id, el){
-              that.publisher.publish(['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]);
-              return true;
-            }
-          }
-        ));
-      });
-
-  //  return form;
+    return form;
   },
 
   _insertNodeText: function(graphId, nodeContentId, isEditable){

@@ -68,6 +68,25 @@ YOVALUE.UIElements.prototype = {
   },
 
   /**
+   *
+   * @param name
+   * @param items
+   * @param {function=} addCallback - arguments are files to upload, li_list (HTMLElements for files to add to list), ul (HTMLElement for all li)
+   * @param removeCallback - arguments are file id to remove, li (HTMLElement for file) to remove
+   */
+  createFileBox: function(name, items, addCallback, removeCallback){
+    var container = YOVALUE.createElement('div',{class:'ui_file'});
+    var file = YOVALUE.createElement('input',{type:'file',name:name});
+    var list = this.createList(items,{remove:removeCallback});
+    container.appendChild(file);
+    container.appendChild(list);
+    file.addEventListener('change',function(evt){
+      addCallback(this.files,list);
+    });
+    return container;
+  },
+
+  /**
    * Creates form fields and buttons
    * @param fields
    * @param {Function=} callback - called when any button from fields is pressed
@@ -100,6 +119,7 @@ YOVALUE.UIElements.prototype = {
           callback(data);
         }));
       }
+      if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox(name,fields[name]['items'],fields[name]['addCallback'],fields[name]['removeCallback']));
       if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
       if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
     }
@@ -195,31 +215,43 @@ YOVALUE.UIElements.prototype = {
 
   /**
    * Creates list of items with action buttons next to each
-   * @param {Object<string, string>} items - in a form {id:label, ...}
-   * @param {Object<string, string>} actions - action that can be made to item, in a form {name:callback, ...}
+   * @param {Object<string, string | HTMLElement>} items - in a form {id:label, ...}, id is string, label is string or HTMLElement
+   * @param {Object<string, function>} actions - action that can be made on item, in a form {name:callback, ...},
+   * action args are item id and li (HTMLElement that represents item)
    */
   createList: function(items, actions){
     var uniqId = this.generateId();
     var ul = YOVALUE.createElement('ul', {id:uniqId, class:'ui_list'});
     for(var id in items){
-      var li = YOVALUE.createElement('li',{});
-      if(typeof(items[id]) == 'string'){
-        li.appendChild(document.createTextNode(items[id]));
-      }else{
-        li.appendChild(items[id]);
-      }
-      for(var name in actions){
-        var button = this.createButton(name, name);
-        (function(button, callback, id,li){
-          button.addEventListener('click', function(evt){
-            callback(id, li);
-          });
-        })(button, actions[name], id, li);
-        li.appendChild(button);
-      }
-      ul.appendChild(li);
+      ul.appendChild(this.createListItem(id,items[id],actions));
     }
     return ul;
+  },
+
+  /**
+   * Creating item for the createList
+   * @param id
+   * @param label
+   * @param actions
+   * @returns {HTMLElement}
+   */
+  createListItem: function(id,label,actions){
+    var li = YOVALUE.createElement('li',{});
+    if(typeof(label) == 'string'){
+      li.appendChild(document.createTextNode(label));
+    }else{
+      li.appendChild(label);
+    }
+    for(var name in actions){
+      var button = this.createButton(name, name);
+      (function(button, callback, id,li){
+        button.addEventListener('click', function(evt){
+          callback(id, li);
+        });
+      })(button, actions[name], id, li);
+      li.appendChild(button);
+    }
+    return li;
   },
 
   /**
