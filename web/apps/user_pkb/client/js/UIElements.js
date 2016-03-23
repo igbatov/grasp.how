@@ -151,21 +151,33 @@ YOVALUE.UIElements.prototype = {
    *                                         ...
    *                                       }
    * @param callback - callback will get form values as array 'name'=>'value'
+   * @return HTMLElement el that must be removed with function closeModal(el)
    */
   createModal: function(){
-    var uniqId = this.generateId(),
-      modalWindow = YOVALUE.createElement('div',{id:uniqId, class:'ui_modal'},'');
+    var that = this,
+      uniqId = this.generateId(),
+      modalWindow = YOVALUE.createElement('div',{id:uniqId, class:'ui_modal'},''),
+      overlay = YOVALUE.createElement('div',{id:'overlay'+uniqId, class:'ui_modal_overlay'},'');
+    document.body.appendChild(overlay);
     document.body.appendChild(modalWindow);
 
     var closeButton = YOVALUE.createElement('div',{class:'close_button'},'X');
     modalWindow.appendChild(closeButton);
     closeButton.addEventListener('click', function(evt){
-      modalWindow.parentNode.removeChild(modalWindow);
+      that.closeModal(modalWindow);
     });
 
     YOVALUE.setDisplay(modalWindow, 'none');
 
     return modalWindow;
+  },
+
+  closeModal: function(modalWindow){
+    if(modalWindow.getAttribute('class') != 'ui_modal') YOVALUE.throwError('This is not a modal window HTMLElement');
+
+    var overlay = document.getElementById('overlay'+modalWindow.getAttribute('id'));
+    overlay.parentNode.removeChild(overlay);
+    modalWindow.parentNode.removeChild(modalWindow);
   },
 
   setModalContent: function(modalWindow, content){
@@ -187,7 +199,7 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get 'yes' or 'no'
    */
   showConfirm: function(text, callback){
-    var m = this.createModal();
+    var that = this, m = this.createModal();
     this.setModalContent(
       m,
       this.createForm(
@@ -195,7 +207,7 @@ YOVALUE.UIElements.prototype = {
         function(v){
           if(v['yes']) v = 'yes';
           else v = 'no';
-          m.parentNode.removeChild(m);
+          that.UI.closeModal(m);
           callback(v);
         }
       )

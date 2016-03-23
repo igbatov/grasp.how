@@ -96,7 +96,7 @@ YOVALUE.GraphMenu.prototype = {
           that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
           // redraw menu
           that._createView();
-          m.parentNode.removeChild(m);
+          that.UI.closeModal(m);
         }));
       };
 
@@ -116,7 +116,7 @@ YOVALUE.GraphMenu.prototype = {
               // redraw menu
               that._createView();
             });
-            m.parentNode.removeChild(m);
+            that.UI.closeModal(m);
           })
         );
       };

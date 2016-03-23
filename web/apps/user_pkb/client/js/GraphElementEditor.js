@@ -136,8 +136,8 @@ YOVALUE.GraphElementEditor.prototype = {
     // add text and sources
     this.publisher
       .publish(
-      ['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}],
-      ['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}]
+        ['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}],
+        ['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}]
       )
       .then(function(nodes, sources){
 
@@ -163,7 +163,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
         var editSourceItem = function(id, el){
           that._editSource(graphId, node.nodeContentId, sources[id], function(graphId, nodeContentId, item){
-            el.removeNode(el.firstChild);
+            el.removeChild(el.firstChild);
             el.insertBefore(that._createHTMLFromSource(item), el.firstChild);
           });
           return true;
@@ -180,6 +180,7 @@ YOVALUE.GraphElementEditor.prototype = {
         // add "add source button"
         form.appendChild(that.UI.createButton('addSource','add source',function(){
           that._editSource(graphId, node.nodeContentId,{},function(graphId, nodeContentId, item){
+            sources[item.id] = item;
             // add item
             sourceList.appendChild(that.UI.createListItem(item.id, that._createHTMLFromSource(item),{edit:editSourceItem, remove:removeSourceItem}));
           });
@@ -257,6 +258,7 @@ YOVALUE.GraphElementEditor.prototype = {
   _editSource: function(graphId, nodeContentId, item, callback){
     var that = this, modalContent = YOVALUE.createElement('div',{},'');
     item = item || {};
+    var modalWindow = that.UI.createModal();
     var formFields = {
       'source_type':{'type':'select', 'label':'Тип', callback:function(name, value){}, 'options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
       'name':{'type':'text', label:'Название',value:''},
@@ -288,20 +290,21 @@ YOVALUE.GraphElementEditor.prototype = {
             nodeContentId: nodeContentId,
             source: item
            }]).then(function (result) {
-            console.log(result);
             item.id = result.id;
             callback(graphId, nodeContentId, item);
+            that.UI.closeModal(modalWindow);
           });
         else
           that.publisher
           .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
           .then(function () {
             callback(graphId, nodeContentId, item);
+            that.UI.closeModal(modalWindow);
           });
       })
     );
 
-    that.UI.setModalContent(that.UI.createModal(), modalContent);
+    that.UI.setModalContent(modalWindow, modalContent);
   },
 
   _nl2br: function(str, is_xhtml) {
