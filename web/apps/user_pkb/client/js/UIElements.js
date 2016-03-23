@@ -86,7 +86,7 @@ YOVALUE.UIElements.prototype = {
     return container;
   },
 
-  createRange: function(name,value,min,max,step){
+  createRange: function(name,value,min,max,step,callback){
     var range = YOVALUE.createElement('div',{class:'ui_range'});
     var label = YOVALUE.createElement('label',{},name);
     var input = YOVALUE.createElement('input',{type:'range',name:name,value:value,min:min,max:max,step:step},'');
@@ -95,8 +95,8 @@ YOVALUE.UIElements.prototype = {
     range.appendChild(input);
     range.appendChild(output);
     input.addEventListener('input',function(evt){
-      console.log(evt,this.value,input.value,output.value);
       output.innerText = input.value;
+      callback(name,input.value);
     });
     return range;
   },
@@ -134,7 +134,7 @@ YOVALUE.UIElements.prototype = {
         }));
       }
       if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox(name,fields[name]['items'],fields[name]['addCallback'],fields[name]['removeCallback']));
-      if(fields[name]['type'] == 'range') form.appendChild(this.createRange(name,fields[name]['value'],fields[name]['min'],fields[name]['max'],fields[name]['step']));
+      if(fields[name]['type'] == 'range') form.appendChild(this.createRange(name,fields[name]['value'],fields[name]['min'],fields[name]['max'],fields[name]['step'],fields[name]['callback']));
       if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
       if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
     }

@@ -14,3 +14,8 @@
     top: 1px;
     cursor: pointer;
 }
+
+.ui_modal input, .ui_modal textarea, .ui_modal button, .ui_modal .ui_select{
+    display: block;
+    margin-top: 1em;
+}

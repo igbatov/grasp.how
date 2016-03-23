@@ -80,7 +80,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
   _createNodeForm: function(graphId, isEditable, nodeTypes, node){
     // select list for node types
-    var i, that = this, typeOptions = '', importanceOptions = '', reliabilityOptions = '';
+    var that = this;
 
     // define callbacks for fields
     var attrChange = function(name,value){
@@ -99,12 +99,6 @@ YOVALUE.GraphElementEditor.prototype = {
         nodeContentId: node.nodeContentId,
         text: value
       }]);
-    };
-
-    var addSource = function(name, value){
-      that._editSource(graphId, node.nodeContentId,{},function(item){
-        // add item
-      });
     };
 
     var removeNode = function(){
@@ -133,16 +127,21 @@ YOVALUE.GraphElementEditor.prototype = {
       type:        {type:'select',options:types,value:node.type,callback:attrChange},
       importance:  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange},
       reliability: {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange},
-      addSource:   {type:'button',value:'addSource',callback:addSource},
       //  icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
-      removeButton:{type:'button',value:'remove',callback:removeNode},
+      removeButton:{type:'button',value:'remove',callback:removeNode}
     });
 
     form.appendChild(this.ajaxIndicator);
-    // add text
+
+    // add text and sources
     this.publisher
-      .publish(['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}])
-      .then(function(nodes){
+      .publish(
+      ['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}],
+      ['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}]
+      )
+      .then(function(nodes, sources){
+
+        // add node text
         YOVALUE.setDisplay(that.ajaxIndicator,'none');
         if(isEditable){
           form.appendChild(YOVALUE.createElement(
@@ -158,39 +157,56 @@ YOVALUE.GraphElementEditor.prototype = {
             that._nl2br(nodes[node.nodeContentId])
           ));
         }
-      });
 
-    // add sources
-    this.publisher
-      .publish(['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}])
-      .then(function(sources){
         var items = [];
-        for(var i in sources){
-          if(sources[i].url.length > 0){
-            items[i] = YOVALUE.createElement('a',{href:sources[i].url, target:'_blank'}, sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
-          }else{
-            items[i] = document.createTextNode(sources[i].author+' / '+sources[i].name+' / '+sources[i].publisher);
-          }
-        }
+        for(var i in sources) items[i] = that._createHTMLFromSource(sources[i]);
 
-        form.appendChild(that.UI.createList(
-          items,
-          {
-            edit:function(id, el){
-              that._editSource(graphId, node.nodeContentId, sources[id], function(evt){
-                console.log(evt);
-              });
-              return true;
-            },
-            remove:function(id, el){
-              that.publisher.publish(['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]);
-              return true;
-            }
-          }
-        ));
+        var editSourceItem = function(id, el){
+          that._editSource(graphId, node.nodeContentId, sources[id], function(graphId, nodeContentId, item){
+            el.removeNode(el.firstChild);
+            el.insertBefore(that._createHTMLFromSource(item), el.firstChild);
+          });
+          return true;
+        };
+
+        var removeSourceItem = function(id, el){
+          that.publisher.publish(['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]);
+          el.parentNode.removeChild(el);
+          return true;
+        };
+
+        var sourceList = that.UI.createList(items,{edit:editSourceItem, remove:removeSourceItem});
+
+        // add "add source button"
+        form.appendChild(that.UI.createButton('addSource','add source',function(){
+          that._editSource(graphId, node.nodeContentId,{},function(graphId, nodeContentId, item){
+            // add item
+            sourceList.appendChild(that.UI.createListItem(item.id, that._createHTMLFromSource(item),{edit:editSourceItem, remove:removeSourceItem}));
+          });
+        }));
+
+        // add node sources
+        form.appendChild(sourceList);
+
       });
 
     return form;
+  },
+
+  /**
+   * Creating HTMLElement from node's source
+   * @param source - {author:<string>, url:<string>, name:<string>, publisher:<string>}
+   * @returns {HTMLElement}
+   * @private
+   */
+  _createHTMLFromSource: function(source){
+    var item = null;
+    if(source.url.length > 0){
+      item = YOVALUE.createElement('a',{href:source.url, target:'_blank'}, source.author+' / '+source.name+' / '+source.publisher);
+    }else{
+      item = document.createTextNode(source.author+' / '+source.name+' / '+source.publisher);
+    }
+    return item;
   },
 
   _createEdgeForm: function(graphId, isEditable, edgeTypes, edge){
@@ -231,11 +247,11 @@ YOVALUE.GraphElementEditor.prototype = {
   },
 
   /**
-   *
+   * Show modal window with node source fields
    * @param graphId
    * @param nodeContentId
    * @param item
-   * @param callback
+   * @param callback - {graphId: graphId, nodeContentId: nodeContentId, source: item}
    * @private
    */
   _editSource: function(graphId, nodeContentId, item, callback){
@@ -266,15 +282,21 @@ YOVALUE.GraphElementEditor.prototype = {
           if (typeof(form[v]) != 'undefined') item[v] = form[v];
         });
         // send item for add or update
-        if (typeof(item.id) == 'undefined') that.publisher.publish(['node_source_add_request', {
-          graphId: graphId,
-          nodeContentId: nodeContentId,
-          source: item
-        }]);
-        else that.publisher
+        if (typeof(item.id) == 'undefined')
+          that.publisher.publish(['node_source_add_request', {
+            graphId: graphId,
+            nodeContentId: nodeContentId,
+            source: item
+           }]).then(function (result) {
+            console.log(result);
+            item.id = result.id;
+            callback(graphId, nodeContentId, item);
+          });
+        else
+          that.publisher
           .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
           .then(function () {
-            callback({graphId: graphId, nodeContentId: nodeContentId, source: item});
+            callback(graphId, nodeContentId, item);
           });
       })
     );

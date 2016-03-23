@@ -35,10 +35,6 @@
 .graphElementEditorContainer .ui_form {
     text-align: center;
 }
-.graphElementEditorContainer input {
-    display: block;
-    margin: 1em auto;
-}
 .graphElementEditorContainer .ui_button:before {
     content: "";
     display: inline-block;
@@ -46,23 +42,19 @@
     height: 100%;
 }
 .graphElementEditorContainer .ui_button {
-    float:left;
     margin-right: 1em;
 }
 .graphElementEditorContainer .ui_select {
-    float:left;
     margin-right: 1em;
 }
 .graphElementEditorContainer .ui_list li {
+    display: block;
     line-height: 1.5em;
 }
 .graphElementEditorContainer .ui_list li button {
     float:right;
 }
-
-.graphElementEditorContainer .ui_range{
-    display: inline-block;
-    width: 4em;
+.graphElementEditorContainer .ui_range input {
+    width: 6em;
 }
-
 
