@@ -127,26 +127,22 @@ YOVALUE.GraphElementEditor.prototype = {
     var removeIcon = function(){};
 
     var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
-    var importance = {}; for(i=1;i<100;i++) importance[i]=i;
-    var reliability = {}; for(i=1;i<100;i++) reliability[i]=i;
 
     var form = this.UI.createForm({
       label:       {type:'textarea',value:node.label,callback:attrChange},
       type:        {type:'select',options:types,value:node.type,callback:attrChange},
-      importance:  {type:'select',options:importance,value:node.importance,callback:attrChange},
-      reliability: {type:'select',options:reliability,value:node.reliability,callback:attrChange},
+      importance:  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange},
+      reliability: {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange},
       addSource:   {type:'button',value:'addSource',callback:addSource},
       //  icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
-      removeButton:{type:'button',value:'removeButton',callback:removeNode},
+      removeButton:{type:'button',value:'remove',callback:removeNode},
     });
-console.log('111111111111111111111');
+
     form.appendChild(this.ajaxIndicator);
-    console.log('2222222222222222222222');
     // add text
     this.publisher
       .publish(['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}])
       .then(function(nodes){
-        console.log('333333333333333333333333333333');
         YOVALUE.setDisplay(that.ajaxIndicator,'none');
         if(isEditable){
           form.appendChild(YOVALUE.createElement(
@@ -168,7 +164,6 @@ console.log('111111111111111111111');
     this.publisher
       .publish(['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}])
       .then(function(sources){
-        console.log('44444444444444444444444444444');
         var items = [];
         for(var i in sources){
           if(sources[i].url.length > 0){
