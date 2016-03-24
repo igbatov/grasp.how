@@ -19,7 +19,7 @@
  * It also expects that server can return following http codes
  * 200 (OK)
  * 401 (Unauthorized),
- * 503 (Server unavaliabe),
+ * 503 (Server unavailable),
  * 500 (Unknown error)
  *
  * @param subscriber
@@ -67,8 +67,9 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
     'node_source_add_request',
     'node_source_update_request',
     'node_source_remove_request',
-    'repository_get_graph_node_sources'
+    'repository_get_graph_node_sources',
 
+    'find_publishers'
   ]);
 };
 
@@ -228,6 +229,12 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'repository_get_graph_node_sources'){
       this.pendingRequests.push({url:'getNodeContentSourceList', data:e.getData(), callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'find_publishers'){
+      this.pendingRequests.push({url:'findPublishers', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});
       this.sendPendingRequests();

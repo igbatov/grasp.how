@@ -1,14 +1,62 @@
 /**
  * This module render common UI elements - select box, modal window, text box, etc
- * @param jQuery
+ * @param ajax
  * @constructor
  */
-YOVALUE.UIElements = function(jQuery){
-  this.jQuery = jQuery;
+YOVALUE.UIElements = function(){
   this.uniqueId = 0;
+  this.SELECT_ITEM_MAX_LENGTH = 25;
 };
 
 YOVALUE.UIElements.prototype = {
+  /**
+   *
+   * @param name
+   * @param {function} findCallback - must return promise that will produce array of items for us
+   * @param {function} selectCallback
+   */
+  createSearch: function(name, findCallback, selectCallback){
+    var that = this,
+        uniqId = this.generateId(),
+        search = YOVALUE.createElement('input',{name:name,type:'text',value:''});
+
+    var selectBox = YOVALUE.createElement('div',{class:'ui_search',id:uniqId,value:'none'},'');
+    var ul = YOVALUE.createElement('ul',{},'');
+    selectBox.appendChild(search);
+    selectBox.appendChild(ul);
+
+    search.addEventListener('keyup', function(){
+      findCallback(search.value).then(function(items) {
+        // remove all children from ul
+        while (ul.firstChild) { ul.removeChild(ul.firstChild); }
+
+        // create list of items
+        var lis = Object.keys(items).map(function(key){
+          return YOVALUE.createElement('li',{value:key},(items[key].length > that.SELECT_ITEM_MAX_LENGTH ? items[key].substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : items[key]))
+        });
+
+        lis.forEach(function(li){ ul.appendChild(li); });
+        YOVALUE.setDisplay(ul,'block');
+      });
+    });
+
+
+    document.body.addEventListener('click', function(evt){
+      // click on item - select new one
+      if(YOVALUE.objectToArray(ul.children).indexOf(evt.target) != -1 ){
+        var value = evt.target.getAttribute('value');
+        var label = evt.target.innerText;
+        YOVALUE.updateElement(search, {value:label});
+        if(typeof(selectCallback) != 'undefined') selectCallback(name, value);
+        YOVALUE.setDisplay(ul,'none');
+      }else{
+        YOVALUE.setDisplay(ul,'none');
+      }
+    });
+
+    return selectBox;
+  },
+
   /**
    * Returns DOM element that can be used to select items
    * @param {String} name - name of select box
@@ -18,7 +66,8 @@ YOVALUE.UIElements.prototype = {
    * @returns {HTMLElement}
    */
   createSelectBox: function(name, items, defaultValue, onSelectCallback){
-    var uniqId = this.generateId(),
+    var that = this,
+        uniqId = this.generateId(),
         selectedItem = YOVALUE.createElement('span',{class:'selected',value:'none'},'none'),
         inputHidden = YOVALUE.createElement('input',{name:name,type:'hidden',value:null});
 
@@ -31,13 +80,11 @@ YOVALUE.UIElements.prototype = {
 
     // create list of items
     var lis = Object.keys(items).map(function(key){
-      return YOVALUE.createElement('li',{value:key},(items[key].length > 25 ? items[key].substr(0, 25)+'...' : items[key]))
+      return YOVALUE.createElement('li',{value:key},(items[key].length > that.SELECT_ITEM_MAX_LENGTH ? items[key].substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : items[key]))
     });
 
     var ul = YOVALUE.createElement('ul',{},'');
-    lis.forEach(function(li){
-      ul.appendChild(li);
-    });
+    lis.forEach(function(li){ ul.appendChild(li); });
 
     selectBox.appendChild(selectedItem);
     selectBox.appendChild(inputHidden);
@@ -52,7 +99,7 @@ YOVALUE.UIElements.prototype = {
           YOVALUE.setDisplay(ul,'none');
         }
       }
-      // click on item - select new graph
+      // click on item - select new one
       else if(lis.indexOf(evt.target) != -1 ){
         var value = evt.target.getAttribute('value');
         YOVALUE.updateElement(selectedItem, {value:value}, evt.target.innerText);
@@ -133,6 +180,7 @@ YOVALUE.UIElements.prototype = {
           callback(data);
         }));
       }
+      if(fields[name]['type'] == 'search') form.appendChild(this.createSearch(name,fields[name]['findCallback'],fields[name]['selectCallback']));
       if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox(name,fields[name]['items'],fields[name]['addCallback'],fields[name]['removeCallback']));
       if(fields[name]['type'] == 'range') form.appendChild(this.createRange(name,fields[name]['value'],fields[name]['min'],fields[name]['max'],fields[name]['step'],fields[name]['callback']));
       if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));

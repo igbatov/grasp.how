@@ -419,6 +419,13 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($rows));
         break;
 
+      case 'findPublishers':
+        $r = $this->getRequest();
+        $substring = $r['substring'];
+        $rows = array(2=>'ddddddd',5=>'ffffffffffff');
+        $this->showRawData(json_encode($rows));
+        break;
+
       default:
         if($access_level == 'read'){
           include($this->getAppDir("template", false)."/showGraph.php");

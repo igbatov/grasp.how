@@ -76,6 +76,7 @@ var DI = {
    * Mediator is initialized with the order of subscribers execution for some events
    * For other events the order of modules notification is not important
    */
+  Ajax: ['jQuery'],
   Promise: ['jQuery'],
   Mediator: [],
   Publisher:['Mediator', 'Promise'],
@@ -94,7 +95,7 @@ var DI = {
     graphViews: {id:'graphViews',padding:[15,0]},
     statusString: {id:'statusString'}
   }],
-  UIElements: ['jQuery'],
+  UIElements: [],
 
   KeyManager: ['Publisher'],
   StatusString: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
@@ -125,8 +126,6 @@ var DI = {
   ],
   GraphControllerPubSub:['Subscriber', 'Publisher', 'GraphControllerModules'],
 
-
-  Ajax: ['jQuery'],
   imageLoader: ['Promise'],
   Repository: ['Subscriber', 'Publisher', 'Ajax', 'imageLoader'],
 

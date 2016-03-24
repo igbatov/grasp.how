@@ -132,6 +132,7 @@ YOVALUE.GraphElementEditor.prototype = {
     });
 
     form.appendChild(this.ajaxIndicator);
+    YOVALUE.setDisplay(that.ajaxIndicator,'block');
 
     // add text and sources
     this.publisher
@@ -158,6 +159,7 @@ YOVALUE.GraphElementEditor.prototype = {
           ));
         }
 
+        // create list of sources HTMLElements
         var items = [];
         for(var i in sources) items[i] = that._createHTMLFromSource(sources[i]);
 
@@ -265,7 +267,12 @@ YOVALUE.GraphElementEditor.prototype = {
       'url':{'type':'text', label:'URL',value:''},
       'author':{'type':'text', label:'Автор', value:''},
       'editor':{'type':'text', label:'Рецензент', value:''},
-      'publisher':{'type':'text', label:'Издатель', value:''},
+      'publisher':{
+        'type':'search',
+        findCallback:function(str){return that.publisher.publish(['find_publishers',{substring:str}]);},
+        label:'Издание (журнал, книга)',
+        selectCallback:function(name, value){console.log(value)}
+      },
       'publish_date':{'type':'date', label:'Дата издания', value:''},
       'pages':{'type':'text', label:'Том, страницы', value:''},
       'button':{'type':'button', value:'Добавить'}

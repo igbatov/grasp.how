@@ -551,6 +551,15 @@ YOVALUE.arrayToObject = function (arr) {
   return rv;
 };
 
+YOVALUE.objectToArray = function(obj){
+  var array = [];
+  // iterate backwards ensuring that length is an UInt32
+  for (var i = obj.length >>> 0; i--;) {
+    array[i] = obj[i];
+  }
+  return array;
+};
+
 /**
  * Convert color in RGB to Hex
  * @param R
@@ -1277,9 +1286,7 @@ YOVALUE.createElement = function(tag, attrs, text, callback){
  * @returns {HTMLElement}
  */
 YOVALUE.updateElement = function(el, attrs, text){
-  for(var i in attrs){
-    el.setAttribute(i, attrs[i]);
-  }
+  for(var i in attrs) el[i] = attrs[i];
   if(typeof(text) != 'undefined') el.innerText = text;
   return el;
 };
