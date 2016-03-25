@@ -1236,7 +1236,7 @@ YOVALUE.getBrowserInfo = function(){
 YOVALUE.createElement = function(tag, attrs, text, callback){
   var el = document.createElement(tag);
   for(var i in attrs){
-    el.setAttribute(i, attrs[i]);
+    if(typeof(attrs[i]) != 'undefined') el.setAttribute(i, attrs[i]);
   }
   if(typeof(text) != 'undefined' && text.length > 0) el.appendChild(document.createTextNode(text));
 

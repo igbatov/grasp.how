@@ -92,15 +92,6 @@ YOVALUE.GraphElementEditor.prototype = {
       }]);
     };
 
-    var editNodeText = function(name, value){
-      that.publisher.publish(['request_for_graph_element_content_change', {
-        graphId: graphId,
-        type: 'updateNodeText',
-        nodeContentId: node.nodeContentId,
-        text: value
-      }]);
-    };
-
     var removeNode = function(){
       if(confirm('Are you sure?')){
         that.publisher.publish(['delete_pressed',{}]);
@@ -108,7 +99,6 @@ YOVALUE.GraphElementEditor.prototype = {
     };
 
     var addIcon = function(files,ul){
-      console.log(files);
       /*
        that.publisher.publish(['request_for_graph_element_content_change', {
        graphId: graphId,
@@ -134,14 +124,36 @@ YOVALUE.GraphElementEditor.prototype = {
     form.appendChild(this.ajaxIndicator);
     YOVALUE.setDisplay(that.ajaxIndicator,'block');
 
-    // add text and sources
+    this._addTextAndSources(form, node, graphId, isEditable);
+
+    return form;
+  },
+
+  /**
+   * Create promises to add text and source list to node edit form
+   * @param form
+   * @param node
+   * @param isEditable
+   * @private
+   */
+  _addTextAndSources: function(form, node, graphId, isEditable){
+    var that = this;
+
+    var editNodeText = function(name, value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateNodeText',
+        nodeContentId: node.nodeContentId,
+        text: value
+      }]);
+    };
+
     this.publisher
       .publish(
         ['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}],
         ['get_graph_node_sources', {graphId:graphId, nodeContentId:node.nodeContentId}]
       )
       .then(function(nodes, sources){
-
         // add node text
         YOVALUE.setDisplay(that.ajaxIndicator,'none');
         if(isEditable){
@@ -163,10 +175,14 @@ YOVALUE.GraphElementEditor.prototype = {
         var items = [];
         for(var i in sources) items[i] = that._createHTMLFromSource(sources[i]);
 
-        var editSourceItem = function(id, el){
+        var updateSourceItem = function(id, el){
           that._editSource(graphId, node.nodeContentId, sources[id], function(graphId, nodeContentId, item){
+            // update li content
             el.removeChild(el.firstChild);
             el.insertBefore(that._createHTMLFromSource(item), el.firstChild);
+
+            // update sources object
+            sources[item.id] = item;
           });
           return true;
         };
@@ -177,14 +193,15 @@ YOVALUE.GraphElementEditor.prototype = {
           return true;
         };
 
-        var sourceList = that.UI.createList(items,{edit:editSourceItem, remove:removeSourceItem});
+        var sourceList = that.UI.createList(items,{edit:updateSourceItem, remove:removeSourceItem});
 
-        // add "add source button"
+        // define and add "add source button"
         form.appendChild(that.UI.createButton('addSource','add source',function(){
           that._editSource(graphId, node.nodeContentId,{},function(graphId, nodeContentId, item){
-            sources[item.id] = item;
+            // update sources object
+            sources.push(item);
             // add item
-            sourceList.appendChild(that.UI.createListItem(item.id, that._createHTMLFromSource(item),{edit:editSourceItem, remove:removeSourceItem}));
+            sourceList.appendChild(that.UI.createListItem(sources.length-1, that._createHTMLFromSource(item),{edit:updateSourceItem, remove:removeSourceItem}));
           });
         }));
 
@@ -193,7 +210,6 @@ YOVALUE.GraphElementEditor.prototype = {
 
       });
 
-    return form;
   },
 
   /**
@@ -250,11 +266,13 @@ YOVALUE.GraphElementEditor.prototype = {
   },
 
   /**
-   * Show modal window with node source fields
+   * - Show modal window with node source fields
+   * - Publish add/update event on form submit
+   * - Call callback (graphId, nodeContentId,  item}
    * @param graphId
    * @param nodeContentId
    * @param item
-   * @param callback - {graphId: graphId, nodeContentId: nodeContentId, source: item}
+   * @param callback - arguments are (graphId, nodeContentId, item)
    * @private
    */
   _editSource: function(graphId, nodeContentId, item, callback){
@@ -268,48 +286,67 @@ YOVALUE.GraphElementEditor.prototype = {
       'author':{'type':'text', label:'Автор', value:''},
       'editor':{'type':'text', label:'Рецензент', value:''},
       'publisher':{
-        'type':'search',
-        findCallback:function(str){return that.publisher.publish(['find_publishers',{substring:str}]);},
+        type:'search',
+        findCallback:function(str){
+          return that.publisher.publish(['find_publishers',{substring:str}]);
+        },
         label:'Издание (журнал, книга)',
-        selectCallback:function(name, value){console.log(value)}
+        selectCallback:function(name, value){
+          YOVALUE.updateElement(publisher_reliability, {value:value.reliability});
+          YOVALUE.updateElement(scopus_title_list_id, {value:value.id});
+        }
       },
       'publish_date':{'type':'date', label:'Дата издания', value:''},
       'pages':{'type':'text', label:'Том, страницы', value:''},
-      'button':{'type':'button', value:'Добавить'}
+      'button':{'type':'button', value:'Добавить'},
     };
-    if(typeof(item) != 'undefined'){
+
+    // hidden fields in form that should be manipulated by search callback
+    var publisher_reliability = YOVALUE.createElement('input',{name:'publisher_reliability',type:'hidden',value:item['publisher_reliability']});
+    var scopus_title_list_id = YOVALUE.createElement('input',{name:'scopus_title_list_id',type:'hidden',value:item['scopus_title_list_id']});
+
+    // fill in form fields
+    if(YOVALUE.getObjectKeys(item).length){
       YOVALUE.getObjectKeys(formFields).forEach(function(v,k){
         if(typeof(item[v]) != 'undefined') formFields[v].value = item[v];
         formFields['button'].value = 'Сохранить';
       });
     }
 
-    modalContent.appendChild(that.UI.createForm(formFields,
+    var form = that.UI.createForm(formFields,
+      // form submit callback
       function (form) {
         // set form fields to item
         YOVALUE.getObjectKeys(form).forEach(function (v, k) {
           if (typeof(form[v]) != 'undefined') item[v] = form[v];
         });
+
         // send item for add or update
         if (typeof(item.id) == 'undefined')
-          that.publisher.publish(['node_source_add_request', {
-            graphId: graphId,
-            nodeContentId: nodeContentId,
-            source: item
-           }]).then(function (result) {
-            item.id = result.id;
-            callback(graphId, nodeContentId, item);
-            that.UI.closeModal(modalWindow);
-          });
+          that.publisher
+            .publish(['node_source_add_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
+            .then(function (result) {
+              item.id = result.id;
+              // call _editSource callback
+              callback(graphId, nodeContentId, item);
+              that.UI.closeModal(modalWindow);
+            });
         else
           that.publisher
-          .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
-          .then(function () {
-            callback(graphId, nodeContentId, item);
-            that.UI.closeModal(modalWindow);
-          });
-      })
+            .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
+            .then(function () {
+              // call _editSource callback
+              callback(graphId, nodeContentId, item);
+              that.UI.closeModal(modalWindow);
+            });
+      }
     );
+
+    form.appendChild(publisher_reliability);
+    form.appendChild(scopus_title_list_id);
+
+    // add form to modal window
+    modalContent.appendChild(form);
 
     that.UI.setModalContent(modalWindow, modalContent);
   },
