@@ -191,8 +191,25 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
       if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
     }
-
+console.info(form);
     return form;
+  },
+
+  /**
+   * Updates form field with given name to given attrs
+   * @param form
+   * @param name
+   * @param attrs
+   */
+  updateForm: function(form,name,attrs){
+    console.info(form);
+    [].forEach.call(form.children, function(child) {
+      console.info(child.getAttribute('name'));
+      if(child.getAttribute('name') == name){
+        console.info(child);
+        YOVALUE.updateElement(child,attrs);
+      }
+    });
   },
 
   /**

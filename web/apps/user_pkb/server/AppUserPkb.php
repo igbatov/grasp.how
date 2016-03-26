@@ -89,7 +89,22 @@ class AppUserPkb extends App
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
-    $this->writeActions = array('updateGraphName', 'setGraphAttributes', 'changeGraphPosition', 'addGraphHistoryItem', 'updateNodeMapping', 'updateGraphElementContent', 'createNewGraph', 'copyGraph', 'cloneGraph', 'getGraphDiff', 'removeGraph','addNodeContentSource','updateNodeContentSource','removeNodeContentSource');
+    $this->writeActions = array(
+        'updateGraphName',
+        'setGraphAttributes',
+        'changeGraphPosition',
+        'addGraphHistoryItem',
+        'updateNodeMapping',
+        'updateGraphElementContent',
+        'createNewGraph',
+        'copyGraph',
+        'cloneGraph',
+        'getGraphDiff',
+        'removeGraph',
+        'addNodeContentSource',
+        'updateNodeContentSource',
+        'removeNodeContentSource'
+    );
     if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
    // if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
 
@@ -397,7 +412,9 @@ class AppUserPkb extends App
           ."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
         $this->log($q);
         $item_id = $this->db->execute($q);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS','id'=>$item_id)));
+        // calculate fact reliability
+        $reliability = $this->getFactReliability($graph_id,$local_content_id);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS','id'=>$item_id,'reliability'=>$reliability)));
         break;
 
       case 'updateNodeContentSource':
@@ -419,7 +436,9 @@ class AppUserPkb extends App
           ."' WHERE id = '".$this->db->escape($r['source']['id'])."'";
         $this->log($q);
         $this->db->execute($q);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        // calculate fact reliability
+        $reliability = $this->getFactReliability($graph_id,$local_content_id);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS','reliability'=>$reliability)));
         break;
 
       case 'removeNodeContentSource':
@@ -481,6 +500,15 @@ class AppUserPkb extends App
         }
         break;
     }
+  }
+
+  protected function getFactReliability($graph_id,$local_content_id){
+    $q = "SELECT publisher_reliability FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
+    $this->log($q);
+    $rows = $this->db->execute($q);
+    $reliability_array = array();
+    foreach($rows as $row) $reliability_array[] = $row['publisher_reliability'];
+    return min(array_sum($reliability_array)*10,99);
   }
 
   protected function getGraphSettings($graph_ids){

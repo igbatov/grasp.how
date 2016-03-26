@@ -176,13 +176,16 @@ YOVALUE.GraphElementEditor.prototype = {
         for(var i in sources) items[i] = that._createHTMLFromSource(sources[i]);
 
         var updateSourceItem = function(id, el){
-          that._editSource(graphId, node.nodeContentId, sources[id], function(graphId, nodeContentId, item){
+          that._editSource(graphId, node.nodeContentId, sources[id], function(graphId, nodeContentId, item, updateAnswer){
             // update li content
             el.removeChild(el.firstChild);
             el.insertBefore(that._createHTMLFromSource(item), el.firstChild);
 
             // update sources object
             sources[item.id] = item;
+
+            // update node reliability
+            that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
           });
           return true;
         };
@@ -197,11 +200,13 @@ YOVALUE.GraphElementEditor.prototype = {
 
         // define and add "add source button"
         form.appendChild(that.UI.createButton('addSource','add source',function(){
-          that._editSource(graphId, node.nodeContentId,{},function(graphId, nodeContentId, item){
+          that._editSource(graphId, node.nodeContentId,{},function(graphId, nodeContentId, item, updateAnswer){
             // update sources object
             sources.push(item);
             // add item
             sourceList.appendChild(that.UI.createListItem(sources.length-1, that._createHTMLFromSource(item),{edit:updateSourceItem, remove:removeSourceItem}));
+            // update node reliability
+            that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
           });
         }));
 
@@ -280,7 +285,15 @@ YOVALUE.GraphElementEditor.prototype = {
     item = item || {};
     var modalWindow = that.UI.createModal();
     var formFields = {
-      'source_type':{'type':'select', 'label':'Тип', callback:function(name, value){}, 'options':{'article':'статья (peer-reviewed)', 'meta-article':'мета-статья (peer-reviewed)', 'textbook':'учебник', 'book':'книга', 'news':'новость', 'personal experience':'личный опыт'},'value':'article'},
+      'source_type':{'type':'select', 'label':'Тип', callback:function(name, value){},
+        'options':{
+          'article':'статья (peer-reviewed)',
+          'meta-article':'мета-статья (peer-reviewed)',
+          'textbook':'учебник',
+          'book':'книга',
+          'news':'новость',
+          'personal experience':'личный опыт'
+        },'value':'article'},
       'name':{'type':'text', label:'Название',value:''},
       'url':{'type':'text', label:'URL',value:''},
       'author':{'type':'text', label:'Автор', value:''},
@@ -298,11 +311,11 @@ YOVALUE.GraphElementEditor.prototype = {
       },
       'publish_date':{'type':'date', label:'Дата издания', value:''},
       'pages':{'type':'text', label:'Том, страницы', value:''},
-      'button':{'type':'button', value:'Добавить'},
+      'button':{'type':'button', value:'Добавить'}
     };
 
     // hidden fields in form that should be manipulated by search callback
-    var publisher_reliability = YOVALUE.createElement('input',{name:'publisher_reliability',type:'hidden',value:item['publisher_reliability']});
+    var publisher_reliability = YOVALUE.createElement('input',{name:'publisher_reliability',type:'text',disabled:'disabled',value:item['publisher_reliability'],placeholder:'reliability'});
     var scopus_title_list_id = YOVALUE.createElement('input',{name:'scopus_title_list_id',type:'hidden',value:item['scopus_title_list_id']});
 
     // fill in form fields
@@ -325,25 +338,25 @@ YOVALUE.GraphElementEditor.prototype = {
         if (typeof(item.id) == 'undefined')
           that.publisher
             .publish(['node_source_add_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
-            .then(function (result) {
-              item.id = result.id;
+            .then(function (updateAnswer) {
+              item.id = updateAnswer.id;
               // call _editSource callback
-              callback(graphId, nodeContentId, item);
+              callback(graphId, nodeContentId, item, updateAnswer);
               that.UI.closeModal(modalWindow);
             });
         else
           that.publisher
             .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
-            .then(function () {
+            .then(function (updateAnswer) {
               // call _editSource callback
-              callback(graphId, nodeContentId, item);
+              callback(graphId, nodeContentId, item, updateAnswer);
               that.UI.closeModal(modalWindow);
             });
       }
     );
 
-    form.appendChild(publisher_reliability);
-    form.appendChild(scopus_title_list_id);
+    form.insertBefore(publisher_reliability,form.children[form.children.length-1]);
+    form.insertBefore(scopus_title_list_id,publisher_reliability);
 
     // add form to modal window
     modalContent.appendChild(form);
