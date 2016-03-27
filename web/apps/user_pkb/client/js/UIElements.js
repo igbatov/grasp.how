@@ -14,9 +14,10 @@ YOVALUE.UIElements.prototype = {
    * @param name
    * @param {function} findCallback - must return promise that will produce
    * array of items in a form [{id:<string>,title:<string>}, ...}
-   * @param {function} selectCallback - arguments are name and value (= selected object from items)
+   * @param {function} typeCallback - will bw called as user type smth in a search tree. Arguments are name and value (= selected object from items)
+   * @param {function} selectCallback - function that will be called as user select item. Arguments are name and value (= selected object from items)
    */
-  createSearch: function(name, label, value, findCallback, selectCallback){
+  createSearch: function(name, label, value, findCallback, typeCallback, selectCallback){
     var that = this,
         uniqId = this.generateId(),
         search = YOVALUE.createElement('input',{name:name,type:'text',value:value, placeholder:label});
@@ -28,6 +29,7 @@ YOVALUE.UIElements.prototype = {
 
     var items = {};
     search.addEventListener('keyup', function(){
+      typeCallback(name,search.value);
       findCallback(search.value).then(function(v) {
          items = v;
 
@@ -185,13 +187,13 @@ YOVALUE.UIElements.prototype = {
           callback(data);
         }));
       }
-      if(fields[name]['type'] == 'search') form.appendChild(this.createSearch(name, fields[name]['label'], fields[name]['value'], fields[name]['findCallback'], fields[name]['selectCallback']));
+      if(fields[name]['type'] == 'search') form.appendChild(this.createSearch(name, fields[name]['label'], fields[name]['value'], fields[name]['findCallback'], fields[name]['typeCallback'], fields[name]['selectCallback']));
       if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox(name,fields[name]['items'],fields[name]['addCallback'],fields[name]['removeCallback']));
       if(fields[name]['type'] == 'range') form.appendChild(this.createRange(name,fields[name]['value'],fields[name]['min'],fields[name]['max'],fields[name]['step'],fields[name]['callback']));
       if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
       if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
     }
-console.info(form);
+
     return form;
   },
 
@@ -202,14 +204,12 @@ console.info(form);
    * @param attrs
    */
   updateForm: function(form,name,attrs){
-    console.info(form);
-    [].forEach.call(form.children, function(child) {
-      console.info(child.getAttribute('name'));
-      if(child.getAttribute('name') == name){
-        console.info(child);
-        YOVALUE.updateElement(child,attrs);
-      }
-    });
+
+    var el = form.querySelector('[name="'+name+'"]');
+    if(el != null){
+      YOVALUE.updateElement(el,attrs);
+      el.dispatchEvent(new Event('input'));
+    }
   },
 
   /**

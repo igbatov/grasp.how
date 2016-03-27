@@ -174,24 +174,31 @@ YOVALUE.GraphElementEditor.prototype = {
         // create list of sources HTMLElements
         var items = [];
         for(var i in sources) items[i] = that._createHTMLFromSource(sources[i]);
-
         var updateSourceItem = function(id, el){
-          that._editSource(graphId, node.nodeContentId, sources[id], function(graphId, nodeContentId, item, updateAnswer){
-            // update li content
-            el.removeChild(el.firstChild);
-            el.insertBefore(that._createHTMLFromSource(item), el.firstChild);
+          that._editSource(graphId, node.nodeContentId, sources[id], function(graphId, nodeContentId, item){
+            that.publisher
+                .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
+                .then(function (updateAnswer) {
+                  // update li content
+                  el.removeChild(el.firstChild);
+                  el.insertBefore(that._createHTMLFromSource(item), el.firstChild);
 
-            // update sources object
-            sources[item.id] = item;
+                  // update sources
+                  YOVALUE.getObjectKeys(item).forEach(function(v,k){ sources[item.id][v] = item[v]; });
 
-            // update node reliability
-            that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+                  // update node reliability
+                  that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+                });
           });
           return true;
         };
 
         var removeSourceItem = function(id, el){
-          that.publisher.publish(['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]);
+          that.publisher.publish(
+              ['node_source_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, source:sources[id]}]
+          ).then(function(updateAnswer){
+              that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+          });
           el.parentNode.removeChild(el);
           return true;
         };
@@ -200,13 +207,18 @@ YOVALUE.GraphElementEditor.prototype = {
 
         // define and add "add source button"
         form.appendChild(that.UI.createButton('addSource','add source',function(){
-          that._editSource(graphId, node.nodeContentId,{},function(graphId, nodeContentId, item, updateAnswer){
-            // update sources object
-            sources.push(item);
-            // add item
-            sourceList.appendChild(that.UI.createListItem(sources.length-1, that._createHTMLFromSource(item),{edit:updateSourceItem, remove:removeSourceItem}));
-            // update node reliability
-            that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+          that._editSource(graphId, node.nodeContentId,{},function(graphId, nodeContentId, item){
+            that.publisher
+                .publish(['node_source_add_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
+                .then(function (updateAnswer) {
+                  item.id = updateAnswer.id;
+                  // update sources object
+                  sources[item.id] = item;
+                  // add item
+                  sourceList.appendChild(that.UI.createListItem(item.id, that._createHTMLFromSource(item),{edit:updateSourceItem, remove:removeSourceItem}));
+                  // update node reliability
+                  that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+                });
           });
         }));
 
@@ -300,13 +312,17 @@ YOVALUE.GraphElementEditor.prototype = {
       'editor':{'type':'text', label:'Рецензент', value:''},
       'publisher':{
         type:'search',
+        label:'Издание (журнал, книга)',
         findCallback:function(str){
           return that.publisher.publish(['find_publishers',{substring:str}]);
         },
-        label:'Издание (журнал, книга)',
         selectCallback:function(name, value){
           YOVALUE.updateElement(publisher_reliability, {value:value.reliability});
           YOVALUE.updateElement(scopus_title_list_id, {value:value.id});
+        },
+        typeCallback:function(name, value){
+          YOVALUE.updateElement(publisher_reliability, {value:0});
+          YOVALUE.updateElement(scopus_title_list_id, {value:null});
         }
       },
       'publish_date':{'type':'date', label:'Дата издания', value:''},
@@ -333,25 +349,8 @@ YOVALUE.GraphElementEditor.prototype = {
         YOVALUE.getObjectKeys(form).forEach(function (v, k) {
           if (typeof(form[v]) != 'undefined') item[v] = form[v];
         });
-
-        // send item for add or update
-        if (typeof(item.id) == 'undefined')
-          that.publisher
-            .publish(['node_source_add_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
-            .then(function (updateAnswer) {
-              item.id = updateAnswer.id;
-              // call _editSource callback
-              callback(graphId, nodeContentId, item, updateAnswer);
-              that.UI.closeModal(modalWindow);
-            });
-        else
-          that.publisher
-            .publish(['node_source_update_request', {graphId: graphId, nodeContentId: nodeContentId, source: item}])
-            .then(function (updateAnswer) {
-              // call _editSource callback
-              callback(graphId, nodeContentId, item, updateAnswer);
-              that.UI.closeModal(modalWindow);
-            });
+        callback(graphId, nodeContentId, item);
+        that.UI.closeModal(modalWindow);
       }
     );
 

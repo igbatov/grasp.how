@@ -448,7 +448,6 @@ class AppUserPkb extends App
         $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
           ."' AND local_content_id='".$local_content_id
           ."' AND source_type='".$r['source']['source_type']
-          ."' AND field_type='".$r['source']['field_type']
           ."' AND url='".$r['source']['url']
           ."' AND author='".$r['source']['author']
           ."' AND editor='".$r['source']['editor']
@@ -456,7 +455,9 @@ class AppUserPkb extends App
           ."' AND publish_date='".$r['source']['publish_date']."' ";
         $this->log($q);
         $this->db->execute($q);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        // calculate fact reliability
+        $reliability = $this->getFactReliability($graph_id,$local_content_id);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS','reliability'=>$reliability)));
         break;
 
       case 'getNodeContentSourceList':
@@ -466,7 +467,11 @@ class AppUserPkb extends App
         $q = "SELECT * FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
         $this->log($q);
         $rows = $this->db->execute($q);
-        $this->showRawData(json_encode($rows));
+        $sources = array();
+        foreach($rows as $row){
+          $sources[$row['id']] = $row;
+        }
+        $this->showRawData(json_encode($sources));
         break;
 
       case 'findPublishers':
