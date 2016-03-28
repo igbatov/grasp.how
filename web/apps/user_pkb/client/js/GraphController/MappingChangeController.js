@@ -24,11 +24,11 @@ YOVALUE.MappingChangeController.prototype = {
     if(acceptedEvents.indexOf(eventName) == -1) return;
 
     // we work only if the mode of dragging is 'move'
-    dragMode = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_drag_mode', {graphId: graphId}));
+    dragMode = this.publisher.getInstant('get_graph_view_drag_mode', {graphId: graphId});
     if(dragMode != 'move') return;
 
     if(eventName == 'dragstartnode'){
-      m = YOVALUE.clone(this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId})));
+      m = YOVALUE.clone(this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId}));
       this.nodeStartXY = {
         x: m.mapping[event.getData()['element'].id].x,
         y: m.mapping[event.getData()['element'].id].y
@@ -39,7 +39,7 @@ YOVALUE.MappingChangeController.prototype = {
       };
     }
     if(eventName == 'draggingnode'){
-      m = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId}));
+      m = this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId});
       m.mapping[event.getData()['draggedModelElement']['element'].id].x = this.nodeStartXY.x + (event.getData()['x'] - this.pointerStartXY.x);
       m.mapping[event.getData()['draggedModelElement']['element'].id].y = this.nodeStartXY.y + (event.getData()['y'] - this.pointerStartXY.y);
       var graphViewSettings = {
@@ -47,12 +47,12 @@ YOVALUE.MappingChangeController.prototype = {
         nodeMapping: m,
         nodeLabelMapping: m
       };
-      that.publisher.publish("draw_graph_view", graphViewSettings);
+      that.publisher.publish(["draw_graph_view", graphViewSettings]);
     }
 
     if(eventName == 'dragendnode'){
-      m = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_node_mapping', {graphId: graphId}));
-      that.publisher.publish("node_mapping_changed", {graphId: graphId, node_mapping: m});
+      m = this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId});
+      that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: m}]);
     }
   }
 };

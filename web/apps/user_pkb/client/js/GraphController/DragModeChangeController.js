@@ -21,14 +21,14 @@ YOVALUE.DragModeChangeController.prototype = {
     // reject in the explicit form all events except those in acceptedEvents
     if(acceptedEvents.indexOf(eventName) == -1) return;
 
-    if(eventName === 'ctrl_on') this.currentDragMode = 'connect';
-    if(eventName === 'ctrl_off') this.currentDragMode = 'move';
+    if(eventName === 'alt_on') this.currentDragMode = 'connect';
+    if(eventName === 'alt_off') this.currentDragMode = 'move';
     if(eventName === 'dblclickbackground'){
       if(this.currentDragMode == 'move') this.currentDragMode = 'connect';
       else if(this.currentDragMode == 'connect') this.currentDragMode = 'move';
     }
 
-    this.publisher.publish('set_drag_mode', {drag_mode:this.currentDragMode});
+    this.publisher.publish(['set_drag_mode', {drag_mode:this.currentDragMode}]);
   }
 
 };

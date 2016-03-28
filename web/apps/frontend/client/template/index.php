@@ -14,7 +14,12 @@
   <div id="mainMenuContainer">
     <div id="logo">
       GRASP.HOW<br>
-      <div class="snippet">полная и обоснованная картина мира</div>
+      <div class="snippet">
+        <?php
+          $slogans_en = array('full and reliable worldview', 'challenge your worldview');
+          $slogans = array('полное и обоснованное мировоззрение', 'проверь своё мировоззрение');
+          echo $slogans[rand(0,1)];
+        ?></div>
     </div>
     <ul id="mainMenu" >
       <li><a href="#purpose">ЦЕЛЬ</a></li>

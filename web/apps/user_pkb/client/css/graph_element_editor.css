@@ -1,0 +1,60 @@
+.graphElementEditorContainer{
+    position:  absolute;
+    display: none;
+    opacity:0.8;
+    padding: 1em;
+    z-index: 1;
+    background-color: aqua;
+    width: 40%;
+}
+/*
+ * Position right editor
+ */
+#rightGraphElementEditorContainer{
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 75%;
+}
+
+/*
+ * Position left editor
+ */
+#leftGraphElementEditorContainer{
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 25%;
+}
+
+.graphElementEditorContainer textarea {
+    width: 100%;
+}
+.graphElementEditorContainer textarea[name=nodeText] {
+    width: 100%;
+    height: 20em;
+}
+.graphElementEditorContainer .ui_form {
+    text-align: center;
+}
+.graphElementEditorContainer .ui_button:before {
+    content: "";
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+}
+.graphElementEditorContainer .ui_button {
+    margin-right: 1em;
+}
+.graphElementEditorContainer .ui_select {
+    margin-right: 1em;
+}
+.graphElementEditorContainer .ui_list li {
+    display: block;
+    line-height: 1.5em;
+}
+.graphElementEditorContainer .ui_list li button {
+    float:right;
+}
+.graphElementEditorContainer .ui_range input {
+    width: 5em;
+}
+

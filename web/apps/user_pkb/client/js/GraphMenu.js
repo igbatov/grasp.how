@@ -38,13 +38,11 @@ YOVALUE.GraphMenu.prototype = {
 
         // request positions of unknown graphs
         if(unknownGraphIds.length > 0){
-          var e = this.publisher.createEvent("repository_get_selected_positions", unknownGraphIds);
-          this.publisher.when(e).then(function(data){
+          this.publisher.publish(["repository_get_selected_positions", unknownGraphIds]).then(function(data){
             for(var i in data) that.selectedPosition[i] = data[i];
             that._createView();
             event.setResponse(YOVALUE.extractKeyValues(graphIds, that.selectedPosition));
           });
-          this.publisher.publishEvent(e);
         }else{
           event.setResponse(YOVALUE.extractKeyValues(graphIds, this.selectedPosition));
         }
@@ -56,9 +54,7 @@ YOVALUE.GraphMenu.prototype = {
   _createView: function(){
     var c = this.container, that = this, $ = this.jQuery;
 
-    var e1 = this.publisher.createEvent("get_graph_models");
-    var e2 = this.publisher.createEvent("repository_get_graphs_clone_list");
-    this.publisher.when(e1, e2).then(function(graphs, clones){
+    this.publisher.publish("get_graph_models", "repository_get_graphs_clone_list").then(function(graphs, clones){
       var items = {'none':'none'}, i, trashItems={};
 
       // get our own graph names
@@ -78,7 +74,7 @@ YOVALUE.GraphMenu.prototype = {
           // set it as not to be shown
           onSelect('not to be shown', graphId);
           // say about this event to all subscribers
-          that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:true});
+          that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:true}]);
           // redraw menu
           that._createView();
         });
@@ -89,46 +85,50 @@ YOVALUE.GraphMenu.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == position) graphId = i;
         }
-        if(typeof(graphs[graphId]) == 'undefined') return true;
-        that.UI.showModal({
-          'graphId':{'type':'hidden', 'label':'', 'value':graphId},
-          'name':{'type':'input', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
-          'submit':{'type':'button', 'label':'', 'value':'Изменить'}
+        if(typeof(graphs[graphId]) == 'undefined') return;
+        var m = that.UI.createModal();
+        that.UI.setModalContent(m, that.UI.createForm({
+          'graphId':{'type':'hidden', 'value':graphId},
+          'name':{'type':'text', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
+          'submit':{type:'button', value:'Изменить'}
         }, function(form){
           // say about this event to all subscribers
-          that.publisher.publish('graph_name_changed', {graphId:form['graphId'], name:form['name']});
+          that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
           // redraw menu
           that._createView();
-        });
+          that.UI.closeModal(m);
+        }));
       };
 
       var showNew = function(){
-        that.UI.showModal({
-          'name':{'type':'input', 'label':'Name:', 'value':''},
-          'submit':{'type':'button', 'label':'', 'value':'Создать'}
-        }, function(form){
-
-          var e = that.publisher.createEvent('create_new_graph', {name:form['name']});
-          that.publisher.when(e).then(function(){
-            // reload graphs models
-            return that.publisher.publish('load_graph_models');
-          }).then(function(){
-            // redraw menu
-            that._createView();
-          });
-          that.publisher.publishEvent(e);
-
-        });
+        var m = that.UI.createModal();
+        that.UI.setModalContent(
+          m,
+          that.UI.createForm({
+            'name':{'type':'text', 'label':'Name:', 'value':''},
+            'submit':{'type':'button', 'label':'', 'value':'Создать'}
+          },
+          function(form){
+            that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(){
+              // reload graphs models
+              return that.publisher.publish(['load_graph_models']);
+            }).then(function(){
+              // redraw menu
+              that._createView();
+            });
+            that.UI.closeModal(m);
+          })
+        );
       };
 
       var showTrash = function(){
-        that.UI.showModalList(trashItems, 'restore', function(graphId, html){
-          html.remove();
+        that.UI.showModalList(trashItems, {'restore':function(graphId, el){
+          el.parentNode.removeChild(el);
           // say about this event to all subscribers
-          that.publisher.publish('set_graph_attributes', {graphId:graphId, isInTrash:false});
+          that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:false}]);
           // redraw menu
           that._createView();
-        });
+        }});
       };
 
       var showClones = function(pos){
@@ -136,16 +136,15 @@ YOVALUE.GraphMenu.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == pos) graphId = i;
         }
-        that.UI.showModalList(clones[graphId], 'show diff', function(cloneId, html){
-          var e = that.publisher.createEvent('get_graph_diff', {graphId:graphId, cloneId:cloneId});
+        that.UI.showModalList(clones[graphId], {'show diff':function(cloneId, html){
           // get graph diff and show it
-          that.publisher.when(e).then(function(graphViewSettings){
+          that.publisher.publish(['get_graph_diff', {graphId:graphId, cloneId:cloneId}]).then(function(graphViewSettings){
             //create graphModel for diff graph
-            that.publisher.publish("add_graph_model", {
+            that.publisher.publish(["add_graph_model", {
               graphId:graphViewSettings.graphId,
               graphSettings:graphViewSettings.graphModelSettings,
               elements:graphViewSettings.graphModel
-            });
+            }]);
 
             // set graphArea for diff graph
             var position = 'rightGraphView';
@@ -153,18 +152,16 @@ YOVALUE.GraphMenu.prototype = {
             that.selectedPosition[graphViewSettings.graphId] = position;
 
             // build graphViewSettings
-            graphViewSettings.skin = that.publisher.publishResponseEvent(
-                that.publisher.createEvent("get_skin_by_skin_settings", graphViewSettings.skin)
-            );
+            graphViewSettings.skin = that.publisher.getInstant("get_skin_by_skin_settings", graphViewSettings.skin);
 
-            var decoration = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_decoration", {
+            var decoration = that.publisher.getInstant("get_graph_decoration", {
                   graphModel:graphViewSettings.graphModel,
                   graphNodeAttributes:graphViewSettings.graphNodeAttributes,
                   graphEdgeAttributes:graphViewSettings.graphEdgeAttributes,
                   scale:Math.min(graphArea.width, graphArea.height),
                   skin:graphViewSettings.skin
                 }
-            ));
+            );
             graphViewSettings.decoration = decoration;
 
             // Create node label layout for GraphView
@@ -177,28 +174,27 @@ YOVALUE.GraphMenu.prototype = {
                 size: decoration.nodeLabels[nodeId].size
               };
             }
-            var nodeLabelAreaList = that.publisher.publishResponseEvent(that.publisher.createEvent("get_graph_view_label_area", {
+            var nodeLabelAreaList = that.publisher.getInstant("get_graph_view_label_area", {
               nodeLabels:nodeLabels,
               skin:graphViewSettings.skin
-            }));
+            });
             var nodeMappingHint = graphViewSettings.nodeMapping;
-            graphViewSettings.layout = that.publisher.publishResponseEvent(that.publisher.createEvent("get_layout_by_name",'basicLayout'));
+            graphViewSettings.layout = that.publisher.getInstant("get_layout_by_name",'basicLayout');
             // Create node layout for GraphView
-            graphViewSettings.nodeMapping = that.publisher.publishResponseEvent(that.publisher.createEvent("get_node_mapping", {
+            graphViewSettings.nodeMapping = that.publisher.getInstant("get_node_mapping", {
               graphId:graphViewSettings.graphId,
               model:graphViewSettings.graphModel,
               hint:nodeMappingHint,
               layout:graphViewSettings.layout,
               nodeLabelAreaList:nodeLabelAreaList,
               area:graphArea
-            }));
-console.log(graphViewSettings);
-           // that.publisher.publish('hide_all_graphs');
-            that.publisher.publish("draw_graph_view", graphViewSettings);
-          });
-          that.publisher.publishEvent(e);
+            });
 
-        });
+           // that.publisher.publish(['hide_all_graphs']);
+            that.publisher.publish(["draw_graph_view", graphViewSettings]);
+          });
+
+        }});
       };
 
       var onSelect = function(position, graphId){
@@ -211,7 +207,7 @@ console.log(graphViewSettings);
         that.selectedPosition[graphId] = position;
 
         // say about this event to all subscribers
-        that.publisher.publish('graph_position_changed', {graphId:graphId, position:position});
+        that.publisher.publish(['graph_position_changed', {graphId:graphId, position:position}]);
       };
 
       var leftGraphId = null, rightGraphId = null;
@@ -222,25 +218,25 @@ console.log(graphViewSettings);
       $('#'+c.id).html('');
 
       // create New and Trash Buttons
-      that.UI.createButton('#'+c.id, 'New', showNew);
-      that.UI.createButton('#'+c.id, 'Trash', showTrash);
+      var generalButtonsContainer = YOVALUE.createElement('div',{class:'GeneralButtons'});
+      document.getElementById(c.id).appendChild(generalButtonsContainer);
+      generalButtonsContainer.appendChild(that.UI.createButton('New','New', showNew));
+      generalButtonsContainer.appendChild(that.UI.createButton('Trash','Trash', showTrash));
 
       // create containers for select boxes
       $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');
       $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
 
       // create left and right select box
-      that.UI.createSelectBox('#leftSelectContainer', 'leftGraphView', items, onSelect, leftGraphId);
-      that.UI.createSelectBox('#rightSelectContainer', 'rightGraphView', items, onSelect, rightGraphId);
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createSelectBox('leftGraphView', items, leftGraphId, onSelect));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox('rightGraphView', items, rightGraphId, onSelect));
 
       // add edit and remove buttons to the right of select boxes
-      that.UI.createButton('#leftSelectContainer', 'Edit name', function(){onEdit('leftGraphView')});
-      that.UI.createButton('#leftSelectContainer', 'Remove', function(){onRemove('leftGraphView')});
-      that.UI.createButton('#leftSelectContainer', 'Clones', function(){showClones('leftGraphView')});
-      that.UI.createButton('#rightSelectContainer', 'Edit', function(){onEdit('rightGraphView')});
-      that.UI.createButton('#rightSelectContainer', 'Remove', function(){onRemove('rightGraphView')});
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('EditName','Edit name', function(){onEdit('leftGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Remove', 'Remove', function(){onRemove('leftGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Clones', 'Clones', function(){showClones('leftGraphView')}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Edit', 'Edit', function(){onEdit('rightGraphView')}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Remove', 'Remove', function(){onRemove('rightGraphView')}));
     });
-
-    this.publisher.publishEvent(e1, e2);
   }
 };

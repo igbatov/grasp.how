@@ -89,7 +89,22 @@ class AppUserPkb extends App
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
-    $this->writeActions = array('updateGraphName', 'setGraphAttributes', 'changeGraphPosition', 'addGraphHistoryItem', 'updateNodeMapping', 'updateGraphElementContent', 'createNewGraph', 'copyGraph', 'cloneGraph', 'getGraphDiff', 'removeGraph','addNodeContentSource','removeNodeContentSource');
+    $this->writeActions = array(
+        'updateGraphName',
+        'setGraphAttributes',
+        'changeGraphPosition',
+        'addGraphHistoryItem',
+        'updateNodeMapping',
+        'updateGraphElementContent',
+        'createNewGraph',
+        'copyGraph',
+        'cloneGraph',
+        'getGraphDiff',
+        'removeGraph',
+        'addNodeContentSource',
+        'updateNodeContentSource',
+        'removeNodeContentSource'
+    );
     if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
    // if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
 
@@ -383,20 +398,66 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id."', local_content_id='".$local_content_id."', source_type='".$r['source']['source_type']."', field_type='".$this->db->escape($r['source']['field_type'])."', `name`='".$this->db->escape($r['source']['name'])."', url='".$this->db->escape($r['source']['url'])."', author='".$this->db->escape($r['source']['author'])."', editor='".$this->db->escape($r['source']['editor'])."', publisher='".$this->db->escape($r['source']['publisher'])."', primacy='".$this->db->escape($r['source']['primacy'])."', publish_date='".$this->db->escape($r['source']['publish_date'])."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
+        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
+          ."', local_content_id='".$local_content_id
+          ."', source_type='".$r['source']['source_type']
+          ."', `name`='".$this->db->escape($r['source']['name'])
+          ."', url='".$this->db->escape($r['source']['url'])
+          ."', author='".$this->db->escape($r['source']['author'])
+          ."', editor='".$this->db->escape($r['source']['editor'])
+          ."', publisher='".$this->db->escape($r['source']['publisher'])
+          ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
+          ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
+          ."', publish_date='".$this->db->escape($r['source']['publish_date'])
+          ."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
+        $this->log($q);
+        $item_id = $this->db->execute($q);
+        // calculate fact reliability
+        $reliability = $this->getFactReliability($graph_id,$local_content_id);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS','id'=>$item_id,'reliability'=>$reliability)));
+        break;
+
+      case 'updateNodeContentSource':
+        $r = $this->getRequest();
+        $graph_id = $r['graphId'];
+        $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
+        $q = "UPDATE node_content_source SET graph_id='".$graph_id
+          ."', local_content_id='".$local_content_id
+          ."', source_type='".$r['source']['source_type']
+          ."', `name`='".$this->db->escape($r['source']['name'])
+          ."', url='".$this->db->escape($r['source']['url'])
+          ."', author='".$this->db->escape($r['source']['author'])
+          ."', editor='".$this->db->escape($r['source']['editor'])
+          ."', publisher='".$this->db->escape($r['source']['publisher'])
+          ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
+          ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
+          ."', publish_date='".$this->db->escape($r['source']['publish_date'])
+          ."', `pages`='".$this->db->escape($r['source']['pages'])
+          ."' WHERE id = '".$this->db->escape($r['source']['id'])."'";
         $this->log($q);
         $this->db->execute($q);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        // calculate fact reliability
+        $reliability = $this->getFactReliability($graph_id,$local_content_id);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS','reliability'=>$reliability)));
         break;
 
       case 'removeNodeContentSource':
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND source_type='".$r['source']['source_type']."' AND field_type='".$r['source']['field_type']."' AND url='".$r['source']['url']."' AND author='".$r['source']['author']."' AND editor='".$r['source']['editor']."' AND publisher='".$r['source']['publisher']."' AND primacy='".$r['source']['primacy']."' AND publish_date='".$r['source']['publish_date']."' ";
+        $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
+          ."' AND local_content_id='".$local_content_id
+          ."' AND source_type='".$r['source']['source_type']
+          ."' AND url='".$r['source']['url']
+          ."' AND author='".$r['source']['author']
+          ."' AND editor='".$r['source']['editor']
+          ."' AND publisher='".$r['source']['publisher']
+          ."' AND publish_date='".$r['source']['publish_date']."' ";
         $this->log($q);
         $this->db->execute($q);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        // calculate fact reliability
+        $reliability = $this->getFactReliability($graph_id,$local_content_id);
+        $this->showRawData(json_encode(array('result'=>'SUCCESS','reliability'=>$reliability)));
         break;
 
       case 'getNodeContentSourceList':
@@ -406,7 +467,34 @@ class AppUserPkb extends App
         $q = "SELECT * FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
         $this->log($q);
         $rows = $this->db->execute($q);
-        $this->showRawData(json_encode($rows));
+        $sources = array();
+        foreach($rows as $row){
+          $sources[$row['id']] = $row;
+        }
+        $this->showRawData(json_encode($sources));
+        break;
+
+      case 'findPublishers':
+        $r = $this->getRequest();
+        $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
+        $q = "SELECT id, source_title, snip_2014 FROM scopus_title_list WHERE source_title LIKE '".$substring."' LIMIT 10";
+        $this->log($q);
+        $rows = $this->db->execute($q);
+        $items = array();
+        foreach($rows as $k=>$row){
+          $items[] = array(
+            'id'=>$row['id'],
+            'title'=>$row['source_title'],
+            'reliability'=>$row['snip_2014'] < 1 ? 3 : 6,
+            'order'=>levenshtein($row['source_title'], $r['substring']),
+          );
+        }
+        function sortByOrder($a, $b) {
+          return $a['order'] - $b['order'];
+        }
+        usort($items, 'sortByOrder');
+
+        $this->showRawData(json_encode($items));
         break;
 
       default:
@@ -417,6 +505,15 @@ class AppUserPkb extends App
         }
         break;
     }
+  }
+
+  protected function getFactReliability($graph_id,$local_content_id){
+    $q = "SELECT publisher_reliability FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
+    $this->log($q);
+    $rows = $this->db->execute($q);
+    $reliability_array = array();
+    foreach($rows as $row) $reliability_array[] = $row['publisher_reliability'];
+    return min(array_sum($reliability_array)*10,99);
   }
 
   protected function getGraphSettings($graph_ids){
@@ -834,8 +931,8 @@ class AppUserPkb extends App
       'GraphViewElement/GraphViewEdge.js',
 
       'GraphMenu.js',
-      'SelectGraphLayout/SelectGraphLayoutModel.js',
-      'SelectGraphSkin/SelectGraphSkinModel.js',
+      'SelectGraphLayoutModel.js',
+      'SelectGraphSkinModel.js',
 
       'GraphView/iGraphViewModel.js',
       'GraphView/iGraphView.js',
@@ -867,7 +964,7 @@ class AppUserPkb extends App
       'GraphDecorations/GraphDecorationByType.js',
       //'GraphDecorations/iDecoration.js',
 
-      'GraphElementEditor/GraphElementEditor.js',
+      'GraphElementEditor.js',
       'NodeSourcesCache.js'
     );
   }

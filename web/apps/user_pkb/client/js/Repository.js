@@ -19,7 +19,7 @@
  * It also expects that server can return following http codes
  * 200 (OK)
  * 401 (Unauthorized),
- * 503 (Server unavaliabe),
+ * 503 (Server unavailable),
  * 500 (Unknown error)
  *
  * @param subscriber
@@ -64,10 +64,12 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
 
     'get_graph_diff',
 
-    'node_source_added',
-    'node_source_removed',
-    'repository_get_graph_node_sources'
+    'node_source_add_request',
+    'node_source_update_request',
+    'node_source_remove_request',
+    'repository_get_graph_node_sources',
 
+    'find_publishers'
   ]);
 };
 
@@ -207,13 +209,19 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'node_source_added'){
+    }else if(name == 'node_source_add_request'){
       this.pendingRequests.push({url:'addNodeContentSource', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'node_source_removed'){
+    }else if(name == 'node_source_update_request'){
+      this.pendingRequests.push({url:'updateNodeContentSource', data:e.getData(), callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'node_source_remove_request'){
       this.pendingRequests.push({url:'removeNodeContentSource', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});
@@ -225,6 +233,12 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
+    }else if(name == 'find_publishers'){
+      this.pendingRequests.push({url:'findPublishers', data:e.getData(), callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
+      this.sendPendingRequests();
+
     }
   },
 
@@ -232,12 +246,12 @@ YOVALUE.Repository.prototype = {
     // if previous request still has no answer or there is nothing to send, do nothing
     if(!this.isLastRequestDone) return;
     if(this.pendingRequests.length === 0){
-      this.publisher.publish("repository_requests_send", {});
+      this.publisher.publish(["repository_requests_send", {}]);
       return;
     }
 
     var that = this, r = that.pendingRequests[0];
-    this.publisher.publish("repository_processing", {});
+    this.publisher.publish(["repository_processing", {}]);
 
     this.isLastRequestDone = false;
     var formData = new FormData();
@@ -270,7 +284,7 @@ YOVALUE.Repository.prototype = {
           that.pendingRequests.shift();
           that.isLastRequestDone = true;
         }
-        that.publisher.publish("repository_error", {reason:reason});
+        that.publisher.publish(["repository_error", {reason:reason}]);
       }
     });
   }

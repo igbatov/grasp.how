@@ -40,9 +40,8 @@ YOVALUE.SelectElementController.prototype = {
 
       if(eventName === 'clicknode') nodesToSelect = [e.id];
       if(eventName === 'mouseenternode'){
-        var model = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_models', [graphId]))[graphId];
+        var model = this.publisher.getInstant('get_graph_models', [graphId])[graphId];
         nodesToSelect = [e.id];
-        console.log(nodesToSelect);
         nodesToSelect = nodesToSelect.concat(model.getNeighbourIds([e.id]));
         edgesToSelect = model.getNeighbourEdgeIds(e.id);
       }
@@ -57,7 +56,7 @@ YOVALUE.SelectElementController.prototype = {
         graphId: graphId,
         decoration: this.selectedDecoration[graphId]
       };
-      this.publisher.publish("draw_graph_view", graphViewSettings);
+      this.publisher.publish(["draw_graph_view", graphViewSettings]);
 
     }else if(eventName === 'mouseleavenode' || eventName === 'mouseleaveedge' || eventName === 'clickbackground'){
       graphId = event.getData().graphId;
@@ -77,7 +76,7 @@ YOVALUE.SelectElementController.prototype = {
         decoration: this.selectedDecoration[graphId],
       };
 
-      this.publisher.publish("draw_graph_view", graphViewSettings);
+      this.publisher.publish(["draw_graph_view", graphViewSettings]);
 
     }
     // if  node type, reliability or importance changed
@@ -89,14 +88,14 @@ YOVALUE.SelectElementController.prototype = {
       graphId = event.getData()['graphId'];
       this.initDecorations(graphId);
 
-      var node = this.publisher.publishResponseEvent(this.publisher.createEvent('get_node_by_nodeContentId', {graphId: graphId, nodeContentId: event.getData()['nodeContentId']}));
+      var node = this.publisher.getInstant('get_node_by_nodeContentId', {graphId: graphId, nodeContentId: event.getData()['nodeContentId']});
       var nodeId = node.id;
       this.selectedDecoration[graphId] = this.enlargeNodes(this.initialDecoration[graphId], [nodeId]);
       graphViewSettings = {
         graphId: graphId,
         decoration: this.selectedDecoration[graphId]
       };
-      this.publisher.publish("draw_graph_view", graphViewSettings);
+      this.publisher.publish(["draw_graph_view", graphViewSettings]);
 
     }else if(eventName == 'graph_model_changed'){
 
@@ -125,7 +124,7 @@ YOVALUE.SelectElementController.prototype = {
     selectedElement.elementType = null;
     selectedElement.element = null;
     selectedElement.graphId = graphId;
-    this.publisher.publish("hide_graph_element_editor",{});
+    this.publisher.publish(["hide_graph_element_editor",{}]);
   },
 
   enlargeEdges: function(d, edgeIds){
@@ -182,6 +181,6 @@ YOVALUE.SelectElementController.prototype = {
 
   initDecorations: function(graphId){
     // copy node, edge, label decoration
-    this.initialDecoration[graphId] = this.publisher.publishResponseEvent(this.publisher.createEvent('get_graph_view_decoration', {graphId: graphId}));
+    this.initialDecoration[graphId] = this.publisher.getInstant('get_graph_view_decoration', {graphId: graphId});
   }
 };

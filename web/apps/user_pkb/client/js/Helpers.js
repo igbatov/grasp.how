@@ -311,17 +311,17 @@ YOVALUE.debug = (function(Table){
   logger.print = function(moduleName,codeLine,direction,eventName,eventData,eventId){
     logger.printCounter++;
     var data = YOVALUE.clone(eventData);
-
+    var hhmmss = (new Date()).toLocaleTimeString();
     var moduleCSS = 'color:hsl(0, 0%, 80%);background-color:hsl(0, 0%, 0%);';
     var eventCSS = 'color:hsl(0, 100%, 90%);background-color:hsl(0, 100%, 50%);';
     if(direction == 'fire'){
-      console.log(logger.printCounter+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,moduleCSS,eventCSS, data, eventId);
     }
     if(direction == 'receive'){
-      console.log(logger.printCounter+' ----> '+'%c'+moduleName+' %c'+eventName,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' ----> '+'%c'+moduleName+' %c'+eventName,moduleCSS,eventCSS, data, eventId);
     }
     if(direction == 'response'){
-      console.log(logger.printCounter+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId);
     }
   };
   logger.log = function(moduleName,codeLine,direction,eventName,eventData,eventId){
@@ -347,7 +347,8 @@ YOVALUE.debug = (function(Table){
  * @return {*} - clone of o
  */
 YOVALUE.clone = function clone( obj, forceDescriptor ) {
-  if(typeof(obj) === 'undefined' || obj === null || typeof(obj) === 'string') return obj;
+ //if(YOVALUE.typeof(obj) != 'object') console.log('=====================================',obj,typeof(obj),YOVALUE.typeof(obj));
+  if(YOVALUE.typeof(obj) != 'object' && YOVALUE.typeof(obj) != 'array') return obj;
 
   var val, length, i,
     temp = [];
@@ -548,6 +549,15 @@ YOVALUE.arrayToObject = function (arr) {
   for (var i = 0; i < arr.length; ++i)
     rv[i] = arr[i];
   return rv;
+};
+
+YOVALUE.objectToArray = function(obj){
+  var array = [];
+  // iterate backwards ensuring that length is an UInt32
+  for (var i = obj.length >>> 0; i--;) {
+    array[i] = obj[i];
+  }
+  return array;
 };
 
 /**
@@ -820,6 +830,52 @@ YOVALUE.compare = function(a, b){
   return JSON.stringify(a) === JSON.stringify(b);
 };
 
+/**
+ * Very simple and slow Promise just for debug purposes
+ * @param fn
+ * @constructor
+ */
+
+/*
+YOVALUE.Promise = function(fn){
+   var that = this;
+   this.thenFns = [];
+
+   this.resolve = function(){
+     // User can pass to resolve several arguments
+     var args = Array.prototype.slice.call(arguments);
+     // plan it to call after that.thenFn will be defined by then()
+     setTimeout(function(){
+       if(that.thenFns.length == 0) return;
+       var thenFn = that.thenFns.shift();
+       var res = thenFn.apply(this,args);
+       // if user's thenFn returned Promise, push to it all thenFns we have in this promise
+       if(res && typeof(res.then) != 'undefined')  res.then(that.thenFns);
+     }, 0);
+   };
+
+   this.then = function(thenFn){
+     if(Array.isArray(thenFn)) that.thenFns = thenFn;
+    else if(thenFn) that.thenFns.push(thenFn);
+     return that;
+   };
+
+   fn(this.resolve);
+};
+
+YOVALUE.Promise.all = function(promises) {
+  var accumulator = [];
+  return new YOVALUE.Promise(function(resolve){
+    if(typeof(resolve) != 'function') return;
+    promises.forEach(function (promise) {
+      promise.then(function (value) {
+        accumulator.push(value);
+        if(accumulator.length == promises.length) resolve.apply(this,accumulator);
+      });
+    });
+  });
+};
+*/
 /**
  * Convert array of strings to array of integers
  * @param myArray
@@ -1169,3 +1225,93 @@ YOVALUE.getBrowserInfo = function(){
   window.CustomEvent = CustomEvent;
 })();
 
+/**
+ * Syntax sugar to create DOM element
+ * @param {String} tag - DOM element type (div, input, h1, ...)
+ * @param {Object<string, string>} attrs - DOM attributes (id, class, value), no CSS here
+ * @param {String=} text - text inside element
+ * @param {function(string,string)=} callback - callback on value change (optional)
+ * @returns {HTMLElement}
+ */
+YOVALUE.createElement = function(tag, attrs, text, callback){
+  var el = document.createElement(tag);
+  for(var i in attrs){
+    if(i == 'disabled' && attrs[i] != true) continue;
+    if(typeof(attrs[i]) != 'undefined') el.setAttribute(i, attrs[i]);
+  }
+  if(typeof(text) != 'undefined' && text.length > 0) el.appendChild(document.createTextNode(text));
+
+  // Bind callback on form field value change
+  if(typeof(callback) != 'undefined'){
+    // select
+    if(tag == 'select') el.addEventListener('change', function(evt){
+      callback(el.getAttribute('name'), el.options[el.selectedIndex].value);
+    });
+
+    // textarea
+    else if(tag == 'textarea'){
+      el.addEventListener('keyup',function(evt){
+        callback(el.getAttribute('name'), el.value);
+      });
+    }
+
+    // text input
+    else if(tag == 'input' && (attrs['type'] == 'text' || typeof(attrs['type']) == 'undefined')){
+      el.addEventListener('keyup',function(evt){
+        callback(el.getAttribute('name'), el.value);
+      });
+    }
+
+    // text input
+    else if(tag == 'input' && attrs['type'] == 'checkbox'){
+      el.addEventListener('change',function(evt){
+        callback(el.getAttribute('name'), el.checked);
+      });
+    }
+
+    // all other input elements
+    else{
+      el.addEventListener('change', function(evt){
+        callback(el.getAttribute('name'), el.value);
+      });
+    }
+  }
+
+  return el;
+};
+/**
+ * Syntax sugar to update DOM element
+ * @param {HTMLElement} el - DOM element
+ * @param {Object<string, string>} attrs - DOM attributes (id, class, value), no CSS here
+ * @param {String=} text - text inside element
+ * @returns {HTMLElement}
+ */
+YOVALUE.updateElement = function(el, attrs, text){
+  for(var i in attrs){
+    if(i == 'disabled' && attrs[i] == false) el.removeAttribute("disabled");
+    else el[i] = attrs[i];
+  }
+  if(typeof(text) != 'undefined') el.innerText = text;
+  return el;
+};
+YOVALUE.getDisplay = function(el){
+  return window.getComputedStyle(el, null)["display"];
+};
+YOVALUE.setDisplay = function(el, v){
+  el.style.display = v;
+};
+/**
+ * Recursively check if element 'child' is inside 'parent'
+ * @param child
+ * @param parent
+ * @returns {boolean}
+ */
+YOVALUE.isChildOf = function(child, parent) {
+  if (child.parentNode === parent) {
+    return true;
+  } else if (child.parentNode === null) {
+    return false;
+  } else {
+    return YOVALUE.isChildOf(child.parentNode, parent);
+  }
+};

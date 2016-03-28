@@ -1,18 +1,32 @@
 .ui_modal{
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 1000;
     background-color: #9DE9BD;
-    padding: 2px 2px 2px 2px;
+    padding: 20px 20px 20px 20px;
 }
 
 .ui_modal .close_button{
-    float: right; cursor: pointer;
+    position: absolute;
+    right: 1px;
+    top: 1px;
+    cursor: pointer;
 }
 
-.ui_modal_content{
-    padding: 10px 10px 10px 10px;
+.ui_modal input, .ui_modal textarea, .ui_modal button, .ui_modal .ui_select{
+    display: block;
+    margin-top: 1em;
 }
 
-.ui_modal_content .confirm_button{
-    float: left; cursor: pointer;
+.ui_modal_overlay{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    background: #aef;
+    opacity: 0.7;
 }

@@ -76,6 +76,7 @@ var DI = {
    * Mediator is initialized with the order of subscribers execution for some events
    * For other events the order of modules notification is not important
    */
+  Ajax: ['jQuery'],
   Promise: ['jQuery'],
   Mediator: [],
   Publisher:['Mediator', 'Promise'],
@@ -94,7 +95,7 @@ var DI = {
     graphViews: {id:'graphViews',padding:[15,0]},
     statusString: {id:'statusString'}
   }],
-  UIElements: ['jQuery'],
+  UIElements: [],
 
   KeyManager: ['Publisher'],
   StatusString: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
@@ -125,8 +126,6 @@ var DI = {
   ],
   GraphControllerPubSub:['Subscriber', 'Publisher', 'GraphControllerModules'],
 
-
-  Ajax: ['jQuery'],
   imageLoader: ['Promise'],
   Repository: ['Subscriber', 'Publisher', 'Ajax', 'imageLoader'],
 
@@ -177,7 +176,7 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['Subscriber', 'GraphDecoration'],
 
-  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', jQuery('#ajaxLoader').attr('src')],
+  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', YOVALUE.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
 
   NodeSourcesCache: ['Subscriber', 'Publisher']
 };
@@ -185,13 +184,9 @@ var DI = {
 // Creating and wiring modules according to DI array
 YOVALUE.wireModules(Modules, DI);
 
-
 var p = Modules['Publisher'];
 // init models
-var e = p.createEvent('load_graph_models');
-p.when(e).then(function(){
+p.publish('load_graph_models').then(function(){
   // and then show them
   p.publish('show_graphs');
 });
-// Starting...
-p.publishEvent(e);

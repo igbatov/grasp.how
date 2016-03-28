@@ -279,7 +279,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
               graphId: e.fromGraphId,
               element: droppedOnElement.element
             };
-            that.publisher.publish(eventData.eventType, eventData);
+            that.publisher.publish([eventData.eventType, eventData]);
           }
 
           eventData = {
@@ -292,8 +292,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }else{
           eventData = e;
         }
-        if(eventData.eventType == 'mouseenternode') console.log(eventData.eventType, eventData);
-        that.publisher.publish(eventData.eventType, eventData);
+        that.publisher.publish([eventData.eventType, eventData]);
       });
     }
   }

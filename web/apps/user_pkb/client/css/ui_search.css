@@ -1,0 +1,22 @@
+.ui_search{
+    vertical-align: middle;
+    display:inline-block;
+}
+.ui_search ul{
+    vertical-align: baseline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    list-style: none;
+    z-index: 1;
+    position:absolute;
+    background:#f1f1f1;
+    display:none;
+}
+.ui_search li{
+    padding:0.2em 1em 0.2em 1em;
+    border-bottom:1px solid #999;
+}
+.ui_search li:hover{
+    background-color: #0000FF;
+}
