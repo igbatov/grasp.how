@@ -12,15 +12,18 @@ YOVALUE.UIElements.prototype = {
   /**
    * Creating input that drops list of options based on input value
    * @param name
+   * @param label
+   * @param value
    * @param {function} findCallback - must return promise that will produce
    * array of items in a form [{id:<string>,title:<string>}, ...}
    * @param {function} typeCallback - will bw called as user type smth in a search tree. Arguments are name and value (= selected object from items)
    * @param {function} selectCallback - function that will be called as user select item. Arguments are name and value (= selected object from items)
+   * @param {boolean=} disabled
    */
-  createSearch: function(name, label, value, findCallback, typeCallback, selectCallback){
+  createSearch: function(name, label, value, findCallback, typeCallback, selectCallback, disabled){
     var that = this,
         uniqId = this.generateId(),
-        search = YOVALUE.createElement('input',{name:name,type:'text',value:value, placeholder:label});
+        search = YOVALUE.createElement('input',{name:name,type:'text',value:value, placeholder:label, disabled:disabled});
 
     var selectBox = YOVALUE.createElement('div',{class:'ui_search',id:uniqId,value:'none'},'');
     var ul = YOVALUE.createElement('ul',{},'');
@@ -70,13 +73,16 @@ YOVALUE.UIElements.prototype = {
    * @param {Object<string, string>} items - in form {'value'=>'label', ...}
    * @param {String} defaultValue - selected item name
    * @param {function(string,string)=} onSelectCallback - callback will receive select name and item name on selection
+   * @param {boolean=} disabled
    * @returns {HTMLElement}
    */
-  createSelectBox: function(name, items, defaultValue, onSelectCallback){
+  createSelectBox: function(name, items, defaultValue, onSelectCallback, disabled){
     var that = this,
         uniqId = this.generateId(),
         selectedItem = YOVALUE.createElement('span',{class:'selected',value:'none'},'none'),
         inputHidden = YOVALUE.createElement('input',{name:name,type:'hidden',value:null});
+
+    if(typeof(disabled) == 'undefined') disabled = false;
 
     if(defaultValue){
       YOVALUE.updateElement(selectedItem, {value:defaultValue}, items[defaultValue]);
@@ -98,6 +104,8 @@ YOVALUE.UIElements.prototype = {
     selectBox.appendChild(ul);
 
     document.body.addEventListener('click', function(evt){
+      if(disabled) return;
+
       // toggle show/hide of menu
       if(evt.target == selectedItem){
         if(YOVALUE.getDisplay(ul) == 'none'){
@@ -127,10 +135,11 @@ YOVALUE.UIElements.prototype = {
    * @param items
    * @param {function=} addCallback - arguments are files to upload, li_list (HTMLElements for files to add to list), ul (HTMLElement for all li)
    * @param removeCallback - arguments are file id to remove, li (HTMLElement for file) to remove
+   * @param {boolean=} disabled
    */
-  createFileBox: function(name, items, addCallback, removeCallback){
+  createFileBox: function(name, items, addCallback, removeCallback,disabled){
     var container = YOVALUE.createElement('div',{class:'ui_file'});
-    var file = YOVALUE.createElement('input',{type:'file',name:name});
+    var file = YOVALUE.createElement('input',{type:'file',name:name,disabled:disabled});
     var list = this.createList(items,{remove:removeCallback});
     container.appendChild(file);
     container.appendChild(list);
@@ -140,10 +149,22 @@ YOVALUE.UIElements.prototype = {
     return container;
   },
 
-  createRange: function(name,value,min,max,step,callback){
+  /**
+   *
+   * @param name
+   * @param value
+   * @param min
+   * @param max
+   * @param step
+   * @param callback
+   * @param {boolean=} disabled
+   * @returns {HTMLElement}
+   */
+  createRange: function(name,value,min,max,step,callback,disabled){
     var range = YOVALUE.createElement('div',{class:'ui_range'});
-    var label = YOVALUE.createElement('label',{},name);
-    var input = YOVALUE.createElement('input',{type:'range',name:name,value:value,min:min,max:max,step:step},'');
+    var label = YOVALUE.createElement('label',{},name+' ');
+    var input = YOVALUE.createElement('input',{type:'range',name:name,value:value,min:min,max:max,step:step,disabled:disabled},'');
+    if(disabled == true) YOVALUE.setDisplay(input,'none');
     var output = YOVALUE.createElement('span',{},value);
     range.appendChild(label);
     range.appendChild(input);
@@ -166,30 +187,34 @@ YOVALUE.UIElements.prototype = {
       form = YOVALUE.createElement('div',{id:uniqId, class:'ui_form'},'');
 
     for(name in fields){
-      if(fields[name]['type'] == 'text') form.appendChild(YOVALUE.createElement('input',{type:'text', name:name,value:fields[name]['value'],placeholder:fields[name]['label']},'',fields[name]['callback']));
-      if(fields[name]['type'] == 'textarea') form.appendChild(YOVALUE.createElement('textarea',{name:name,placeholder:fields[name]['label']},fields[name]['value'],fields[name]['callback']));
-      if(fields[name]['type'] == 'date') form.appendChild(YOVALUE.createElement('input',{type:'date', name:name,value:fields[name]['value']},'',fields[name]['callback']));
-      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name, fields[name]['options'],fields[name]['value'],fields[name]['callback']));
+      if(fields[name]['type'] == 'text') form.appendChild(YOVALUE.createElement('input',{type:'text', name:name,value:fields[name]['value'],placeholder:fields[name]['label'],disabled:fields[name]['disabled']},'',fields[name]['callback']));
+      if(fields[name]['type'] == 'textarea') form.appendChild(YOVALUE.createElement('textarea',{name:name,placeholder:fields[name]['label'],disabled:fields[name]['disabled']},fields[name]['value'],fields[name]['callback']));
+      if(fields[name]['type'] == 'date') form.appendChild(YOVALUE.createElement('input',{type:'date', name:name,value:fields[name]['value'],disabled:fields[name]['disabled']},'',fields[name]['callback']));
+      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox(name, fields[name]['options'],fields[name]['value'],fields[name]['callback'],fields[name]['disabled']));
       if(fields[name]['type'] == 'button'){
         // if button field has callback - use it, if no - use general form callback and pass form data to it
-        form.appendChild(this.createButton(name,fields[name]['value'],fields[name]['callback'] ? fields[name]['callback'] : function(evt){
-          var data = {};
-          // gather data from form fields
-          [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
-            data[child.getAttribute('name')] = child.innerText;
-          });
-          [].forEach.call(form.getElementsByTagName("button"), function(child) {
-            data[child.getAttribute('name')] = child == evt.target;
-          });
-          [].forEach.call(form.getElementsByTagName("input"), function(child) {
-            data[child.getAttribute('name')] = child.value;
-          });
-          callback(data);
-        }));
+        form.appendChild(this.createButton(
+          name,
+          fields[name]['value'],
+          fields[name]['callback'] ? fields[name]['callback'] : function(evt){
+            var data = {};
+            // gather data from form fields
+            [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
+              data[child.getAttribute('name')] = child.innerText;
+            });
+            [].forEach.call(form.getElementsByTagName("button"), function(child) {
+              data[child.getAttribute('name')] = child == evt.target;
+            });
+            [].forEach.call(form.getElementsByTagName("input"), function(child) {
+              data[child.getAttribute('name')] = child.value;
+            });
+            callback(data);
+          }),
+        fields[name]['disabled']);
       }
-      if(fields[name]['type'] == 'search') form.appendChild(this.createSearch(name, fields[name]['label'], fields[name]['value'], fields[name]['findCallback'], fields[name]['typeCallback'], fields[name]['selectCallback']));
-      if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox(name,fields[name]['items'],fields[name]['addCallback'],fields[name]['removeCallback']));
-      if(fields[name]['type'] == 'range') form.appendChild(this.createRange(name,fields[name]['value'],fields[name]['min'],fields[name]['max'],fields[name]['step'],fields[name]['callback']));
+      if(fields[name]['type'] == 'search') form.appendChild(this.createSearch(name, fields[name]['label'], fields[name]['value'], fields[name]['findCallback'], fields[name]['typeCallback'], fields[name]['selectCallback'], fields[name]['disabled']));
+      if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox(name,fields[name]['items'],fields[name]['addCallback'],fields[name]['removeCallback'],fields[name]['disabled']));
+      if(fields[name]['type'] == 'range') form.appendChild(this.createRange(name,fields[name]['value'],fields[name]['min'],fields[name]['max'],fields[name]['step'],fields[name]['callback'],fields[name]['disabled']));
       if(fields[name]['type'] == 'hidden') form.appendChild(YOVALUE.createElement('input',{type:'hidden',name:name,value:fields[name]['value']},''));
       if(fields[name]['type'] == 'title') form.appendChild(YOVALUE.createElement('h1',{},fields[name]['value']));
     }
@@ -289,10 +314,11 @@ YOVALUE.UIElements.prototype = {
    * @param {String} name - i.e. "yes"
    * @param {String} label - i.e "I agree!"
    * @param {function(object)=} callback - callback arg is event
+   * @param {boolean=} disabled
    */
-  createButton: function(name, label, callback){
+  createButton: function(name, label, callback,disabled){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('button',{id:uniqId, name:name, class:'ui_button'},label);
+    var el = YOVALUE.createElement('button',{id:uniqId, name:name, class:'ui_button',disabled:disabled},label);
     if(typeof(callback) != 'undefined'){
       el.addEventListener('click', function(evt){
         callback(evt);

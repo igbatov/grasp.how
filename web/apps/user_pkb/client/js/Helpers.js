@@ -1236,6 +1236,7 @@ YOVALUE.getBrowserInfo = function(){
 YOVALUE.createElement = function(tag, attrs, text, callback){
   var el = document.createElement(tag);
   for(var i in attrs){
+    if(i == 'disabled' && attrs[i] != true) continue;
     if(typeof(attrs[i]) != 'undefined') el.setAttribute(i, attrs[i]);
   }
   if(typeof(text) != 'undefined' && text.length > 0) el.appendChild(document.createTextNode(text));
@@ -1286,7 +1287,10 @@ YOVALUE.createElement = function(tag, attrs, text, callback){
  * @returns {HTMLElement}
  */
 YOVALUE.updateElement = function(el, attrs, text){
-  for(var i in attrs) el[i] = attrs[i];
+  for(var i in attrs){
+    if(i == 'disabled' && attrs[i] == false) el.removeAttribute("disabled");
+    else el[i] = attrs[i];
+  }
   if(typeof(text) != 'undefined') el.innerText = text;
   return el;
 };

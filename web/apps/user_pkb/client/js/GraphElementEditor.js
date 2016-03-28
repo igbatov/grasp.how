@@ -38,6 +38,7 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
 };
 
 YOVALUE.GraphElementEditor.prototype = {
+  NODE_TYPE_FACT: 'fact',
   eventListener: function(event){
     var $ = this.jQuery, v;
     if(event.getData().position == 'rightGraphView') v = $('#'+this.leftContainer.id);
@@ -116,7 +117,7 @@ YOVALUE.GraphElementEditor.prototype = {
       label:       {type:'textarea',value:node.label,callback:attrChange},
       type:        {type:'select',options:types,value:node.type,callback:attrChange},
       importance:  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange},
-      reliability: {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange},
+      reliability: {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange,disabled:(node.type == this.NODE_TYPE_FACT)},
       //  icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
       removeButton:{type:'button',value:'remove',callback:removeNode}
     });
@@ -317,22 +318,20 @@ YOVALUE.GraphElementEditor.prototype = {
           return that.publisher.publish(['find_publishers',{substring:str}]);
         },
         selectCallback:function(name, value){
-          YOVALUE.updateElement(publisher_reliability, {value:value.reliability});
-          YOVALUE.updateElement(scopus_title_list_id, {value:value.id});
+          that.UI.updateForm(form, 'publisher_reliability', {value:value.reliability});
+          that.UI.updateForm(form, 'scopus_title_list_id', {value:value.id});
         },
         typeCallback:function(name, value){
-          YOVALUE.updateElement(publisher_reliability, {value:0});
-          YOVALUE.updateElement(scopus_title_list_id, {value:null});
+          that.UI.updateForm(form, 'publisher_reliability', {value:0});
+          that.UI.updateForm(form, 'scopus_title_list_id', {value:null});
         }
       },
+      'publisher_reliability':{type:'text',disabled:true,value:item['publisher_reliability'],label:'reliability'},
+      'scopus_title_list_id':{type:'hidden',value:item['scopus_title_list_id']},
       'publish_date':{'type':'date', label:'Дата издания', value:''},
       'pages':{'type':'text', label:'Том, страницы', value:''},
       'button':{'type':'button', value:'Добавить'}
     };
-
-    // hidden fields in form that should be manipulated by search callback
-    var publisher_reliability = YOVALUE.createElement('input',{name:'publisher_reliability',type:'text',disabled:'disabled',value:item['publisher_reliability'],placeholder:'reliability'});
-    var scopus_title_list_id = YOVALUE.createElement('input',{name:'scopus_title_list_id',type:'hidden',value:item['scopus_title_list_id']});
 
     // fill in form fields
     if(YOVALUE.getObjectKeys(item).length){
@@ -353,9 +352,6 @@ YOVALUE.GraphElementEditor.prototype = {
         that.UI.closeModal(modalWindow);
       }
     );
-
-    form.insertBefore(publisher_reliability,form.children[form.children.length-1]);
-    form.insertBefore(scopus_title_list_id,publisher_reliability);
 
     // add form to modal window
     modalContent.appendChild(form);
