@@ -72,7 +72,7 @@ YOVALUE.GraphElementsContent.prototype = {
             if(typeof(newNode) == 'undefined') YOVALUE.errorHandler.throwError('no newNode');
 
             that.publisher
-              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode',  node:newNode}])
+              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:newNode}])
               .then(function(nodeContentId){
                 newNode.nodeContentId = nodeContentId;
                 that.cacheElementAttributes.add({elementType:'node', contentId:newNode.nodeContentId, attributes:newNode});
@@ -100,6 +100,9 @@ YOVALUE.GraphElementsContent.prototype = {
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
             newNode.label = event.getData().element.label;
             newNode.type = event.getData().element.type;
+            console.info(newNode);
+            newNode.importance = 50;
+            newNode.reliability = 0;
             newNode.icon = null;
             saveNewNode(event.getData()['graphId'], newNode);
           }
