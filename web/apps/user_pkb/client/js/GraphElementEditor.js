@@ -95,7 +95,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var removeNode = function(){
       if(confirm('Are you sure?')){
-        that.publisher.publish(['delete_pressed',{}]);
+        that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeNode', elementId: node.id}]);
       }
     };
 
@@ -171,6 +171,8 @@ YOVALUE.GraphElementEditor.prototype = {
             that._nl2br(nodes[node.nodeContentId])
           ));
         }
+
+        if(node.type != that.NODE_TYPE_FACT) return;
 
         // create list of sources HTMLElements
         var items = [];
@@ -274,7 +276,7 @@ YOVALUE.GraphElementEditor.prototype = {
         value:'Remove edge',
         callback:function(){
           if(confirm('Are you sure?')){
-            that.publisher.publish(['delete_pressed',{}]);
+            that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeEdge', elementId:edge.id}]);
           }
         }
       }

@@ -19,7 +19,6 @@ YOVALUE.AddRemoveElementController.prototype = {
     // we work with dragendnode only if the mode of dragging is 'connect'
     if(eventName == 'dragendnode'){
       dragMode = this.publisher.getInstant('get_graph_view_drag_mode', {graphId: event.getData()['fromGraphId']});
-      console.log('########################', dragMode);
       if(dragMode != 'connect') return;
     }
 
@@ -57,19 +56,6 @@ YOVALUE.AddRemoveElementController.prototype = {
           var parentNodeId = typeof(data['droppedOnModelElement']) === 'undefined' ? null : data['droppedOnModelElement'].element.id;
           that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'addNode', parentNodeId: parentNodeId, nodeContentId: nodeContent.nodeContentId}]);
         });
-      }
-
-    }else if(eventName === 'delete_pressed'){
-      // if focus is on test editor do nothing
-      if(this.isElementEditorFocused) return;
-
-      // else
-      if(selectedElement){
-        if(selectedElement.elementType == 'node'){
-          this.publisher.publish(["request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeNode', elementId: selectedElement.element.id}]);
-        }else if(selectedElement.elementType == 'edge'){
-           this.publisher.publish(["request_for_graph_model_change", {graphId: selectedElement.graphId, type: 'removeEdge', elementId: selectedElement.element.id}]);
-        }
       }
 
     }else if(eventName === 'element_editor_focusin'){

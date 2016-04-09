@@ -447,12 +447,12 @@ class AppUserPkb extends App
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
         $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
           ."' AND local_content_id='".$local_content_id
-          ."' AND source_type='".$r['source']['source_type']
-          ."' AND url='".$r['source']['url']
-          ."' AND author='".$r['source']['author']
-          ."' AND editor='".$r['source']['editor']
-          ."' AND publisher='".$r['source']['publisher']
-          ."' AND publish_date='".$r['source']['publish_date']."' ";
+          ."' AND source_type='".$this->db->escape($r['source']['source_type'])
+          ."' AND url='".$this->db->escape($r['source']['url'])
+          ."' AND author='".$this->db->escape($r['source']['author'])
+          ."' AND editor='".$this->db->escape($r['source']['editor'])
+          ."' AND publisher='".$this->db->escape($r['source']['publisher'])
+          ."' AND publish_date='".$this->db->escape($r['source']['publish_date'])."' ";
         $this->log($q);
         $this->db->execute($q);
         // calculate fact reliability
@@ -477,7 +477,7 @@ class AppUserPkb extends App
       case 'findPublishers':
         $r = $this->getRequest();
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
-        $q = "SELECT id, source_title, snip_2014 FROM scopus_title_list WHERE source_title LIKE '".$substring."' LIMIT 10";
+        $q = "SELECT id, source_title, snip_2014 FROM scopus_title_list WHERE source_title LIKE '".$substring."'";
         $this->log($q);
         $rows = $this->db->execute($q);
         $items = array();
@@ -493,6 +493,11 @@ class AppUserPkb extends App
           return $a['order'] - $b['order'];
         }
         usort($items, 'sortByOrder');
+
+        // limit search by first 10 items
+        foreach($items as $k=>$item){
+          if($k>10) unset($items[$k]);
+        }
 
         $this->showRawData(json_encode($items));
         break;
