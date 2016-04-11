@@ -241,11 +241,15 @@ YOVALUE.GraphElementEditor.prototype = {
   _createHTMLFromSource: function(source){
     var item = null;
     if(source.url.length > 0){
-      item = YOVALUE.createElement('a',{href:source.url, target:'_blank'}, source.author+' / '+source.name+' / '+source.publisher);
+      item = YOVALUE.createElement('a',{href:source.url, target:'_blank', title:this._lineBreaksForTooltips(source.comment)}, source.author+' / '+source.name+' / '+source.publisher);
     }else{
       item = document.createTextNode(source.author+' / '+source.name+' / '+source.publisher);
     }
     return item;
+  },
+
+  _lineBreaksForTooltips: function(text){
+    return text.replace("\r\n","&#013;");
   },
 
   _createEdgeForm: function(graphId, isEditable, edgeTypes, edge){
@@ -332,6 +336,7 @@ YOVALUE.GraphElementEditor.prototype = {
       'scopus_title_list_id':{type:'hidden',value:item['scopus_title_list_id']},
       'publish_date':{'type':'date', label:'Дата издания', value:''},
       'pages':{'type':'text', label:'Том, страницы', value:''},
+      'comment':{'type':'textarea', label:'Комментарий', value:''},
       'button':{'type':'button', value:'Добавить'}
     };
 
@@ -347,8 +352,8 @@ YOVALUE.GraphElementEditor.prototype = {
       // form submit callback
       function (form) {
         // set form fields to item
-        YOVALUE.getObjectKeys(form).forEach(function (v, k) {
-          if (typeof(form[v]) != 'undefined') item[v] = form[v];
+        YOVALUE.getObjectKeys(form).forEach(function (v) {
+           if (typeof(form[v]) != 'undefined') item[v] = form[v];
         });
         callback(graphId, nodeContentId, item);
         that.UI.closeModal(modalWindow);

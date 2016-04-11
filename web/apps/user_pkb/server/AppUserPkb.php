@@ -409,6 +409,7 @@ class AppUserPkb extends App
           ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
           ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
           ."', publish_date='".$this->db->escape($r['source']['publish_date'])
+          ."', comment='".$this->db->escape($r['source']['comment'])
           ."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
         $this->log($q);
         $item_id = $this->db->execute($q);
@@ -432,6 +433,7 @@ class AppUserPkb extends App
           ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
           ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
           ."', publish_date='".$this->db->escape($r['source']['publish_date'])
+          ."', comment='".$this->db->escape($r['source']['comment'])
           ."', `pages`='".$this->db->escape($r['source']['pages'])
           ."' WHERE id = '".$this->db->escape($r['source']['id'])."'";
         $this->log($q);

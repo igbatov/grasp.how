@@ -200,7 +200,7 @@ YOVALUE.UIElements.prototype = {
             var data = {};
             // gather data from form fields
             [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
-              data[child.getAttribute('name')] = child.innerText;
+              data[child.getAttribute('name')] = child.value;
             });
             [].forEach.call(form.getElementsByTagName("button"), function(child) {
               data[child.getAttribute('name')] = child == evt.target;
@@ -209,8 +209,9 @@ YOVALUE.UIElements.prototype = {
               data[child.getAttribute('name')] = child.value;
             });
             callback(data);
-          }),
-        fields[name]['disabled']);
+          },
+          fields[name]['disabled'])
+        );
       }
       if(fields[name]['type'] == 'search') form.appendChild(this.createSearch(name, fields[name]['label'], fields[name]['value'], fields[name]['findCallback'], fields[name]['typeCallback'], fields[name]['selectCallback'], fields[name]['disabled']));
       if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox(name,fields[name]['items'],fields[name]['addCallback'],fields[name]['removeCallback'],fields[name]['disabled']));
