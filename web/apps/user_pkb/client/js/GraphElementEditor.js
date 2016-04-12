@@ -346,6 +346,7 @@ YOVALUE.GraphElementEditor.prototype = {
           return that.publisher.publish(['find_publishers',{substring:str}]);
         },
         selectCallback:function(name, value){
+          that.UI.updateForm(form, 'publisher', {value:value.title});
           that.UI.updateForm(form, 'publisher_reliability', {value:value.reliability});
           that.UI.updateForm(form, 'scopus_title_list_id', {value:value.id});
         },
