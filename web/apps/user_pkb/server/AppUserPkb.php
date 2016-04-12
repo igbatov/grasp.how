@@ -396,6 +396,26 @@ class AppUserPkb extends App
 
       case 'addNodeContentSource':
         $r = $this->getRequest();
+
+        // if it is a new source - add it to the main list
+        if(empty($r['source']['source_id'])){
+          // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
+
+          $q = "INSERT INTO source SET source_type='".$r['source']['source_type']
+            ."', `name`='".$this->db->escape($r['source']['name'])
+            ."', url='".$this->db->escape($r['source']['url'])
+            ."', author='".$this->db->escape($r['source']['author'])
+            ."', editor='".$this->db->escape($r['source']['editor'])
+            ."', publisher='".$this->db->escape($r['source']['publisher'])
+            ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
+            ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
+            ."', publish_date='".$this->db->escape($r['source']['publish_date'])
+            ."', comment='".$this->db->escape($r['source']['comment'])
+            ."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
+          $this->log($q);
+          $r['source']['source_id'] = $this->db->execute($q);
+        }
+
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
         $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
@@ -410,7 +430,9 @@ class AppUserPkb extends App
           ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
           ."', publish_date='".$this->db->escape($r['source']['publish_date'])
           ."', comment='".$this->db->escape($r['source']['comment'])
+          ."', source_id='".$this->db->escape($r['source']['source_id'])
           ."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
+
         $this->log($q);
         $item_id = $this->db->execute($q);
         // calculate fact reliability
@@ -490,6 +512,32 @@ class AppUserPkb extends App
             'reliability'=>$row['snip_2014'] < 1 ? 3 : 6,
             'order'=>levenshtein($row['source_title'], $r['substring']),
           );
+        }
+        function sortByOrder($a, $b) {
+          return $a['order'] - $b['order'];
+        }
+        usort($items, 'sortByOrder');
+
+        // limit search by first 10 items
+        foreach($items as $k=>$item){
+          if($k>10) unset($items[$k]);
+        }
+
+        $this->showRawData(json_encode($items));
+        break;
+
+      case 'findSources':
+        $r = $this->getRequest();
+        $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
+        $q = "SELECT * FROM source WHERE name LIKE '".$substring."'";
+        $this->log($q);
+        $rows = $this->db->execute($q);
+        $items = array();
+        if(count($rows) > 30) $this->showRawData(json_encode(false));
+        foreach($rows as $k=>$row){
+          $row['order'] = levenshtein($row['name'], $r['substring']);
+          $row['title'] = $row['name'];
+          $items[] = $row;
         }
         function sortByOrder($a, $b) {
           return $a['order'] - $b['order'];

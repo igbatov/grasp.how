@@ -313,10 +313,32 @@ YOVALUE.GraphElementEditor.prototype = {
           'news':'новость',
           'personal experience':'личный опыт'
         },'value':'article'},
-      'name':{'type':'text', label:'Название',value:''},
-      'url':{'type':'text', label:'URL',value:''},
-      'author':{'type':'text', label:'Автор', value:''},
-      'editor':{'type':'text', label:'Рецензент', value:''},
+      'name':{'type':'search', label:'Название',
+        findCallback:function(str){
+          return that.publisher.publish(['find_sources',{substring:str}]);
+        },
+        selectCallback:function(name, value){
+          // if value didn't come just return
+          if(typeof(value.id) == 'undefined') return;
+
+          YOVALUE.getObjectKeys(formFields).forEach(function(v){
+            if(typeof(value[v]) != 'undefined'){
+              that.UI.updateForm(form,v,{value:value[v]});
+            }
+          });
+          that.UI.updateForm(form,'source_id',{value:value.id});
+        },
+        typeCallback:function(name, value){
+          // reset default values
+          YOVALUE.getObjectKeys(formFields).forEach(function(v){
+            if(typeof(value[v]) != 'undefined') that.UI.updateForm(form,v,null);
+          });
+          that.UI.updateForm(form, 'source_type', {value:'article'});
+        }
+      },
+      'url':{'type':'text', label:'URL'},
+      'author':{'type':'text', label:'Автор'},
+      'editor':{'type':'text', label:'Рецензент'},
       'publisher':{
         type:'search',
         label:'Издание (журнал, книга)',
@@ -334,9 +356,10 @@ YOVALUE.GraphElementEditor.prototype = {
       },
       'publisher_reliability':{type:'text',disabled:true,value:item['publisher_reliability'],label:'reliability'},
       'scopus_title_list_id':{type:'hidden',value:item['scopus_title_list_id']},
-      'publish_date':{'type':'date', label:'Дата издания', value:''},
-      'pages':{'type':'text', label:'Том, страницы', value:''},
-      'comment':{'type':'textarea', label:'Комментарий', value:''},
+      'publish_date':{'type':'date', label:'Дата издания'},
+      'pages':{'type':'text', label:'Том, страницы'},
+      'comment':{'type':'textarea', label:'Комментарий'},
+      'source_id':{'type':'hidden'},
       'button':{'type':'button', value:'Добавить'}
     };
 
