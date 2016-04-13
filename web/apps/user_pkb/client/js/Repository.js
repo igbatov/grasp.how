@@ -69,7 +69,8 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
     'node_source_remove_request',
     'repository_get_graph_node_sources',
 
-    'find_publishers'
+    'find_publishers',
+    'find_sources'
   ]);
 };
 
@@ -235,6 +236,12 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'find_publishers'){
       this.pendingRequests.push({url:'findPublishers', data:e.getData(), callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'find_sources'){
+      this.pendingRequests.push({url:'findSources', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});
       this.sendPendingRequests();

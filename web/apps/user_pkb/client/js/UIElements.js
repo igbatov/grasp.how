@@ -42,6 +42,7 @@ YOVALUE.UIElements.prototype = {
         // create list of items
         var lis = Object.keys(items).map(function(key){
           var item = items[key];
+          if(typeof(item.title) == 'undefined') throw 'UISearch: items given to droplist must have title field!';
           return YOVALUE.createElement('li',{value:key},(item.title.length > that.SELECT_ITEM_MAX_LENGTH ? item.title.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item.title));
         });
 
