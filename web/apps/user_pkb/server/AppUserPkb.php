@@ -7,6 +7,7 @@ include("ContentIdConverter.php");
 class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
+  private $node_basic_types;
   private $node_attribute_names;
   private $edge_attribute_names;
   private $contentIdConverter;
@@ -85,6 +86,7 @@ class AppUserPkb extends App
     }
 
     // define node and edge attributes (must be the same as db table column names)
+    $this->node_basic_types = array('fact'=>'fact','proposition'=>'theory');
     $this->node_attribute_names = array('type', 'label', 'reliability', 'importance', 'has_icon');
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
@@ -101,9 +103,9 @@ class AppUserPkb extends App
         'cloneGraph',
         'getGraphDiff',
         'removeGraph',
-        'addNodeContentSource',
-        'updateNodeContentSource',
-        'removeNodeContentSource'
+        'addNodeContentList',
+        'updateNodeContentList',
+        'removeNodeContentList'
     );
     if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
    // if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
@@ -394,108 +396,143 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($clone_list));
         break;
 
-      case 'addNodeContentSource':
+      case 'addNodeContentList':
         $r = $this->getRequest();
 
-        // if it is a new source - add it to the main list
-        if(empty($r['source']['source_id'])){
-          // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
+        if($r['nodeType'] == $this->node_basic_types['fact']){
+          // if it is a new source - add it to the main list
+          if(empty($r['source']['source_id'])){
+            // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
 
-          $q = "INSERT INTO source SET source_type='".$r['source']['source_type']
-            ."', `name`='".$this->db->escape($r['source']['name'])
-            ."', url='".$this->db->escape($r['source']['url'])
-            ."', author='".$this->db->escape($r['source']['author'])
-            ."', editor='".$this->db->escape($r['source']['editor'])
-            ."', publisher='".$this->db->escape($r['source']['publisher'])
-            ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
-            ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
-            ."', publish_date='".$this->db->escape($r['source']['publish_date'])
-            ."', comment='".$this->db->escape($r['source']['comment'])
-            ."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
+            $q = "INSERT INTO source SET "
+              ."source_type='".$r['item']['source_type']
+              ."', `name`='".$this->db->escape($r['item']['name'])
+              ."', url='".$this->db->escape($r['item']['url'])
+              ."', author='".$this->db->escape($r['item']['author'])
+              ."', editor='".$this->db->escape($r['item']['editor'])
+              ."', publisher='".$this->db->escape($r['item']['publisher'])
+              ."', publisher_reliability='".$this->db->escape($r['item']['publisher_reliability'])
+              ."', scopus_title_list_id='".$this->db->escape($r['item']['scopus_title_list_id'])
+              ."', publish_date='".$this->db->escape($r['item']['publish_date'])
+              ."', comment='".$this->db->escape($r['item']['comment'])
+              ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
+            $this->log($q);
+            $r['item']['source_id'] = $this->db->execute($q);
+          }
+
+          $graph_id = $r['graphId'];
+          $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
+          $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
+            ."', local_content_id='".$local_content_id
+            ."', source_type='".$r['item']['source_type']
+            ."', `name`='".$this->db->escape($r['item']['name'])
+            ."', url='".$this->db->escape($r['item']['url'])
+            ."', author='".$this->db->escape($r['item']['author'])
+            ."', editor='".$this->db->escape($r['item']['editor'])
+            ."', publisher='".$this->db->escape($r['item']['publisher'])
+            ."', publisher_reliability='".$this->db->escape($r['item']['publisher_reliability'])
+            ."', scopus_title_list_id='".$this->db->escape($r['item']['scopus_title_list_id'])
+            ."', publish_date='".$this->db->escape($r['item']['publish_date'])
+            ."', comment='".$this->db->escape($r['item']['comment'])
+            ."', source_id='".$this->db->escape($r['item']['source_id'])
+            ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
+
           $this->log($q);
-          $r['source']['source_id'] = $this->db->execute($q);
+          $item_id = $this->db->execute($q);
+          // calculate fact reliability
+          $reliability = $this->getFactReliability($graph_id,$local_content_id);
+          $this->showRawData(json_encode(array('result'=>'SUCCESS','id'=>$item_id,'reliability'=>$reliability)));
+        }elseif($r['nodeType'] == $this->node_basic_types['proposition']){
+          $graph_id = $r['graphId'];
+          $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
+          $q = "INSERT INTO node_content_falsification SET graph_id='".$graph_id
+            ."', local_content_id='".$local_content_id
+            ."', `name`='".$this->db->escape($r['item']['name'])
+            ."', comment='".$this->db->escape($r['item']['comment'])."' ";
+
+          $this->log($q);
+          $item_id = $this->db->execute($q);
+          $this->showRawData(json_encode(array('result'=>'SUCCESS','id'=>$item_id)));
         }
 
-        $graph_id = $r['graphId'];
-        $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
-          ."', local_content_id='".$local_content_id
-          ."', source_type='".$r['source']['source_type']
-          ."', `name`='".$this->db->escape($r['source']['name'])
-          ."', url='".$this->db->escape($r['source']['url'])
-          ."', author='".$this->db->escape($r['source']['author'])
-          ."', editor='".$this->db->escape($r['source']['editor'])
-          ."', publisher='".$this->db->escape($r['source']['publisher'])
-          ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
-          ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
-          ."', publish_date='".$this->db->escape($r['source']['publish_date'])
-          ."', comment='".$this->db->escape($r['source']['comment'])
-          ."', source_id='".$this->db->escape($r['source']['source_id'])
-          ."', `pages`='".$this->db->escape($r['source']['pages'])."' ";
-
-        $this->log($q);
-        $item_id = $this->db->execute($q);
-        // calculate fact reliability
-        $reliability = $this->getFactReliability($graph_id,$local_content_id);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS','id'=>$item_id,'reliability'=>$reliability)));
         break;
 
-      case 'updateNodeContentSource':
+      case 'updateNodeContentList':
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "UPDATE node_content_source SET graph_id='".$graph_id
-          ."', local_content_id='".$local_content_id
-          ."', source_type='".$r['source']['source_type']
-          ."', `name`='".$this->db->escape($r['source']['name'])
-          ."', url='".$this->db->escape($r['source']['url'])
-          ."', author='".$this->db->escape($r['source']['author'])
-          ."', editor='".$this->db->escape($r['source']['editor'])
-          ."', publisher='".$this->db->escape($r['source']['publisher'])
-          ."', publisher_reliability='".$this->db->escape($r['source']['publisher_reliability'])
-          ."', scopus_title_list_id='".$this->db->escape($r['source']['scopus_title_list_id'])
-          ."', publish_date='".$this->db->escape($r['source']['publish_date'])
-          ."', comment='".$this->db->escape($r['source']['comment'])
-          ."', `pages`='".$this->db->escape($r['source']['pages'])
-          ."' WHERE id = '".$this->db->escape($r['source']['id'])."'";
-        $this->log($q);
-        $this->db->execute($q);
-        // calculate fact reliability
-        $reliability = $this->getFactReliability($graph_id,$local_content_id);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS','reliability'=>$reliability)));
+        if($r['nodeType'] == $this->node_basic_types['fact']) {
+          $q = "UPDATE node_content_source SET "
+            . "local_content_id='" . $local_content_id
+            . "', source_type='" . $r['item']['source_type']
+            . "', `name`='" . $this->db->escape($r['item']['name'])
+            . "', url='" . $this->db->escape($r['item']['url'])
+            . "', author='" . $this->db->escape($r['item']['author'])
+            . "', editor='" . $this->db->escape($r['item']['editor'])
+            . "', publisher='" . $this->db->escape($r['item']['publisher'])
+            . "', publisher_reliability='" . $this->db->escape($r['item']['publisher_reliability'])
+            . "', scopus_title_list_id='" . $this->db->escape($r['item']['scopus_title_list_id'])
+            . "', publish_date='" . $this->db->escape($r['item']['publish_date'])
+            . "', comment='" . $this->db->escape($r['item']['comment'])
+            . "', `pages`='" . $this->db->escape($r['item']['pages'])
+            . "' WHERE id = '" . $this->db->escape($r['item']['id']) . "'";
+          $this->log($q);
+          $this->db->execute($q);
+          // calculate fact reliability
+          $reliability = $this->getFactReliability($graph_id, $local_content_id);
+          $this->showRawData(json_encode(array('result' => 'SUCCESS', 'reliability' => $reliability)));
+        }elseif($r['nodeType'] == $this->node_basic_types['proposition']){
+          $q = "UPDATE node_content_falsification SET "
+            ."`name` = '" . $this->db->escape($r['item']['name'])
+            . "', comment = '" . $this->db->escape($r['item']['comment'])
+            . "' WHERE id = '" . $this->db->escape($r['item']['id']) . "'";
+          $this->log($q);
+          $this->db->execute($q);
+          $this->showRawData(json_encode(array('result' => 'SUCCESS')));
+        }
         break;
 
-      case 'removeNodeContentSource':
+      case 'removeNodeContentList':
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
-          ."' AND local_content_id='".$local_content_id
-          ."' AND source_type='".$this->db->escape($r['source']['source_type'])
-          ."' AND url='".$this->db->escape($r['source']['url'])
-          ."' AND author='".$this->db->escape($r['source']['author'])
-          ."' AND editor='".$this->db->escape($r['source']['editor'])
-          ."' AND publisher='".$this->db->escape($r['source']['publisher'])
-          ."' AND publish_date='".$this->db->escape($r['source']['publish_date'])."' ";
-        $this->log($q);
-        $this->db->execute($q);
-        // calculate fact reliability
-        $reliability = $this->getFactReliability($graph_id,$local_content_id);
-        $this->showRawData(json_encode(array('result'=>'SUCCESS','reliability'=>$reliability)));
+        if($r['nodeType'] == $this->node_basic_types['fact']) {
+          $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
+            ."' AND local_content_id='".$local_content_id
+            ."' AND source_type='".$this->db->escape($r['item']['source_type'])
+            ."' AND url='".$this->db->escape($r['item']['url'])
+            ."' AND author='".$this->db->escape($r['item']['author'])
+            ."' AND editor='".$this->db->escape($r['item']['editor'])
+            ."' AND publisher='".$this->db->escape($r['item']['publisher'])
+            ."' AND publish_date='".$this->db->escape($r['item']['publish_date'])."' ";
+          $this->log($q);
+          $this->db->execute($q);
+          // calculate fact reliability
+          $reliability = $this->getFactReliability($graph_id,$local_content_id);
+          $this->showRawData(json_encode(array('result'=>'SUCCESS','reliability'=>$reliability)));
+        }else{
+          $q = "DELETE FROM node_content_falsification WHERE graph_id='".$graph_id
+            ."' AND local_content_id='".$local_content_id
+            ."' AND name='".$this->db->escape($r['item']['name'])
+            ."' AND comment='".$this->db->escape($r['item']['comment'])."' ";
+          $this->log($q);
+          $this->db->execute($q);
+          $this->showRawData(json_encode(array('result'=>'SUCCESS')));
+        }
         break;
 
-      case 'getNodeContentSourceList':
+      case 'getNodeContentList':
         $r = $this->getRequest();
         $graph_id = $r['graphId'];
         $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "SELECT * FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
+        $q = "SELECT * FROM ".($r['nodeType'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification')." WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
         $this->log($q);
         $rows = $this->db->execute($q);
-        $sources = array();
+        $items = array();
         foreach($rows as $row){
-          $sources[$row['id']] = $row;
+          $items[$row['id']] = $row;
         }
-        $this->showRawData(json_encode($sources));
+        $this->showRawData(json_encode($items));
         break;
 
       case 'findPublishers':
@@ -1020,7 +1057,7 @@ class AppUserPkb extends App
       //'GraphDecorations/iDecoration.js',
 
       'GraphElementEditor.js',
-      'NodeSourcesCache.js'
+      'NodeListCache.js'
     );
   }
 }

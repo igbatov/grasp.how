@@ -63,7 +63,7 @@ var Modules = {
 
   imageLoader: YOVALUE.imageLoader,
 
-  NodeSourcesCache: YOVALUE.NodeSourcesCache
+  NodeListCache: YOVALUE.NodeListCache
 };
 
 /**
@@ -178,7 +178,7 @@ var DI = {
 
   GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', YOVALUE.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
 
-  NodeSourcesCache: ['Subscriber', 'Publisher']
+  NodeListCache: ['Subscriber', 'Publisher']
 };
 
 // Creating and wiring modules according to DI array
