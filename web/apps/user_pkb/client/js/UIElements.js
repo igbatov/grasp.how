@@ -367,6 +367,10 @@ YOVALUE.UIElements.prototype = {
     }else{
       li.appendChild(label);
     }
+
+    var buttons = YOVALUE.createElement('div',{class:'buttons'});
+    li.appendChild(buttons);
+
     for(var name in actions){
       var button = this.createButton(name, name);
       (function(button, callback, id,li){
@@ -374,8 +378,11 @@ YOVALUE.UIElements.prototype = {
           callback(id, li);
         });
       })(button, actions[name], id, li);
-      li.appendChild(button);
+      buttons.appendChild(button);
     }
+
+
+
     return li;
   },
 

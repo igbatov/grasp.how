@@ -6,6 +6,8 @@
     z-index: 1;
     background-color: aqua;
     width: 40%;
+    height: 80%;
+    overflow: auto;
 }
 /*
  * Position right editor
