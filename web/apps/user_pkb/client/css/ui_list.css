@@ -8,6 +8,14 @@
 .ui_list li:hover{
     background-color: #C2B9C2;
 }
+.ui_list li::after{
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
 .ui_list li{
     display: table-row;
     padding-right: 10px;
@@ -16,8 +24,12 @@
     padding-left: 7px;
 }
 
+.ui_list li .buttons{
+    white-space: nowrap;
+    float: right;
+}
+
 .ui_list li button{
     cursor: pointer;
-    float: right;
     padding-left: 10px;
 }

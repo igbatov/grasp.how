@@ -100,7 +100,6 @@ YOVALUE.GraphElementsContent.prototype = {
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
             newNode.label = event.getData().element.label;
             newNode.type = event.getData().element.type;
-            console.info(newNode);
             newNode.importance = 50;
             newNode.reliability = 0;
             newNode.icon = null;
