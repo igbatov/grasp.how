@@ -241,14 +241,7 @@ YOVALUE.UIElements.prototype = {
 
   /**
    * Create modal window
-   * @param fields as array {name:{attr}, ...} - for example {
-   *                                         'title':{'type':'input', 'label':'Write Title:'},
-   *                                         'textType':{'type':'select', 'label':'Choose Text Type:'},
-   *                                         'addButton':{'type':'button', 'label':'Add'},
-   *                                         ...
-   *                                       }
-   * @param callback - callback will get form values as array 'name'=>'value'
-   * @return HTMLElement el that must be removed with function closeModal(el)
+   * @return HTMLElement - can be removed with function closeModal(el)
    */
   createModal: function(){
     var that = this,
@@ -296,19 +289,17 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get 'yes' or 'no'
    */
   showConfirm: function(text, callback){
-    var that = this, m = this.createModal();
-    this.setModalContent(
-      m,
-      this.createForm(
+    var that = this, m = this.createModal(), modalContent = YOVALUE.createElement('div', {class:'ui_confirm'});
+    modalContent.appendChild(this.createForm(
         {title:{type:'title', value:text}, yes:{type:'button',value:'Yes'}, no:{type:'button', value:'No'}},
         function(v){
           if(v['yes']) v = 'yes';
           else v = 'no';
-          that.UI.closeModal(m);
+          that.closeModal(m);
           callback(v);
         }
-      )
-    );
+    ));
+    this.setModalContent(m, modalContent);
   },
 
   /**

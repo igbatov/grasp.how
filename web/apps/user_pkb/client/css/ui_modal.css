@@ -6,6 +6,8 @@
     z-index: 1000;
     background-color: #9DE9BD;
     padding: 20px 20px 20px 20px;
+    max-height: 80%;
+    overflow: auto;
 }
 
 .ui_modal .close_button{
