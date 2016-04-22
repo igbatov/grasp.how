@@ -314,7 +314,7 @@ YOVALUE.GraphElementEditor.prototype = {
    * @private
    */
   _editListItem: function(graphId, nodeContentId, nodeType, item, callback){
-    var that = this, modalContent = YOVALUE.createElement('div',{},'');
+    var that = this;
     item = item || {};
     var modalWindow = that.UI.createModal();
     var form = {};
@@ -420,10 +420,8 @@ YOVALUE.GraphElementEditor.prototype = {
       }
     );
 
-    // add form to modal window
-    modalContent.appendChild(form);
 
-    that.UI.setModalContent(modalWindow, modalContent);
+    that.UI.setModalContent(modalWindow, form);
 
   },
 

@@ -9,14 +9,22 @@
     background-color: #9DE9BD;
     padding: 20px 20px 20px 20px;
     max-height: 80%;
-    overflow: auto;
+    overflow: hidden;
 }
 
 .ui_modal .close_button{
     position: absolute;
-    right: 1px;
-    top: 1px;
+    right: 0.4em;
+    top: 0.2em;
     cursor: pointer;
+}
+
+.ui_modal_wrapper{
+    position: absolute;
+    width: 96%;
+    height: 78%;
+    padding: 1em 0 1em 0;
+    overflow: auto;
 }
 
 /**
@@ -24,19 +32,26 @@
  */
 .ui_modal .ui_form{
     position: absolute;
-    height: 80%;
+    min-height: 80%;
     width: 90%;
     display: flex;
     flex-direction: column;
+    justify-content: space-around;
 }
 
-.ui_modal .ui_form input, .ui_modal .ui_form textarea, .ui_modal .ui_form button, .ui_modal .ui_form .ui_select{
-    display: block;
-    margin-top: 1em;
+.ui_modal .ui_form input, .ui_modal .ui_form textarea, .ui_modal .ui_form button, .ui_modal .ui_form .ui_select, .ui_modal .ui_form .ui_search{
+    width: 100%;
+    margin: 0 0 1em 0;
+}
+
+.ui_modal .ui_form .ui_button{
+    align-self: center;
+    width: 50%;
 }
 
 .ui_modal textarea{
     flex-grow: 7;
+    min-height: 7em;
 }
 
 .ui_modal_overlay{

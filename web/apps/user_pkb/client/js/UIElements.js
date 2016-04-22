@@ -257,6 +257,8 @@ YOVALUE.UIElements.prototype = {
       that.closeModal(modalWindow);
     });
 
+    modalWindow.appendChild(YOVALUE.createElement('div',{class:'ui_modal_wrapper'}));
+
     YOVALUE.setDisplay(modalWindow, 'none');
 
     return modalWindow;
@@ -274,13 +276,14 @@ YOVALUE.UIElements.prototype = {
     YOVALUE.setDisplay(modalWindow, 'block');
     YOVALUE.setDisplay(modalWindow, 'none');
     YOVALUE.setDisplay(modalWindow, 'block');
-    // remove all except close button
-    [].forEach.call(modalWindow.childNodes, function(child) {
-      if(child.getAttribute('class') != 'close_button') modalWindow.removeChild(child);
+
+    var wrapper = modalWindow.childNodes[1];
+    // remove all from wrapper
+    [].forEach.call(wrapper, function(child) {
+      modalWindow.removeChild(child);
     });
 
-    modalWindow.appendChild(content);
-
+    wrapper.appendChild(content);
   },
 
   /**
