@@ -8,6 +8,7 @@
 YOVALUE.ModelChangeController = function(publisher, viewManager){
   this.publisher = publisher;
   this.viewManager = viewManager;
+  this.timer = null;
 };
 
 YOVALUE.ModelChangeController.prototype = {
@@ -44,19 +45,17 @@ YOVALUE.ModelChangeController.prototype = {
           event.getData()['type'] == 'addNode')                 // no need to redraw - it will be done by 'graph_model_changed' event
           return true;
 
-    //  var timer = null, timeout = 1;
-      if(event.getData()['type'] ==  'updateNodeAttribute' && event.getData()['nodeAttribute']['name'] == 'label') timeout = 5000;
+      // plan update after current js function call stack finishes (we don't want to pause user input by our graph updates)
+      var timeout = 0;
+      if(event.getData()['type'] ==  'updateNodeAttribute' && event.getData()['nodeAttribute']['name'] == 'label') timeout = 500;
 
+      clearTimeout(this.timer);
       var graphId = event.getData()['graphId'];
-      this.publisher.publish(["get_graph_models", [graphId]]).then(function(graphModels){
-        that.showGraph(graphModels[graphId]);
-      });
-
-//      clearTimeout(timer);
- //     timer = setTimeout(function(){
-
-   //   }, timeout);
-
+      this.timer = setTimeout(function(){
+        that.publisher.publish(["get_graph_models", [graphId]]).then(function(graphModels){
+          that.showGraph(graphModels[graphId]);
+        });
+      },timeout);
     }
   },
 

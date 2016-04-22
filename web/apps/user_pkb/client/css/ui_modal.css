@@ -1,4 +1,6 @@
 .ui_modal{
+    height: 50%;
+    width: 40%;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -17,9 +19,24 @@
     cursor: pointer;
 }
 
-.ui_modal input, .ui_modal textarea, .ui_modal button, .ui_modal .ui_select{
+/**
+ * Induce special settings for ui_form in modal window
+ */
+.ui_modal .ui_form{
+    position: absolute;
+    height: 80%;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+}
+
+.ui_modal .ui_form input, .ui_modal .ui_form textarea, .ui_modal .ui_form button, .ui_modal .ui_form .ui_select{
     display: block;
     margin-top: 1em;
+}
+
+.ui_modal textarea{
+    flex-grow: 7;
 }
 
 .ui_modal_overlay{
