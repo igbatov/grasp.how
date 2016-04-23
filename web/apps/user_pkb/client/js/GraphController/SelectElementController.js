@@ -150,7 +150,7 @@ YOVALUE.SelectElementController.prototype = {
   },
 
   lowerOpacity: function(d, nodeIds, edgeIds, do_reverse){
-    var newNodeOpacity, newLabelOpacity, id, decoration = YOVALUE.clone(d);
+    var newNodeOpacity, newLabelOpacity, newEdgeOpacity, id, decoration = YOVALUE.clone(d);
 
     for(id in d.nodes){
       id = parseInt(id);
@@ -168,9 +168,9 @@ YOVALUE.SelectElementController.prototype = {
 
     for(id in d.edges){
       id = parseInt(id);
-      if(do_reverse) newOpacity = edgeIds.indexOf(id) == -1 ? this.lowOpacityValue : d.edges[id].opacity;
-      else newOpacity = edgeIds.indexOf(id) == -1 ? d.edges[id].opacity : this.lowOpacityValue;
-      decoration.edges[id].opacity = newOpacity;
+      if(do_reverse) newEdgeOpacity = edgeIds.indexOf(id) == -1 ? this.lowOpacityValue : d.edges[id].opacity;
+      else newEdgeOpacity = edgeIds.indexOf(id) == -1 ? d.edges[id].opacity : this.lowOpacityValue;
+      decoration.edges[id].opacity = newEdgeOpacity;
     }
 
     return decoration;
