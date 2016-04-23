@@ -15,6 +15,8 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
   this.jQuery = jQuery;
   this.UI = UI;
 
+  this.currentElementHash = null;
+
   this.ajaxIndicator = ajaxIndicator;
 
   this.subscriber.subscribe(this,[
@@ -43,12 +45,18 @@ YOVALUE.GraphElementEditor.prototype = {
   eventListener: function(event){
     var $ = this.jQuery, v;
     if(event.getData().position == 'rightGraphView') v = $('#'+this.leftContainer.id);
-    if(event.getData().position == 'leftGraphView') v = $('#'+this.rightContainer.id);
+    else if(event.getData().position == 'leftGraphView') v = $('#'+this.rightContainer.id);
 
     var eventName = event.getName();
     switch (eventName)
     {
       case "show_graph_element_editor":
+        var newElementHash = JSON.stringify({graphId:event.getData().graphId, elementId:event.getData().elementType == 'node' ? event.getData().node.id : event.getData().edge.id});
+
+        // only one editor can be opened
+        if(this.currentElementHash != null && this.currentElementHash != newElementHash) return;
+        this.currentElementHash = newElementHash;
+
         v.html('');
         if(event.getData().elementType == 'node'){
           // show in view-only form
@@ -58,7 +66,8 @@ YOVALUE.GraphElementEditor.prototype = {
               event.getData().graphId,
               event.getData().isEditable,
               event.getData().nodeTypes,
-              event.getData().node
+              event.getData().node,
+              event.getData().position
           ));
         }else if(event.getData().elementType == 'edge'){
           document.getElementById(v.attr('id')).appendChild(
@@ -72,6 +81,7 @@ YOVALUE.GraphElementEditor.prototype = {
         v.show();
         break;
       case 'hide_graph_element_editor':
+        this.currentElementHash = null;
         $('#'+this.leftContainer.id).hide();
         $('#'+this.rightContainer.id).hide();
         break;
@@ -80,7 +90,7 @@ YOVALUE.GraphElementEditor.prototype = {
     }
   },
 
-  _createNodeForm: function(graphId, isEditable, nodeTypes, node){
+  _createNodeForm: function(graphId, isEditable, nodeTypes, node, position){
     // select list for node types
     var that = this;
 
@@ -92,6 +102,13 @@ YOVALUE.GraphElementEditor.prototype = {
         nodeContentId: node.nodeContentId,
         nodeAttribute: {name:name, value:value}
       }]);
+
+      // its an node type change - reload whole editor
+      if(name == 'type'){
+        node.type = value;
+        that.publisher.publish(['node_list_reload', {graphId: graphId, nodeContentId: node.nodeContentId}]);
+        that.publisher.publish(['show_graph_element_editor', {elementType:'node', graphId: graphId, position:position, isEditable: isEditable, nodeTypes:nodeTypes, node:node}]);
+      }
     };
 
     var removeNode = function(){

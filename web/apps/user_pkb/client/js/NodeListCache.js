@@ -18,6 +18,7 @@ YOVALUE.NodeListCache = function(subscriber, publisher){
     'node_list_add_request',
     'node_list_update_request',
     'node_list_remove_request',
+    'node_list_reload',
     'get_graph_node_list'
   ]);
 };
@@ -38,7 +39,9 @@ YOVALUE.NodeListCache.prototype = {
       }
     }else if(eventName === 'node_list_add_request'
       || eventName === 'node_list_update_request'
-      || eventName === 'node_list_remove_request'){
+      || eventName === 'node_list_remove_request'
+      || eventName === 'node_list_reload'
+    ){
       rows[0].isChanged = true;
     }
   }

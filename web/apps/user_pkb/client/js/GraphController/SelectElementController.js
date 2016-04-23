@@ -1,5 +1,6 @@
 /**
- * This module process events like 'clicknode', 'clickedge', 'mouseenternode', 'mouseenteredge', 'mouseleavenode', 'mouseleaveedge'
+ * This module process events like
+ * 'clicknode', 'clickedge', 'mouseenternode', 'mouseenteredge', 'mouseleavenode', 'mouseleaveedge'
  * @param publisher
  * @constructor
  */
@@ -15,7 +16,7 @@ YOVALUE.SelectElementController = function(publisher){
 
 YOVALUE.SelectElementController.prototype = {
   execute: function(event, selectedElement){
-    var i,
+    var i, that = this,
     eventName = event.getName(),
     e = event.getData().element;
 
@@ -84,19 +85,21 @@ YOVALUE.SelectElementController.prototype = {
         eventName == 'graph_element_content_changed' &&
         event.getData()['type'] == 'updateNodeAttribute' &&
         ['type', 'reliability', 'importance'].indexOf(event.getData()['nodeAttribute']['name']) != -1
-        ){
-      graphId = event.getData()['graphId'];
-      this.initDecorations(graphId);
+    ){
+      // plan decoration update after
+      setTimeout(function(){
+        graphId = event.getData()['graphId'];
+        that.initDecorations(graphId);
 
-      var node = this.publisher.getInstant('get_node_by_nodeContentId', {graphId: graphId, nodeContentId: event.getData()['nodeContentId']});
-      var nodeId = node.id;
-      this.selectedDecoration[graphId] = this.enlargeNodes(this.initialDecoration[graphId], [nodeId]);
-      graphViewSettings = {
-        graphId: graphId,
-        decoration: this.selectedDecoration[graphId]
-      };
-      this.publisher.publish(["draw_graph_view", graphViewSettings]);
-
+        var node = that.publisher.getInstant('get_node_by_nodeContentId', {graphId: graphId, nodeContentId: event.getData()['nodeContentId']});
+        var nodeId = node.id;
+        that.selectedDecoration[graphId] = that.enlargeNodes(that.initialDecoration[graphId], [nodeId]);
+        graphViewSettings = {
+          graphId: graphId,
+          decoration: that.selectedDecoration[graphId]
+        };
+        that.publisher.publish(["draw_graph_view", graphViewSettings]);
+      },0);
     }else if(eventName == 'graph_model_changed'){
 
       var graphModel = event.getData().graphModel;
@@ -147,14 +150,20 @@ YOVALUE.SelectElementController.prototype = {
   },
 
   lowerOpacity: function(d, nodeIds, edgeIds, do_reverse){
-    var newOpacity, id, decoration = YOVALUE.clone(d);
+    var newNodeOpacity, newLabelOpacity, id, decoration = YOVALUE.clone(d);
 
     for(id in d.nodes){
       id = parseInt(id);
-      if(do_reverse) newOpacity = nodeIds.indexOf(id) == -1 ? this.lowOpacityValue : d.nodes[id].opacity;
-      else newOpacity = nodeIds.indexOf(id) == -1 ? d.nodes[id].opacity : this.lowOpacityValue;
-      decoration.nodes[id].opacity = newOpacity;
-      decoration.nodeLabels[id].opacity = newOpacity;
+      if(do_reverse){
+        newNodeOpacity = nodeIds.indexOf(id) == -1 ? this.lowOpacityValue : d.nodes[id].opacity;
+        newLabelOpacity = nodeIds.indexOf(id) == -1 ? this.lowOpacityValue : d.nodeLabels[id].opacity;
+      }
+      else{
+        newNodeOpacity = nodeIds.indexOf(id) == -1 ? d.nodes[id].opacity : this.lowOpacityValue;
+        newLabelOpacity = nodeIds.indexOf(id) == -1 ? d.nodeLabels[id].opacity : this.lowOpacityValue;
+      }
+      decoration.nodes[id].opacity = newNodeOpacity;
+      decoration.nodeLabels[id].opacity = newLabelOpacity;
     }
 
     for(id in d.edges){
@@ -171,7 +180,7 @@ YOVALUE.SelectElementController.prototype = {
     var id;
     for(id in  this.selectedDecoration[graphId].nodes){
       this.selectedDecoration[graphId].nodes[id].opacity = this.initialDecoration[graphId].nodes[id].opacity;
-      this.selectedDecoration[graphId].nodeLabels[id].opacity = this.initialDecoration[graphId].nodes[id].opacity;
+      this.selectedDecoration[graphId].nodeLabels[id].opacity = 1;//this.initialDecoration[graphId].nodes[id].opacity;
     }
 
     for(id in this.selectedDecoration[graphId].edges){
@@ -180,7 +189,7 @@ YOVALUE.SelectElementController.prototype = {
   },
 
   initDecorations: function(graphId){
-    // copy node, edge, label decoration
-    this.initialDecoration[graphId] = this.publisher.getInstant('get_graph_view_decoration', {graphId: graphId});
+    var that = this;
+    that.initialDecoration[graphId] = that.publisher.getInstant('get_graph_view_decoration', {graphId: graphId});
   }
 };
