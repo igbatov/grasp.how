@@ -1,13 +1,13 @@
-YOVALUE.SelectGraphLayoutModel = function(subscriber, publisher, layouts){
-  this.subscriber = subscriber;
+/**
+ *
+ * @param publisher
+ * @param layouts
+ * @constructor
+ */
+YOVALUE.SelectGraphLayoutModel = function(publisher, layouts){
   this.publisher = publisher;
   this.layouts = layouts;
   this.selectedLayouts = {}; //key-graph_name, value-layout_name
-
-  this.subscriber.subscribe(this,[
-    'get_selected_layout',
-    'get_layout_by_name'
-  ]);
 };
 
 YOVALUE.SelectGraphLayoutModel.prototype = {

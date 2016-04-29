@@ -11,15 +11,13 @@
  *
  * It also publishes events if user try to do something with graph:
  *
- * @param subscriber
  * @param publisher
  * @param graphViewFactory
  * @param viewManager
  * @param drawerFactory
  * @constructor
  */
-YOVALUE.GraphViewsPubSub = function (subscriber, publisher, graphViewFactory, viewManager, drawerFactory) {
-  this.subscriber = subscriber;
+YOVALUE.GraphViewsPubSub = function (publisher, graphViewFactory, viewManager, drawerFactory) {
   this.publisher = publisher;
   this.graphViewFactory = graphViewFactory;
   var container = viewManager.getViewContainer('graphViews');
@@ -27,22 +25,6 @@ YOVALUE.GraphViewsPubSub = function (subscriber, publisher, graphViewFactory, vi
 
   //array of all created GraphViews per se
   this.graphViewList = {};
-
-  this.subscriber.subscribe(this,[
-    'hide_all_graphs',
-    'draw_graph_view',
-
-    'get_graph_view_label_area',
-
-    'get_graph_view_node_mapping',
-    'get_graph_view_node_label_mapping',
-    'get_graph_view_decoration',
-
-    'set_graph_view_drag_mode',
-    'get_graph_view_drag_mode',
-
-    'set_drag_mode'
-  ]);
 
   // GraphView that is used to get text width and height (event get_graph_view_label_area)
   this.dummyGraphView = this.graphViewFactory.create('dummyGraphView', this.drawer);
@@ -223,6 +205,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
   /**
    *
    * @param graphId
+   * @param eventsToListen
    */
   bindPublishers: function(graphId, eventsToListen){
     var that = this,

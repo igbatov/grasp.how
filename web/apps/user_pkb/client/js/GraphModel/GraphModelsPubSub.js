@@ -7,31 +7,14 @@
  *     and so on...
  * - fires 'graph_model_initialized' and 'graph_model_changed' events
  *
- * @param subscriber
  * @param publisher
  * @param graphModelFactory
  * @constructor
  */
-YOVALUE.GraphModelsPubSub = function (subscriber, publisher, graphModelFactory){
+YOVALUE.GraphModelsPubSub = function (publisher, graphModelFactory){
   this.graphModelFactory = graphModelFactory;
   this.graphModels = {};
-  this.subscriber = subscriber;
   this.publisher = publisher;
-
-  this.subscriber.subscribe(this,[
-    'load_graph_models', // load all that we have from server
-    'add_graph_model', // insert new graph
-
-    'get_graph_models',
-
-    'graph_name_changed',
-    'set_graph_attributes',
-
-    'request_for_graph_model_change',
-    'set_graph_model_elements',  // set all nodes or edges at once (usually this is request initiated by history model)
-
-    'get_node_by_nodeContentId'
-  ]);
 };
 
 YOVALUE.GraphModelsPubSub.prototype = {

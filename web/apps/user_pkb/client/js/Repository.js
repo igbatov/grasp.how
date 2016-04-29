@@ -22,15 +22,13 @@
  * 503 (Server unavailable),
  * 500 (Unknown error)
  *
- * @param subscriber
  * @param publisher
  * @param transport
  * @param imageLoader
  * @constructor
  */
-YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
+YOVALUE.Repository = function (publisher, transport, imageLoader) {
   this.publisher = publisher;
-  this.subscriber = subscriber;
   this.transport = transport;
   this.imageLoader = imageLoader;
   // We want all requests to reach server in  exactly the same order as they were given us
@@ -38,40 +36,6 @@ YOVALUE.Repository = function (subscriber, publisher, transport, imageLoader) {
   this.pendingRequests = [];
   // and variable that indicate that last send request successfully reached the server
   this.isLastRequestDone = true;
-
-  this.subscriber.subscribe(this,[
-    'graph_element_content_changed',
-    'graph_name_changed',
-    'create_new_graph',
-    'set_graph_attributes',
-    'graph_position_changed',
-
-    'send_pending_requests',
-
-    'repository_get_selected_positions',
-    'repository_get_selected_layouts',
-    'repository_get_selected_skins',
-
-    'repository_get_graphs_model_settings',
-    'repository_get_graphs_model_elements',
-    'repository_get_graph_elements_attributes',
-    'repository_get_graph_node_text',
-    'repository_get_graphs_history_timeline',
-    'repository_get_graphs_clone_list',
-
-    'graph_history_item_added',
-    'repository_update_node_mapping',
-
-    'get_graph_diff',
-
-    'node_list_add_request',
-    'node_list_update_request',
-    'node_list_remove_request',
-    'repository_get_graph_node_list',
-
-    'find_publishers',
-    'find_sources'
-  ]);
 };
 
 YOVALUE.Repository.prototype = {

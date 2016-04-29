@@ -1,6 +1,6 @@
 YOVALUE.Subscriber = function(mediator){
   this._mediator = mediator;
-}
+};
 
 YOVALUE.Subscriber.prototype = {
   subscribe: function(listener, eventNames){

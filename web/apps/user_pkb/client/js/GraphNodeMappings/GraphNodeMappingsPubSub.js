@@ -1,10 +1,5 @@
-YOVALUE.GraphNodeMappingsPubSub = function(subscriber){
-  this.subscriber = subscriber;
+YOVALUE.GraphNodeMappingsPubSub = function(){
   this.nodeMappers = {};
-
-  this.subscriber.subscribe(this,[
-    'get_node_mapping'
-  ]);
 };
 
 YOVALUE.GraphNodeMappingsPubSub.prototype = {

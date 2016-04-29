@@ -13,6 +13,28 @@ YOVALUE.Mediator = function (listenerTypes, listenerTypesCallOrder) {
 };
 
 YOVALUE.Mediator.prototype = {
+
+  /**
+   * Subscribe modules to event in a given order
+   * @param subscriptions - {event_name: [module1, module2, module3, ...], ...}
+   */
+  setSubscriptions: function(subscriptions){
+    var eventName, j, listeners;
+
+    //sanity check
+    for(eventName in subscriptions){
+      listeners = subscriptions[eventName];
+      for(j in listeners){
+        if (!(YOVALUE.implements(listeners[j], YOVALUE.iListener))) {
+          console.log('listener', listeners[j], 'do not has YOVALUE.iListener interface');
+          YOVALUE.errorHandler.throwError("listener do not has YOVALUE.iListener interface");
+        }
+      }
+    }
+
+    this._listeners = subscriptions;
+  },
+
   /**
    * Get all subscribers that are subscribed on event with name event_name
    * and of type subscriber_type (i.e. subscriber constructor = this._subscriberTypes[subscriber_type])

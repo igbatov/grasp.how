@@ -5,22 +5,12 @@
  * - node_list_remove_request
  * and caches list for all nodes
  * so that repository do not need to ask server for every get_graph_node_list
- * @param subscriber
  * @param publisher
  * @constructor
  */
-YOVALUE.NodeListCache = function(subscriber, publisher){
-  this.subscriber = subscriber;
+YOVALUE.NodeListCache = function(publisher){
   this.publisher = publisher;
   this.cache = new YOVALUE.Table(['graphId', 'nodeContentId', 'list', 'isChanged']);
-
-  this.subscriber.subscribe(this,[
-    'node_list_add_request',
-    'node_list_update_request',
-    'node_list_remove_request',
-    'node_list_reload',
-    'get_graph_node_list'
-  ]);
 };
 
 YOVALUE.NodeListCache.prototype = {

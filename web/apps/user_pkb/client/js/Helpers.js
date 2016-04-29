@@ -87,14 +87,12 @@ YOVALUE.construct = function(constructor, args) {
  var Modules = {
   'Mediator': YOVALUE.Mediator,
   'Publisher': YOVALUE.Publisher,
-  'Subscriber': YOVALUE.Subscriber,
    ...
  }
  and array of module constructors arguments (dependency injection array):
  var DI = {
   'Mediator':[{'event1':['Module1', 'Module2']}, {'event2':['Module1', 'Module3']}],
   'Publisher':[Modules['Mediator']],
-  'Subscriber':[Modules['Mediator']],
    ...
  }
  *

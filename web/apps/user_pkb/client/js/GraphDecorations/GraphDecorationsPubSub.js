@@ -1,10 +1,5 @@
-YOVALUE.GraphDecorationsPubSub = function(subscriber, graphDecoration){
-  this.subscriber = subscriber;
+YOVALUE.GraphDecorationsPubSub = function(graphDecoration){
   this.graphDecoration = graphDecoration;
-
-  this.subscriber.subscribe(this,[
-    'get_graph_decoration'
-  ]);
 };
 
 YOVALUE.GraphDecorationsPubSub.prototype = {

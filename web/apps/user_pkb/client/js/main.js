@@ -1,12 +1,11 @@
 var DEBUG_MODE = true;
+
 /**
- * M is a list of modules
+ * List of modules
  * @type {Object}
  */
-
 var Modules = {
   Mediator: YOVALUE.Mediator,
-  Subscriber: YOVALUE.Subscriber,
   Publisher: YOVALUE.Publisher,
 
   GraphModelFactory: YOVALUE.GraphModelFactory,
@@ -72,21 +71,16 @@ var Modules = {
  * @type {Object}
  */
 var DI = {
-  /**
-   * Mediator is initialized with the order of subscribers execution for some events
-   * For other events the order of modules notification is not important
-   */
   Ajax: ['jQuery'],
   Promise: ['jQuery'],
   Mediator: [],
   Publisher:['Mediator', 'Promise'],
-  Subscriber:['Mediator'],
 
   GraphModelFactory: [],
-  GraphElementsContent: ['Subscriber', 'Publisher'],
-  GraphModelsPubSub: ['Subscriber', 'Publisher', 'GraphModelFactory'],
+  GraphElementsContent: ['Publisher'],
+  GraphModelsPubSub: ['Publisher', 'GraphModelFactory'],
 
-  GraphHistory: ['Subscriber', 'Publisher'],
+  GraphHistory: ['Publisher'],
 
   ViewManager: ['jQuery', {
     horizontalMenu: {id:'horizontalMenu',padding:[0,0]},
@@ -98,7 +92,7 @@ var DI = {
   UIElements: [],
 
   KeyManager: ['Publisher'],
-  StatusString: ['Subscriber', 'Publisher', 'ViewManager', 'jQuery'],
+  StatusString: ['Publisher', 'ViewManager', 'jQuery'],
 
   GraphViewNodeFactory:[],
   GraphViewEdgeFactory:[],
@@ -106,7 +100,7 @@ var DI = {
   CanvasDrawerFactory:['kinetic', 'jQuery'],
   SVGDrawerFactory:[],
   GraphViewFactory:[],
-  GraphViewsPubSub:['Subscriber', 'Publisher', 'GraphViewFactory', 'ViewManager', 'SVGDrawerFactory'],
+  GraphViewsPubSub:['Publisher', 'GraphViewFactory', 'ViewManager', 'SVGDrawerFactory'],
 
   AddRemoveElementController:['Publisher'],
   HistoryController:['Publisher'],
@@ -124,14 +118,14 @@ var DI = {
     'MappingChangeController',
     'DragModeChangeController'
   ],
-  GraphControllerPubSub:['Subscriber', 'Publisher', 'GraphControllerModules'],
+  GraphControllerPubSub:['Publisher', 'GraphControllerModules'],
 
   imageLoader: ['Promise'],
-  Repository: ['Subscriber', 'Publisher', 'Ajax', 'imageLoader'],
+  Repository: ['Publisher', 'Ajax', 'imageLoader'],
 
-  GraphMenu: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery'],
+  GraphMenu: ['Publisher', 'ViewManager', 'UIElements', 'jQuery'],
 
-  SelectGraphLayoutModel: ['Subscriber', 'Publisher',{
+  SelectGraphLayoutModel: ['Publisher',{
     basicLayout: {
       node:{
         constructor: YOVALUE.GraphNodeMappingForceDirected,
@@ -144,7 +138,7 @@ var DI = {
     }
   }],
 
-  SelectGraphSkinModel: ['Subscriber', 'Publisher',
+  SelectGraphSkinModel: ['Publisher',
     {
       'GraphViewNode':YOVALUE.GraphViewNode,
       'GraphViewNodeImage':YOVALUE.GraphViewNodeImage,
@@ -170,19 +164,158 @@ var DI = {
     }
   ],
 
-  GraphNodeMappingsPubSub: ['Subscriber'],
-  GraphNodeLabelMappingsPubSub: ['Subscriber'],
+  GraphNodeMappingsPubSub: [],
+  GraphNodeLabelMappingsPubSub: [],
 
   GraphDecoration: [],
-  GraphDecorationsPubSub: ['Subscriber', 'GraphDecoration'],
+  GraphDecorationsPubSub: ['GraphDecoration'],
 
-  GraphElementEditor: ['Subscriber', 'Publisher', 'ViewManager', 'UIElements', 'jQuery', YOVALUE.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
+  GraphElementEditor: ['Publisher', 'ViewManager', 'UIElements', 'jQuery', YOVALUE.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
 
-  NodeListCache: ['Subscriber', 'Publisher']
+  NodeListCache: ['Publisher']
 };
 
-// Creating and wiring modules according to DI array
+// Creating and wiring modules according to DI array.
+// After wireModules call Modules['moduleName'] = module (i.e. object instantiated from constructor)
 YOVALUE.wireModules(Modules, DI);
+Modules['Mediator'].setSubscriptions(
+  {
+    'show_graphs':[Modules['GraphControllerPubSub']],
+
+    // model events
+    'graph_model_changed':[
+      Modules['GraphControllerPubSub'],
+      Modules['GraphHistory']
+    ],
+    'graph_history_item_added':[
+      Modules['GraphControllerPubSub'],
+      Modules['Repository']
+    ],
+    'graph_element_content_changed':[
+      Modules['GraphControllerPubSub'],
+      Modules['Repository']
+    ],
+    'graph_position_changed':[
+      Modules['GraphControllerPubSub'],
+      Modules['Repository']
+    ],
+    'graph_layout_changed':[Modules['GraphControllerPubSub']],
+
+    // graph events
+    'mousemove':[Modules['GraphControllerPubSub']],
+    'mouseenternode':[Modules['GraphControllerPubSub']],
+    'mouseleavenode':[Modules['GraphControllerPubSub']],
+    'clicknode':[Modules['GraphControllerPubSub']],
+    'dragstartnode':[Modules['GraphControllerPubSub']],
+    'draggingnode':[Modules['GraphControllerPubSub']],
+    'dragendnode':[Modules['GraphControllerPubSub']],
+    'clickedge':[Modules['GraphControllerPubSub']],
+    'clickbackground':[Modules['GraphControllerPubSub']],
+    'mouseenteredge':[Modules['GraphControllerPubSub']],
+    'mouseleaveedge':[Modules['GraphControllerPubSub']],
+    'delete_pressed':[Modules['GraphControllerPubSub']],
+    'undo_pressed':[Modules['GraphControllerPubSub']],
+    'redo_pressed':[Modules['GraphControllerPubSub']],
+    'element_editor_focusin':[Modules['GraphControllerPubSub']],
+    'element_editor_focusout':[Modules['GraphControllerPubSub']],
+    'dblclickbackground':[Modules['GraphControllerPubSub']],
+    'ctrl_on':[Modules['GraphControllerPubSub']],
+    'ctrl_off':[Modules['GraphControllerPubSub']],
+
+    'get_graph_decoration':[Modules['GraphDecorationsPubSub']],
+
+    'get_elements_attributes':[Modules['GraphElementsContent']],
+    'get_graph_node_text':[Modules['GraphElementsContent']],
+    'request_for_graph_element_content_change':[Modules['GraphElementsContent']],
+
+    'load_graph_models':[Modules['GraphModelsPubSub']],
+    'add_graph_model':[Modules['GraphModelsPubSub']],
+    'get_graph_models':[Modules['GraphModelsPubSub']],
+    'graph_name_changed':[
+      Modules['GraphModelsPubSub'],
+      Modules['Repository']
+    ],
+    'set_graph_attributes':[
+      Modules['GraphModelsPubSub'],
+      Modules['Repository']
+    ],
+    'request_for_graph_model_change':[Modules['GraphModelsPubSub']],
+    'set_graph_model_elements':[Modules['GraphModelsPubSub']],
+    'get_node_by_nodeContentId':[Modules['GraphModelsPubSub']],
+
+    'get_node_label_mapping':[Modules['GraphNodeLabelMappingsPubSub']],
+    'get_node_mapping':[Modules['GraphNodeMappingsPubSub']],
+
+    'hide_all_graphs':[Modules['GraphViewsPubSub']],
+    'draw_graph_view':[Modules['GraphViewsPubSub']],
+    'get_graph_view_label_area':[Modules['GraphViewsPubSub']],
+    'get_graph_view_node_mapping':[Modules['GraphViewsPubSub']],
+    'get_graph_view_node_label_mapping':[Modules['GraphViewsPubSub']],
+    'get_graph_view_decoration':[Modules['GraphViewsPubSub']],
+    'set_graph_view_drag_mode':[Modules['GraphViewsPubSub']],
+    'get_graph_view_drag_mode':[Modules['GraphViewsPubSub']],
+    'set_drag_mode':[
+      Modules['GraphViewsPubSub'],
+      Modules['StatusString']
+    ],
+
+    'show_graph_element_editor':[Modules['GraphElementEditor']],
+    'hide_graph_element_editor':[Modules['GraphElementEditor']],
+
+    'node_mapping_changed':[Modules['GraphHistory']],
+    'graph_history_get_model_elements':[Modules['GraphHistory']],
+    'graph_history_get_node_mapping':[Modules['GraphHistory']],
+    'get_current_graph_step':[Modules['GraphHistory']],
+    'get_previous_graph_step':[Modules['GraphHistory']],
+    'get_next_graph_step':[Modules['GraphHistory']],
+    'graph_history_set_current_step':[Modules['GraphHistory']],
+    'get_graphs_history_timeline':[Modules['GraphHistory']],
+
+    'get_selected_positions':[Modules['GraphMenu']],
+
+    'node_list_add_request':[
+      Modules['NodeListCache'],
+      Modules['Repository']
+    ],
+    'node_list_update_request':[
+      Modules['NodeListCache'],
+      Modules['Repository']
+    ],
+    'node_list_remove_request':[
+      Modules['NodeListCache'],
+      Modules['Repository']],
+    'node_list_reload':[Modules['NodeListCache']],
+    'get_graph_node_list':[Modules['NodeListCache']],
+
+    'create_new_graph':[Modules['Repository']],
+    'send_pending_requests':[Modules['Repository']],
+    'repository_get_selected_positions':[Modules['Repository']],
+    'repository_get_selected_layouts':[Modules['Repository']],
+    'repository_get_selected_skins':[Modules['Repository']],
+    'repository_get_graphs_model_settings':[Modules['Repository']],
+    'repository_get_graphs_model_elements':[Modules['Repository']],
+    'repository_get_graph_elements_attributes':[Modules['Repository']],
+    'repository_get_graph_node_text':[Modules['Repository']],
+    'repository_get_graphs_history_timeline':[Modules['Repository']],
+    'repository_get_graphs_clone_list':[Modules['Repository']],
+    'repository_update_node_mapping':[Modules['Repository']],
+    'get_graph_diff':[Modules['Repository']],
+    'repository_get_graph_node_list':[Modules['Repository']],
+    'find_publishers':[Modules['Repository']],
+    'find_sources':[Modules['Repository']],
+
+    'get_selected_layout':[Modules['SelectGraphLayoutModel']],
+    'get_layout_by_name':[Modules['SelectGraphLayoutModel']],
+
+    'get_selected_skin':[Modules['SelectGraphSkinModel']],
+    'get_skin_by_skin_settings':[Modules['SelectGraphSkinModel']],
+
+    'repository_error':[Modules['StatusString']],
+    'repository_requests_send':[Modules['StatusString']],
+
+    'repository_processing':[Modules['StatusString']]
+  }
+);
 
 var p = Modules['Publisher'];
 // init models

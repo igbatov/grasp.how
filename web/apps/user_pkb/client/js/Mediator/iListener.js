@@ -1,3 +1,4 @@
 YOVALUE.iListener = {
-  eventListener: function(event){}
-}
+  eventListener: function(event){},
+  moduleName: String()
+};

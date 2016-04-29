@@ -1,24 +1,18 @@
 /**
  * Module that draws graph select/add/remove menu
  * Using this menu user can select graph to be on left panel (leftGraphView), right panel (rightGraphView) or be hidden (not to be shown)
- * @param subscriber
  * @param publisher
  * @param viewManager
  * @param UI
  * @param jQuery
  * @constructor
  */
-YOVALUE.GraphMenu = function(subscriber, publisher, viewManager, UI, jQuery){
-  this.subscriber = subscriber;
+YOVALUE.GraphMenu = function(publisher, viewManager, UI, jQuery){
   this.publisher = publisher;
   this.selectedPosition = {};
   this.viewManager = viewManager;
   this.UI = UI;
   this.jQuery = jQuery;
-
-  this.subscriber.subscribe(this,[
-    'get_selected_positions'    //request for graph position
-  ]);
 
   this.container = this.viewManager.getViewContainer('horizontalMenu');
 };

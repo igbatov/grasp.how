@@ -1,6 +1,5 @@
-YOVALUE.GraphHistory = function(subscriber, publisher){
+YOVALUE.GraphHistory = function(publisher){
   this.publisher = publisher;
-  this.subscriber = subscriber;
 
   this.historyTimeline = {}; // {graphId1: {1: timestamp1, 2: timestamp2, ...}, ... }
 
@@ -10,21 +9,6 @@ YOVALUE.GraphHistory = function(subscriber, publisher){
 
   // storage of history
   this.history = new YOVALUE.Table(['graphId', 'step', 'timestamp', 'elements', 'node_mapping']);
-
-  this.subscriber.subscribe(this,[
-    'graph_model_changed',
-    'node_mapping_changed',
-
-    'graph_history_get_model_elements',
-    'graph_history_get_node_mapping',
-
-    'get_current_graph_step',
-    'get_previous_graph_step',
-    'get_next_graph_step',
-    'graph_history_set_current_step',
-
-    'get_graphs_history_timeline'
-  ]);
 };
 
 YOVALUE.GraphHistory.prototype = {

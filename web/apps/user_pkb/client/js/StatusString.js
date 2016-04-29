@@ -2,26 +2,19 @@
  * This module shows status of important events:
  *  - when user is not authorized StatusString show login form
  *  - when server is unavailable it shows error banner 'server is unavailable'
- * @param subscriber
  * @param publisher
+ * @param viewManager
+ * @param jQuery
  * @constructor
  */
-YOVALUE.StatusString = function (subscriber, publisher, viewManager, jQuery) {
+YOVALUE.StatusString = function (publisher, viewManager, jQuery) {
   this.publisher = publisher;
-  this.subscriber = subscriber;
   this.container = jQuery("#"+viewManager.getViewContainer('statusString').id);
   this.jQuery = jQuery;
   this.container.append('<div id="dragModeStatus"></div>');
   this.container.append('<div id="serverStatus"></div>');
   this.serverStatusContainer = this.container.find('#serverStatus');
   this.dragModeStatusContainer = this.container.find('#dragModeStatus');
-
-  this.subscriber.subscribe(this,[
-    'repository_error',
-    'repository_requests_send',
-    'repository_processing',
-    'set_drag_mode'
-  ]);
 };
 
 YOVALUE.StatusString.prototype = {

@@ -6,23 +6,14 @@
  * Though client (javascript) code do not rely on structure of contentId, I describe it here for reference - contentId has the form 'graphId-contentId' or 'graphId-contentId/graphId-contentId' for diff graph.
  * Client code only implies that every node has unique (global) string contentId across all graphs
  *
- * @param subscriber
  * @param publisher
  * @constructor
  */
 
-YOVALUE.GraphElementsContent = function(subscriber, publisher){
-  this.subscriber = subscriber;
+YOVALUE.GraphElementsContent = function(publisher){
   this.publisher = publisher;
   this.cacheElementAttributes = new YOVALUE.Cache(['contentId', 'elementType', 'attributes'], 5000000); //contentId is edgeContentId or nodeContentUd
   this.cacheNodeTexts = new YOVALUE.Cache(['nodeContentId', 'text'], 10000000);
-
-  this.subscriber.subscribe(this,[
-    'get_elements_attributes',
-    'get_graph_node_text',
-
-    'request_for_graph_element_content_change'
-  ]);
 };
 
 YOVALUE.GraphElementsContent.prototype = {

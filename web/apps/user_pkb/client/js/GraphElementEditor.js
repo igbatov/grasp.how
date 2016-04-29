@@ -2,14 +2,14 @@
  * Module that allows to edit node and edge content and properties.
  * You can think of it as node editor's View in MVC model.
  * It fires 'request_for_graph_element_content_change' when user manipulates an editor (writes text, changes node type and etc.)
- * @param subscriber
  * @param publisher
  * @param ViewManager
+ * @param UI
  * @param jQuery
+ * @param ajaxIndicator
  * @constructor
  */
-YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQuery, ajaxIndicator){
-  this.subscriber = subscriber;
+YOVALUE.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIndicator){
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
@@ -18,11 +18,6 @@ YOVALUE.GraphElementEditor = function(subscriber, publisher, ViewManager, UI, jQ
   this.currentElementHash = null;
 
   this.ajaxIndicator = ajaxIndicator;
-
-  this.subscriber.subscribe(this,[
-    'show_graph_element_editor',
-    'hide_graph_element_editor'
-  ]);
 
   this.leftContainer = this.ViewManager.getViewContainer('leftGraphElementEditor');
   this.rightContainer = this.ViewManager.getViewContainer('rightGraphElementEditor');
