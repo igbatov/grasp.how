@@ -21,7 +21,8 @@ YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
     hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
     opacity: args.opacity,
-    fill: 'none'
+    //fill: 'none'
+    fill: args.color
   });
 
   this.setWidth(this.width);
@@ -105,7 +106,8 @@ YOVALUE.GraphViewEdge.prototype = {
    */
   _getQuadPathData: function (start, stop, opt_width){
     var path, delim = " ";
-
+    var CURV = "Q";
+    opt_width=6;
     //perpendicular
     var p = {x:-(stop.y-start.y)/4, y:(stop.x-start.x)/4};
     var middle = {x:(start.x+(stop.x-start.x)/2 + p.x), y:(start.y+(stop.y-start.y)/2 + p.y)};
@@ -118,19 +120,39 @@ YOVALUE.GraphViewEdge.prototype = {
       //bottom middle
       var bm = {x:(middle.x-p.x/norm), y:(middle.y-p.y/norm)};
       //bottom end
-      var be = {x:(stop.x-p.x/norm), y:(stop.y-p.y/norm)};
+  //    var be = {x:(stop.x-p.x/norm), y:(stop.y-p.y/norm)};
+      var be = {x:(stop.x), y:(stop.y)};
 
       //up start
-      var us = {x:(stop.x+p.x/norm), y:(stop.y+p.y/norm)};
+    //  var us = {x:(stop.x+p.x/norm), y:(stop.y+p.y/norm)};
+      var us = {x:(stop.x), y:(stop.y)};
       //up middle
       var um = {x:(middle.x+p.x/norm), y:(middle.y+p.y/norm)};
       //up end
       var ue = {x:(start.x+p.x/norm), y:(start.y+p.y/norm)};
 
-      path = "M "+Math.round(bs.x)+delim+Math.round(bs.y)+delim+"Q "+Math.round(bm.x)+delim+Math.round(bm.y)+delim+Math.round(be.x)+delim+Math.round(be.y)+delim+"L "+Math.round(us.x)+delim+Math.round(us.y)+delim+"Q "+Math.round(um.x)+delim+Math.round(um.y)+delim+Math.round(ue.x)+delim+Math.round(ue.y)+delim+"Z";
+      path = "M "+Math.round(bs.x)+delim+Math.round(bs.y)+delim+CURV+" "+Math.round(bm.x)+delim+Math.round(bm.y)+delim+Math.round(be.x)+delim+Math.round(be.y)+delim+"L "+Math.round(us.x)+delim+Math.round(us.y)+delim+CURV+" "+Math.round(um.x)+delim+Math.round(um.y)+delim+Math.round(ue.x)+delim+Math.round(ue.y)+delim+"Z";
     }else{
-      path = "M "+Math.round(start.x)+delim+Math.round(start.y)+delim+"Q "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(stop.x)+delim+Math.round(stop.y);
+      path = "M "+Math.round(start.x)+delim+Math.round(start.y)+delim+CURV+" "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(stop.x)+delim+Math.round(stop.y);
     }
+
+    // add arrow at the end of edge
+    var al = 5; // arrow length
+    // stop->middle vector
+    var middle2 = {x:(start.x+(stop.x-start.x)/2 + p.x/2), y:(start.y+(stop.y-start.y)/2 + p.y/2)};
+    var middle3 = {x:(start.x+(stop.x-start.x)/2), y:(start.y+(stop.y-start.y)/2)};
+    var ms = {x:-(stop.x-middle2.x), y:-(stop.y-middle2.y)};
+    var msLength = Math.sqrt(Math.pow(ms.x,2)+Math.pow(ms.y,2));
+    ms.x = al*ms.x/msLength; ms.y = al*ms.y/msLength;
+    // stop->middle vector perpendicular
+    var msp = {x:-ms.x, y:ms.y};
+    var b1 = {x:stop.x+al*ms.x+msp.x,y:stop.y+al*ms.y+msp.y}; // upper corner of triangle
+    var b2 = {x:stop.x+al*ms.x-msp.x,y:stop.y+al*ms.y-msp.y}; // bottom corner of triangle
+  //  path += "M "+Math.round(b1.x)+delim+Math.round(b1.y)+" L "+Math.round(b2.x)+delim+Math.round(b2.y)+" L "+Math.round(stop.x)+delim+Math.round(stop.y)+" Z";
+//path += "M "+stop.x+delim+stop.y+" L "+middle.x+delim+middle.y;
+//path += "M "+stop.x+delim+stop.y+" L "+middle2.x+delim+middle2.y;
+//path += "M "+stop.x+delim+stop.y+" L "+middle3.x+delim+middle3.y;
+//path += "M "+stop.x+delim+stop.y+" L "+(start.x+(stop.x-start.x)/2)+delim+(start.y+(stop.y-start.y)/2);
 
     return path;
   }
