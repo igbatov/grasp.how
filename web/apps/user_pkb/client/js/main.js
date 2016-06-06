@@ -213,12 +213,14 @@ Modules['Mediator'].setSubscriptions(
     'clickbackground':[Modules['GraphControllerPubSub']],
     'mouseenteredge':[Modules['GraphControllerPubSub']],
     'mouseleaveedge':[Modules['GraphControllerPubSub']],
-    'delete_pressed':[Modules['GraphControllerPubSub']],
-    'undo_pressed':[Modules['GraphControllerPubSub']],
-    'redo_pressed':[Modules['GraphControllerPubSub']],
     'element_editor_focusin':[Modules['GraphControllerPubSub']],
     'element_editor_focusout':[Modules['GraphControllerPubSub']],
     'dblclickbackground':[Modules['GraphControllerPubSub']],
+
+    // keyboard events
+    'delete_pressed':[Modules['GraphControllerPubSub']],
+    'undo_pressed':[Modules['GraphControllerPubSub']],
+    'redo_pressed':[Modules['GraphControllerPubSub']],
     'ctrl_on':[Modules['GraphControllerPubSub']],
     'ctrl_off':[Modules['GraphControllerPubSub']],
 

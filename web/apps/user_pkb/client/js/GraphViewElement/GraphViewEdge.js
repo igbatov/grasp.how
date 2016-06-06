@@ -17,12 +17,12 @@ YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
   YOVALUE.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createShape('path', {
-    data: this._getQuadPathData(args.start, args.stop),
+    data: this._getQuadPathData(args.start, args.stop, null, args.sourceNodeRadius, args.targetNodeRadius),
     hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
     opacity: args.opacity,
-    //fill: 'none'
-    fill: args.color
+    fill: 'none'
+   // fill: args.color
   });
 
   this.setWidth(this.width);
@@ -104,10 +104,10 @@ YOVALUE.GraphViewEdge.prototype = {
    * @return {*}
    * @private
    */
-  _getQuadPathData: function (start, stop, opt_width){
+  _getQuadPathData: function (start, stop, opt_width, opt_startOffset, opt_stopOffset){
     var path, delim = " ";
     var CURV = "Q";
-    opt_width=6;
+  //  opt_width=6;
     //perpendicular
     var p = {x:-(stop.y-start.y)/4, y:(stop.x-start.x)/4};
     var middle = {x:(start.x+(stop.x-start.x)/2 + p.x), y:(start.y+(stop.y-start.y)/2 + p.y)};
@@ -120,12 +120,12 @@ YOVALUE.GraphViewEdge.prototype = {
       //bottom middle
       var bm = {x:(middle.x-p.x/norm), y:(middle.y-p.y/norm)};
       //bottom end
-  //    var be = {x:(stop.x-p.x/norm), y:(stop.y-p.y/norm)};
-      var be = {x:(stop.x), y:(stop.y)};
+      var be = {x:(stop.x-p.x/norm), y:(stop.y-p.y/norm)};
+  //    var be = {x:(stop.x), y:(stop.y)};
 
       //up start
-    //  var us = {x:(stop.x+p.x/norm), y:(stop.y+p.y/norm)};
-      var us = {x:(stop.x), y:(stop.y)};
+      var us = {x:(stop.x+p.x/norm), y:(stop.y+p.y/norm)};
+  //    var us = {x:(stop.x), y:(stop.y)};
       //up middle
       var um = {x:(middle.x+p.x/norm), y:(middle.y+p.y/norm)};
       //up end
@@ -146,14 +146,51 @@ YOVALUE.GraphViewEdge.prototype = {
     ms.x = al*ms.x/msLength; ms.y = al*ms.y/msLength;
     // stop->middle vector perpendicular
     var msp = {x:-ms.x, y:ms.y};
-    var b1 = {x:stop.x+al*ms.x+msp.x,y:stop.y+al*ms.y+msp.y}; // upper corner of triangle
-    var b2 = {x:stop.x+al*ms.x-msp.x,y:stop.y+al*ms.y-msp.y}; // bottom corner of triangle
-  //  path += "M "+Math.round(b1.x)+delim+Math.round(b1.y)+" L "+Math.round(b2.x)+delim+Math.round(b2.y)+" L "+Math.round(stop.x)+delim+Math.round(stop.y)+" Z";
-//path += "M "+stop.x+delim+stop.y+" L "+middle.x+delim+middle.y;
-//path += "M "+stop.x+delim+stop.y+" L "+middle2.x+delim+middle2.y;
-//path += "M "+stop.x+delim+stop.y+" L "+middle3.x+delim+middle3.y;
-//path += "M "+stop.x+delim+stop.y+" L "+(start.x+(stop.x-start.x)/2)+delim+(start.y+(stop.y-start.y)/2);
+
+    // get intersection of stop circle and tangent line
+    if(typeof(opt_stopOffset) != 'undefined' && opt_stopOffset>0){
+      //console.info(middle.x,middle.y);
+      var mv = {x:(middle.x-stop.x), y:(middle.y-stop.y)};
+      var length = Math.sqrt(Math.pow(mv.x,2) + Math.pow(mv.y,2))/opt_stopOffset;
+
+
+      var cx = stop.x+mv.x/length, cy = stop.y+mv.y/length;
+      // draw circle around this point
+      path += this.describeArc(cx, cy, 3, 0, 359);
+
+    }
+    // tangent line
+    //path += "M "+stop.x+delim+stop.y+" L "+middle.x+delim+middle.y;
+
+    // line from stop circle the center of the bezier curve
+    //path += "M "+stop.x+delim+stop.y+" L "+middle2.x+delim+middle2.y;
+
+    // straight line form start circle to stop circle
+    //path += "M "+stop.x+delim+stop.y+" L "+middle3.x+delim+middle3.y;
 
     return path;
+  },
+
+  polarToCartesian: function (centerX, centerY, radius, angleInDegrees) {
+    var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+    return {
+      x: centerX + (radius * Math.cos(angleInRadians)),
+      y: centerY + (radius * Math.sin(angleInRadians))
+    };
+  },
+
+  describeArc: function (x, y, radius, startAngle, endAngle){
+    var start = this.polarToCartesian(x, y, radius, endAngle);
+    var end = this.polarToCartesian(x, y, radius, startAngle);
+
+    var arcSweep = endAngle - startAngle <= 180 ? "0" : "1";
+
+    var d = [
+      "M", start.x, start.y,
+      "A", radius, radius, 0, arcSweep, 0, end.x, end.y
+    ].join(" ");
+
+    return d;
   }
 };

@@ -388,7 +388,7 @@ YOVALUE.GraphView.prototype = {
    */
   arrangeEdgeShapes: function(){
     var doNeedRedraw = false,
-      i, edgeId, elEdge, edge, rows, p1, p2, nodeMapping = this.nodeMapping.mapping;
+      i, edgeId, elEdge, edge, rows, p1, p2, nodeMapping = this.nodeMapping.mapping, nodeDdecoration = this.decoration.nodes;
 
     //create array of model edge ids
     var edges = this.model.edges;
@@ -419,7 +419,9 @@ YOVALUE.GraphView.prototype = {
         stop: p2,
         color:this.decoration.edges[edge.id].color,
         opacity:this.decoration.edges[edge.id].opacity,
-        width:this.decoration.edges[edge.id].width
+        width:this.decoration.edges[edge.id].width,
+        sourceNodeRadius: nodeDdecoration[edge.source].size,
+        targetNodeRadius: nodeDdecoration[edge.target].size
       });
 
       this.graphViewElements.insertRow({'element':elEdge, 'elementType':elEdge.getElementType(),'elementId':elEdge.getElementId(),'drawerShapeId':elEdge.getDrawerShapeId()});
