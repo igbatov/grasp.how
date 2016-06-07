@@ -388,7 +388,7 @@ YOVALUE.GraphView.prototype = {
    */
   arrangeEdgeShapes: function(){
     var doNeedRedraw = false,
-      i, edgeId, elEdge, edge, rows, p1, p2, nodeMapping = this.nodeMapping.mapping, nodeDdecoration = this.decoration.nodes;
+      i, edgeId, elEdge, edge, rows, p1, p2, nodeMapping = this.nodeMapping.mapping, nodeDecoration = this.decoration.nodes;
 
     //create array of model edge ids
     var edges = this.model.edges;
@@ -411,7 +411,7 @@ YOVALUE.GraphView.prototype = {
       edge = edges[freeEdgeIdsArray[i]];
       p1 = {x:nodeMapping[edge.source].x, y:nodeMapping[edge.source].y};
       p2 = {x:nodeMapping[edge.target].x, y:nodeMapping[edge.target].y};
-
+//console.info(nodeDecoration);
       elEdge = this._createElement('edge', this.skin, {
         edgeId: edge.id,
         edgeType: edge.type,
@@ -420,11 +420,17 @@ YOVALUE.GraphView.prototype = {
         color:this.decoration.edges[edge.id].color,
         opacity:this.decoration.edges[edge.id].opacity,
         width:this.decoration.edges[edge.id].width,
-        sourceNodeRadius: nodeDdecoration[edge.source].size,
-        targetNodeRadius: nodeDdecoration[edge.target].size
+        sourceNodeRadius: nodeDecoration[edge.source].size,
+        targetNodeRadius: nodeDecoration[edge.target].size
       });
 
-      this.graphViewElements.insertRow({'element':elEdge, 'elementType':elEdge.getElementType(),'elementId':elEdge.getElementId(),'drawerShapeId':elEdge.getDrawerShapeId()});
+      this.graphViewElements.insertRow({
+        'element':elEdge,
+        'elementType':elEdge.getElementType(),
+        'elementId':elEdge.getElementId(),
+        'drawerShapeId':elEdge.getDrawerShapeId()
+      });
+
       //add node shape to node layer
       this.drawer.addShape(this.edgeLayerId, elEdge.getDrawerShape());
 
@@ -464,6 +470,16 @@ YOVALUE.GraphView.prototype = {
         elEdge.setColor(this.decoration.edges[edgeId].color);
         elEdge.setOpacity(this.decoration.edges[edgeId].opacity);
         elEdge.setWidth(this.decoration.edges[edgeId].width);
+      }
+
+      if(elEdge.getSourceNodeRadius() != nodeDecoration[edges[edgeId].source].size){
+        doNeedRedraw = true;
+        elEdge.setSourceNodeRadius(nodeDecoration[edges[edgeId].source].size);
+      }
+
+      if(elEdge.getTargetNodeRadius() != nodeDecoration[edges[edgeId].target].size){
+        doNeedRedraw = true;
+        elEdge.setTargetNodeRadius(nodeDecoration[edges[edgeId].target].size);
       }
     }
 

@@ -10,19 +10,21 @@ YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
   this.start =  args.start;
   this.stop =  args.stop;
   this.edgeType = args.edgeType;
-  this.width = args.width;
+  this.width = args.width == 1 || typeof(args.width) == 'undefined' ? null : args.width;
+  this.sourceNodeRadius = args.sourceNodeRadius;
+  this.targetNodeRadius = args.targetNodeRadius;
   this.drawer = drawer;
 
   this.graphViewElement = graphViewElement;
   YOVALUE.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createShape('path', {
-    data: this._getQuadPathData(args.start, args.stop, null, args.sourceNodeRadius, args.targetNodeRadius),
-    hitData: this._getQuadPathData(args.start, args.stop, 10),
+    data: this._getQuadPathData(this.start, this.stop, this.width, this.sourceNodeRadius, this.targetNodeRadius),
+    //hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
     opacity: args.opacity,
-    fill: 'none'
-   // fill: args.color
+    //fill: 'none'
+    fill: args.color
   });
 
   this.setWidth(this.width);
@@ -40,7 +42,6 @@ YOVALUE.GraphViewEdge.prototype = {
   getEdgeType: function(){
     return this.edgeType;
   },
-
   setEdgeType: function(edgeType){
     this.edgeType = edgeType;
   },
@@ -52,11 +53,10 @@ YOVALUE.GraphViewEdge.prototype = {
   setStart: function(point){
     if(this.start != point){
       this.start = point;
-      var pathData = this._getQuadPathData(this.start, this.stop);
+      var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
       this.shape.setData(pathData);
     }
   },
-
   /**
    *
    * @param point - {x:x, y:y}
@@ -64,7 +64,7 @@ YOVALUE.GraphViewEdge.prototype = {
   setStop: function(point){
     if(this.stop != point){
       this.stop = point;
-      var pathData = this._getQuadPathData(this.start, this.stop);
+      var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
       this.shape.setData(pathData);
     }
   },
@@ -72,7 +72,6 @@ YOVALUE.GraphViewEdge.prototype = {
   getStart: function(){
     return this.start;
   },
-
   getStop: function(){
     return this.stop;
   },
@@ -82,7 +81,6 @@ YOVALUE.GraphViewEdge.prototype = {
       this.shape.setStroke(color);
     }
   },
-
   getColor: function(){
     return this.shape.getStroke();
   },
@@ -91,9 +89,26 @@ YOVALUE.GraphViewEdge.prototype = {
     this.width = w;
     return this.shape.setStrokeWidth(Math.max(1, w));
   },
-
   getWidth: function(w){
     return this.width;
+  },
+
+  setSourceNodeRadius: function(v){
+    this.sourceNodeRadius = v;
+    var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
+    this.shape.setData(pathData);
+  },
+  getSourceNodeRadius: function(){
+    return this.sourceNodeRadius;
+  },
+
+  setTargetNodeRadius: function(v){
+    this.targetNodeRadius = v;
+    var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
+    this.shape.setData(pathData);
+  },
+  getTargetNodeRadius: function(){
+    return this.targetNodeRadius;
   },
 
   /**
@@ -114,7 +129,6 @@ YOVALUE.GraphViewEdge.prototype = {
 
     if(opt_width){
       var norm = 2*Math.sqrt((p.x)*(p.x)+(p.y)*(p.y))/opt_width;
-
       //bottom start
       var bs = {x:(start.x-p.x/norm), y:(start.y-p.y/norm)};
       //bottom middle
@@ -131,41 +145,43 @@ YOVALUE.GraphViewEdge.prototype = {
       //up end
       var ue = {x:(start.x+p.x/norm), y:(start.y+p.y/norm)};
 
-      path = "M "+Math.round(bs.x)+delim+Math.round(bs.y)+delim+CURV+" "+Math.round(bm.x)+delim+Math.round(bm.y)+delim+Math.round(be.x)+delim+Math.round(be.y)+delim+"L "+Math.round(us.x)+delim+Math.round(us.y)+delim+CURV+" "+Math.round(um.x)+delim+Math.round(um.y)+delim+Math.round(ue.x)+delim+Math.round(ue.y)+delim+"Z";
+      path = "M "+Math.round(bs.x)+delim+Math.round(bs.y)
+          +delim+CURV+" "+Math.round(bm.x)+delim+Math.round(bm.y)+delim+Math.round(be.x)+delim+Math.round(be.y)
+          +delim+"L "+Math.round(us.x)+delim+Math.round(us.y)
+          +delim+CURV+" "+Math.round(um.x)+delim+Math.round(um.y)+delim+Math.round(ue.x)+delim+Math.round(ue.y)+delim+"Z";
     }else{
-      path = "M "+Math.round(start.x)+delim+Math.round(start.y)+delim+CURV+" "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(stop.x)+delim+Math.round(stop.y);
+      path = "M "+Math.round(start.x)+delim+Math.round(start.y)
+          +delim+CURV+" "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(stop.x)+delim+Math.round(stop.y)
+          +delim+CURV+" "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(start.x)+delim+Math.round(start.y);
     }
 
-    // add arrow at the end of edge
-    var al = 5; // arrow length
-    // stop->middle vector
-    var middle2 = {x:(start.x+(stop.x-start.x)/2 + p.x/2), y:(start.y+(stop.y-start.y)/2 + p.y/2)};
-    var middle3 = {x:(start.x+(stop.x-start.x)/2), y:(start.y+(stop.y-start.y)/2)};
-    var ms = {x:-(stop.x-middle2.x), y:-(stop.y-middle2.y)};
-    var msLength = Math.sqrt(Math.pow(ms.x,2)+Math.pow(ms.y,2));
-    ms.x = al*ms.x/msLength; ms.y = al*ms.y/msLength;
-    // stop->middle vector perpendicular
-    var msp = {x:-ms.x, y:ms.y};
-
-    // get intersection of stop circle and tangent line
+    // add circle at the edge and circle intersection
     if(typeof(opt_stopOffset) != 'undefined' && opt_stopOffset>0){
-      //console.info(middle.x,middle.y);
+      // get intersection of stop circle and tangent line
       var mv = {x:(middle.x-stop.x), y:(middle.y-stop.y)};
-      var length = Math.sqrt(Math.pow(mv.x,2) + Math.pow(mv.y,2))/opt_stopOffset;
+      var mvLength = Math.sqrt(Math.pow(mv.x,2) + Math.pow(mv.y,2));
+      mv.x = mv.x/mvLength; mv.y = mv.y/mvLength;
+      var cx = stop.x+opt_stopOffset*mv.x, cy = stop.y+opt_stopOffset*mv.y;
 
+      // move this intersection 1 pixel in direction of perpendicular to straight line form start circle to stop circle
+      cx = cx - p.x/Math.sqrt((p.x)*(p.x)+(p.y)*(p.y)); cy = cy - p.y/Math.sqrt((p.x)*(p.x)+(p.y)*(p.y));
 
-      var cx = stop.x+mv.x/length, cy = stop.y+mv.y/length;
       // draw circle around this point
       path += this.describeArc(cx, cy, 3, 0, 359);
 
     }
+    // perpendicular to straight line form start circle to stop circle
+    //path += "M "+stop.x+delim+stop.y+" l "+(-p.x)+delim+(-p.y);
+
     // tangent line
     //path += "M "+stop.x+delim+stop.y+" L "+middle.x+delim+middle.y;
 
     // line from stop circle the center of the bezier curve
+    //var middle2 = {x:(start.x+(stop.x-start.x)/2 + p.x/2), y:(start.y+(stop.y-start.y)/2 + p.y/2)};
     //path += "M "+stop.x+delim+stop.y+" L "+middle2.x+delim+middle2.y;
 
     // straight line form start circle to stop circle
+    //var middle3 = {x:(start.x+(stop.x-start.x)/2), y:(start.y+(stop.y-start.y)/2)};
     //path += "M "+stop.x+delim+stop.y+" L "+middle3.x+delim+middle3.y;
 
     return path;
