@@ -1,0 +1,116 @@
+
+<script>
+  YOVALUE = {};
+  YOVALUE.getObjectKeys = function(obj) {
+    var keys = [], key;
+    for (key in obj) {
+      if (obj.hasOwnProperty(key)) keys.push(key);
+    }
+    return keys;
+  };
+</script>
+
+
+<script>
+  /**
+   * Is soft evidence is a kind of prior probability?
+   */
+
+  /**
+   *   h1 --> e1
+   *    \---> e2 <--- h2
+   */
+  var probabilities = {
+    e1: {
+      'soft':{1:0.75,2:0.25}, // soft evidence for e1 and ^e1
+      '1:h1_1':0.9,'2:h1_1':0.1, // sum must be equal to 1
+      '1:h1_2':0.2,'2:h1_2':0.8  // sum must be equal to 1
+    },
+    e2: {
+      'soft':{1:0.85,2:0.15}, // soft evidence for e2 and ^e2
+      '1:h1_1;h2_1':0.9,'2:h1_1;h2_1':0.1, // sum must be equal to 1
+      '1:h1_1;h2_2':0.1,'2:h1_1;h2_2':0.9, // sum must be equal to 1
+      '1:h1_2;h2_1':0.9,'2:h1_2;h2_1':0.1, // sum must be equal to 1
+      '1:h1_2;h2_2':0.1,'2:h1_2;h2_2':0.9  // sum must be equal to 1
+    },
+    h1: {
+      soft:{1:0.5,2:0.5} // soft evidence == prior probability
+    },
+    h2: {
+      soft:{1:0.5,2:0.5} // soft evidence == prior probability
+    }
+  };
+
+  var graph = {
+    // every node contains array of its alternatives
+    nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2'], 'h2':['1','2']},
+    edges:[['h1','e1'],['h1','e2'],['h2','e2']]
+  };
+
+  var BayesCalculator = function(){
+
+  };
+
+  BayesCalculator.prototype = {
+    calcEvidences: function (graph, probabilities){
+      var softEvidences = {};  // container for new soft evidences ( = posterior probabilities)
+      var leafs = this.getGraphLeafs(graph);
+
+      // for every parent calc its soft evidence ( = posterior probabilities for each alternative)
+      var parentIds = this.getParents(graph, leafs);
+      for(var i in parentIds){
+        var parentId = parentIds[i];
+        var childrens = this.getChildrens(graph, [parentId]);
+
+      }
+
+      return softEvidences;
+    },
+
+    getParents: function(graph, nodeIds){
+      var parents = [];
+      for(var i in graph.edges){
+        if(nodeIds.indexOf(graph.edges[i][1]) != -1) parents.push(graph.edges[i][0]);
+      }
+      return parents;
+    },
+
+    getChildrens: function(graph, nodeIds){
+      var childrens = [];
+      for(var i in graph.edges){
+        if(nodeIds.indexOf(graph.edges[i][0]) != -1) childrens.push(graph.edges[i][1]);
+      }
+      return childrens;
+    },
+
+    getGraphLeafs: function(graph){
+      var leafs = [];
+      var nodeIds = YOVALUE.getObjectKeys(graph.nodes);
+      for(var i in nodeIds){
+        var hasOutcomeEdge = false;
+        for(var j in graph.edges){
+          if(graph.edges[j][0] == nodeIds[i]){
+            hasOutcomeEdge = true;
+            break;
+          }
+        }
+        if(!hasOutcomeEdge) leafs.push(nodeIds[i]);
+      }
+      return leafs;
+    }
+  };
+
+  // unit tests
+  var bc = new BayesCalculator();
+
+  // getGraphLeafs unit test
+  console.log(bc.getGraphLeafs(graph), ['e1', 'e2']);
+
+  // getParents unit test
+  console.log(bc.getParents(graph,['e2']), ['h1','h2']);
+
+  // getChildrens unit test
+  console.log(bc.getChildrens(graph,['h1']), ['e1','e2']);
+
+
+</script>
