@@ -17,6 +17,8 @@
     // List of every node conditional DPDs given its child evidences.
     // Key of this.nodeDPD[nodeId] is the vector of concrete child evidences, value id DPD of node Alternatives
     this.nodeDPD = {};
+
+    this.posteriorProbability = {}; // key - nodeId, value - probabilities of node Alternatives
   };
 
   BayesCalculator.prototype = {
@@ -28,6 +30,8 @@
         // remove leafs from graph
         this.removeNodes(graph, this.getGraphLeafs(graph));
       }
+
+      return this.posteriorProbability;
     },
 
     /**
@@ -93,6 +97,11 @@
       var parentIds = this.getParents(graph, leafs);
       for(var i in parentIds){
         var parentId = parentIds[i];
+
+        // initialize parentId posterior DPD
+        var parentIdPosteriorDPD = {};
+        for(var j in graph.nodes[parentId]) parentIdPosteriorDPD[graph.nodes[parentId][j]] = 0;
+
         var childrenIds = this.getChildren(graph, [parentId]);
 
         // check that number children alternatives are not too much
@@ -101,10 +110,6 @@
         // if there are too much of them use approximate calculation
         if(locaChildren>this.MLOCA){
           console.info('Length Of Children Alternative Combinations = '+loca+'. Using approximate sampling.');
-
-          // initialize parentId sampled DPD
-          var parentIdPosteriorDPD = {};
-          for(var j in graph.nodes[parentId]) parentIdPosteriorDPD[graph.nodes[parentId][j]] = 0;
 
           // main sampling loop
           for(var c = 0; c<this.APPROX_SAMPLING_NUM; c++){
@@ -155,6 +160,7 @@
 
           // divide by overall number of events to get probability from counts
           for(var j in graph.nodes[parentId]) parentIdPosteriorDPD[graph.nodes[parentId][j]] /= this.APPROX_SAMPLING_NUM;
+          this.posteriorProbability[parentId] = parentIdPosteriorDPD;
         }
         // else use exact calculation
         else{
@@ -261,7 +267,7 @@
 
   // unit tests
   var bc = new BayesCalculator(10);
-
+/*
   // getGraphLeafs unit test
   console.log(bc.getGraphLeafs(graph), ['e1', 'e2']);
 
@@ -283,4 +289,7 @@
 
   // getRowsNum unit test
   console.log(bc.getRowsNum([{c1:1, c2:1, c3:1},{c1:2, c2:1, c3:1},{c1:1, c2:2, c3:1}], {c2:1,c3:1}), 2);
+*/
+  // calcAllEvidences unit test
+  console.log(bc.calcAllEvidences(graph, probabilities), {});
 </script>
