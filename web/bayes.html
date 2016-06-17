@@ -48,7 +48,7 @@
   };
 
   var BayesCalculator = function(){
-
+    this.MLOCA = 100000;  // Maximum Length Of Children Combination Alternatives
   };
 
   BayesCalculator.prototype = {
@@ -60,11 +60,40 @@
       var parentIds = this.getParents(graph, leafs);
       for(var i in parentIds){
         var parentId = parentIds[i];
-        var childrens = this.getChildrens(graph, [parentId]);
+        var childrenIds = this.getChildren(graph, [parentId]);
+
+        // check that number children alternatives are not too much
+        var loca = this.getLengthOfChildrenAlternativeCombinations(graph, childrenIds);
+
+        // if there are too much of them use Monte Carlo
+        if(loca>this.MLOCA){
+          console.log('Length Of Children Alternative Combinations = '+loca+'. Using approximate sampling.');
+
+        }
+        // else use exact calculation
+        else{
+          // get all combinations of children alternatives as array of objects [{e1:1, e2:1, .., en:1},...]
+
+        }
+
 
       }
 
       return softEvidences;
+    },
+
+    getSumByVectors: function(vectors){
+
+    },
+
+    getLengthOParentAlternativeCombinations: function(graph, parentIds){
+
+    },
+
+    getLengthOfChildrenAlternativeCombinations: function(graph, childrenIds){
+      var loca = 1;
+      for(var i in childrenIds) loca *= graph.nodes[childrenIds[i]].length;
+      return loca;
     },
 
     getParents: function(graph, nodeIds){
@@ -75,12 +104,12 @@
       return parents;
     },
 
-    getChildrens: function(graph, nodeIds){
-      var childrens = [];
+    getChildren: function(graph, nodeIds){
+      var children = [];
       for(var i in graph.edges){
-        if(nodeIds.indexOf(graph.edges[i][0]) != -1) childrens.push(graph.edges[i][1]);
+        if(nodeIds.indexOf(graph.edges[i][0]) != -1) children.push(graph.edges[i][1]);
       }
-      return childrens;
+      return children;
     },
 
     getGraphLeafs: function(graph){
@@ -110,7 +139,10 @@
   console.log(bc.getParents(graph,['e2']), ['h1','h2']);
 
   // getChildrens unit test
-  console.log(bc.getChildrens(graph,['h1']), ['e1','e2']);
+  console.log(bc.getChildren(graph,['h1']), ['e1','e2']);
+
+  // getLengthOfChildrenAlternativeCombinations unit test
+  console.log(bc.getLengthOfChildrenAlternativeCombinations(graph,['e1','e2']), 4);
 
 
 </script>
