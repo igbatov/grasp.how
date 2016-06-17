@@ -1,58 +1,91 @@
-
-<script>
-  YOVALUE = {};
-  YOVALUE.getObjectKeys = function(obj) {
-    var keys = [], key;
-    for (key in obj) {
-      if (obj.hasOwnProperty(key)) keys.push(key);
-    }
-    return keys;
-  };
-</script>
-
+<script src="xor4096.min.js"></script>
+<script src="Helpers.js"></script>
 
 <script>
   /**
    * Is soft evidence is a kind of prior probability?
    */
 
-  /**
-   *   h1 --> e1
-   *    \---> e2 <--- h2
-   */
-  var probabilities = {
-    e1: {
-      'soft':{1:0.75,2:0.25}, // soft evidence for e1 and ^e1
-      '1:h1_1':0.9,'2:h1_1':0.1, // sum must be equal to 1
-      '1:h1_2':0.2,'2:h1_2':0.8  // sum must be equal to 1
-    },
-    e2: {
-      'soft':{1:0.85,2:0.15}, // soft evidence for e2 and ^e2
-      '1:h1_1;h2_1':0.9,'2:h1_1;h2_1':0.1, // sum must be equal to 1
-      '1:h1_1;h2_2':0.1,'2:h1_1;h2_2':0.9, // sum must be equal to 1
-      '1:h1_2;h2_1':0.9,'2:h1_2;h2_1':0.1, // sum must be equal to 1
-      '1:h1_2;h2_2':0.1,'2:h1_2;h2_2':0.9  // sum must be equal to 1
-    },
-    h1: {
-      soft:{1:0.5,2:0.5} // soft evidence == prior probability
-    },
-    h2: {
-      soft:{1:0.5,2:0.5} // soft evidence == prior probability
-    }
-  };
-
-  var graph = {
-    // every node contains array of its alternatives
-    nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2'], 'h2':['1','2']},
-    edges:[['h1','e1'],['h1','e2'],['h2','e2']]
-  };
-
-  var BayesCalculator = function(){
-    this.MLOCA = 100000;  // Maximum Length Of Children Combination Alternatives
+  var BayesCalculator = function(approx_sampling_num){
+    //this.MLOCA = 100000;  // Maximum Length Of Children Combination Alternatives
+    this.MLOCA = 1;  // Maximum Length Of Children Combination Alternatives
+    this.APPROX_SAMPLING_NUM = typeof(approx_sampling_num) == 'undefined' ? 10000 : approx_sampling_num;
+    // Approximate joint probability for every layer in graph
+    // Every layer has this.APPROX_SAMPLING_NUM samples
+    this.approxJointProbability = {};
+    this.random = new xor4096('hello.');
+    // List of every node conditional DPDs given its child evidences.
+    // Key of this.nodeDPD[nodeId] is the vector of concrete child evidences, value id DPD of node Alternatives
+    this.nodeDPD = {};
   };
 
   BayesCalculator.prototype = {
-    calcEvidences: function (graph, probabilities){
+    calcAllEvidences: function (graph, probabilities){
+      while(graph.nodes.length>1){
+        // calculate evidences for parents if the leafs
+        this.calcLeafEvidences(graph, probabilities);
+
+        // remove leafs from graph
+        this.removeNodes(graph, this.getGraphLeafs(graph));
+      }
+    },
+
+    /**
+     * Generates value from given Discrete Probability Distribution
+     * dpd - discrete probability distribution in a form {v1:p1, v2:p2, ..., vn:pn}
+     * return v1 or v2 or ... vn
+     */
+    generateDPDValue: function(dpd){
+      var random = this.random();
+      var l=0, r=0;
+      for(var value in dpd){
+        r+=dpd[value];
+        if(l<random && random<r) return value;
+        l=r;
+      }
+    },
+
+    getApproxJointProbability: function(probabilities, parentIds, childrenIds, graph){
+      var layerId = JSON.stringify( parentIds );
+      // we already computed it - just return
+      if(typeof(this.approxJointProbability[layerId]) != 'undefined') return this.approxJointProbability[layerId];
+
+      // we have not yet computed it - do it now
+      var jointP = [];
+      var row = {};
+      // mare sure parentIds sorted
+      parentIds.sort();
+      for(var i=0; i<this.APPROX_SAMPLING_NUM; i++){
+        row = {};
+
+        // generate parents values
+        for(var j in parentIds){
+          row[parentIds[j]] = this.generateDPDValue(probabilities[parentIds[j]].soft);
+        }
+
+        // generate children values based on conditional probabilities of parents
+        for(var j in childrenIds){
+          // get parents of this child
+          var parentIds = this.getParents(graph, [childrenIds[j]]);
+          // get values of this child parents from all parents values
+          var childConditionalValues = {};
+          for(var k in parentIds){
+            if(typeof(row[parentIds[k]]) == 'undefined') throw new Error('There is no '+parentIds[k]+' in the all parents sample '+row);
+            childConditionalValues[parentIds[k]] = row[parentIds[k]];
+          }
+
+          var key = JSON.stringify(childConditionalValues);
+          var childProbabilities = probabilities[childrenIds[j]][key];
+          row[childrenIds[j]] = this.generateDPDValue(childProbabilities);
+        }
+        jointP.push(row);
+      }
+
+      this.approxJointProbability[layerId] = jointP;
+      return this.approxJointProbability[layerId];
+    },
+
+    calcLeafEvidences: function (graph, probabilities){
       var softEvidences = {};  // container for new soft evidences ( = posterior probabilities)
       var leafs = this.getGraphLeafs(graph);
 
@@ -63,12 +96,65 @@
         var childrenIds = this.getChildren(graph, [parentId]);
 
         // check that number children alternatives are not too much
-        var loca = this.getLengthOfChildrenAlternativeCombinations(graph, childrenIds);
+        var locaChildren = this.getLengthOfNodeAlternativeCombinations(graph, childrenIds);
 
-        // if there are too much of them use Monte Carlo
-        if(loca>this.MLOCA){
-          console.log('Length Of Children Alternative Combinations = '+loca+'. Using approximate sampling.');
+        // if there are too much of them use approximate calculation
+        if(locaChildren>this.MLOCA){
+          console.info('Length Of Children Alternative Combinations = '+loca+'. Using approximate sampling.');
 
+          // initialize parentId sampled DPD
+          var parentIdPosteriorDPD = {};
+          for(var j in graph.nodes[parentId]) parentIdPosteriorDPD[graph.nodes[parentId][j]] = 0;
+
+          // main sampling loop
+          for(var c = 0; c<this.APPROX_SAMPLING_NUM; c++){
+            // every child has its own soft evidence - generate vector (v1, v2, ...) of children values according to it
+            var evidenceValues = {};
+            for(var j in childrenIds) evidenceValues[childrenIds[j]] = this.generateDPDValue(probabilities[childrenIds[j]].soft);
+
+            // If we already calculated DPD for this evidence, just generate parentIdAlternative according to it
+            if(typeof(this.nodeDPD[parentId][JSON.stringify(evidenceValues)]) != 'undefined'){
+              parentIdPosteriorDPD[this.generateDPDValue(this.nodeDPD[parentId][JSON.stringify(evidenceValues)])]++;
+              continue;
+            }
+
+            // now we want P(parentId=Alternative|Child1=v1,Child2=v1,...) for every Alternative of parentId
+            // calculate parentId DPD given its children evidenceValues
+            var parentIdChildEvidenceDPD = {}; // key is Alternative, value its probability
+
+            // check how many parents combinations do we have
+            var locaParents = this.getLengthOfNodeAlternativeCombinations(graph, this.getParents(graph,locaChildren));
+
+            // if there are too much of them use approximate calculation
+            if(locaParents>this.MLOCA){
+              var jointP = this.getApproxJointProbability(probabilities, parentIds, this.getChildren(parentIds), graph);
+
+              // get sum of jointP rows with childrenIds = evidenceValues
+              var fullP = 0;
+              this.getRowsNum(jointP, evidenceValues);
+              for(var j in graph.nodes[parentId]){
+                var parentIdAlternative = graph.nodes[parentId][j];
+                // get sum of jointP rows with parentId = parentIdAlternative and childrenIds = evidenceValues
+                var fixedColumns = YOVALUE.clone(evidenceValues);
+                fixedColumns[parentId] = parentIdAlternative;
+                var parentIdAlternativeSUM = this.getRowsNum(jointP, fixedColumns);
+
+                // divide by fullP to get probability of P(parentId=Alternative|Child1=v1,Child2=v1,...)
+                parentIdChildEvidenceDPD[parentIdAlternative] = parentIdAlternativeSUM/fullP;
+              }
+            }
+            // there are not so much  parents for parentId children - use exact calculation
+            else{
+
+            }
+
+            this.nodeDPD[parentId][JSON.stringify(evidenceValues)] = parentIdChildEvidenceDPD;
+            // now generate parentIdAlternative according to just calculated parentIdChildEvidenceDPD
+            parentIdPosteriorDPD[this.generateDPDValue(parentIdChildEvidenceDPD)]++;
+          }
+
+          // divide by overall number of events to get probability from counts
+          for(var j in graph.nodes[parentId]) parentIdPosteriorDPD[graph.nodes[parentId][j]] /= this.APPROX_SAMPLING_NUM;
         }
         // else use exact calculation
         else{
@@ -82,17 +168,24 @@
       return softEvidences;
     },
 
-    getSumByVectors: function(vectors){
-
+    getRowsNum: function(table, fixedColumns){
+      var count = 0;
+      for(var i in table){
+        var match = true;
+        for(var j in fixedColumns){
+          if(table[i][j] != fixedColumns[j]){
+            match = false;
+            break;
+          }
+        }
+        if(match == true) count++;
+      }
+      return count;
     },
 
-    getLengthOParentAlternativeCombinations: function(graph, parentIds){
-
-    },
-
-    getLengthOfChildrenAlternativeCombinations: function(graph, childrenIds){
+    getLengthOfNodeAlternativeCombinations: function(graph, nodeIds){
       var loca = 1;
-      for(var i in childrenIds) loca *= graph.nodes[childrenIds[i]].length;
+      for(var i in nodeIds) loca *= graph.nodes[nodeIds[i]].length;
       return loca;
     },
 
@@ -126,11 +219,48 @@
         if(!hasOutcomeEdge) leafs.push(nodeIds[i]);
       }
       return leafs;
+    },
+
+    removeNodes: function(graph, nodeIds){
+      for(var i in nodeIds){
+        delete graph.nodes[nodeIds[i]];
+      }
     }
   };
 
+  /**
+   *   h1 --> e1
+   *    \---> e2 <--- h2
+   */
+  var probabilities = {
+    e1: {
+      soft:{1:0.75, 2:0.25}, // soft evidence for e1 and ^e1
+      '{"h1":"1"}':{1:0.9, 2:0.1}, // sum must be equal to 1
+      '{"h1":"2"}':{1:0.2, 2:0.8}  // sum must be equal to 1
+    },
+    e2: {
+      soft:{1:0.85, 2:0.15}, // soft evidence for e2 and ^e2
+      '{"h1":"1","h2":"1"}':{1:0.9, 2:0.1}, // sum must be equal to 1
+      '{"h1":"1","h2":"2"}':{1:0.1, 2:0.9}, // sum must be equal to 1
+      '{"h1":"2","h2":"1"}':{1:0.9, 2:0.1}, // sum must be equal to 1
+      '{"h1":"2","h2":"2"}':{1:0.1, 2:0.9}  // sum must be equal to 1
+    },
+    h1: {
+      soft:{1:0.5, 2:0.5} // soft evidence == prior probability
+    },
+    h2: {
+      soft:{1:0.5, 2:0.5} // soft evidence == prior probability
+    }
+  };
+
+  var graph = {
+    // every node contains array of its alternatives
+    nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2'], 'h2':['1','2']},
+    edges:[['h1','e1'],['h1','e2'],['h2','e2']]
+  };
+
   // unit tests
-  var bc = new BayesCalculator();
+  var bc = new BayesCalculator(10);
 
   // getGraphLeafs unit test
   console.log(bc.getGraphLeafs(graph), ['e1', 'e2']);
@@ -142,7 +272,15 @@
   console.log(bc.getChildren(graph,['h1']), ['e1','e2']);
 
   // getLengthOfChildrenAlternativeCombinations unit test
-  console.log(bc.getLengthOfChildrenAlternativeCombinations(graph,['e1','e2']), 4);
+  console.log(bc.getLengthOfNodeAlternativeCombinations(graph,['e1','e2']), 4);
 
+  // generateDPDValue unit test
+  console.log(bc.generateDPDValue({1:0.2, 2:0.8}), 2);
+  console.log(bc.generateDPDValue({1:0.2, 2:0.8}), 1);
 
+  //
+  console.log(bc.getApproxJointProbability(probabilities, ['h1', 'h2'], ['e1', 'e2'], graph));
+
+  // getRowsNum unit test
+  console.log(bc.getRowsNum([{c1:1, c2:1, c3:1},{c1:2, c2:1, c3:1},{c1:1, c2:2, c3:1}], {c2:1,c3:1}), 2);
 </script>
