@@ -339,10 +339,10 @@ YOVALUE.debug = (function(Table){
 })(YOVALUE.Table);
 
 /**
- * This will create clone from Object o (thanks to Rick Waldron)
- * @param o
+ * This will create clone from Object obj (thanks to Rick Waldron)
+ * @param obj
  * @param forceDescriptor - force every cloned property to have new descriptor - forceDescriptor (so it is possible to unfreeze objects)
- * @return {*} - clone of o
+ * @return {*} - clone of obj
  */
 YOVALUE.clone = function clone( obj, forceDescriptor ) {
  //if(YOVALUE.typeof(obj) != 'object') console.log('=====================================',obj,typeof(obj),YOVALUE.typeof(obj));
