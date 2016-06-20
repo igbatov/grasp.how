@@ -6,7 +6,8 @@
    * Is soft evidence is a kind of prior probability?
    */
 
-  var BayesCalculator = function(approx_sampling_num, mloca){
+  var BayesCalculator = function(approx_sampling_num, mloca, is_debug_on){
+    this.IS_DEBUG_ON = typeof(is_debug_on) == 'undefined' ? false : is_debug_on;
     this.MLOCA = typeof(mloca) == 'undefined' ? 10000 : mloca;  // Maximum Length Of Children Combination Alternatives
     this.APPROX_SAMPLING_NUM = typeof(approx_sampling_num) == 'undefined' ? 10000 : approx_sampling_num;
     // For every layer of graph (i.e. array of parents and their direct children)
@@ -14,30 +15,54 @@
     // generated according to conditional probabilities (these are stored in children).
     // For every parent prior probabilities of alternatives are equal
     this.jointSamples = {};
-    this.random = new xor4096('hello.');
+    this.setRandomSeed();
     // List of every node conditional DPDs given its child evidences.
     // Key of this.nodeDPD[nodeId] is the vector of concrete child evidences, value id DPD of node Alternatives
     this.nodeDPD = {};
 
     this.posteriorProbability = {}; // key - nodeId, value - probabilities of node Alternatives
+
+    this.graph = {};
   };
 
   BayesCalculator.prototype = {
+    setApproxSamplingNum: function(approx_sampling_num){
+      this.APPROX_SAMPLING_NUM = approx_sampling_num;
+    },
+
+    setMLOCA: function(mloca){
+      this.MLOCA = mloca;
+    },
+
+    setRandomSeed: function(){
+      this.random = new xor4096('hello.');
+    },
+
     getEvidences: function (graph, probabilities){
-      var maxCount = 1000, cnt=0;
-      while(YOVALUE.getObjectLength(graph.nodes)>0){
+      // we will change it, so clone
+      this.graph = YOVALUE.clone(graph);
+
+      this.setRandomSeed();
+
+      // drop previous cached data
+      this.jointSamples = {};
+      this.nodeDPD = {};
+      this.posteriorProbability = {};
+
+      var maxCount = 1000, cnt=0; // emergency break
+      while(YOVALUE.getObjectLength(this.graph.nodes)>0){
         cnt++;
-        var leafs = this.getGraphLeafs(graph);
+        var leafs = this.getGraphLeafs(this.graph);
 
         // for every parent calculate its soft evidence ( = posterior probabilities for each alternative)
-        var parentIds = this.getParents(graph, leafs);
+        var parentIds = this.getParents(this.graph, leafs);
 
         // calculate evidences for parents if the leafs
-        var evidences = this.getLayerEvidences(parentIds, graph, probabilities);
+        var evidences = this.getLayerEvidences(parentIds, this.graph, probabilities);
         for(var i in evidences) this.posteriorProbability[i] = evidences[i];
 
         // remove leafs from graph
-        this.removeNodes(graph, this.getGraphLeafs(graph));
+        this.removeNodes(this.graph, this.getGraphLeafs(this.graph));
         if(cnt>maxCount) break;
       }
 
@@ -62,7 +87,6 @@
     /**
      * Generate this.APPROX_SAMPLING_NUM samples of parents and its children values
      * The result is the table with this.APPROX_SAMPLING_NUM rows.
-     * Every row
      *
      */
     getJointSamples: function(probabilities, parentIds, childrenIds, graph){
@@ -148,7 +172,7 @@
       // init posteriorDPD
       var posteriorDPD = {}; for(var j in parent) posteriorDPD[parent[j]] = 0;
       if(this.getMethod(childrenIds) == 'approximate'){
-        console.info('Node '+parentId+'. Method: approximate.');
+        if(this.IS_DEBUG_ON) console.info('Node '+parentId+'. Method: approximate.');
 
         // CACHE: init container to save already computed DPDs
         if(typeof(this.nodeDPD[parentId]) == 'undefined') this.nodeDPD[parentId] = {};
@@ -170,13 +194,16 @@
             continue;
           }
 
-          // now we want P(parentId=Alternative|Child1=v1,Child2=v1,...) for every Alternative of parentId
+          // now we want P(parentId=Alternative|evidenceValues) for every Alternative of parentId
           // I.e. parentId DPD given its children hard evidence
           var childEvidenceDPD = {}; // key is Alternative, value its probability
 
           if(this.getMethod(this.getParents(graph,childrenIds)) == 'approximate'){
+            if(this.IS_DEBUG_ON) console.info('Node '+parentId+', number of other parents is '+this.getParents(graph,childrenIds).length+'. Method: approximate.');
             var jointSamples = this.getJointSamples(probabilities, parentIds, this.getChildren(graph, parentIds), graph);
+            //console.info('jointSamples = ', jointSamples);
             childEvidenceDPD = this.getApproxDPD(parentId, parent, evidenceValues, jointSamples);
+            if(this.IS_DEBUG_ON) console.info('P('+parentId+'|', evidenceValues, ') = ', childEvidenceDPD);
           }
           // there are not so much parents for parentId children - use exact calculation
           else{
@@ -194,7 +221,7 @@
       }
       // else use exact calculation
       else{
-        console.info('Node '+parentId+'. Method: exact.');
+        if(this.IS_DEBUG_ON) console.info('Node '+parentId+'. Method: exact.');
 
         var childEvidenceDPD = {};
 
@@ -207,13 +234,13 @@
           for(var j in evidenceValues){
             var softP = 1;
             for(var k in evidenceValues[j]) softP *= probabilities[k].soft[evidenceValues[j][k]];
-            console.info('evidenceValues='+JSON.stringify(evidenceValues[j]), 'softP='+softP, 'P('+parentId+'='+parent[i]+'|evidenceValues)='+childEvidenceDPD[JSON.stringify(evidenceValues[j])][parent[i]]);
+            if(this.IS_DEBUG_ON) console.info('evidenceValues='+JSON.stringify(evidenceValues[j]), 'softP='+softP, 'P('+parentId+'='+parent[i]+'|',evidenceValues[j],')='+childEvidenceDPD[JSON.stringify(evidenceValues[j])][parent[i]]);
             posteriorDPD[parent[i]] += softP*childEvidenceDPD[JSON.stringify(evidenceValues[j])][parent[i]];
           }
         }
       }
 
-      console.info('Node '+parentId+' posteriorDPD = ', posteriorDPD);
+      if(this.IS_DEBUG_ON) console.info('Node '+parentId+' posteriorDPD = ', posteriorDPD);
       return posteriorDPD;
     },
 
@@ -226,7 +253,7 @@
     getExactDPD: function(graph, probabilities, parent, parentId, evidenceValues, parentIds, childrenIds){
       // get all combinations of parent alternatives as array of objects [{h1:1, h2:1, ..., hn:1},...]
       var parentsValues = this.getValuesTable(this.getNodes(graph, parentIds));
-//console.log('parentsValues',YOVALUE.clone(parentsValues));
+
       // joinP is a table of joint probabilities for parentsValues given current (fixed) evidenceValues
       // For example for evidenceValues = {e1:2,e2:2}
       // jointP = {
@@ -487,32 +514,33 @@
   };
 
   // unit tests
-  var bc = new BayesCalculator(1000, 1000);
-/*
+  var bc = new BayesCalculator(2, 1000);
+
   // getGraphLeafs unit test
-  console.log(bc.getGraphLeafs(graph4), ['e1', 'e2']);
+  console.log('getGraphLeafs', YOVALUE.compare(bc.getGraphLeafs(graph4), ['e1', 'e2']));
 
   // getParents unit test
-  console.log(bc.getParents(graph4,['e2']), ['h1','h2']);
+  console.log('getParents', YOVALUE.compare(bc.getParents(graph4,['e2']), ['h1','h2']));
 
   // getChildrens unit test
-  console.log(bc.getChildren(graph4,['h1']), ['e1','e2']);
+  console.log('getChildrens', YOVALUE.compare(bc.getChildren(graph4,['h1']), ['e1','e2']));
 
   // getLengthOfChildrenAlternativeCombinations unit test
-  console.log(bc.getLengthOfNodeAlternativeCombinations(graph4,['e1','e2']), 4);
+  console.log('getLengthOfChildrenAlternativeCombinations', YOVALUE.compare(bc.getLengthOfNodeAlternativeCombinations(graph4,['e1','e2']), 4));
 
   // generateDPDValue unit test
-  console.log(bc.generateDPDValue({1:0.2, 2:0.8}), 2);
-  console.log(bc.generateDPDValue({1:0.2, 2:0.8}), 1);
+  bc.setRandomSeed();
+  console.log('generateDPDValue', YOVALUE.compare(bc.generateDPDValue({1:0.2, 2:0.8}), '2'));
+  console.log('generateDPDValue', YOVALUE.compare(bc.generateDPDValue({1:0.2, 2:0.8}), '1'));
 
-  //
-  console.log(bc.getJointSamples(probabilities2, ['h1', 'h2'], ['e1', 'e2'], graph4));
+  // generate table of samples for all nodes of graph
+  console.log('getJointSamples', YOVALUE.compare(bc.getJointSamples(probabilities4, ['h1', 'h2'], ['e1', 'e2'], graph4), [{"h1":"2","h2":"1","e1":"2","e2":"2"},{"h1":"2","h2":"2","e1":"2","e2":"2"}]));
 
   // getRowsNum unit test
-  console.log(bc.getRowsNum([{c1:1, c2:1, c3:1},{c1:2, c2:1, c3:1},{c1:1, c2:2, c3:1}], {c2:1,c3:1}), 2);
+  console.log('getRowsNum', YOVALUE.compare(bc.getRowsNum([{c1:1, c2:1, c3:1},{c1:2, c2:1, c3:1},{c1:1, c2:2, c3:1}], {c2:1,c3:1}), 2));
 
   // getValuesTable unit test
-  console.log(YOVALUE.compare(bc.getValuesTable({e1:[11, 12], e2:[21,22], e3:[31, 32]}), [
+  console.log('getValuesTable', YOVALUE.compare(bc.getValuesTable({e1:[11, 12], e2:[21,22], e3:[31, 32]}), [
     {e1:11,e2:21,e3:31},
     {e1:11,e2:21,e3:32},
     {e1:11,e2:22,e3:31},
@@ -522,11 +550,28 @@
     {e1:12,e2:22,e3:31},
     {e1:12,e2:22,e3:32},
   ]));
- */
-  // getEvidences unit test
- // console.log(YOVALUE.compare(bc.getEvidences(graph1, probabilities1), {h1:{1:0.5952380952380953,2:0.40476190476190477}}));
-  //console.log(YOVALUE.compare(bc.getEvidences(graph2, probabilities2), {h1:{1: 0.7786640442890443, 2: 0.22133595571095574}}));
- // console.log(YOVALUE.compare(bc.getEvidences(graph3, probabilities3), {h1:{1: 0.7619047619047619, 2: 0.23809523809523808}, h2:{1: 0.7619047619047619, 2: 0.23809523809523808}}));
-  console.log(bc.getEvidences(graph4, probabilities4));
+
+  // getEvidences - exact method unit test
+
+  console.log('getEvidences: exact method, graph1',
+          YOVALUE.compare(bc.getEvidences(graph1, probabilities1), {h1:{1:0.5952380952380953,2:0.40476190476190477}}));
+  console.log('getEvidences: exact method, graph2',
+          YOVALUE.compare(bc.getEvidences(graph2, probabilities2), {h1:{1: 0.7786640442890443, 2: 0.22133595571095574}}));
+  console.log('getEvidences: exact method, graph3',
+          YOVALUE.compare(bc.getEvidences(graph3, probabilities3), {h1:{1: 0.7619047619047619, 2: 0.23809523809523808}, h2:{1: 0.7619047619047619, 2: 0.23809523809523808}}));
+  console.log('getEvidences: exact method, graph4',
+          YOVALUE.compare(bc.getEvidences(graph4, probabilities4), {h1:{1:0.7748953174485089, 2:0.22510468255149113}, h2:{1:0.7619047619047619, 2:0.23809523809523808}}));
+
+  // getEvidences - approximate method unit test
+  bc.setApproxSamplingNum(10000);
+  bc.setMLOCA(-1);
+  console.log('getEvidences: approximate method, graph1',
+          YOVALUE.compare(bc.getEvidences(graph1, probabilities1), {h1:{1:0.5931,2:0.4069}}));
+  console.log('getEvidences: approximate method, graph2',
+          YOVALUE.compare(bc.getEvidences(graph2, probabilities2), {h1:{1: 0.7749, 2: 0.2251}}));
+  console.log('getEvidences: approximate method, graph3',
+          YOVALUE.compare(bc.getEvidences(graph3, probabilities3), {h1:{1: 0.7498, 2: 0.2502},h2:{1: 0.7581, 2: 0.2419}}));
+  console.log('getEvidences: approximate method, graph4',
+          YOVALUE.compare(bc.getEvidences(graph4, probabilities4), {h1:{1: 0.7631, 2: 0.2369},h2:{1: 0.7588, 2: 0.2412}}));
 
 </script>
