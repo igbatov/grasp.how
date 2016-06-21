@@ -154,9 +154,9 @@ describe("BayesCalculator", function(){
   });
 
   it("getEvidences: exact method", function () {
-    expect(this.bc.getEvidences(this.graph1, this.probabilities1)).toEqual({h1:{1:0.5952380952380953,2:0.40476190476190477}});
-    expect(this.bc.getEvidences(this.graph2, this.probabilities2)).toEqual({h1:{1: 0.7786640442890443, 2: 0.22133595571095574}});
-    expect(this.bc.getEvidences(this.graph3, this.probabilities3)).toEqual({h1:{1: 0.7619047619047619, 2: 0.23809523809523808}, h2:{1: 0.7619047619047619, 2: 0.23809523809523808}});
+    expect(this.bc.getEvidences(this.graph1, this.probabilities1)).toEqual({h1:{1:0.5952380952380953, 2:0.40476190476190477}});
+    expect(this.bc.getEvidences(this.graph2, this.probabilities2)).toEqual({h1:{1:0.7786640442890443, 2:0.22133595571095574}});
+    expect(this.bc.getEvidences(this.graph3, this.probabilities3)).toEqual({h1:{1:0.7619047619047619, 2:0.23809523809523808}, h2:{1:0.7619047619047619, 2:0.23809523809523808}});
     expect(this.bc.getEvidences(this.graph4, this.probabilities4)).toEqual({h1:{1:0.7748953174485089, 2:0.22510468255149113}, h2:{1:0.7619047619047619, 2:0.23809523809523808}});
   });
 
@@ -164,7 +164,7 @@ describe("BayesCalculator", function(){
   it("getEvidences: approximate method", function () {
     this.bc.setApproxSamplingNum(10000);
     this.bc.setMLOCA(-1);
-    expect(this.bc.getEvidences(this.graph1, this.probabilities1)).toEqual({h1:{1:0.5931,2:0.4069}});
+    expect(this.bc.getEvidences(this.graph1, this.probabilities1)).toEqual({h1:{1: 0.5931, 2: 0.4069}});
     expect(this.bc.getEvidences(this.graph2, this.probabilities2)).toEqual({h1:{1: 0.7749, 2: 0.2251}});
     expect(this.bc.getEvidences(this.graph3, this.probabilities3)).toEqual({h1:{1: 0.7498, 2: 0.2502},h2:{1: 0.7581, 2: 0.2419}});
     expect(this.bc.getEvidences(this.graph4, this.probabilities4)).toEqual({h1:{1: 0.7631, 2: 0.2369},h2:{1: 0.7588, 2: 0.2412}});

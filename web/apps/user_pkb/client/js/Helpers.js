@@ -1313,3 +1313,9 @@ YOVALUE.isChildOf = function(child, parent) {
     return YOVALUE.isChildOf(child.parentNode, parent);
   }
 };
+
+/**
+ * https://github.com/davidbau/xsrand/blob/master/xor4096.js
+ * @type {xor4096}
+ */
+YOVALUE.randomGeneratorFactory = xor4096;

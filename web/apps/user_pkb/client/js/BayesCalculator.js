@@ -30,7 +30,7 @@ YOVALUE.BayesCalculator.prototype = {
   },
 
   setRandomSeed: function(){
-    this.random = xor4096('hello.');
+    this.randomGenerator = this.randomGeneratorFactory('hello.');
   },
 
   getEvidences: function (graph, probabilities){
@@ -70,7 +70,7 @@ YOVALUE.BayesCalculator.prototype = {
    * return v1 or v2 or ... vn
    */
   generateDPDValue: function(dpd){
-    var random = this.random();
+    var random = this.randomGenerator();
     var l=0, r=0;
     for(var value in dpd){
       r+=dpd[value];

@@ -182,6 +182,8 @@ var DI = {
 // Creating and wiring modules according to DI array.
 // After wireModules call Modules['moduleName'] = module (i.e. object instantiated from constructor)
 YOVALUE.wireModules(Modules, DI);
+
+// Link modules with event subscriptions
 Modules['Mediator'].setSubscriptions(
   {
     'show_graphs':[Modules['GraphControllerPubSub']],
