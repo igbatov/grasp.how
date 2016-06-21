@@ -62,7 +62,9 @@ var Modules = {
 
   imageLoader: YOVALUE.imageLoader,
 
-  NodeListCache: YOVALUE.NodeListCache
+  NodeListCache: YOVALUE.NodeListCache,
+
+  BayesCalculator: YOVALUE.BayesCalculator
 };
 
 /**
@@ -172,7 +174,9 @@ var DI = {
 
   GraphElementEditor: ['Publisher', 'ViewManager', 'UIElements', 'jQuery', YOVALUE.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
 
-  NodeListCache: ['Publisher']
+  NodeListCache: ['Publisher'],
+
+  BayesCalculator: [10000, 1000, YOVALUE.randomGeneratorFactory, false]
 };
 
 // Creating and wiring modules according to DI array.

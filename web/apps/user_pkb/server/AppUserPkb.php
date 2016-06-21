@@ -1057,7 +1057,9 @@ class AppUserPkb extends App
       //'GraphDecorations/iDecoration.js',
 
       'GraphElementEditor.js',
-      'NodeListCache.js'
+      'NodeListCache.js',
+
+      'BayesCalculator.js',
     );
   }
 }

@@ -6,7 +6,7 @@
    * Is soft evidence is a kind of prior probability?
    */
 
-  var BayesCalculator = function(approx_sampling_num, mloca, is_debug_on){
+  var BayesCalculator = function(approx_sampling_num, mloca, randomGeneratorFactory, is_debug_on){
     this.IS_DEBUG_ON = typeof(is_debug_on) == 'undefined' ? false : is_debug_on;
     this.MLOCA = typeof(mloca) == 'undefined' ? 10000 : mloca;  // Maximum Length Of Children Combination Alternatives
     this.APPROX_SAMPLING_NUM = typeof(approx_sampling_num) == 'undefined' ? 10000 : approx_sampling_num;
@@ -15,6 +15,8 @@
     // generated according to conditional probabilities (these are stored in children).
     // For every parent prior probabilities of alternatives are equal
     this.jointSamples = {};
+    this.randomGenerator = {};
+    this.randomGeneratorFactory = randomGeneratorFactory;
     this.setRandomSeed();
     // List of every node conditional DPDs given its child evidences.
     // Key of this.nodeDPD[nodeId] is the vector of concrete child evidences, value id DPD of node Alternatives
@@ -35,7 +37,7 @@
     },
 
     setRandomSeed: function(){
-      this.random = new xor4096('hello.');
+      this.randomGenerator = this.randomGeneratorFactory('hello.');
     },
 
     getEvidences: function (graph, probabilities){
@@ -75,7 +77,7 @@
      * return v1 or v2 or ... vn
      */
     generateDPDValue: function(dpd){
-      var random = this.random();
+      var random = this.randomGenerator();
       var l=0, r=0;
       for(var value in dpd){
         r+=dpd[value];
@@ -514,7 +516,7 @@
   };
 
   // unit tests
-  var bc = new BayesCalculator(2, 1000);
+  var bc = new BayesCalculator(2, 1000, xor4096, false);
 
   // getGraphLeafs unit test
   console.log('getGraphLeafs', YOVALUE.compare(bc.getGraphLeafs(graph4), ['e1', 'e2']));

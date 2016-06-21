@@ -21,6 +21,7 @@ $app = new AppUserPkb($c, $s, $db, $eh, $l);
   <script type="text/javascript" src="jasmineCanvasDrawerExt.js"></script>
   <script type="text/javascript" src="jasmineCanvasDrawerEventSimulation.js"></script>
   <script type="text/javascript" src="../../../lib/client/stacktrace-0.4.js"></script>
+  <script type="text/javascript" src="../../../lib/client/xor4096.min.js"></script>
 
   <!-- YOVALUE source files -->
   <?php foreach($app->getJsIncludeList() as $js_include) : ?>
@@ -29,11 +30,11 @@ $app = new AppUserPkb($c, $s, $db, $eh, $l);
 
   <!--- data for spec files (fixtures) of unit tests --->
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/fixtures/GraphFormatConverter.js"></script>
-  <!--- data for spec files (fixtures) of integration tests --->
+  <!--- data for spec files (fixtures) of integration tests
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/fixtures/CanvasDrawer.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/fixtures/GraphView.js"></script>
-
-  <!-- Spec files of unit tests -->
+--->
+  <!-- Spec files of unit tests
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Helpers.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Mediator.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Publisher.js"></script>
@@ -42,10 +43,13 @@ $app = new AppUserPkb($c, $s, $db, $eh, $l);
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingTree.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingForceDirected.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingTreeNode.js"></script>
+  -->
+  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/BayesCalculator.js"></script>
 
-  <!-- Spec files of integration tests -->
+  <!-- Spec files of integration tests
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/CanvasDrawer.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/GraphView.js"></script>
+  -->
 <!--
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/LayoutTreeMorph.js"></script>
 

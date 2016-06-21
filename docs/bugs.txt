@@ -6,18 +6,6 @@
 И тогда, после 10ти лет работы вы сможете, наконец понять чему стоило посвящать свою жизнь.
 Я предлагаю краудсорсить этот процесс.
 
-Админские команды:
-Создать нового пользователя http://my.grasp.how/createNewUser/<login>/<password>/<admin secret>
-Обновить пароль пользователя http://my.grasp.how/updateUserPassword/<login>/<password>/<admin_secret>
-Удалить граф http://grasp.local/removeGraph/<graph id>/<admin_secret>
-
-Из-под пользователя:
-Создание нового графа http://grasp.local/createNewGraph?data={"name":"newName"}
-Удалить граф http://grasp.local/removeGraph?data={"graph_id":"1234567"}
-Скопировать граф вместе с историей http://grasp.local/copyGraph?data={"name":"newName","graph_id":"123456"}
-Склонировать граф http://grasp.local/cloneGraph?data={"graph_id":"222","history_step":"333"}
-Запуск тестов http://grasp.local/lib/client/jasmine/jasmin.php
-
 - надо описать интерфейс YOVALUE.CanvasDrawer.Circle, YOVALUE.CanvasDrawer.Text, YOVALUE.CanvasDrawer.Path, YOVALUE.CanvasDrawer.Rect
 (иначе он начинает расползаться - this.backgroundShape._id в GraphView.js, shape._id в GraphViewElement.js)
 - если править название а потом мышкой навести на этот же узел, то остается старое название
