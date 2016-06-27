@@ -784,7 +784,7 @@ class AppUserPkb extends App
   }
 
   private function createNewGraph($auth_id, $name){
-    $graph = '{"name":"'.$name.'","isEditable":true, "attributes":{"isInTrash":false}, "edgeTypes":["link","in_favour_of","contrary_to"],"nodeTypes":["fact","research","theory","hypothesis","illustration","theory_problem", "question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"link"}';
+    $graph = '{"name":"'.$name.'","isEditable":true, "attributes":{"isInTrash":false}, "edgeTypes":["link","in_favour_of","contrary_to"],"nodeTypes":["fact","proposition","illustration","question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"link"}';
     $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."', created_at = NOW()";
     $graph_id = $this->db->execute($q);
 
@@ -792,7 +792,7 @@ class AppUserPkb extends App
     $q = "INSERT INTO graph_history SET graph_id = '".$graph_id."', step = '1', timestamp = unix_timestamp(NOW()), elements = '".$elements."'";
     $this->db->execute($q);
 
-    $default_skin = '{"node":{"constr":{"withoutIcon":"GraphViewNode","withIcon":"GraphViewNodeImage"},"attr":{"typeColors":{"fact":"#00BFFF","research":"#87CEFA","theory":"#3CB371","hypothesis":"#8FBC8F","illustration":"#FF69B4","theory_problem":"#FF0000","question":"#FFFFE0","to_read":"#FFFF00","best_known_practice":"#FFA500"}}},"edge":{"constr":"GraphViewEdge","attr":{"typeColors":{"link":"#00BFFF","in_favour_of":"#87CEFA","contrary_to":"#3CB371"}}},"nodeLabel":{"constr":"GraphViewNodeLabel","attr":{"font":"Calibri","fill":"#BBBBBB","maxSize":24}}}';
+    $default_skin = '{"node":{"constr":{"withoutIcon":"GraphViewNode","withIcon":"GraphViewNodeImage"},"attr":{"typeColors":{"fact":"#00BFFF","proposition":"#3CB371","illustration":"#FF69B4","question":"#FFFFE0","to_read":"#FFFF00","best_known_practice":"#FFA500"}}},"edge":{"constr":"GraphViewEdge","attr":{"typeColors":{"link":"#00BFFF","in_favour_of":"#87CEFA","contrary_to":"#3CB371"}}},"nodeLabel":{"constr":"GraphViewNodeLabel","attr":{"font":"Calibri","fill":"#BBBBBB","maxSize":24}}}';
     $settings = '{"skin":'.$default_skin.',"layout":"basicLayout","position":"not to be shown"}';
     $q = "INSERT INTO graph_settings SET graph_id = '".$graph_id."', settings = '".$settings."'";
     $this->db->execute($q);

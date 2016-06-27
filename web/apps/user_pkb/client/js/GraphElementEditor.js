@@ -1,7 +1,8 @@
 /**
  * Module that allows to edit node and edge content and properties.
  * You can think of it as node editor's View in MVC model.
- * It fires 'request_for_graph_element_content_change' when user manipulates an editor (writes text, changes node type and etc.)
+ * It fires 'request_for_graph_element_content_change' when user manipulates an editor
+ * (writes text, changes node type and etc.)
  * @param publisher
  * @param ViewManager
  * @param UI
@@ -36,7 +37,7 @@ YOVALUE.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIn
 
 YOVALUE.GraphElementEditor.prototype = {
   NODE_TYPE_FACT: 'fact',
-  NODE_TYPE_PROPOSITION: 'theory',
+  NODE_TYPE_PROPOSITION: 'proposition',
   eventListener: function(event){
     var $ = this.jQuery, v;
     if(event.getData().position == 'rightGraphView') v = $('#'+this.leftContainer.id);
@@ -46,7 +47,11 @@ YOVALUE.GraphElementEditor.prototype = {
     switch (eventName)
     {
       case "show_graph_element_editor":
-        var newElementHash = JSON.stringify({graphId:event.getData().graphId, elementId:event.getData().elementType == 'node' ? event.getData().node.id : event.getData().edge.id});
+        var newElementHash = JSON.stringify({
+          graphId:event.getData().graphId,
+          elementId:event.getData().elementType == 'node' ? event.getData().node.id : event.getData().edge.id,
+          alternativeId:event.getData().elementType == 'node' && event.getData().node.type == this.NODE_TYPE_PROPOSITION ? event.getData().node.alternativeId :null
+        });
 
         // only one editor can be opened
         if(this.currentElementHash != null && this.currentElementHash != newElementHash) return;
@@ -111,6 +116,25 @@ YOVALUE.GraphElementEditor.prototype = {
         that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeNode', elementId: node.id}]);
       }
     };
+    var addAlternative = function(){
+
+      var modalWindow = that.UI.createModal();
+      var form = that.UI.createForm({
+        label: {label:'Введите название альтернативной теории',type:'text',value:'',callback:function(){}},
+        'button':{'type':'button', value:'Добавить'}
+      },
+      // form submit callback
+      function (form) {
+        // set form fields to item
+        that.publisher.publish(["request_for_graph_element_content_change", {graphId: graphId, type: 'addAlternative', nodeContentId: node.nodeContentId}]);
+        that.UI.closeModal(modalWindow);
+      });
+      that.UI.setModalContent(modalWindow, form);
+
+    };
+    var editConditionals = function(){
+
+    };
 
     /*
     var addIcon = function(files,ul){
@@ -128,10 +152,12 @@ YOVALUE.GraphElementEditor.prototype = {
     var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
 
     var form = this.UI.createForm({
-      label:       {type:'textarea',value:node.label,callback:attrChange},
+      addAlternative:{type:'button',value:'Add alternative',callback:addAlternative},
       type:        {type:'select',options:types,value:node.type,callback:attrChange},
       importance:  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange},
-      reliability: {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange,disabled:(node.type == this.NODE_TYPE_FACT)},
+      label:       {type:'textarea',value:node.label,callback:attrChange},
+      editConditionals:{type:'button',value:'Conditional probabilities',callback:editConditionals},
+      reliability: {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange,disabled:true},
       //  icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
       removeButton:{type:'button',value:'remove',callback:removeNode}
     });

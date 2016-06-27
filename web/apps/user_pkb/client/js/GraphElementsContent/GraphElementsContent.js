@@ -30,6 +30,10 @@ YOVALUE.GraphElementsContent.prototype = {
           er = {};
           ed = event.getData();
 
+        }
+        // add node alternative
+        else if(event.getData()['type'] == 'addAlternative'){
+
         }else if(event.getData()['type'] == 'updateNodeAttribute'){
           e = this.cacheElementAttributes.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].attributes;
           e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
