@@ -114,23 +114,35 @@ YOVALUE.ModelChangeController.prototype = {
     for(i in graphModel.getEdges()) edgeContentIds.push(graphModel.getEdges()[i].edgeContentId);
     this.publisher
       .publish(["get_selected_skin", graphId],
-            ["get_selected_layout", graphId],
-            ["get_elements_attributes", {nodes:nodeContentIds, edges:edgeContentIds}])
+        ["get_selected_layout", graphId],
+        ["get_elements_attributes", {nodes:nodeContentIds, edges:edgeContentIds}])
       .then(function(s, l, c){
-            skin = s;
-            layout = l;
-            graphNodeAttributes = c['nodes'];
-            graphEdgeAttributes = c['edges'];
+          skin = s;
+          layout = l;
 
-            // Decorate nodes and edges with size and color
-            decoration = that.publisher.getInstant("get_graph_decoration", {
-                  graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
-                  graphNodeAttributes:graphNodeAttributes,
-                  graphEdgeAttributes:graphEdgeAttributes,
-                  scale:Math.min(graphArea.width, graphArea.height),
-                  skin:skin
-              }
-            );
+          // c['nodes'] gives us attributes for alternatives, but we need only for active alternative
+          // - so cut off all others here
+          graphNodeAttributes = c['nodes'];
+      //    console.log(YOVALUE.clone(graphNodeAttributes));
+          for(var i in graphNodeAttributes){
+            var nodeAttributes = graphNodeAttributes[i];
+            for(var j in nodeAttributes['alternatives'][nodeAttributes['active_alternative_id']]){
+              graphNodeAttributes[i][j] = nodeAttributes['alternatives'][nodeAttributes['active_alternative_id']][j];
+            }
+            delete graphNodeAttributes[i]['alternatives'];
+          }
+        //  console.log(YOVALUE.clone(graphNodeAttributes));
+          graphEdgeAttributes = c['edges'];
+
+          // Decorate nodes and edges with size and color
+          decoration = that.publisher.getInstant("get_graph_decoration", {
+              graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},
+              graphNodeAttributes:graphNodeAttributes,
+              graphEdgeAttributes:graphEdgeAttributes,
+              scale:Math.min(graphArea.width, graphArea.height),
+              skin:skin
+            }
+          );
 
           // Create node label layout for GraphView
           for(nodeId in graphNodes){

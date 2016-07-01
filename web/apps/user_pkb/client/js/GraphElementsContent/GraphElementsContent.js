@@ -1,9 +1,11 @@
 /**
  * This module is used by node editor to get/set graph nodes contents and attributes
  * It encapsulates read/write from/to repository and caching
- * You can think of it as extra layer above repository that implements caching and some extra logic for addNode, addIcon events
+ * You can think of it as extra layer above repository that implements caching and some extra logic for addNode,
+ * addIcon events
  *
- * Though client (javascript) code do not rely on structure of contentId, I describe it here for reference - contentId has the form 'graphId-contentId' or 'graphId-contentId/graphId-contentId' for diff graph.
+ * Though client (javascript) code do not rely on structure of contentId, I describe it here for reference -
+ * contentId has the form 'graphId-contentId' or 'graphId-contentId/graphId-contentId' for diff graph.
  * Client code only implies that every node has unique (global) string contentId across all graphs
  *
  * @param publisher
@@ -12,8 +14,11 @@
 
 YOVALUE.GraphElementsContent = function(publisher){
   this.publisher = publisher;
+  // this is filled all at once for the whole graph at the very beginning
   this.cacheElementAttributes = new YOVALUE.Cache(['contentId', 'elementType', 'attributes'], 5000000); //contentId is edgeContentId or nodeContentUd
-  this.cacheNodeTexts = new YOVALUE.Cache(['nodeContentId', 'text'], 10000000);
+  // this is filled for every concrete node upon request (because we assume that it can contain a lot of data)
+  // and contain full node structure with attributes and alternatives
+  this.cacheNodeContent = new YOVALUE.Cache(['nodeContentId', 'content'], 10000000);
 };
 
 YOVALUE.GraphElementsContent.prototype = {
@@ -25,8 +30,8 @@ YOVALUE.GraphElementsContent.prototype = {
       case "request_for_graph_element_content_change":
         var e, er, ed;
         if(event.getData()['type'] == 'updateNodeText'){
-          e = this.cacheNodeTexts.get({nodeContentId: event.getData()['nodeContentId']})[0];
-          e['text'] = event.getData()['text'];
+          e = this.cacheNodeContent.get({nodeContentId: event.getData()['nodeContentId']})[0];
+          e['content']['alternatives'][event.getData()['alternativeId']]['text'] = event.getData()['text'];
           er = {};
           ed = event.getData();
 
@@ -34,11 +39,15 @@ YOVALUE.GraphElementsContent.prototype = {
         // add node alternative
         else if(event.getData()['type'] == 'addAlternative'){
 
-        }else if(event.getData()['type'] == 'updateNodeAttribute'){
+        }
+        // update general node attribute
+        else if(event.getData()['type'] == 'updateNodeAttribute'){
           e = this.cacheElementAttributes.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].attributes;
           e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+
           er = {};
           ed = event.getData();
+        }else if(event.getData()['type'] == 'updateNodeAlternativeAttribute'){
 
         }else if(event.getData()['type'] == 'updateEdgeAttribute'){
           e = this.cacheElementAttributes.get({elementType: 'edge', contentId: event.getData().edgeContentId})[0].attributes;
@@ -62,16 +71,15 @@ YOVALUE.GraphElementsContent.prototype = {
         }else if(event.getData()['type'] == 'addNode'){
 
           // function to save new node (here and in repo) and to set response with new node
-          var saveNewNode = function(graphId, newNode){
+          var saveNewNode = function(graphId, nodeContentId, attributes, content){
             if(typeof(graphId) == 'undefined') YOVALUE.errorHandler.throwError('no graphId');
             if(typeof(newNode) == 'undefined') YOVALUE.errorHandler.throwError('no newNode');
 
             that.publisher
-              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:newNode}])
+              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:content}])
               .then(function(nodeContentId){
-                newNode.nodeContentId = nodeContentId;
-                that.cacheElementAttributes.add({elementType:'node', contentId:newNode.nodeContentId, attributes:newNode});
-                that.cacheNodeTexts.add({contentId:newNode.nodeContentId, text:''});
+                that.cacheElementAttributes.add({elementType:'node', contentId:nodeContentId, attributes:attributes});
+                that.cacheNodeContent.add({contentId:newNode.nodeContentId, content:content});
                 event.setResponse(newNode);
               });
           };
@@ -80,14 +88,17 @@ YOVALUE.GraphElementsContent.prototype = {
           if(event.getData().element.nodeContentId != null){
             //retrieve node attributes and text
             this.publisher
-              .publish(["get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]}],
-                    ["get_graph_node_text", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]}])
-              .then(function(attributes, texts){
+              .publish(
+                    ["get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]}],
+                    ["get_graph_node_content", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]}])
+              .then(function(attributes, contents){
                 // create new node and copy all info from old
-                var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
-                newNode = attributes.nodes[event.getData().element.nodeContentId];
-                newNode.text = texts[event.getData().element.nodeContentId];
-                saveNewNode(event.getData()['graphId'], newNode);
+                saveNewNode(
+                    event.getData()['graphId'],
+                    event.getData().element.nodeContentId,
+                    attributes.nodes[event.getData().element.nodeContentId],
+                    contents[event.getData().element.nodeContentId]
+                );
               });
           }
           // if it is brand new node just set default values and call saveNewNode
@@ -169,32 +180,32 @@ YOVALUE.GraphElementsContent.prototype = {
         }
         break;
 
-      case "get_graph_node_text":
+      case "get_graph_node_content":
         var data = event.getData();
-        var i, nodeContentId;
-        var cachedTexts = [];
+        var i, nodeContentId, alternativeId;
+        var cachedContents = [];
         var unavaliableNodeContentIds = [];
 
         // determine node contents that is not yet retrieved from server
         for(i in data['nodeContentIds']){
           nodeContentId = data['nodeContentIds'][i];
-          var rows = this.cacheNodeTexts.get({nodeContentId:nodeContentId});
-          if(rows.length) cachedTexts[nodeContentId] = rows[0].text;
+          var rows = this.cacheNodeContent.get({nodeContentId:nodeContentId});
+          if(rows.length) cachedContents[nodeContentId] = rows[0]['content'];
           else unavaliableNodeContentIds.push(nodeContentId);
         }
 
         // retrieve absent node content from server
         if(unavaliableNodeContentIds.length > 0){
           this.publisher
-            .publish(["repository_get_graph_node_text", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds}])
-            .then(function(nodeTexts){
-              for(var nodeContentId in nodeTexts){
-                that.cacheNodeTexts.add({nodeContentId: nodeContentId, text: nodeTexts[nodeContentId]});
+            .publish(["repository_get_graph_node_content", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds}])
+            .then(function(nodeContents){
+              for(var nodeContentId in nodeContents){
+                that.cacheNodeContent.add({nodeContentId: nodeContentId, content: nodeContents[nodeContentId]});
               }
-              event.setResponse(YOVALUE.deepmerge(cachedTexts, nodeTexts));
+              event.setResponse(YOVALUE.deepmerge(cachedContents, nodeContents));
             });
         }else{
-          event.setResponse(cachedTexts);
+          event.setResponse(cachedContents);
         }
         break;
 

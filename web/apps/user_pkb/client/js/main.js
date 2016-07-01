@@ -1,4 +1,4 @@
-var DEBUG_MODE = true;
+var DEBUG_MODE = !true;
 
 /**
  * List of modules
@@ -64,6 +64,7 @@ var Modules = {
 
   NodeListCache: YOVALUE.NodeListCache,
 
+  BayesPubSub: YOVALUE.BayesPubSub,
   BayesCalculator: YOVALUE.BayesCalculator
 };
 
@@ -176,7 +177,8 @@ var DI = {
 
   NodeListCache: ['Publisher'],
 
-  BayesCalculator: [10000, 1000, YOVALUE.randomGeneratorFactory, false]
+  BayesCalculator: [10000, 1000, YOVALUE.randomGeneratorFactory, false],
+  BayesPubSub: ['Publisher','BayesCalculator']
 };
 
 // Creating and wiring modules according to DI array.
@@ -191,7 +193,8 @@ Modules['Mediator'].setSubscriptions(
     // model events
     'graph_model_changed':[
       Modules['GraphControllerPubSub'],
-      Modules['GraphHistory']
+      Modules['GraphHistory'],
+      Modules['BayesPubSub']
     ],
     'graph_history_item_added':[
       Modules['GraphControllerPubSub'],
@@ -199,7 +202,8 @@ Modules['Mediator'].setSubscriptions(
     ],
     'graph_element_content_changed':[
       Modules['GraphControllerPubSub'],
-      Modules['Repository']
+      Modules['Repository'],
+      Modules['BayesPubSub']
     ],
     'graph_position_changed':[
       Modules['GraphControllerPubSub'],
@@ -233,7 +237,7 @@ Modules['Mediator'].setSubscriptions(
     'get_graph_decoration':[Modules['GraphDecorationsPubSub']],
 
     'get_elements_attributes':[Modules['GraphElementsContent']],
-    'get_graph_node_text':[Modules['GraphElementsContent']],
+    'get_graph_node_content':[Modules['GraphElementsContent']],
     'request_for_graph_element_content_change':[Modules['GraphElementsContent']],
 
     'load_graph_models':[Modules['GraphModelsPubSub']],
@@ -293,7 +297,6 @@ Modules['Mediator'].setSubscriptions(
       Modules['NodeListCache'],
       Modules['Repository']],
     'node_list_reload':[Modules['NodeListCache']],
-    'get_graph_node_list':[Modules['NodeListCache']],
 
     'create_new_graph':[Modules['Repository']],
     'send_pending_requests':[Modules['Repository']],
@@ -303,7 +306,7 @@ Modules['Mediator'].setSubscriptions(
     'repository_get_graphs_model_settings':[Modules['Repository']],
     'repository_get_graphs_model_elements':[Modules['Repository']],
     'repository_get_graph_elements_attributes':[Modules['Repository']],
-    'repository_get_graph_node_text':[Modules['Repository']],
+    'repository_get_graph_node_content':[Modules['Repository']],
     'repository_get_graphs_history_timeline':[Modules['Repository']],
     'repository_get_graphs_clone_list':[Modules['Repository']],
     'repository_update_node_mapping':[Modules['Repository']],

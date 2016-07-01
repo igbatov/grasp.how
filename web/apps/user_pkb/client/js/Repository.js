@@ -152,8 +152,8 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'repository_get_graph_node_text'){
-      this.pendingRequests.push({url:'getGraphNodeText', data:e.getData(), callback:function(data){
+    }else if(name == 'repository_get_graph_node_content'){
+      this.pendingRequests.push({url:'getGraphNodeContent', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
       }});
       this.sendPendingRequests();

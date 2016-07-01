@@ -9,6 +9,7 @@ class AppUserPkb extends App
   const HISTORY_CHUNK = 3; // number of graph in history chunk
   private $node_basic_types;
   private $node_attribute_names;
+  private $alternative_attribute_names;
   private $edge_attribute_names;
   private $contentIdConverter;
 
@@ -86,8 +87,9 @@ class AppUserPkb extends App
     }
 
     // define node and edge attributes (must be the same as db table column names)
-    $this->node_basic_types = array('fact'=>'fact','proposition'=>'theory');
-    $this->node_attribute_names = array('type', 'label', 'reliability', 'importance', 'has_icon');
+    $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
+    $this->node_attribute_names = array('type', 'importance', 'has_icon');
+    $this->alternative_attribute_names = array('label', 'reliability','p','is_active_alternative');
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
@@ -129,9 +131,9 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($chunk));
         break;
 
-      case 'getGraphNodeText':
+      case 'getGraphNodeContent':
         $content_ids = $this->getRequest()['nodeContentIds'];
-        $node_texts = array();
+        $node_contents = array();
         foreach($content_ids as $content_id){
           if(GraphDiffCreator::isDiffContentId($content_id)){
             $contentId = GraphDiffCreator::decodeContentId($content_id);
@@ -150,11 +152,47 @@ class AppUserPkb extends App
             // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
             $graph_id = $this->contentIdConverter->getGraphId($content_id);
             $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-            $node_rows = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
-            $node_texts[$content_id] = $node_rows[0]['text'];
+            $node_rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+
+            $content = array();
+            // general node attributes
+            foreach($this->node_attribute_names as $name){
+              $content[$name] = $node_rows[0][$name];
+            }
+
+            // alternatives
+            $content['alternatives'] = array();
+            foreach($node_rows as $node_row){
+              $alternative = array();
+              // set active alternative id
+              if($node_row['is_active_alternative']) $content['active_alternative_id'] = $node_row['alternative_id'];
+
+              // alternative attributes
+              foreach($this->alternative_attribute_names as $name){
+                $alternative[$name] = $node_row[$name];
+              }
+
+              // alternative text
+              $alternative['text'] = $node_row['text'];
+
+              // get alternative lists
+              $q = "SELECT * FROM ".($content['type'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification').
+                  " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
+              $this->log($q);
+              $rows = $this->db->execute($q);
+              $list_items = array();
+              foreach($rows as $row){
+                $list_items[$row['id']] = $row;
+              }
+              $alternative['list'] = $list_items;
+
+              $content['alternatives'][$node_row['alternative_id']] = $alternative;
+            }
+
+            $node_contents[$content_id] = $content;
           }
         }
-        $this->showRawData(json_encode($node_texts));
+        $this->showRawData(json_encode($node_contents));
         break;
 
       case 'getIcon':
@@ -175,11 +213,31 @@ class AppUserPkb extends App
         foreach($r['nodes'] as $content_id){
           $graph_id = $this->contentIdConverter->getGraphId($content_id);
           $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+
+          $node_attributes = array();
+
+          // == fill in node attributes ==
           $node_row = $node_rows[0];
+          // general attributes
+          foreach($this->node_attribute_names as $name){
+            $node_attributes[$name] = $node_row[$name];
+          }
+          // icon
           $node_row['iconSrc'] = $node_row['has_icon'] == 1 ? 'getIcon/?data="'.$content_id.'"' : null;
           unset($node_row['has_icon']);
-          $nodes[$content_id] = $node_row;
+          // set active alternative
+          foreach($node_rows as $row){
+            if($row['is_active_alternative']) $node_attributes['active_alternative_id'] = $row['alternative_id'];
+          }
+
+          //  == fill in attributes for every alternative ==
+          $node_attributes['alternatives'] = array();
+          foreach($node_rows as $row){
+            if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
+            foreach($this->alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
+          }
+          $nodes[$content_id] = $node_attributes;
         }
 
         foreach($r['edges'] as $content_id){
@@ -424,6 +482,7 @@ class AppUserPkb extends App
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
           $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
             ."', local_content_id='".$local_content_id
+            ."', alternative_id='".$r['alternativeId']
             ."', source_type='".$r['item']['source_type']
             ."', `name`='".$this->db->escape($r['item']['name'])
             ."', url='".$this->db->escape($r['item']['url'])
@@ -447,6 +506,7 @@ class AppUserPkb extends App
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
           $q = "INSERT INTO node_content_falsification SET graph_id='".$graph_id
             ."', local_content_id='".$local_content_id
+            ."', alternative_id='".$r['alternativeId']
             ."', `name`='".$this->db->escape($r['item']['name'])
             ."', comment='".$this->db->escape($r['item']['comment'])."' ";
 
@@ -464,6 +524,7 @@ class AppUserPkb extends App
         if($r['nodeType'] == $this->node_basic_types['fact']) {
           $q = "UPDATE node_content_source SET "
             . "local_content_id='" . $local_content_id
+            . "', alternative_id='".$r['alternativeId']
             . "', source_type='" . $r['item']['source_type']
             . "', `name`='" . $this->db->escape($r['item']['name'])
             . "', url='" . $this->db->escape($r['item']['url'])
@@ -499,6 +560,7 @@ class AppUserPkb extends App
         if($r['nodeType'] == $this->node_basic_types['fact']) {
           $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
             ."' AND local_content_id='".$local_content_id
+            ."' AND alternative_id='".$r['alternativeId']
             ."' AND source_type='".$this->db->escape($r['item']['source_type'])
             ."' AND url='".$this->db->escape($r['item']['url'])
             ."' AND author='".$this->db->escape($r['item']['author'])
@@ -513,26 +575,13 @@ class AppUserPkb extends App
         }else{
           $q = "DELETE FROM node_content_falsification WHERE graph_id='".$graph_id
             ."' AND local_content_id='".$local_content_id
+            ."' AND alternative_id='".$r['alternativeId']
             ."' AND name='".$this->db->escape($r['item']['name'])
             ."' AND comment='".$this->db->escape($r['item']['comment'])."' ";
           $this->log($q);
           $this->db->execute($q);
           $this->showRawData(json_encode(array('result'=>'SUCCESS')));
         }
-        break;
-
-      case 'getNodeContentList':
-        $r = $this->getRequest();
-        $graph_id = $r['graphId'];
-        $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-        $q = "SELECT * FROM ".($r['nodeType'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification')." WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
-        $this->log($q);
-        $rows = $this->db->execute($q);
-        $items = array();
-        foreach($rows as $row){
-          $items[$row['id']] = $row;
-        }
-        $this->showRawData(json_encode($items));
         break;
 
       case 'findPublishers':
@@ -1059,7 +1108,8 @@ class AppUserPkb extends App
       'GraphElementEditor.js',
       'NodeListCache.js',
 
-      'BayesCalculator.js',
+      'Bayes/BayesPubSub.js',
+      'Bayes/BayesCalculator.js',
     );
   }
 }

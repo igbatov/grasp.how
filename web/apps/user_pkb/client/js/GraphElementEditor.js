@@ -49,8 +49,8 @@ YOVALUE.GraphElementEditor.prototype = {
       case "show_graph_element_editor":
         var newElementHash = JSON.stringify({
           graphId:event.getData().graphId,
-          elementId:event.getData().elementType == 'node' ? event.getData().node.id : event.getData().edge.id,
-          alternativeId:event.getData().elementType == 'node' && event.getData().node.type == this.NODE_TYPE_PROPOSITION ? event.getData().node.alternativeId :null
+          elementId:event.getData().elementType == 'node' ? event.getData().node.id : event.getData().edge.id
+         // alternativeId:event.getData().elementType == 'node' && event.getData().node.type == this.NODE_TYPE_PROPOSITION ? event.getData().node.alternativeId :null
         });
 
         // only one editor can be opened
@@ -116,8 +116,8 @@ YOVALUE.GraphElementEditor.prototype = {
         that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeNode', elementId: node.id}]);
       }
     };
-    var addAlternative = function(){
 
+    var addAlternative = function(){
       var modalWindow = that.UI.createModal();
       var form = that.UI.createForm({
         label: {label:'Введите название альтернативной теории',type:'text',value:'',callback:function(){}},
@@ -132,6 +132,7 @@ YOVALUE.GraphElementEditor.prototype = {
       that.UI.setModalContent(modalWindow, form);
 
     };
+
     var editConditionals = function(){
 
     };
@@ -171,7 +172,7 @@ YOVALUE.GraphElementEditor.prototype = {
   },
 
   /**
-   * Create promises to add text and source list or falsification list
+   * Create promises to add text and source list (for fact) or falsification list (for proposition)
    * @param form
    * @param node
    * @param graphId
@@ -192,13 +193,13 @@ YOVALUE.GraphElementEditor.prototype = {
 
     this.publisher
       .publish(
-        ['get_graph_node_text', {graphId:graphId, nodeContentIds:[node.nodeContentId]}],
-        ['get_graph_node_list', {graphId:graphId, nodeContentId:node.nodeContentId, nodeType:node.type}]
+        ['get_graph_node_content', {graphId:graphId, nodeContentIds:[node.nodeContentId]}]
       )
       // nodes - text, list - sources or falsifications
-      .then(function(nodes, list){
+      .then(function(contents){
+          console.log(contents);
         // add node text
-        var nodeText = nodes[node.nodeContentId];
+        var nodeText = contents[node.nodeContentId]['alternatives'][contents[node.nodeContentId]['active_alternative_id']]['text'];
         YOVALUE.setDisplay(that.ajaxIndicator,'none');
         if(isEditable){
           form.appendChild(YOVALUE.createElement(
@@ -218,6 +219,7 @@ YOVALUE.GraphElementEditor.prototype = {
         if(node.type != that.NODE_TYPE_FACT && node.type != that.NODE_TYPE_PROPOSITION) return;
 
         // create HTMLElements from list
+        var list = contents[node.nodeContentId]['alternatives'][contents[node.nodeContentId]['active_alternative_id']]['list'];
         var items = [];
         for(var i in list) items[i] = that._createHTMLFromListItem(list[i], node.type);
         var updateListItem = function(id, el){
