@@ -133,6 +133,10 @@ YOVALUE.GraphElementEditor.prototype = {
 
     };
 
+    var selectAlternative = function(alternative){
+      console.log('alternative selected', alternative);
+    };
+
     var editConditionals = function(){
 
     };
@@ -153,6 +157,7 @@ YOVALUE.GraphElementEditor.prototype = {
     var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
 
     var form = this.UI.createForm({
+      alternatives:{type:'select',options:[],callback:selectAlternative},
       addAlternative:{type:'button',value:'Add alternative',callback:addAlternative},
       type:        {type:'select',options:types,value:node.type,callback:attrChange},
       importance:  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange},
@@ -197,9 +202,20 @@ YOVALUE.GraphElementEditor.prototype = {
       )
       // nodes - text, list - sources or falsifications
       .then(function(contents){
-          console.log(contents);
+        console.log(contents);
+
+        var alternatives = contents[node.nodeContentId]['alternatives'];
+        // create list of alternative labels
+        var alternativeLabels = {};
+        for(var i in alternatives){
+          alternativeLabels[i] = alternatives[i].label;
+        }
+
+        // update alternative list
+        that.UI.updateForm(form,'alternatives',{options:alternativeLabels, value:contents[node.nodeContentId]['active_alternative_id']});
+
         // add node text
-        var nodeText = contents[node.nodeContentId]['alternatives'][contents[node.nodeContentId]['active_alternative_id']]['text'];
+        var nodeText = alternatives[contents[node.nodeContentId]['active_alternative_id']]['text'];
         YOVALUE.setDisplay(that.ajaxIndicator,'none');
         if(isEditable){
           form.appendChild(YOVALUE.createElement(
@@ -219,7 +235,7 @@ YOVALUE.GraphElementEditor.prototype = {
         if(node.type != that.NODE_TYPE_FACT && node.type != that.NODE_TYPE_PROPOSITION) return;
 
         // create HTMLElements from list
-        var list = contents[node.nodeContentId]['alternatives'][contents[node.nodeContentId]['active_alternative_id']]['list'];
+        var list = alternatives[contents[node.nodeContentId]['active_alternative_id']]['list'];
         var items = [];
         for(var i in list) items[i] = that._createHTMLFromListItem(list[i], node.type);
         var updateListItem = function(id, el){
