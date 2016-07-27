@@ -222,12 +222,12 @@ YOVALUE.GraphMenu.prototype = {
       $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
 
       // create left and right select box
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createSelectBox('leftGraphView', items, leftGraphId, onSelect));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox('rightGraphView', items, rightGraphId, onSelect));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createSelectBox({name:'leftGraphView', items:items, defaultValue:leftGraphId, callback:onSelect}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox({name:'rightGraphView', items:items, defaultValue:rightGraphId, callback:onSelect}));
 
       // add edit and remove buttons to the right of select boxes
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('EditName','Edit name', function(){onEdit('leftGraphView')}));
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Remove', 'Remove', function(){onRemove('leftGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'EditName',label:'Edit name', callback:function(){onEdit('leftGraphView')}}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('leftGraphView')}}));
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Clones', 'Clones', function(){showClones('leftGraphView')}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Edit', 'Edit', function(){onEdit('rightGraphView')}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Remove', 'Remove', function(){onRemove('rightGraphView')}));
