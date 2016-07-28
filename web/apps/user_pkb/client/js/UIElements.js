@@ -194,9 +194,9 @@ YOVALUE.UIElements.prototype = {
   createButton: function(attrs){
     var uniqId = this.generateId();
     var el = YOVALUE.createElement('button',{id:uniqId, name:attrs.name, class:'ui_button',disabled:attrs.disabled},attrs.label);
-    if(typeof(callback) != 'undefined'){
+    if(typeof(attrs.callback) != 'undefined'){
       el.addEventListener('click', function(evt){
-        callback(evt);
+        attrs.callback(evt);
       });
     }
 
@@ -296,7 +296,7 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'text') form.appendChild(this.createTextBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'textarea') form.appendChild(this.createTextareaBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'date') form.appendChild(this.createDate({name:name, value:fields[name]['value'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
-      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox({name:name, items:fields[name]['options'], defaultValue:fields[name]['value'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId}));
+      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox({name:name, items:fields[name]['items'], defaultValue:fields[name]['value'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId}));
       if(fields[name]['type'] == 'button'){
         // if button field has callback - use it, if no - use general form callback and pass form data to it
         form.appendChild(this.createButton({
@@ -340,6 +340,33 @@ YOVALUE.UIElements.prototype = {
     var els = this.elements.getRows({formname:form.id, name:name});
     if(els.length){
       var el = els[0];
+
+      // fill in absent attrs from old version
+      for(var i in el.definition) if(typeof(attrs[i]) == 'undefined') attrs[i] = el.definition[i];
+console.log(attrs);
+      // create new version
+      var newDom = null;
+      if(el.type == 'search') newDom = this.createSearch(attrs);
+      if(el.type == 'selectBox') newDom = this.createSelectBox(attrs);
+      if(el.type == 'fileBox') newDom = this.createFileBox(attrs);
+      if(el.type == 'range') newDom = this.createRange(attrs);
+      if(el.type == 'button') newDom = this.createButton(attrs);
+      if(el.type == 'textBox') newDom = this.createTextBox(attrs);
+      if(el.type == 'textareaBox') newDom = this.createTextareaBox(attrs);
+      if(el.type == 'hidden') newDom = this.createHidden(attrs);
+      if(el.type == 'title') newDom = this.createTitle(attrs);
+
+      //var oldDom = document.getElementById(el.id);
+      var oldDom = el.dom;
+      console.log(oldDom, newDom);
+      oldDom.parentNode.insertBefore(newDom, oldDom);
+      oldDom.parentNode.removeChild(oldDom);
+
+      // remove old version
+      this.elements.removeRowByIds(this.elements.getRowIds({id:el.id}));
+
+      newDom.dispatchEvent(new Event('input'));
+/*
       // if attrs has 'options' field then remove old list and create new one
       if(el.type == 'selectBox' && YOVALUE.getObjectKeys(attrs).indexOf('options') != -1){
         var options = attrs['options'];
@@ -347,7 +374,7 @@ YOVALUE.UIElements.prototype = {
 
         var value = typeof(attrs['value']) == 'undefined' ? selectedItemDom.value : attrs['value'];
         var callback = typeof(attrs['callback']) == 'undefined' ? el.callback : attrs['callback'];
-        var disabled = typeof(attrs['disabled']) == 'undefined' ? el.definition[el.definition.length - 2] : attrs['disabled'];
+        var disabled = typeof(attrs['disabled']) == 'undefined' ? el.definition['disabled'] : attrs['disabled'];
         var newDom = this.createSelectBox({name:name, items:attrs['options'], defaultValue:value, callback:callback, disabled:disabled, formname:form.id});
 
         // remove from selectBox div children
@@ -367,6 +394,7 @@ YOVALUE.UIElements.prototype = {
 
         el.dom.dispatchEvent(new Event('input'));
       }
+      */
     }
   },
 
@@ -479,7 +507,7 @@ YOVALUE.UIElements.prototype = {
     li.appendChild(buttons);
 
     for(var name in actions){
-      var button = this.createButton(name, name);
+      var button = this.createButton({name:name, label:name});
       (function(button, callback, id,li){
         button.addEventListener('click', function(evt){
           callback(id, li);

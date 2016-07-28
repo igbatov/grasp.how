@@ -157,9 +157,9 @@ YOVALUE.GraphElementEditor.prototype = {
     var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
 
     var form = this.UI.createForm({
-      alternatives:{type:'select',options:[],callback:selectAlternative},
+      alternatives:{type:'select',items:[],callback:selectAlternative},
       addAlternative:{type:'button',value:'Add alternative',callback:addAlternative},
-      type:        {type:'select',options:types,value:node.type,callback:attrChange},
+      type:        {type:'select',items:types,value:node.type,callback:attrChange},
       importance:  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange},
       label:       {type:'textarea',value:node.label,callback:attrChange},
       editConditionals:{type:'button',value:'Conditional probabilities',callback:editConditionals},
@@ -210,9 +210,10 @@ YOVALUE.GraphElementEditor.prototype = {
         for(var i in alternatives){
           alternativeLabels[i] = alternatives[i].label;
         }
-
+console.log('alternatives', alternatives)
+console.log('alternativeLabels', alternativeLabels)
         // update alternative list
-        that.UI.updateForm(form,'alternatives',{options:alternativeLabels, value:contents[node.nodeContentId]['active_alternative_id']});
+        that.UI.updateForm(form,'alternatives',{items:alternativeLabels, defaultValue:contents[node.nodeContentId]['active_alternative_id']});
 
         // add node text
         var nodeText = alternatives[contents[node.nodeContentId]['active_alternative_id']]['text'];
@@ -270,10 +271,10 @@ YOVALUE.GraphElementEditor.prototype = {
         var HTMLList = that.UI.createList(items,{edit:updateListItem, remove:removeListItem});
 
         // define and add "add source button"
-        form.appendChild(that.UI.createButton(
-          'addList',
-          (node.type == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
-          function(){
+        form.appendChild(that.UI.createButton({
+          name:'addList',
+          label:(node.type == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
+          callback:function(){
             that._editListItem(graphId, node.nodeContentId, node.type, {},function(graphId, nodeContentId, item){
               that.publisher
                 .publish(['node_list_add_request', {graphId: graphId, nodeContentId: nodeContentId,  nodeType:node.type,  item: item}])
@@ -286,8 +287,8 @@ YOVALUE.GraphElementEditor.prototype = {
                   // update node reliability
                   that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
                 });
-             });
-          })
+            });
+          }})
         );
 
         // add node list
@@ -340,7 +341,7 @@ YOVALUE.GraphElementEditor.prototype = {
       },
       'type':{
         type:'select',
-        options:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
+        items:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
         value:edge.type,
         callback:onchange
       },

@@ -214,8 +214,8 @@ YOVALUE.GraphMenu.prototype = {
       // create New and Trash Buttons
       var generalButtonsContainer = YOVALUE.createElement('div',{class:'GeneralButtons'});
       document.getElementById(c.id).appendChild(generalButtonsContainer);
-      generalButtonsContainer.appendChild(that.UI.createButton('New','New', showNew));
-      generalButtonsContainer.appendChild(that.UI.createButton('Trash','Trash', showTrash));
+      generalButtonsContainer.appendChild(that.UI.createButton({name:'New',label:'New', callback:showNew}));
+      generalButtonsContainer.appendChild(that.UI.createButton({name:'Trash',label:'Trash', callback:showTrash}));
 
       // create containers for select boxes
       $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');
@@ -228,9 +228,9 @@ YOVALUE.GraphMenu.prototype = {
       // add edit and remove buttons to the right of select boxes
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'EditName',label:'Edit name', callback:function(){onEdit('leftGraphView')}}));
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('leftGraphView')}}));
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton('Clones', 'Clones', function(){showClones('leftGraphView')}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Edit', 'Edit', function(){onEdit('rightGraphView')}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton('Remove', 'Remove', function(){onRemove('rightGraphView')}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Clones', label:'Clones', callback:function(){showClones('leftGraphView')}}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Edit', label:'Edit', callback:function(){onEdit('rightGraphView')}}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
     });
   }
 };
