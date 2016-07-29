@@ -156,18 +156,21 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
 
-    var form = this.UI.createForm({
-      alternatives:{type:'select',items:[],callback:selectAlternative},
-      addAlternative:{type:'button',value:'Add alternative',callback:addAlternative},
-      type:        {type:'select',items:types,value:node.type,callback:attrChange},
-      importance:  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange},
-      label:       {type:'textarea',value:node.label,callback:attrChange},
-      editConditionals:{type:'button',value:'Conditional probabilities',callback:editConditionals},
-      reliability: {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange,disabled:true},
-      //  icon:        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon},
-      removeButton:{type:'button',value:'remove',callback:removeNode}
-    });
+    var formDef = {};
+    if(node.type == this.NODE_TYPE_PROPOSITION){
+      formDef['alternatives'] = {type:'select',items:[],callback:selectAlternative};
+      formDef['addAlternative'] = {type:'button',value:'Add alternative',callback:addAlternative};
+    }
 
+    formDef['type'] = {type:'select',items:types,value:node.type,callback:attrChange};
+    formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange};
+    formDef['label'] =       {type:'textarea',value:node.label,callback:attrChange};
+    formDef['editConditionals'] ={type:'button',value:'Conditional probabilities',callback:editConditionals};
+    formDef['reliability'] = {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange,disabled:true};
+    //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
+    formDef['removeButton'] ={type:'button',value:'remove',callback:removeNode};
+
+    var form = this.UI.createForm(formDef);
     form.appendChild(this.ajaxIndicator);
     YOVALUE.setDisplay(that.ajaxIndicator,'block');
 
@@ -205,15 +208,17 @@ YOVALUE.GraphElementEditor.prototype = {
         console.log(contents);
 
         var alternatives = contents[node.nodeContentId]['alternatives'];
-        // create list of alternative labels
-        var alternativeLabels = {};
-        for(var i in alternatives){
-          alternativeLabels[i] = alternatives[i].label;
+
+        if(node.type == that.NODE_TYPE_PROPOSITION){
+          // create list of alternative labels
+          var alternativeLabels = {};
+          for(var i in alternatives){
+            alternativeLabels[i] = alternatives[i].label;
+          }
+
+          // update alternative list
+          that.UI.updateForm(form,'alternatives',{items:alternativeLabels, defaultValue:contents[node.nodeContentId]['active_alternative_id']});
         }
-console.log('alternatives', alternatives)
-console.log('alternativeLabels', alternativeLabels)
-        // update alternative list
-        that.UI.updateForm(form,'alternatives',{items:alternativeLabels, defaultValue:contents[node.nodeContentId]['active_alternative_id']});
 
         // add node text
         var nodeText = alternatives[contents[node.nodeContentId]['active_alternative_id']]['text'];
@@ -380,7 +385,7 @@ console.log('alternativeLabels', alternativeLabels)
     var _createSourceFields = function(){
        var formFields = {
         'source_type':{'type':'select', 'label':'Тип', callback:function(name, value){},
-          'options':{
+          'items':{
             'article':'статья (peer-reviewed)',
             'meta-article':'мета-статья (peer-reviewed)',
             'textbook':'учебник',
