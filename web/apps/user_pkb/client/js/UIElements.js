@@ -343,7 +343,7 @@ YOVALUE.UIElements.prototype = {
 
       // fill in absent attrs from old version
       for(var i in el.definition) if(typeof(attrs[i]) == 'undefined') attrs[i] = el.definition[i];
-console.log(attrs);
+
       // create new version
       var newDom = null;
       if(el.type == 'search') newDom = this.createSearch(attrs);
@@ -358,7 +358,6 @@ console.log(attrs);
 
       //var oldDom = document.getElementById(el.id);
       var oldDom = el.dom;
-      console.log(oldDom, newDom);
       oldDom.parentNode.insertBefore(newDom, oldDom);
       oldDom.parentNode.removeChild(oldDom);
 

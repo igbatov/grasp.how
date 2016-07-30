@@ -205,8 +205,6 @@ YOVALUE.GraphElementEditor.prototype = {
       )
       // nodes - text, list - sources or falsifications
       .then(function(contents){
-        console.log(contents);
-
         var alternatives = contents[node.nodeContentId]['alternatives'];
 
         if(node.type == that.NODE_TYPE_PROPOSITION){

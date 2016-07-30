@@ -122,8 +122,7 @@ YOVALUE.ModelChangeController.prototype = {
 
           // c['nodes'] gives us attributes for alternatives, but we need only for active alternative
           // - so cut off all others here
-          graphNodeAttributes = c['nodes'];
-      //    console.log(YOVALUE.clone(graphNodeAttributes));
+          graphNodeAttributes = YOVALUE.clone(c['nodes']);
           for(var i in graphNodeAttributes){
             var nodeAttributes = graphNodeAttributes[i];
             for(var j in nodeAttributes['alternatives'][nodeAttributes['active_alternative_id']]){
