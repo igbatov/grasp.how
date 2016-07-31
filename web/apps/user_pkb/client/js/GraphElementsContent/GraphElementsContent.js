@@ -14,11 +14,14 @@
 
 YOVALUE.GraphElementsContent = function(publisher){
   this.publisher = publisher;
-  // this is filled all at once for the whole graph at the very beginning
-  this.cacheElementAttributes = new YOVALUE.Cache(['contentId', 'elementType', 'attributes'], 5000000); //contentId is edgeContentId or nodeContentUd
-  // this is filled for every concrete node upon request (because we assume that it can contain a lot of data)
-  // and contain full node structure with attributes and alternatives
-  this.cacheNodeContent = new YOVALUE.Cache(['nodeContentId', 'content'], 10000000);
+  // this is filled all at once for the whole graph at the very beginning, except node 'text'
+  // Node text filled one by one on request from elsewhere
+  // elementType is 'node' or 'edge'
+  // contentId is edgeContentId or nodeContentUd
+  this.cacheContent = new YOVALUE.Cache(['elementType', 'contentId', 'content'], 5000000);
+  this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
+  this.edgeAttributeNames = ['label', 'label'];
+  this.alternativeAttributeNames = ['label', 'reliability', 'p'];
 };
 
 YOVALUE.GraphElementsContent.prototype = {
@@ -30,28 +33,33 @@ YOVALUE.GraphElementsContent.prototype = {
       case "request_for_graph_element_content_change":
         var e, er, ed;
         if(event.getData()['type'] == 'updateNodeText'){
-          e = this.cacheNodeContent.get({nodeContentId: event.getData()['nodeContentId']})[0];
-          e['content']['alternatives'][event.getData()['alternativeId']]['text'] = event.getData()['text'];
+          e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
+          e['alternatives'][event.getData()['active_alternative_id']]['text'] = event.getData()['text'];
           er = {};
           ed = event.getData();
 
         }
         // add node alternative
         else if(event.getData()['type'] == 'addAlternative'){
+          e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
+          var newAlternativeId = Math.max.apply(null, YOVALUE.getObjectKeys(e['alternatives']))+1;
+          e['alternatives'][newAlternativeId] = {label:event.getData()['label'],list:null,p:null,reliability:null,text:''};
+          e['active_alternative_id'] = newAlternativeId;
+          er = {};
+          ed = event.getData();
 
         }
         // update general node attribute
         else if(event.getData()['type'] == 'updateNodeAttribute'){
-          e = this.cacheElementAttributes.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].attributes;
-          e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
-
+          e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
+          if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+          if(this.alternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['active_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
           er = {};
           ed = event.getData();
-        }else if(event.getData()['type'] == 'updateNodeAlternativeAttribute'){
 
         }else if(event.getData()['type'] == 'updateEdgeAttribute'){
-          e = this.cacheElementAttributes.get({elementType: 'edge', contentId: event.getData().edgeContentId})[0].attributes;
-          e[event.getData().edgeAttribute.name] = event.getData().edgeAttribute.value;
+          e = this.cacheContent.get({elementType: 'edge', contentId: event.getData().edgeContentId})[0].content;
+          if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().edgeAttribute.name] = event.getData().edgeAttribute.value;
           er = {};
           ed = event.getData();
 
@@ -64,7 +72,7 @@ YOVALUE.GraphElementsContent.prototype = {
             .publish(["graph_element_content_changed", {graphId:event.getData()['graphId'], type:event.getData()['type'],  edge:newEdge}])
             .then(function(edgeContentId){
               newEdge.edgeContentId = edgeContentId;
-              that.cacheElementAttributes.add({elementType:'edge', contentId:newEdge.edgeContentId, attributes:newEdge});
+              that.cacheContent.add({elementType:'edge', contentId:newEdge.edgeContentId, content:newEdge});
               event.setResponse(newEdge);
             });
 
@@ -78,8 +86,7 @@ YOVALUE.GraphElementsContent.prototype = {
             that.publisher
               .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:content}])
               .then(function(nodeContentId){
-                that.cacheElementAttributes.add({elementType:'node', contentId:nodeContentId, attributes:attributes});
-                that.cacheNodeContent.add({contentId:newNode.nodeContentId, content:content});
+                that.cacheContent.add({elementType:'node', contentId:nodeContentId, content:content});
                 event.setResponse(newNode);
               });
           };
@@ -104,16 +111,18 @@ YOVALUE.GraphElementsContent.prototype = {
           // if it is brand new node just set default values and call saveNewNode
           else{
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
-            newNode.label = event.getData().element.label;
+            newNode.alternatives[0].label = event.getData().element.label;
+            newNode.alternatives[1].label = 'НЕВЕРНО ЧТО: '+event.getData().element.label;
             newNode.type = event.getData().element.type;
             newNode.importance = 50;
-            newNode.reliability = 0;
+            newNode.alternatives[0] = 0;
             newNode.icon = null;
+            newNode.stickers = null;
             saveNewNode(event.getData()['graphId'], newNode);
           }
 
         }else if(event.getData()['type'] == 'addIcon'){
-          e = this.cacheElementAttributes.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].attributes;
+          e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           var icon = new Image();
           var reader  = new FileReader();
           reader.onload = function () {
@@ -130,11 +139,11 @@ YOVALUE.GraphElementsContent.prototype = {
         if(er) event.setResponse(er);
         break;
 
-    /**
-     * Returns from server
-     *  - nodes attributes (type, label, reliability, importance, has_icon)
-     *  - edges attributes (type, label)
-     */
+      /**
+       * Returns
+       *  - nodes attributes - all node content that we need to show in graph - active alternative type, label, reliability, node importance, ... - these are called node 'attributes'
+       *  - edges attributes
+       */
       case "get_elements_attributes":
         var rows, i;
         var nodeContentIds = event.getData()['nodes'], nodeContentId;
@@ -145,16 +154,16 @@ YOVALUE.GraphElementsContent.prototype = {
         var elementAttributes = {nodes:{}, edges:{}};
         for(i in nodeContentIds){
           nodeContentId = nodeContentIds[i];
-          rows = this.cacheElementAttributes.get({elementType:'node', contentId:nodeContentId});
+          rows = this.cacheContent.get({elementType:'node', contentId:nodeContentId});
           if(rows.length == 0) undefinedContentIds.nodes.push(nodeContentId);
-          else elementAttributes.nodes[nodeContentId] = rows[0]['attributes'];
+          else elementAttributes.nodes[nodeContentId] = rows[0]['content'];
         }
 
         for(i in edgeContentIds){
           edgeContentId = edgeContentIds[i];
-          rows = this.cacheElementAttributes.get({elementType:'edge', contentId:edgeContentId});
+          rows = this.cacheContent.get({elementType:'edge', contentId:edgeContentId});
           if(rows.length == 0) undefinedContentIds.edges.push(edgeContentId);
-          else elementAttributes.edges[edgeContentId] = rows[0]['attributes'];
+          else elementAttributes.edges[edgeContentId] = rows[0]['content'];
         }
 
         // get these absent element contents from server
@@ -164,12 +173,12 @@ YOVALUE.GraphElementsContent.prototype = {
             .then(function(data){
               var contentId;
               for(contentId in data.nodes){
-                that.cacheElementAttributes.add({elementType:'node', contentId:contentId, attributes:data.nodes[contentId]});
+                that.cacheContent.add({elementType:'node', contentId:contentId, content:data.nodes[contentId]});
                 elementAttributes.nodes[contentId] = data.nodes[contentId];
               }
 
               for(contentId in data.edges){
-                that.cacheElementAttributes.add({elementType:'edge', contentId:contentId, attributes:data.edges[contentId]});
+                that.cacheContent.add({elementType:'edge', contentId:contentId, content:data.edges[contentId]});
                 elementAttributes.edges[contentId] = data.edges[contentId];
               }
 
@@ -182,15 +191,21 @@ YOVALUE.GraphElementsContent.prototype = {
 
       case "get_graph_node_content":
         var data = event.getData();
-        var i, nodeContentId, alternativeId;
+        var i, nodeContentId;
         var cachedContents = [];
         var unavaliableNodeContentIds = [];
 
         // determine node contents that is not yet retrieved from server
         for(i in data['nodeContentIds']){
           nodeContentId = data['nodeContentIds'][i];
-          var rows = this.cacheNodeContent.get({nodeContentId:nodeContentId});
-          if(rows.length) cachedContents[nodeContentId] = rows[0]['content'];
+          var rows = this.cacheContent.get({elementType:'node', contentId:nodeContentId});
+                    console.log('rows', YOVALUE.clone(rows));
+          // we assume that if even one alternative has text, then full node contents were already retrieved from server
+          if(
+            rows.length && 
+            typeof(rows[0]['content']['alternatives'][0]['text']) != 'undefined' && 
+            rows[0]['content']['alternatives'][0]['text'] != null
+          ) cachedContents[nodeContentId] = rows[0]['content'];
           else unavaliableNodeContentIds.push(nodeContentId);
         }
 
@@ -200,7 +215,8 @@ YOVALUE.GraphElementsContent.prototype = {
             .publish(["repository_get_graph_node_content", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds}])
             .then(function(nodeContents){
               for(var nodeContentId in nodeContents){
-                that.cacheNodeContent.add({nodeContentId: nodeContentId, content: nodeContents[nodeContentId]});
+                var row = that.cacheContent.get({elementType:'node',contentId: nodeContentId})[0];
+                row['content'] = nodeContents[nodeContentId];
               }
               event.setResponse(YOVALUE.deepmerge(cachedContents, nodeContents));
             });

@@ -212,8 +212,7 @@ YOVALUE.UIElements.prototype = {
    */
   createTextBox: function(attrs){
     var uniqId = this.generateId();
-    attrs['id'] = uniqId;
-    var el = YOVALUE.createElement('input',{type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.label, disabled:attrs.disabled},'',attrs.callback);
+    var el = YOVALUE.createElement('input',{id:uniqId, type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.label, disabled:attrs.disabled},'',attrs.callback);
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'textBox', definition:attrs, dom:el});
 
@@ -227,8 +226,7 @@ YOVALUE.UIElements.prototype = {
    */
   createTextareaBox: function(attrs){
     var uniqId = this.generateId();
-    attrs['id'] = uniqId;
-    var el = YOVALUE.createElement('textarea',{name:attrs.name, placeholder:attrs.label, disabled:attrs.disabled}, attrs.value, attrs.callback);
+    var el = YOVALUE.createElement('textarea',{id:uniqId,name:attrs.name, placeholder:attrs.label, disabled:attrs.disabled}, attrs.value, attrs.callback);
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'textareaBox', definition:attrs, dom:el});
 
@@ -242,9 +240,7 @@ YOVALUE.UIElements.prototype = {
    */
   createDate: function(attrs){
     var uniqId = this.generateId();
-    attrs['id'] = uniqId;
-    attrs['type'] = 'date';
-    var el = YOVALUE.createElement('input',{name:attrs.name, value:attrs.value, disabled:attrs.disabled},'',attrs.callback);
+    var el = YOVALUE.createElement('input',{type:'date',id:uniqId,name:attrs.name, value:attrs.value, disabled:attrs.disabled},'',attrs.callback);
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'date', definition:attrs, dom:el});
 
@@ -257,10 +253,8 @@ YOVALUE.UIElements.prototype = {
    * @returns {HTMLElement}
    */
   createHidden: function(attrs){
-    attrs['type'] = 'hidden';
     var uniqId = this.generateId();
-    attrs['id'] = uniqId;
-    var el = YOVALUE.createElement('input',{name:attrs.name, value:attrs.value},'');
+    var el = YOVALUE.createElement('input',{type:'hidden',id:uniqId, name:attrs.name, value:attrs.value},'');
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'hidden', definition:attrs, dom:el});
 
@@ -301,7 +295,7 @@ YOVALUE.UIElements.prototype = {
         // if button field has callback - use it, if no - use general form callback and pass form data to it
         form.appendChild(this.createButton({
           name: name,
-          label: fields[name]['value'],
+          label: fields[name]['label'],
           callback: fields[name]['callback'] ? fields[name]['callback'] : function(evt){
             var data = {};
             // gather data from form fields
@@ -346,18 +340,19 @@ YOVALUE.UIElements.prototype = {
 
       // create new version
       var newDom = null;
-      if(el.type == 'search') newDom = this.createSearch(attrs);
-      if(el.type == 'selectBox') newDom = this.createSelectBox(attrs);
-      if(el.type == 'fileBox') newDom = this.createFileBox(attrs);
-      if(el.type == 'range') newDom = this.createRange(attrs);
-      if(el.type == 'button') newDom = this.createButton(attrs);
-      if(el.type == 'textBox') newDom = this.createTextBox(attrs);
-      if(el.type == 'textareaBox') newDom = this.createTextareaBox(attrs);
-      if(el.type == 'hidden') newDom = this.createHidden(attrs);
-      if(el.type == 'title') newDom = this.createTitle(attrs);
+      if(attrs.type == 'search') newDom = this.createSearch(attrs);
+      if(attrs.type == 'select') newDom = this.createSelectBox(attrs);
+      if(attrs.type == 'file') newDom = this.createFileBox(attrs);
+      if(attrs.type == 'range') newDom = this.createRange(attrs);
+      if(attrs.type == 'button') newDom = this.createButton(attrs);
+      if(attrs.type == 'text') newDom = this.createTextBox(attrs);
+      if(attrs.type == 'textarea') newDom = this.createTextareaBox(attrs);
+      if(attrs.type == 'hidden') newDom = this.createHidden(attrs);
+      if(attrs.type == 'title') newDom = this.createTitle(attrs);
 
       //var oldDom = document.getElementById(el.id);
       var oldDom = el.dom;
+      console.log('attrs',attrs);
       oldDom.parentNode.insertBefore(newDom, oldDom);
       oldDom.parentNode.removeChild(oldDom);
 

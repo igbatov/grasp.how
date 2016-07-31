@@ -49,8 +49,7 @@ YOVALUE.GraphElementEditor.prototype = {
       case "show_graph_element_editor":
         var newElementHash = JSON.stringify({
           graphId:event.getData().graphId,
-          elementId:event.getData().elementType == 'node' ? event.getData().node.id : event.getData().edge.id
-         // alternativeId:event.getData().elementType == 'node' && event.getData().node.type == this.NODE_TYPE_PROPOSITION ? event.getData().node.alternativeId :null
+          elementId:event.getData().elementType == 'node' ? event.getData().nodeId : event.getData().edge.id
         });
 
         // only one editor can be opened
@@ -66,8 +65,8 @@ YOVALUE.GraphElementEditor.prototype = {
               event.getData().graphId,
               event.getData().isEditable,
               event.getData().nodeTypes,
-              event.getData().node,
-              event.getData().position
+              event.getData().nodeId,
+              event.getData().nodeContentId
           ));
         }else if(event.getData().elementType == 'edge'){
           document.getElementById(v.attr('id')).appendChild(
@@ -90,7 +89,7 @@ YOVALUE.GraphElementEditor.prototype = {
     }
   },
 
-  _createNodeForm: function(graphId, isEditable, nodeTypes, node, position){
+  _createNodeForm: function(graphId, isEditable, nodeTypes, nodeId, nodeContentId){
     // select list for node types
     var that = this;
 
@@ -99,82 +98,102 @@ YOVALUE.GraphElementEditor.prototype = {
       that.publisher.publish(['request_for_graph_element_content_change', {
         graphId: graphId,
         type: 'updateNodeAttribute',
-        nodeContentId: node.nodeContentId,
+        nodeContentId: nodeContentId,
         nodeAttribute: {name:name, value:value}
       }]);
 
       // its an node type change - reload whole editor
-      if(name == 'type'){
-        node.type = value;
-        that.publisher.publish(['node_list_reload', {graphId: graphId, nodeContentId: node.nodeContentId}]);
-        that.publisher.publish(['show_graph_element_editor', {elementType:'node', graphId: graphId, position:position, isEditable: isEditable, nodeTypes:nodeTypes, node:node}]);
-      }
+      /*
+       if(name == 'type'){
+       node.type = value;
+       that.publisher.publish(['node_list_reload', {graphId: graphId, nodeContentId: node.nodeContentId}]);
+       that.publisher.publish(['show_graph_element_editor', {elementType:'node', graphId: graphId, position:position, isEditable: isEditable, nodeTypes:nodeTypes, node:node}]);
+       }
+       */
     };
 
     var removeNode = function(){
       if(confirm('Are you sure?')){
-        that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeNode', elementId: node.id}]);
+        that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeNode', elementId: nodeId}]);
       }
     };
 
     var addAlternative = function(){
       var modalWindow = that.UI.createModal();
       var form = that.UI.createForm({
-        label: {label:'Введите название альтернативной теории',type:'text',value:'',callback:function(){}},
-        'button':{'type':'button', value:'Добавить'}
-      },
-      // form submit callback
-      function (form) {
-        // set form fields to item
-        that.publisher.publish(["request_for_graph_element_content_change", {graphId: graphId, type: 'addAlternative', nodeContentId: node.nodeContentId}]);
-        that.UI.closeModal(modalWindow);
-      });
+            label: {label:'Введите название альтернативной теории',type:'text',value:'',callback:function(){}},
+            button:{type:'button', label:'Добавить'}
+          },
+          // form submit callback
+          function (form) {
+            // set form fields to item
+            that.publisher.publish(["request_for_graph_element_content_change", {graphId: graphId, type: 'addAlternative', nodeContentId: nodeContentId}]);
+            that.UI.closeModal(modalWindow);
+          });
       that.UI.setModalContent(modalWindow, form);
 
     };
 
-    var selectAlternative = function(alternative){
-      console.log('alternative selected', alternative);
-    };
-
     var editConditionals = function(){
-
     };
 
     /*
-    var addIcon = function(files,ul){
+     var addIcon = function(files,ul){
 
-       that.publisher.publish(['request_for_graph_element_content_change', {
-       graphId: graphId,
-       type: 'addIcon',
-       file: files,
-       nodeContentId: node.nodeContentId
-       }]);
-    };
-    var removeIcon = function(){};
+     that.publisher.publish(['request_for_graph_element_content_change', {
+     graphId: graphId,
+     type: 'addIcon',
+     file: files,
+     nodeContentId: node.nodeContentId
+     }]);
+     };
+     var removeIcon = function(){};
      */
 
-    var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
-
+    // create empty form with all necessary fields
     var formDef = {};
-    if(node.type == this.NODE_TYPE_PROPOSITION){
-      formDef['alternatives'] = {type:'select',items:[],callback:selectAlternative};
-      formDef['addAlternative'] = {type:'button',value:'Add alternative',callback:addAlternative};
-    }
-
-    formDef['type'] = {type:'select',items:types,value:node.type,callback:attrChange};
-    formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange};
-    formDef['label'] =       {type:'textarea',value:node.label,callback:attrChange};
-    formDef['editConditionals'] ={type:'button',value:'Conditional probabilities',callback:editConditionals};
-    formDef['reliability'] = {type:'range',min:0,max:99,step:1,value:node.reliability,callback:attrChange,disabled:true};
+    formDef['active_alternative_id'] = {type:'hidden'};
+    formDef['addAlternative'] = {type:'hidden'};
+    formDef['type'] = {type:'select',items:[],value:''};
+    formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100};
+    formDef['label'] =       {type:'textarea',value:''};
+    formDef['editConditionals'] ={type:'button',label:'Conditional probabilities'};
+    formDef['reliability'] = {type:'range',min:0,max:99,step:1,value:100,disabled:true};
     //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
-    formDef['removeButton'] ={type:'button',value:'remove',callback:removeNode};
+    formDef['removeButton'] ={type:'button',label:'remove'};
 
     var form = this.UI.createForm(formDef);
     form.appendChild(this.ajaxIndicator);
     YOVALUE.setDisplay(that.ajaxIndicator,'block');
+          console.log(['get_graph_node_content', {graphId:graphId, nodeContentIds:[nodeContentId]}]);
+    this.publisher
+        .publish(
+            ['get_graph_node_content', {graphId:graphId, nodeContentIds:[nodeContentId]}]
+        )
+      // nodes - text, list - sources or falsifications
+        .then(function(contents){
+          var node = contents[nodeContentId];
+          var activeAlternative = node.alternatives[node.active_alternative_id];
+          var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
 
-    this._addContent(form, node, graphId, isEditable);
+          var formDef = {};
+          if(node.type == that.NODE_TYPE_PROPOSITION){
+            that.UI.updateForm(form, 'active_alternative_id', {type:'select',items:[],callback:attrChange});
+            that.UI.updateForm(form, 'addAlternative', {type:'button',label:'Add alternative',callback:addAlternative});
+          }
+
+          that.UI.updateForm(form, 'type', {type:'select',items:types,defaultValue:node.type,callback:attrChange});
+          that.UI.updateForm(form, 'importance', {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange});
+          that.UI.updateForm(form, 'label', {type:'textarea',value:activeAlternative.label,callback:attrChange});
+          that.UI.updateForm(form, 'editConditionals', {type:'button',label:'Conditional probabilities',callback:editConditionals});
+          that.UI.updateForm(form, 'reliability', {type:'range',min:0,max:99,step:1,value:activeAlternative.reliability,callback:attrChange,disabled:true});
+          //  formDef['icon',      {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
+          that.UI.updateForm(form, 'removeButton', {type:'button',label:'remove',callback:removeNode});
+
+          that._addContent(form, nodeContentId, node.type, graphId, isEditable, contents);
+    });
+
+
 
     return form;
   },
@@ -182,122 +201,117 @@ YOVALUE.GraphElementEditor.prototype = {
   /**
    * Create promises to add text and source list (for fact) or falsification list (for proposition)
    * @param form
-   * @param node
+   * @param nodeContentId
    * @param graphId
    * @param isEditable
    * @private
    */
-  _addContent: function(form, node, graphId, isEditable){
+  _addContent: function(form, nodeContentId, nodeType, graphId, isEditable, contents){
     var that = this;
 
     var editNodeText = function(name, value){
       that.publisher.publish(['request_for_graph_element_content_change', {
         graphId: graphId,
         type: 'updateNodeText',
-        nodeContentId: node.nodeContentId,
+        nodeContentId: nodeContentId,
         text: value
       }]);
     };
 
-    this.publisher
-      .publish(
-        ['get_graph_node_content', {graphId:graphId, nodeContentIds:[node.nodeContentId]}]
-      )
-      // nodes - text, list - sources or falsifications
-      .then(function(contents){
-        var alternatives = contents[node.nodeContentId]['alternatives'];
 
-        if(node.type == that.NODE_TYPE_PROPOSITION){
-          // create list of alternative labels
-          var alternativeLabels = {};
-          for(var i in alternatives){
-            alternativeLabels[i] = alternatives[i].label;
-          }
+    console.log('+++++++++++++++++++',contents);
+    var alternatives = contents[nodeContentId]['alternatives'];
 
-          // update alternative list
-          that.UI.updateForm(form,'alternatives',{items:alternativeLabels, defaultValue:contents[node.nodeContentId]['active_alternative_id']});
-        }
+    if(nodeType == that.NODE_TYPE_PROPOSITION){
+      // create list of alternative labels
+      var alternativeLabels = {};
+      for(var i in alternatives){
+        alternativeLabels[i] = alternatives[i].label;
+      }
 
-        // add node text
-        var nodeText = alternatives[contents[node.nodeContentId]['active_alternative_id']]['text'];
-        YOVALUE.setDisplay(that.ajaxIndicator,'none');
-        if(isEditable){
-          form.appendChild(YOVALUE.createElement(
-            'textarea',
-            {name:'nodeText'},
-            nodeText,
-            editNodeText
-          ));
-        }else{
-          form.appendChild(YOVALUE.createElement(
-            'div',
-            {name:'nodeText'},
-            that._nl2br(nodeText)
-          ));
-        }
+      // update alternative list
+      that.UI.updateForm(form,'active_alternative_id',{items:alternativeLabels, defaultValue:contents[nodeContentId]['active_alternative_id']});
+    }
 
-        if(node.type != that.NODE_TYPE_FACT && node.type != that.NODE_TYPE_PROPOSITION) return;
+    // add node text
+    var nodeText = alternatives[contents[nodeContentId]['active_alternative_id']]['text'];
+    YOVALUE.setDisplay(that.ajaxIndicator,'none');
+    if(isEditable){
+      form.appendChild(YOVALUE.createElement(
+        'textarea',
+        {name:'nodeText'},
+        nodeText,
+        editNodeText
+      ));
+    }else{
+      form.appendChild(YOVALUE.createElement(
+        'div',
+        {name:'nodeText'},
+        that._nl2br(nodeText)
+      ));
+    }
 
-        // create HTMLElements from list
-        var list = alternatives[contents[node.nodeContentId]['active_alternative_id']]['list'];
-        var items = [];
-        for(var i in list) items[i] = that._createHTMLFromListItem(list[i], node.type);
-        var updateListItem = function(id, el){
-          that._editListItem(graphId, node.nodeContentId, node.type, list[id], function(graphId, nodeContentId, item){
-            that.publisher
-              .publish(['node_list_update_request', {graphId: graphId, nodeContentId: nodeContentId, item: item, nodeType:node.type}])
-              .then(function (updateAnswer) {
-                // update li content
-                el.removeChild(el.firstChild);
-                el.insertBefore(that._createHTMLFromListItem(item, node.type), el.firstChild);
+    if(nodeType != that.NODE_TYPE_FACT && nodeType != that.NODE_TYPE_PROPOSITION) return;
 
-                // update list
-                YOVALUE.getObjectKeys(item).forEach(function(v){ list[item.id][v] = item[v]; });
+    // create HTMLElements from list
+    var list = alternatives[contents[nodeContentId]['active_alternative_id']]['list'];
+    var items = [];
+    for(var i in list) items[i] = that._createHTMLFromListItem(list[i], nodeType);
+    var updateListItem = function(id, el){
+      that._editListItem(graphId, nodeContentId, nodeType, list[id], function(graphId, nodeContentId, item){
+        that.publisher
+          .publish(['node_list_update_request', {graphId: graphId, nodeContentId: nodeContentId, item: item, nodeType:nodeType}])
+          .then(function (updateAnswer) {
+            // update li content
+            el.removeChild(el.firstChild);
+            el.insertBefore(that._createHTMLFromListItem(item, nodeType), el.firstChild);
 
-                // update node reliability
-                if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
-              });
+            // update list
+            YOVALUE.getObjectKeys(item).forEach(function(v){ list[item.id][v] = item[v]; });
+
+            // update node reliability
+            if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
           });
-          return true;
-        };
-
-        var removeListItem = function(id, el){
-          that.publisher.publish(
-              ['node_list_remove_request', {graphId:graphId, nodeContentId:node.nodeContentId, nodeType:node.type, item:list[id], nodeType:node.type}]
-          ).then(function(updateAnswer){
-              if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
-          });
-          el.parentNode.removeChild(el);
-          return true;
-        };
-
-        var HTMLList = that.UI.createList(items,{edit:updateListItem, remove:removeListItem});
-
-        // define and add "add source button"
-        form.appendChild(that.UI.createButton({
-          name:'addList',
-          label:(node.type == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
-          callback:function(){
-            that._editListItem(graphId, node.nodeContentId, node.type, {},function(graphId, nodeContentId, item){
-              that.publisher
-                .publish(['node_list_add_request', {graphId: graphId, nodeContentId: nodeContentId,  nodeType:node.type,  item: item}])
-                .then(function (updateAnswer) {
-                  item.id = updateAnswer.id;
-                  // update list item object
-                  list[item.id] = item;
-                  // add item
-                  HTMLList.appendChild(that.UI.createListItem(item.id, that._createHTMLFromListItem(item, node.type),{edit:updateListItem, remove:removeListItem}));
-                  // update node reliability
-                  that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
-                });
-            });
-          }})
-        );
-
-        // add node list
-        form.appendChild(HTMLList);
-
       });
+      return true;
+    };
+
+    var removeListItem = function(id, el){
+      that.publisher.publish(
+          ['node_list_remove_request', {graphId:graphId, nodeContentId:nodeContentId, nodeType:nodeType, item:list[id]}]
+      ).then(function(updateAnswer){
+          if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+      });
+      el.parentNode.removeChild(el);
+      return true;
+    };
+
+    var HTMLList = that.UI.createList(items,{edit:updateListItem, remove:removeListItem});
+
+    // define and add "add source button"
+    form.appendChild(that.UI.createButton({
+      name:'addList',
+      label:(nodeType == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
+      callback:function(){
+        that._editListItem(graphId, nodeContentId, nodeType, {},function(graphId, nodeContentId, item){
+          that.publisher
+            .publish(['node_list_add_request', {graphId: graphId, nodeContentId: nodeContentId,  nodeType:nodeType,  item: item}])
+            .then(function (updateAnswer) {
+              item.id = updateAnswer.id;
+              // update list item object
+              list[item.id] = item;
+              // add item
+              HTMLList.appendChild(that.UI.createListItem(item.id, that._createHTMLFromListItem(item, nodeType),{edit:updateListItem, remove:removeListItem}));
+              // update node reliability
+              that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+            });
+        });
+      }})
+    );
+
+    // add node list
+    form.appendChild(HTMLList);
+
 
   },
 
@@ -435,11 +449,11 @@ YOVALUE.GraphElementEditor.prototype = {
         },
         'publisher_reliability':{type:'text',disabled:true,label:'reliability'},
         'scopus_title_list_id':{type:'hidden'},
-        'publish_date':{'type':'date', label:'Дата издания'},
-        'pages':{'type':'text', label:'Том, страницы'},
-        'comment':{'type':'textarea', label:'Комментарий'},
-        'source_id':{'type':'hidden'},
-        'button':{'type':'button', value:'Добавить'}
+        'publish_date':{type:'date', label:'Дата издания'},
+        'pages':{type:'text', label:'Том, страницы'},
+        'comment':{type:'textarea', label:'Комментарий'},
+        'source_id':{type:'hidden'},
+        'button':{type:'button', label:'Добавить'}
       };
 
       return formFields;
@@ -447,9 +461,9 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var _createFalsificationFields = function(){
       var formFields = {
-        'name':{'type':'text', label:'Название'},
-        'comment':{'type':'textarea', label:'Описание'},
-        'button':{'type':'button', value:'Добавить'}
+        'name':{type:'text', label:'Название'},
+        'comment':{type:'textarea', label:'Описание'},
+        'button':{type:'button', label:'Добавить'}
       };
       return formFields;
     };

@@ -84,7 +84,7 @@ YOVALUE.GraphMenu.prototype = {
         that.UI.setModalContent(m, that.UI.createForm({
           'graphId':{'type':'hidden', 'value':graphId},
           'name':{'type':'text', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
-          'submit':{type:'button', value:'Изменить'}
+          'submit':{type:'button', label:'Изменить'}
         }, function(form){
           // say about this event to all subscribers
           that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
@@ -99,8 +99,8 @@ YOVALUE.GraphMenu.prototype = {
         that.UI.setModalContent(
           m,
           that.UI.createForm({
-            'name':{'type':'text', 'label':'Name:', 'value':''},
-            'submit':{'type':'button', 'label':'', 'value':'Создать'}
+            'name':{type:'text', label:'Name:'},
+            'submit':{type:'button', label:'Создать'}
           },
           function(form){
             that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(){

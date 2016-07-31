@@ -168,7 +168,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         importance: graphNodeAttributes[graphNode.nodeContentId].importance,
         icon: graphNodeAttributes[graphNode.nodeContentId].icon,
         nodeContentId: graphNode.nodeContentId,
-        alternativeId: graphNodeAttributes[graphNode.nodeContentId].active_alternative_id
+        active_alternative_id: graphNodeAttributes[graphNode.nodeContentId].active_alternative_id
       };
     }
 

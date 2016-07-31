@@ -88,8 +88,8 @@ class AppUserPkb extends App
 
     // define node and edge attributes (must be the same as db table column names)
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
-    $this->node_attribute_names = array('type', 'importance', 'has_icon');
-    $this->alternative_attribute_names = array('label', 'reliability','p','is_active_alternative');
+    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id');
+    $this->alternative_attribute_names = array('label', 'reliability','p');
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
@@ -164,8 +164,6 @@ class AppUserPkb extends App
             $content['alternatives'] = array();
             foreach($node_rows as $node_row){
               $alternative = array();
-              // set active alternative id
-              if($node_row['is_active_alternative']) $content['active_alternative_id'] = $node_row['alternative_id'];
 
               // alternative attributes
               foreach($this->alternative_attribute_names as $name){

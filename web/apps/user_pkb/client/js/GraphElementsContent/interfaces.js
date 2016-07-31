@@ -6,11 +6,13 @@ YOVALUE.iGraphEdgeContent = {
 
 YOVALUE.iGraphNodeContent = {
   nodeContentId: String(),
-  label: String(),
+  active_alternative_id: String(),
+  alternatives: {
+    0:{label:null,list:[],p:null,reliability:null,text:null},
+    1:{label:null,list:[],p:null,reliability:null,text:null}
+  },
   type: String(),
   importance: String(),
-  reliability: String(),
-  text: String(),
   icon: Object(),
   stickers: Object()
 };
