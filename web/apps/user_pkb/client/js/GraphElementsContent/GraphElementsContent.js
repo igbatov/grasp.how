@@ -14,14 +14,19 @@
 
 YOVALUE.GraphElementsContent = function(publisher){
   this.publisher = publisher;
-  // this is filled all at once for the whole graph at the very beginning, except node 'text'
-  // Node text filled one by one on request from elsewhere
+
+  // This is filled all at once for the whole graph at the very beginning, on get_elements_attributes request
   // elementType is 'node' or 'edge'
   // contentId is edgeContentId or nodeContentUd
   this.cacheContent = new YOVALUE.Cache(['elementType', 'contentId', 'content'], 5000000);
   this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
+  this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
   this.edgeAttributeNames = ['label', 'label'];
-  this.alternativeAttributeNames = ['label', 'reliability', 'p'];
+
+  // this will be retrieved from server only on get_graph_node_content request
+  this.nodeAlternativeContentNames = ['text', 'list'];
+
+
 };
 
 YOVALUE.GraphElementsContent.prototype = {
@@ -49,11 +54,11 @@ YOVALUE.GraphElementsContent.prototype = {
           ed = event.getData();
 
         }
-        // update general node attribute
+        // update node attribute
         else if(event.getData()['type'] == 'updateNodeAttribute'){
           e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
-          if(this.alternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['active_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+          if(this.nodeAlternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['active_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
           er = {};
           ed = event.getData();
 
@@ -199,7 +204,6 @@ YOVALUE.GraphElementsContent.prototype = {
         for(i in data['nodeContentIds']){
           nodeContentId = data['nodeContentIds'][i];
           var rows = this.cacheContent.get({elementType:'node', contentId:nodeContentId});
-                    console.log('rows', YOVALUE.clone(rows));
           // we assume that if even one alternative has text, then full node contents were already retrieved from server
           if(
             rows.length && 
@@ -216,6 +220,7 @@ YOVALUE.GraphElementsContent.prototype = {
             .then(function(nodeContents){
               for(var nodeContentId in nodeContents){
                 var row = that.cacheContent.get({elementType:'node',contentId: nodeContentId})[0];
+                // here is the full node structure: nodeAttributeNames, nodeAlternativeAttributeNames, nodeAlternativeContentNames
                 row['content'] = nodeContents[nodeContentId];
               }
               event.setResponse(YOVALUE.deepmerge(cachedContents, nodeContents));

@@ -47,6 +47,7 @@ YOVALUE.GraphElementEditor.prototype = {
     switch (eventName)
     {
       case "show_graph_element_editor":
+
         var newElementHash = JSON.stringify({
           graphId:event.getData().graphId,
           elementId:event.getData().elementType == 'node' ? event.getData().nodeId : event.getData().edge.id
@@ -161,11 +162,11 @@ YOVALUE.GraphElementEditor.prototype = {
     formDef['reliability'] = {type:'range',min:0,max:99,step:1,value:100,disabled:true};
     //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
     formDef['removeButton'] ={type:'button',label:'remove'};
+    formDef['text'] ={type:'textarea',label:''};
+    formDef['list'] ={type:'list'};
 
     var form = this.UI.createForm(formDef);
-    form.appendChild(this.ajaxIndicator);
-    YOVALUE.setDisplay(that.ajaxIndicator,'block');
-          console.log(['get_graph_node_content', {graphId:graphId, nodeContentIds:[nodeContentId]}]);
+
     this.publisher
         .publish(
             ['get_graph_node_content', {graphId:graphId, nodeContentIds:[nodeContentId]}]
@@ -218,7 +219,6 @@ YOVALUE.GraphElementEditor.prototype = {
       }]);
     };
 
-
     console.log('+++++++++++++++++++',contents);
     var alternatives = contents[nodeContentId]['alternatives'];
 
@@ -229,46 +229,35 @@ YOVALUE.GraphElementEditor.prototype = {
         alternativeLabels[i] = alternatives[i].label;
       }
 
-      // update alternative list
+      // update alternatives select
       that.UI.updateForm(form,'active_alternative_id',{items:alternativeLabels, defaultValue:contents[nodeContentId]['active_alternative_id']});
     }
 
-    // add node text
+    // update node text
     var nodeText = alternatives[contents[nodeContentId]['active_alternative_id']]['text'];
-    YOVALUE.setDisplay(that.ajaxIndicator,'none');
     if(isEditable){
-      form.appendChild(YOVALUE.createElement(
-        'textarea',
-        {name:'nodeText'},
-        nodeText,
-        editNodeText
-      ));
+      that.UI.updateForm(form,'text',{type:'textarea', value:nodeText, callback:editNodeText});
     }else{
-      form.appendChild(YOVALUE.createElement(
-        'div',
-        {name:'nodeText'},
-        that._nl2br(nodeText)
-      ));
+      that.UI.updateForm(form,'text',{type:'textarea', value:nodeText, callback:editNodeText, disabled:true});
     }
 
     if(nodeType != that.NODE_TYPE_FACT && nodeType != that.NODE_TYPE_PROPOSITION) return;
 
     // create HTMLElements from list
     var list = alternatives[contents[nodeContentId]['active_alternative_id']]['list'];
-    var items = [];
-    for(var i in list) items[i] = that._createHTMLFromListItem(list[i], nodeType);
+    console.log('list', list);
+    var htmllist = {};
+    for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
+
     var updateListItem = function(id, el){
       that._editListItem(graphId, nodeContentId, nodeType, list[id], function(graphId, nodeContentId, item){
         that.publisher
           .publish(['node_list_update_request', {graphId: graphId, nodeContentId: nodeContentId, item: item, nodeType:nodeType}])
           .then(function (updateAnswer) {
-            // update li content
-            el.removeChild(el.firstChild);
-            el.insertBefore(that._createHTMLFromListItem(item, nodeType), el.firstChild);
-
             // update list
-            YOVALUE.getObjectKeys(item).forEach(function(v){ list[item.id][v] = item[v]; });
-
+            list[id] = item;
+            for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
+            that.UI.updateForm(form,'list',{items:htmllist});
             // update node reliability
             if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
           });
@@ -282,37 +271,37 @@ YOVALUE.GraphElementEditor.prototype = {
       ).then(function(updateAnswer){
           if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
       });
-      el.parentNode.removeChild(el);
+      // update list
+      delete list[id];
+      for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
+      that.UI.updateForm(form,'list',{items:htmllist});
       return true;
     };
 
-    var HTMLList = that.UI.createList(items,{edit:updateListItem, remove:removeListItem});
-
     // define and add "add source button"
-    form.appendChild(that.UI.createButton({
-      name:'addList',
-      label:(nodeType == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
-      callback:function(){
-        that._editListItem(graphId, nodeContentId, nodeType, {},function(graphId, nodeContentId, item){
-          that.publisher
+    var addCallback = function(){
+      that._editListItem(graphId, nodeContentId, nodeType, {},function(graphId, nodeContentId, item){
+        that.publisher
             .publish(['node_list_add_request', {graphId: graphId, nodeContentId: nodeContentId,  nodeType:nodeType,  item: item}])
             .then(function (updateAnswer) {
               item.id = updateAnswer.id;
-              // update list item object
+              // update list
               list[item.id] = item;
-              // add item
-              HTMLList.appendChild(that.UI.createListItem(item.id, that._createHTMLFromListItem(item, nodeType),{edit:updateListItem, remove:removeListItem}));
+              for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
+              that.UI.updateForm(form,'list',{items:htmllist});
               // update node reliability
               that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
             });
-        });
-      }})
-    );
+      });
+    };
 
-    // add node list
-    form.appendChild(HTMLList);
-
-
+    that.UI.updateForm(form, 'list', {
+      type:'list',
+      items:htmllist,
+      itemActions:{edit:updateListItem, remove:removeListItem},
+      addLabel: (nodeType == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
+      addCallback: addCallback
+    });
   },
 
   /**
@@ -383,7 +372,7 @@ YOVALUE.GraphElementEditor.prototype = {
    * @param graphId
    * @param nodeContentId
    * @param nodeType
-   * @param item
+   * @param item - {name1:value1, name2:value2, ...}
    * @param callback - arguments are (graphId, nodeContentId, item)
    * @private
    */

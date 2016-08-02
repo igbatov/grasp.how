@@ -8,8 +8,8 @@ YOVALUE.iGraphNodeContent = {
   nodeContentId: String(),
   active_alternative_id: String(),
   alternatives: {
-    0:{label:null,list:[],p:null,reliability:null,text:null},
-    1:{label:null,list:[],p:null,reliability:null,text:null}
+    0:{label:null,p:null,reliability:null,text:null,list:[]},
+    1:{label:null,p:null,reliability:null,text:null,list:[]}
   },
   type: String(),
   importance: String(),

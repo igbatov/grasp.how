@@ -275,6 +275,28 @@ YOVALUE.UIElements.prototype = {
   },
 
   /**
+   * Create list of items with Add button on top and itemActions buttons in front of every item
+   * @param attrs - {name:, items:, itemActions:, addLabel:, addCallback:, formname:}
+   * items - in a form {id:label, ...}, id is string, label is string or HTMLElement
+   * actions - actions that can be made on item, in a form {name:callback, ...}, action args are item id and li (HTMLElement that represents item)
+   * addLabel - name of add button
+   * addCallback - callback on add button click
+   */
+  createListBox: function(attrs){
+    console.log(attrs);
+    var uniqId = this.generateId();
+    var div = YOVALUE.createElement('div',{id:uniqId},'');
+    if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback}));
+    if(typeof(attrs.items)!='undefined' && YOVALUE.getObjectKeys(attrs.items).length > 0){
+       var HTMLList = this.createList(attrs.items, attrs.itemActions);
+       div.appendChild(HTMLList);
+    }
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'listBox', definition:attrs, dom:div});
+
+    return div;
+  },
+
+  /**
    * Creates form fields and buttons
    * @param fields
    * @param {Function=} callback - called when any button from fields is pressed
@@ -319,6 +341,7 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'range') form.appendChild(this.createRange({name:name, value:fields[name]['value'], min:fields[name]['min'], max:fields[name]['max'], step:fields[name]['step'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId}));
       if(fields[name]['type'] == 'hidden') form.appendChild(this.createHidden({name:name,value:fields[name]['value'], formname:uniqId}));
       if(fields[name]['type'] == 'title') form.appendChild(this.createTitle({text:fields[name]['value'], formname:uniqId}));
+      if(fields[name]['type'] == 'list') form.appendChild(this.createListBox({name:name,items:fields[name]['items'], itemActions:fields[name]['itemActions'], addLabel: fields[name]['addLabel'], addCallback:fields[name]['addCallback'], formname:uniqId}));
     }
 
     return form;
@@ -332,6 +355,7 @@ YOVALUE.UIElements.prototype = {
    */
   updateForm: function(form,name,attrs){
     var els = this.elements.getRows({formname:form.id, name:name});
+
     if(els.length){
       var el = els[0];
 
@@ -349,10 +373,10 @@ YOVALUE.UIElements.prototype = {
       if(attrs.type == 'textarea') newDom = this.createTextareaBox(attrs);
       if(attrs.type == 'hidden') newDom = this.createHidden(attrs);
       if(attrs.type == 'title') newDom = this.createTitle(attrs);
+      if(attrs.type == 'list') newDom = this.createListBox(attrs);
 
       //var oldDom = document.getElementById(el.id);
       var oldDom = el.dom;
-      console.log('attrs',attrs);
       oldDom.parentNode.insertBefore(newDom, oldDom);
       oldDom.parentNode.removeChild(oldDom);
 
@@ -470,8 +494,7 @@ YOVALUE.UIElements.prototype = {
   /**
    * Creates list of items with action buttons next to each
    * @param {Object<string, string | HTMLElement>} items - in a form {id:label, ...}, id is string, label is string or HTMLElement
-   * @param {Object<string, function>} actions - action that can be made on item, in a form {name:callback, ...},
-   * action args are item id and li (HTMLElement that represents item)
+   * @param {Object<string, function>} actions - action that can be made on item, in a form {name:callback, ...}, action args are item id and li (HTMLElement that represents item)
    */
   createList: function(items, actions){
     var uniqId = this.generateId();
