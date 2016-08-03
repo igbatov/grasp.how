@@ -17,6 +17,7 @@ YOVALUE.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIn
   this.UI = UI;
 
   this.currentElementHash = null;
+  this.currentEvent = null;
 
   this.ajaxIndicator = ajaxIndicator;
 
@@ -40,6 +41,10 @@ YOVALUE.GraphElementEditor.prototype = {
   NODE_TYPE_PROPOSITION: 'proposition',
   eventListener: function(event){
     var $ = this.jQuery, v;
+
+    // save for reload()
+    this.currentEvent = YOVALUE.clone(event);
+
     if(event.getData().position == 'rightGraphView') v = $('#'+this.leftContainer.id);
     else if(event.getData().position == 'leftGraphView') v = $('#'+this.rightContainer.id);
 
@@ -55,7 +60,6 @@ YOVALUE.GraphElementEditor.prototype = {
 
         // only one editor can be opened
         if(this.currentElementHash != null && this.currentElementHash != newElementHash) return;
-        this.currentElementHash = newElementHash;
 
         v.html('');
         if(event.getData().elementType == 'node'){
@@ -90,6 +94,10 @@ YOVALUE.GraphElementEditor.prototype = {
     }
   },
 
+  _reloadEvent: function(){
+    this.eventListener(this.currentEvent);
+  },
+
   _createNodeForm: function(graphId, isEditable, nodeTypes, nodeId, nodeContentId){
     // select list for node types
     var that = this;
@@ -101,7 +109,9 @@ YOVALUE.GraphElementEditor.prototype = {
         type: 'updateNodeAttribute',
         nodeContentId: nodeContentId,
         nodeAttribute: {name:name, value:value}
-      }]);
+      }]).then(function(){
+        that._reloadEvent();
+      });
     };
 
     var removeNode = function(){
@@ -199,7 +209,7 @@ YOVALUE.GraphElementEditor.prototype = {
    * @private
    */
   _addContent: function(form, nodeContentId, nodeType, graphId, isEditable, contents){
-    console.log('+++++++++++++++++++',contents);
+    console.log('+++++++++++++++++++',YOVALUE.clone(contents), printStackTrace());
 
     var that = this;
     var active_alternative_id = contents[nodeContentId]['active_alternative_id'];
@@ -281,14 +291,8 @@ YOVALUE.GraphElementEditor.prototype = {
           function(graphId, nodeContentId, node_alternative_id, item){
             that.publisher
             .publish(['request_for_graph_element_content_change', {type:'node_list_add_request', graphId: graphId, nodeContentId: nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, item:item}])
-            .then(function (updateAnswer) {
-              item.id = updateAnswer.id;
-              // update list
-              list[item.id] = item;
-              for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
-              that.UI.updateForm(form,'list',{items:htmllist});
-              // update node reliability
-              if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+            .then(function () {
+              that._reloadEvent();
             });
       });
     };
@@ -311,7 +315,7 @@ YOVALUE.GraphElementEditor.prototype = {
   _createHTMLFromListItem: function(item, nodeType){
     var el = null;
     if(nodeType == this.NODE_TYPE_FACT){
-      if(item.url.length > 0){
+      if(typeof(item.url) != 'undefined' && item.url.length > 0){
         el = YOVALUE.createElement('a',{href:item.url, target:'_blank', title:this._lineBreaksForTooltips(item.comment)}, item.author+' / '+item.name+' / '+item.publisher);
       }else{
         el = document.createTextNode(item.author+' / '+item.name+' / '+item.publisher);

@@ -226,7 +226,7 @@ class AppUserPkb extends App
           unset($node_row['has_icon']);
           // set active alternative
           foreach($node_rows as $row){
-            if($row['is_active_alternative']) $node_attributes['active_alternative_id'] = $row['alternative_id'];
+            $node_attributes['active_alternative_id'] = $row['active_alternative_id'];
           }
 
           //  == fill in attributes for every alternative ==
@@ -344,7 +344,7 @@ class AppUserPkb extends App
       case 'updateGraphElementContent':
         $r = $this->getRequest();
 
-        if($r['type'] == 'updateNodeText' || $r['type'] == 'updateNodeAttribute' || $r['type'] == 'addIcon'){
+        if(in_array($r['type'], array('updateNodeText','node_list_add_request','node_list_remove_request','node_list_update_request','updateNodeAttribute','addIcon'))){
           $graph_id = $this->contentIdConverter->getGraphId($r['nodeContentId']);
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
         }else if($r['type'] == 'updateEdgeAttribute'){
@@ -384,7 +384,7 @@ class AppUserPkb extends App
               $this->error("Error during transaction: ".mysql_error().". Transaction rollbacked.");
             }
           $this->db->commitTransaction();
-          $this->showRawData($this->contentIdConverter->createGlobalContentId($graph_id,$local_content_id));
+          $this->showRawData(json_encode(array('edgeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id,$local_content_id))));
 
         }else if($r['type'] == 'addNode'){
           $this->db->startTransaction();
@@ -399,7 +399,7 @@ class AppUserPkb extends App
             $this->error("Error during transaction: ".mysql_error().". Transaction rollbacked.");
           }
           $this->db->commitTransaction();
-          $this->showRawData($this->contentIdConverter->createGlobalContentId($graph_id, $local_content_id));
+          $this->showRawData(json_encode(array('nodeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id, $local_content_id))));
 
         }else if($r['type'] == 'addIcon'){
           $content_id = $r['nodeContentId'];
@@ -572,7 +572,7 @@ class AppUserPkb extends App
       $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
       $q = "INSERT INTO node_content_falsification SET graph_id='".$graph_id
           ."', local_content_id='".$local_content_id
-          ."', alternative_id='".$r['alternativeId']
+          ."', alternative_id='".$r['node_alternative_id']
           ."', `name`='".$this->db->escape($r['item']['name'])
           ."', comment='".$this->db->escape($r['item']['comment'])."' ";
 

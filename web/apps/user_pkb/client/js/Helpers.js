@@ -828,6 +828,22 @@ YOVALUE.compare = function(a, b){
   return JSON.stringify(a) === JSON.stringify(b);
 };
 
+YOVALUE.isJson = function(str) {
+  if(typeof str !== "string") return false;
+
+  try {
+    item = JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+
+  if(typeof item === "object" && item !== null) {
+    return true;
+  }
+
+  return false;
+};
+
 /**
  * Very simple and slow Promise just for debug purposes
  * @param fn

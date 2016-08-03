@@ -104,14 +104,15 @@ YOVALUE.GraphElementsContent.prototype = {
           ed = event.getData();
 
         }else if(event.getData()['type'] == 'addEdge'){
+          
           var newEdge = YOVALUE.clone(YOVALUE.iGraphEdgeContent);
           newEdge.label = event.getData().elementType;
           newEdge.type = event.getData().elementType;
 
           this.publisher
-            .publish(["graph_element_content_changed", {graphId:event.getData()['graphId'], type:event.getData()['type'],  edge:newEdge}])
-            .then(function(edgeContentId){
-              newEdge.edgeContentId = edgeContentId;
+            .publish(["graph_element_content_changed", {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge}])
+            .then(function(answer){
+              newEdge.edgeContentId = answer.edgeContentId;
               that.cacheContent.add({elementType:'edge', contentId:newEdge.edgeContentId, content:newEdge});
               event.setResponse(newEdge);
             });
@@ -125,8 +126,8 @@ YOVALUE.GraphElementsContent.prototype = {
 
             that.publisher
               .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:content}])
-              .then(function(nodeContentId){
-                that.cacheContent.add({elementType:'node', contentId:nodeContentId, content:content});
+              .then(function(answer){
+                that.cacheContent.add({elementType:'node', contentId:answer.nodeContentId, content:content});
                 event.setResponse(newNode);
               });
           };
@@ -152,7 +153,7 @@ YOVALUE.GraphElementsContent.prototype = {
           else{
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
-            newNode.alternatives[1].label = 'НЕВЕРНО ЧТО: '+event.getData().element.label;
+            newNode.alternatives[1].label = 'РќР•Р’Р•Р РќРћ Р§РўРћ: '+event.getData().element.label;
             newNode.type = event.getData().element.type;
             newNode.importance = 50;
             newNode.alternatives[0] = 0;
@@ -232,7 +233,7 @@ YOVALUE.GraphElementsContent.prototype = {
       case "get_graph_node_content":
         var data = event.getData();
         var i, nodeContentId;
-        var cachedContents = [];
+        var cachedContents = {};
         var unavaliableNodeContentIds = [];
 
         // determine node contents that is not yet retrieved from server
@@ -244,8 +245,9 @@ YOVALUE.GraphElementsContent.prototype = {
             rows.length && 
             typeof(rows[0]['content']['alternatives'][0]['text']) != 'undefined' && 
             rows[0]['content']['alternatives'][0]['text'] != null
-          ) cachedContents[nodeContentId] = rows[0]['content'];
-          else unavaliableNodeContentIds.push(nodeContentId);
+          ){
+             cachedContents[nodeContentId] = rows[0]['content'];
+          }else unavaliableNodeContentIds.push(nodeContentId);
         }
 
         // retrieve absent node content from server
@@ -258,7 +260,8 @@ YOVALUE.GraphElementsContent.prototype = {
                 // here is the full node structure: nodeAttributeNames, nodeAlternativeAttributeNames, nodeAlternativeContentNames
                 row['content'] = nodeContents[nodeContentId];
               }
-              event.setResponse(YOVALUE.deepmerge(cachedContents, nodeContents));
+              var response = YOVALUE.deepmerge(cachedContents, nodeContents);
+              event.setResponse(response);
             });
         }else{
           event.setResponse(cachedContents);

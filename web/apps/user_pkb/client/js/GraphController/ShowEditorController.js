@@ -13,13 +13,13 @@ YOVALUE.ShowEditorController.prototype = {
       this._showEdgeEditor(event.getData().graphId, event.getData().element);
     }else if(eventName === 'clickbackground' || eventName === 'mouseleavenode' || eventName === 'mouseleaveedge' || eventName == 'dragstartnode'){
       if(selectedElement.element != null) {
-        if(selectedElement.elementType === "node")  this._showNodeEditor(selectedElement.graphId, selectedElement.element);
+        if(selectedElement.elementType === "node")  this._showNodeEditor(selectedElement.graphId, selectedElement.element.id, selectedElement.element.nodeContentId);
         if(selectedElement.elementType === "edge")  this._showEdgeEditor(selectedElement.graphId, selectedElement.element);
       }else{
         this.publisher.publish(["hide_graph_element_editor", selectedElement]);
       }
     }else if(eventName === 'graph_element_content_changed'){
-      if(selectedElement.element) this._showNodeEditor(event.getData().graphId, selectedElement.element.id, selectedElement.element.nodeContentId);
+      //if(['addAlternative'].indexOf(event.getData()['type'])!=-1) if(selectedElement.element) this._showNodeEditor(event.getData().graphId, selectedElement.element.id, selectedElement.element.nodeContentId);
     }else if(eventName === 'clicknode'){
       this._showNodeEditor(selectedElement.graphId, selectedElement.element.id, selectedElement.element.nodeContentId);
     }else if(eventName === 'clickedge'){
@@ -33,7 +33,6 @@ YOVALUE.ShowEditorController.prototype = {
 
   _showNodeEditor: function(graphId, nodeId, nodeContentId){
     var that = this;
-console.log(arguments);
     this.publisher
       .publish(["get_graph_models", [graphId]],
             ["get_selected_positions", [graphId]])

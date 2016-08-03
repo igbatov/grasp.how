@@ -57,7 +57,8 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'graph_element_content_changed'){
       this.pendingRequests.push({url:'updateGraphElementContent', data:e.getData(), files: e.getData().file,  callback:function(data){
-        e.setResponse(data);
+        if(YOVALUE.isJson(data)) e.setResponse(JSON.parse(data));
+        else e.setResponse(data);
       }});
       this.sendPendingRequests();
 

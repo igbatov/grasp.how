@@ -283,7 +283,6 @@ YOVALUE.UIElements.prototype = {
    * addCallback - callback on add button click
    */
   createListBox: function(attrs){
-    console.log(attrs);
     var uniqId = this.generateId();
     var div = YOVALUE.createElement('div',{id:uniqId},'');
     if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback}));
