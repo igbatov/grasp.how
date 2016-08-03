@@ -285,19 +285,6 @@ Modules['Mediator'].setSubscriptions(
 
     'get_selected_positions':[Modules['GraphMenu']],
 
-    'node_list_add_request':[
-      Modules['NodeListCache'],
-      Modules['Repository']
-    ],
-    'node_list_update_request':[
-      Modules['NodeListCache'],
-      Modules['Repository']
-    ],
-    'node_list_remove_request':[
-      Modules['NodeListCache'],
-      Modules['Repository']],
-    'node_list_reload':[Modules['NodeListCache']],
-
     'create_new_graph':[Modules['Repository']],
     'send_pending_requests':[Modules['Repository']],
     'repository_get_selected_positions':[Modules['Repository']],

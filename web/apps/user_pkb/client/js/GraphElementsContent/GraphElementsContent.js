@@ -39,13 +39,48 @@ YOVALUE.GraphElementsContent.prototype = {
         var e, er, ed;
         if(event.getData()['type'] == 'updateNodeText'){
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
-          e['alternatives'][event.getData()['active_alternative_id']]['text'] = event.getData()['text'];
+          e['alternatives'][event.getData()['node_alternative_id']]['text'] = event.getData()['text'];
           er = {};
           ed = event.getData();
 
-        }
-        // add node alternative
-        else if(event.getData()['type'] == 'addAlternative'){
+        }else if(event.getData()['type'] == 'node_list_update_request'){
+          e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
+          var alternative = e['alternatives'][event.getData()['node_alternative_id']];
+          var list = alternative['list'];
+          var item = event.getData()['item'];
+          list[item.id] = item;
+          this.publisher.publish(["graph_element_content_changed",  event.getData()])
+              .then(function(updateAnswer){
+                if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
+                event.setResponse(updateAnswer);
+              });
+
+        }else if(event.getData()['type'] == 'node_list_remove_request'){
+          e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
+          var alternative = e['alternatives'][event.getData()['node_alternative_id']];
+          var list = alternative['list'];
+          var item = event.getData()['item'];
+          if(typeof(list[item.id]) != 'undefined') delete list[item.id];
+          this.publisher.publish(["graph_element_content_changed",  event.getData()])
+              .then(function(updateAnswer){
+                if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
+                event.setResponse(updateAnswer);
+              });
+
+        }else if(event.getData()['type'] == 'node_list_add_request'){
+          e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
+          var alternative = e['alternatives'][event.getData()['node_alternative_id']];
+          var list = alternative['list'];
+          var item = event.getData()['item'];
+          this.publisher.publish(["graph_element_content_changed",  event.getData()])
+              .then(function(updateAnswer){
+                item.id = updateAnswer.id;
+                if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
+                list[item.id] = item;
+                event.setResponse(updateAnswer);
+              });
+
+        }else if(event.getData()['type'] == 'addAlternative'){
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
           var newAlternativeId = Math.max.apply(null, YOVALUE.getObjectKeys(e['alternatives']))+1;
           e['alternatives'][newAlternativeId] = {label:event.getData()['label'],list:null,p:null,reliability:null,text:''};

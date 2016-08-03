@@ -102,15 +102,6 @@ YOVALUE.GraphElementEditor.prototype = {
         nodeContentId: nodeContentId,
         nodeAttribute: {name:name, value:value}
       }]);
-
-      // its an node type change - reload whole editor
-      /*
-       if(name == 'type'){
-       node.type = value;
-       that.publisher.publish(['node_list_reload', {graphId: graphId, nodeContentId: node.nodeContentId}]);
-       that.publisher.publish(['show_graph_element_editor', {elementType:'node', graphId: graphId, position:position, isEditable: isEditable, nodeTypes:nodeTypes, node:node}]);
-       }
-       */
     };
 
     var removeNode = function(){
@@ -208,18 +199,21 @@ YOVALUE.GraphElementEditor.prototype = {
    * @private
    */
   _addContent: function(form, nodeContentId, nodeType, graphId, isEditable, contents){
+    console.log('+++++++++++++++++++',contents);
+
     var that = this;
+    var active_alternative_id = contents[nodeContentId]['active_alternative_id'];
 
     var editNodeText = function(name, value){
       that.publisher.publish(['request_for_graph_element_content_change', {
         graphId: graphId,
         type: 'updateNodeText',
         nodeContentId: nodeContentId,
+        node_alternative_id: active_alternative_id,
         text: value
       }]);
     };
 
-    console.log('+++++++++++++++++++',contents);
     var alternatives = contents[nodeContentId]['alternatives'];
 
     if(nodeType == that.NODE_TYPE_PROPOSITION){
@@ -244,20 +238,21 @@ YOVALUE.GraphElementEditor.prototype = {
     if(nodeType != that.NODE_TYPE_FACT && nodeType != that.NODE_TYPE_PROPOSITION) return;
 
     // create HTMLElements from list
-    var list = alternatives[contents[nodeContentId]['active_alternative_id']]['list'];
-    console.log('list', list);
+    var list = alternatives[active_alternative_id]['list'];
     var htmllist = {};
     for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
 
     var updateListItem = function(id, el){
-      that._editListItem(graphId, nodeContentId, nodeType, list[id], function(graphId, nodeContentId, item){
+      that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, list[id], function(graphId, nodeContentId, node_alternative_id, item){
+        // update list
+        list[id] = item;
+        for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
+        that.UI.updateForm(form,'list',{items:htmllist});
+
+        // save updated list
         that.publisher
-          .publish(['node_list_update_request', {graphId: graphId, nodeContentId: nodeContentId, item: item, nodeType:nodeType}])
+          .publish(['request_for_graph_element_content_change', {type:'node_list_update_request', graphId: graphId, nodeContentId: nodeContentId, node_alternative_id:node_alternative_id, item: item, nodeType:nodeType}])
           .then(function (updateAnswer) {
-            // update list
-            list[id] = item;
-            for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
-            that.UI.updateForm(form,'list',{items:htmllist});
             // update node reliability
             if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
           });
@@ -266,23 +261,26 @@ YOVALUE.GraphElementEditor.prototype = {
     };
 
     var removeListItem = function(id, el){
-      that.publisher.publish(
-          ['node_list_remove_request', {graphId:graphId, nodeContentId:nodeContentId, nodeType:nodeType, item:list[id]}]
-      ).then(function(updateAnswer){
-          if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
-      });
       // update list
       delete list[id];
       for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
       that.UI.updateForm(form,'list',{items:htmllist});
+
+      // save updated list
+      that.publisher.publish(
+          ['request_for_graph_element_content_change', {type:'node_list_remove_request', graphId:graphId, nodeContentId:nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, item:list[id]}]
+      ).then(function(updateAnswer){
+          if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+      });
       return true;
     };
 
     // define and add "add source button"
     var addCallback = function(){
-      that._editListItem(graphId, nodeContentId, nodeType, {},function(graphId, nodeContentId, item){
-        that.publisher
-            .publish(['node_list_add_request', {graphId: graphId, nodeContentId: nodeContentId,  nodeType:nodeType,  item: item}])
+      that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, {},
+          function(graphId, nodeContentId, node_alternative_id, item){
+            that.publisher
+            .publish(['request_for_graph_element_content_change', {type:'node_list_add_request', graphId: graphId, nodeContentId: nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, item:item}])
             .then(function (updateAnswer) {
               item.id = updateAnswer.id;
               // update list
@@ -290,7 +288,7 @@ YOVALUE.GraphElementEditor.prototype = {
               for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
               that.UI.updateForm(form,'list',{items:htmllist});
               // update node reliability
-              that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+              if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
             });
       });
     };
@@ -371,12 +369,13 @@ YOVALUE.GraphElementEditor.prototype = {
    * - Call callback (graphId, nodeContentId,  item}
    * @param graphId
    * @param nodeContentId
+   * @param node_alternative_id
    * @param nodeType
    * @param item - {name1:value1, name2:value2, ...}
    * @param callback - arguments are (graphId, nodeContentId, item)
    * @private
    */
-  _editListItem: function(graphId, nodeContentId, nodeType, item, callback){
+  _editListItem: function(graphId, nodeContentId, node_alternative_id, nodeType, item, callback){
     var that = this;
     item = item || {};
     var modalWindow = that.UI.createModal();
@@ -478,7 +477,7 @@ YOVALUE.GraphElementEditor.prototype = {
         YOVALUE.getObjectKeys(form).forEach(function (v) {
           if (typeof(form[v]) != 'undefined') item[v] = form[v];
         });
-        callback(graphId, nodeContentId, item);
+        callback(graphId, nodeContentId, node_alternative_id, item);
         that.UI.closeModal(modalWindow);
       }
     );

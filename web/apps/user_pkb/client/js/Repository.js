@@ -174,24 +174,6 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'node_list_add_request'){
-      this.pendingRequests.push({url:'addNodeContentList', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
-      }});
-      this.sendPendingRequests();
-
-    }else if(name == 'node_list_update_request'){
-      this.pendingRequests.push({url:'updateNodeContentList', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
-      }});
-      this.sendPendingRequests();
-
-    }else if(name == 'node_list_remove_request'){
-      this.pendingRequests.push({url:'removeNodeContentList', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
-      }});
-      this.sendPendingRequests();
-
     }else if(name == 'repository_get_graph_node_list'){
       this.pendingRequests.push({url:'getNodeContentList', data:e.getData(), callback:function(data){
         e.setResponse(JSON.parse(data));
