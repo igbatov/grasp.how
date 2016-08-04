@@ -58,9 +58,10 @@ YOVALUE.GraphElementsContent.prototype = {
         }else if(event.getData()['type'] == 'node_list_remove_request'){
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
           var alternative = e['alternatives'][event.getData()['node_alternative_id']];
+
           var list = alternative['list'];
-          var item = event.getData()['item'];
-          if(typeof(list[item.id]) != 'undefined') delete list[item.id];
+          var itemId = event.getData()['itemId'];
+          if(typeof(list[itemId]) != 'undefined') delete list[itemId];
           this.publisher.publish(["graph_element_content_changed",  event.getData()])
               .then(function(updateAnswer){
                 if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
@@ -91,11 +92,27 @@ YOVALUE.GraphElementsContent.prototype = {
         }
         // update node attribute
         else if(event.getData()['type'] == 'updateNodeAttribute'){
-          e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
-          if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
-          if(this.nodeAlternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['active_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
-          er = {};
-          ed = event.getData();
+          /// if we changed 'type' attribute, then reload full node from server
+          if(event.getData().nodeAttribute.name == 'type'){
+            // update type so that graph redraw fired on 'graph_element_content_changed'' will be done correctly
+            // TODO: it looks like upgly hack that we need because 'graph_element_content_changed' fire attribute change as well as attribute redraw 
+            // do we need to separate it on two different events (so we can process one after another)?
+            e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
+            e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+            that.publisher
+              .publish(["graph_element_content_changed",  event.getData()])
+              .then(function(answer){
+                // for node editor we must update whole node content, so remove it from cache here
+                that.cacheContent.remove({elementType:'node', contentId:event.getData().nodeContentId});
+                event.setResponse({});
+              });
+          }else{
+            e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
+            if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+            if(this.nodeAlternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+            er = {};
+            ed = event.getData();
+          }
 
         }else if(event.getData()['type'] == 'updateEdgeAttribute'){
           e = this.cacheContent.get({elementType: 'edge', contentId: event.getData().edgeContentId})[0].content;
@@ -256,9 +273,17 @@ YOVALUE.GraphElementsContent.prototype = {
             .publish(["repository_get_graph_node_content", {graphId:data['graphId'], nodeContentIds:unavaliableNodeContentIds}])
             .then(function(nodeContents){
               for(var nodeContentId in nodeContents){
-                var row = that.cacheContent.get({elementType:'node',contentId: nodeContentId})[0];
-                // here is the full node structure: nodeAttributeNames, nodeAlternativeAttributeNames, nodeAlternativeContentNames
-                row['content'] = nodeContents[nodeContentId];
+               // nodeContents[nodeContentId] contains full node structure: nodeAttributeNames, nodeAlternativeAttributeNames, nodeAlternativeContentNames
+                var rows = that.cacheContent.get({elementType:'node',contentId: nodeContentId});
+                // if there is a row for this node, update its content
+                if(rows.length){
+                  row = rows[0];
+                  row['content'] = nodeContents[nodeContentId];
+                }
+                // else create brand new row
+                else{
+                  that.cacheContent.add({elementType:'node',contentId: nodeContentId, content:nodeContents[nodeContentId]});
+                }
               }
               var response = YOVALUE.deepmerge(cachedContents, nodeContents);
               event.setResponse(response);

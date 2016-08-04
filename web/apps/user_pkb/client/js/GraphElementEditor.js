@@ -43,7 +43,7 @@ YOVALUE.GraphElementEditor.prototype = {
     var $ = this.jQuery, v;
 
     // save for reload()
-    this.currentEvent = YOVALUE.clone(event);
+    this.currentEvent = event;
 
     if(event.getData().position == 'rightGraphView') v = $('#'+this.leftContainer.id);
     else if(event.getData().position == 'leftGraphView') v = $('#'+this.rightContainer.id);
@@ -103,17 +103,6 @@ YOVALUE.GraphElementEditor.prototype = {
     var that = this;
 
     // define callbacks for fields
-    var attrChange = function(name,value){
-      that.publisher.publish(['request_for_graph_element_content_change', {
-        graphId: graphId,
-        type: 'updateNodeAttribute',
-        nodeContentId: nodeContentId,
-        nodeAttribute: {name:name, value:value}
-      }]).then(function(){
-        that._reloadEvent();
-      });
-    };
-
     var removeNode = function(){
       if(confirm('Are you sure?')){
         that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeNode', elementId: nodeId}]);
@@ -136,9 +125,6 @@ YOVALUE.GraphElementEditor.prototype = {
 
     };
 
-    var editConditionals = function(){
-    };
-
     /*
      var addIcon = function(files,ul){
 
@@ -158,6 +144,7 @@ YOVALUE.GraphElementEditor.prototype = {
     formDef['addAlternative'] = {type:'hidden'};
     formDef['type'] = {type:'select',items:[],value:''};
     formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100};
+    formDef['node-alternative_division_line'] = {type:'hidden'};
     formDef['label'] =       {type:'textarea',value:''};
     formDef['editConditionals'] ={type:'button',label:'Conditional probabilities'};
     formDef['reliability'] = {type:'range',min:0,max:99,step:1,value:100,disabled:true};
@@ -178,10 +165,26 @@ YOVALUE.GraphElementEditor.prototype = {
           var activeAlternative = node.alternatives[node.active_alternative_id];
           var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
 
-          var formDef = {};
+          var attrChange = function(name,value){
+            that.publisher.publish(['request_for_graph_element_content_change', {
+              graphId: graphId,
+              type: 'updateNodeAttribute',
+              nodeContentId: nodeContentId,
+              node_alternative_id: node.active_alternative_id, 
+              nodeAttribute: {name:name, value:value}
+            }]).then(function(){
+              // if attribute is importance or label we do not want to reload whole node editor
+              if(name != 'importance' && name != 'label') that._reloadEvent();
+            });
+          };
+
+          var editConditionals = function(){
+          };
+
           if(node.type == that.NODE_TYPE_PROPOSITION){
             that.UI.updateForm(form, 'active_alternative_id', {type:'select',items:[],callback:attrChange});
             that.UI.updateForm(form, 'addAlternative', {type:'button',label:'Add alternative',callback:addAlternative});
+            that.UI.updateForm(form, 'node-alternative_division_line', {type:'title',text:'================== Alternative =============='});
           }
 
           that.UI.updateForm(form, 'type', {type:'select',items:types,defaultValue:node.type,callback:attrChange});
@@ -209,7 +212,7 @@ YOVALUE.GraphElementEditor.prototype = {
    * @private
    */
   _addContent: function(form, nodeContentId, nodeType, graphId, isEditable, contents){
-    console.log('+++++++++++++++++++',YOVALUE.clone(contents), printStackTrace());
+    console.log('+++++++++++++++++++',YOVALUE.clone(contents));
 
     var that = this;
     var active_alternative_id = contents[nodeContentId]['active_alternative_id'];
@@ -254,33 +257,22 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var updateListItem = function(id, el){
       that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, list[id], function(graphId, nodeContentId, node_alternative_id, item){
-        // update list
-        list[id] = item;
-        for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
-        that.UI.updateForm(form,'list',{items:htmllist});
-
         // save updated list
         that.publisher
           .publish(['request_for_graph_element_content_change', {type:'node_list_update_request', graphId: graphId, nodeContentId: nodeContentId, node_alternative_id:node_alternative_id, item: item, nodeType:nodeType}])
           .then(function (updateAnswer) {
-            // update node reliability
-            if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+            that._reloadEvent();
           });
       });
       return true;
     };
 
     var removeListItem = function(id, el){
-      // update list
-      delete list[id];
-      for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
-      that.UI.updateForm(form,'list',{items:htmllist});
-
       // save updated list
       that.publisher.publish(
-          ['request_for_graph_element_content_change', {type:'node_list_remove_request', graphId:graphId, nodeContentId:nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, item:list[id]}]
+          ['request_for_graph_element_content_change', {type:'node_list_remove_request', graphId:graphId, nodeContentId:nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, itemId:id}]
       ).then(function(updateAnswer){
-          if(typeof(updateAnswer.reliability) != 'undefined') that.UI.updateForm(form,'reliability',{value:updateAnswer.reliability});
+          that._reloadEvent();
       });
       return true;
     };

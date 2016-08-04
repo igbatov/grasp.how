@@ -9,7 +9,7 @@ class AppUserPkb extends App
   const HISTORY_CHUNK = 3; // number of graph in history chunk
   private $node_basic_types;
   private $node_attribute_names;
-  private $alternative_attribute_names;
+  private $node_alternative_attribute_names;
   private $edge_attribute_names;
   private $contentIdConverter;
 
@@ -89,7 +89,7 @@ class AppUserPkb extends App
     // define node and edge attributes (must be the same as db table column names)
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
     $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id');
-    $this->alternative_attribute_names = array('label', 'reliability','p');
+    $this->node_alternative_attribute_names = array('label', 'reliability','p');
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
@@ -110,7 +110,6 @@ class AppUserPkb extends App
         'removeNodeContentList'
     );
     if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
-   // if(in_array($action, $this->writeActions)) exit('ssssssssssssss');
 
     // else process action defined by url
     switch($action){
@@ -166,7 +165,7 @@ class AppUserPkb extends App
               $alternative = array();
 
               // alternative attributes
-              foreach($this->alternative_attribute_names as $name){
+              foreach($this->node_alternative_attribute_names as $name){
                 $alternative[$name] = $node_row[$name];
               }
 
@@ -211,7 +210,7 @@ class AppUserPkb extends App
         foreach($r['nodes'] as $content_id){
           $graph_id = $this->contentIdConverter->getGraphId($content_id);
           $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->node_alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
 
           $node_attributes = array();
 
@@ -233,7 +232,7 @@ class AppUserPkb extends App
           $node_attributes['alternatives'] = array();
           foreach($node_rows as $row){
             if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
-            foreach($this->alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
+            foreach($this->node_alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
           }
           $nodes[$content_id] = $node_attributes;
         }
@@ -357,7 +356,7 @@ class AppUserPkb extends App
         $this->isUserOwnGraph($graph_id);
 
         if($r['type'] == 'updateNodeText'){
-          $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+          $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
           $this->db->execute($query);
         }else if($r['type'] == 'node_list_add_request'){
           $this->addNodeContentList($r);
@@ -366,7 +365,8 @@ class AppUserPkb extends App
         }else if($r['type'] == 'node_list_update_request'){
           $this->updateNodeContentList($r);
         }else if($r['type'] == 'updateNodeAttribute'){
-          $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+          if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+          if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
           $this->db->execute($query);
         }else if($r['type'] == 'updateEdgeAttribute'){
           $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
@@ -526,29 +526,29 @@ class AppUserPkb extends App
     if($r['nodeType'] == $this->node_basic_types['fact']){
         // if it is a new source - add it to the main list
       if(empty($r['source']['source_id'])){
-        // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
+         // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
 
-      $q = "INSERT INTO source SET "
-      ."source_type='".$r['item']['source_type']
-      ."', `name`='".$this->db->escape($r['item']['name'])
-      ."', url='".$this->db->escape($r['item']['url'])
-      ."', author='".$this->db->escape($r['item']['author'])
-      ."', editor='".$this->db->escape($r['item']['editor'])
-      ."', publisher='".$this->db->escape($r['item']['publisher'])
-      ."', publisher_reliability='".$this->db->escape($r['item']['publisher_reliability'])
-      ."', scopus_title_list_id='".$this->db->escape($r['item']['scopus_title_list_id'])
-      ."', publish_date='".$this->db->escape($r['item']['publish_date'])
-      ."', comment='".$this->db->escape($r['item']['comment'])
-      ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
-      $this->log($q);
-      $r['item']['source_id'] = $this->db->execute($q);
+        $q = "INSERT INTO source SET "
+        ."source_type='".$r['item']['source_type']
+        ."', `name`='".$this->db->escape($r['item']['name'])
+        ."', url='".$this->db->escape($r['item']['url'])
+        ."', author='".$this->db->escape($r['item']['author'])
+        ."', editor='".$this->db->escape($r['item']['editor'])
+        ."', publisher='".$this->db->escape($r['item']['publisher'])
+        ."', publisher_reliability='".$this->db->escape($r['item']['publisher_reliability'])
+        ."', scopus_title_list_id='".$this->db->escape($r['item']['scopus_title_list_id'])
+        ."', publish_date='".$this->db->escape($r['item']['publish_date'])
+        ."', comment='".$this->db->escape($r['item']['comment'])
+        ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
+        $this->log($q);
+        $r['item']['source_id'] = $this->db->execute($q);
       }
 
       $graph_id = $r['graphId'];
       $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
       $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
           ."', local_content_id='".$local_content_id
-          ."', alternative_id='".$r['alternativeId']
+          ."', alternative_id='".$r['node_alternative_id']
           ."', source_type='".$r['item']['source_type']
           ."', `name`='".$this->db->escape($r['item']['name'])
           ."', url='".$this->db->escape($r['item']['url'])
@@ -589,7 +589,7 @@ class AppUserPkb extends App
     if($r['nodeType'] == $this->node_basic_types['fact']) {
       $q = "UPDATE node_content_source SET "
           . "local_content_id='" . $local_content_id
-          . "', alternative_id='".$r['alternativeId']
+          . "', alternative_id='".$r['node_alternative_id']
           . "', source_type='" . $r['item']['source_type']
           . "', `name`='" . $this->db->escape($r['item']['name'])
           . "', url='" . $this->db->escape($r['item']['url'])
@@ -624,13 +624,8 @@ class AppUserPkb extends App
     if($r['nodeType'] == $this->node_basic_types['fact']) {
       $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
           ."' AND local_content_id='".$local_content_id
-          ."' AND alternative_id='".$r['alternativeId']
-          ."' AND source_type='".$this->db->escape($r['item']['source_type'])
-          ."' AND url='".$this->db->escape($r['item']['url'])
-          ."' AND author='".$this->db->escape($r['item']['author'])
-          ."' AND editor='".$this->db->escape($r['item']['editor'])
-          ."' AND publisher='".$this->db->escape($r['item']['publisher'])
-          ."' AND publish_date='".$this->db->escape($r['item']['publish_date'])."' ";
+          ."' AND alternative_id='".$r['node_alternative_id']
+          ."' AND id='".$this->db->escape($r['itemId'])."'";
       $this->log($q);
       $this->db->execute($q);
       // calculate fact reliability
@@ -639,9 +634,8 @@ class AppUserPkb extends App
     }else{
       $q = "DELETE FROM node_content_falsification WHERE graph_id='".$graph_id
           ."' AND local_content_id='".$local_content_id
-          ."' AND alternative_id='".$r['alternativeId']
-          ."' AND name='".$this->db->escape($r['item']['name'])
-          ."' AND comment='".$this->db->escape($r['item']['comment'])."' ";
+          ."' AND alternative_id='".$r['node_alternative_id']
+          ."' AND id='".$this->db->escape($r['itemId'])."'";
       $this->log($q);
       $this->db->execute($q);
       $this->showRawData(json_encode(array('result'=>'SUCCESS')));
