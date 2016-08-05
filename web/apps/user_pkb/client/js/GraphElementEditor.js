@@ -118,11 +118,18 @@ YOVALUE.GraphElementEditor.prototype = {
           // form submit callback
           function (form) {
             // set form fields to item
-            that.publisher.publish(["request_for_graph_element_content_change", {graphId: graphId, type: 'addAlternative', nodeContentId: nodeContentId}]);
+            that.publisher.publish(["request_for_graph_element_content_change", {
+              graphId: graphId, 
+              type: 'addAlternative', 
+              nodeContentId: nodeContentId,
+              label: form.label
+            }]).then(function(){
+              that._reloadEvent();
+            });
+
             that.UI.closeModal(modalWindow);
           });
       that.UI.setModalContent(modalWindow, form);
-
     };
 
     /*
@@ -142,6 +149,7 @@ YOVALUE.GraphElementEditor.prototype = {
     var formDef = {};
     formDef['active_alternative_id'] = {type:'hidden'};
     formDef['addAlternative'] = {type:'hidden'};
+    formDef['removeAlternative'] = {type:'hidden'};
     formDef['type'] = {type:'select',items:[],value:''};
     formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100};
     formDef['node-alternative_division_line'] = {type:'hidden'};
@@ -178,12 +186,32 @@ YOVALUE.GraphElementEditor.prototype = {
             });
           };
 
+          var removeAlternative = function(){
+            
+            if(YOVALUE.getObjectKeys(node.alternatives).length == 2){
+              alert('Извините, но должно быть минимум 2 альтернативы!');
+              return;
+            }
+            if(confirm('Вы уверены?')){
+              that.publisher.publish(['request_for_graph_element_content_change', {
+                    graphId: graphId,
+                    type: 'removeAlternative',
+                    nodeContentId: nodeContentId,
+                    node_alternative_id: node.active_alternative_id
+              }]).then(function(){
+                that._reloadEvent();
+              });
+            }
+
+          };
+
           var editConditionals = function(){
           };
 
           if(node.type == that.NODE_TYPE_PROPOSITION){
             that.UI.updateForm(form, 'active_alternative_id', {type:'select',items:[],callback:attrChange});
             that.UI.updateForm(form, 'addAlternative', {type:'button',label:'Add alternative',callback:addAlternative});
+            that.UI.updateForm(form, 'removeAlternative', {type:'button',label:'Remove alternative',callback:removeAlternative});
             that.UI.updateForm(form, 'node-alternative_division_line', {type:'title',text:'================== Alternative =============='});
           }
 

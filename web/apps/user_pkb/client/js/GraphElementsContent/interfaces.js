@@ -5,11 +5,11 @@ YOVALUE.iGraphEdgeContent = {
 };
 
 YOVALUE.iGraphNodeContent = {
-  nodeContentId: String(),
-  active_alternative_id: String(),
+  nodeContentId: '',
+  active_alternative_id: 0,
   alternatives: {
-    0:{label:null,p:null,reliability:null,text:null,list:[]},
-    1:{label:null,p:null,reliability:null,text:null,list:[]}
+    0:{label:'',p:{},reliability:0,text:'',list:[]},
+    1:{label:'',p:{},reliability:0,text:'',list:[]}
   },
   type: String(),
   importance: String(),

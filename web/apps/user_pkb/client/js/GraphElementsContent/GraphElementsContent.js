@@ -81,13 +81,24 @@ YOVALUE.GraphElementsContent.prototype = {
                 event.setResponse(updateAnswer);
               });
 
+        }else if(event.getData()['type'] == 'removeAlternative'){
+          e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
+          if(typeof( e['alternatives'][event.getData()['node_alternative_id']]) != 'undefined'){
+            delete e['alternatives'][event.getData()['node_alternative_id']];
+            e['active_alternative_id'] = YOVALUE.getObjectKeys(e['alternatives'])[0];
+            er = {};
+            ed = event.getData();
+          }
         }else if(event.getData()['type'] == 'addAlternative'){
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
           var newAlternativeId = Math.max.apply(null, YOVALUE.getObjectKeys(e['alternatives']))+1;
-          e['alternatives'][newAlternativeId] = {label:event.getData()['label'],list:null,p:null,reliability:null,text:''};
+          e['alternatives'][newAlternativeId] = YOVALUE.clone(YOVALUE.iGraphNodeContent.alternatives[0]);
+          e['alternatives'][newAlternativeId]['label'] = event.getData()['label'];
           e['active_alternative_id'] = newAlternativeId;
           er = {};
-          ed = event.getData();
+          ed = event.getData()
+          ed.new_alternative_id = newAlternativeId
+          ed.alternative = e['alternatives'][newAlternativeId];
 
         }
         // update node attribute
@@ -137,13 +148,11 @@ YOVALUE.GraphElementsContent.prototype = {
         }else if(event.getData()['type'] == 'addNode'){
 
           // function to save new node (here and in repo) and to set response with new node
-          var saveNewNode = function(graphId, nodeContentId, attributes, content){
-            if(typeof(graphId) == 'undefined') YOVALUE.errorHandler.throwError('no graphId');
-            if(typeof(newNode) == 'undefined') YOVALUE.errorHandler.throwError('no newNode');
-
+          var saveNewNode = function(graphId, newNode){
             that.publisher
               .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:content}])
               .then(function(answer){
+                newNode.nodeContentId = answer.nodeContentId;
                 that.cacheContent.add({elementType:'node', contentId:answer.nodeContentId, content:content});
                 event.setResponse(newNode);
               });
@@ -154,15 +163,14 @@ YOVALUE.GraphElementsContent.prototype = {
             //retrieve node attributes and text
             this.publisher
               .publish(
-                    ["get_elements_attributes", {nodes:[event.getData().element.nodeContentId], edges:[]}],
                     ["get_graph_node_content", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]}])
               .then(function(attributes, contents){
                 // create new node and copy all info from old
+                var newNode = YOVALUE.clone(contents[event.getData().element.nodeContentId]);
+                newNode.nodeContentId = null;
                 saveNewNode(
                     event.getData()['graphId'],
-                    event.getData().element.nodeContentId,
-                    attributes.nodes[event.getData().element.nodeContentId],
-                    contents[event.getData().element.nodeContentId]
+                    newNode
                 );
               });
           }
@@ -170,10 +178,9 @@ YOVALUE.GraphElementsContent.prototype = {
           else{
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
-            newNode.alternatives[1].label = 'РќР•Р’Р•Р РќРћ Р§РўРћ: '+event.getData().element.label;
+            newNode.alternatives[1].label = 'НЕВЕРНО ЧТО: '+event.getData().element.label;
             newNode.type = event.getData().element.type;
             newNode.importance = 50;
-            newNode.alternatives[0] = 0;
             newNode.icon = null;
             newNode.stickers = null;
             saveNewNode(event.getData()['graphId'], newNode);

@@ -343,7 +343,16 @@ class AppUserPkb extends App
       case 'updateGraphElementContent':
         $r = $this->getRequest();
 
-        if(in_array($r['type'], array('updateNodeText','node_list_add_request','node_list_remove_request','node_list_update_request','updateNodeAttribute','addIcon'))){
+        if(in_array($r['type'], array(
+        'updateNodeText',
+        'node_list_add_request',
+        'node_list_remove_request',
+        'node_list_update_request',
+        'updateNodeAttribute',
+        'addIcon',
+        'addAlternative',
+        'removeAlternative'
+        ))){
           $graph_id = $this->contentIdConverter->getGraphId($r['nodeContentId']);
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
         }else if($r['type'] == 'updateEdgeAttribute'){
@@ -364,6 +373,45 @@ class AppUserPkb extends App
           $this->removeNodeContentList($r);
         }else if($r['type'] == 'node_list_update_request'){
           $this->updateNodeContentList($r);
+        }else if($r['type'] == 'addAlternative'){
+          // get type and importance of node
+          $query = "SELECT type, importance FROM node_content WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
+          $rows = $this->db->execute($query);
+          $type = $rows[0]['type'];
+          $importance = $rows[0]['importance'];
+          $alternative = $r['alternative'];
+          $this->log('$r='.var_export($r, true));
+          $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)
+          ."', `local_content_id` = '".$this->db->escape($local_content_id)
+          ."', `alternative_id` = '".$this->db->escape($r['new_alternative_id'])  
+          ."', `p` = '".$this->db->escape(json_encode($alternative['p']))
+          ."', `active_alternative_id` = '".$this->db->escape($r['new_alternative_id'])          
+          ."', `type` = '".$this->db->escape($type)
+          ."', `label` = '".$this->db->escape($alternative['label'])
+          ."', `text` = '".$this->db->escape($alternative['text'])
+          ."', `reliability` = '".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
+          ."', `importance` = '".(is_numeric($importance) ? $importance : 0)."', created_at = NOW()";
+          $this->log($query);
+          $this->db->execute($query);
+
+          // update all alternatives to have the same active_alternative_id
+          $query = "UPDATE node_content SET active_alternative_id = '".$this->db->escape($r['new_alternative_id'])."' WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
+          $this->log($query);
+          $this->db->execute($query);
+
+        }else if($r['type'] == 'removeAlternative'){
+          $query = "DELETE FROM node_content WHERE alternative_id = '".$this->db->escape($r['node_alternative_id'])."' AND `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
+          $this->log($query);
+          $this->db->execute($query);
+
+          $query = "SELECT alternative_id FROM node_content WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."' ORDER BY alternative_id ASC";
+          $rows = $this->db->execute($query);
+
+
+          $query = "UPDATE node_content SET active_alternative_id = '".$rows[0]['alternative_id']."' WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
+          $this->log($query);
+          $this->db->execute($query);
+
         }else if($r['type'] == 'updateNodeAttribute'){
           if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
@@ -392,8 +440,19 @@ class AppUserPkb extends App
             $query = "SELECT MAX(local_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
             $rows = $this->db->execute($query);
             $local_content_id = $rows[0]['max_id'] + 1;
-            $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['node']['type'])."', `label` = '".$this->db->escape($r['node']['label'])."', `text` = '".$this->db->escape($r['node']['text'])."', `reliability` = '".(is_numeric($r['node']['reliability']) ? $r['node']['reliability'] : 0)."', `importance` = '".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0)."', created_at = NOW()";
-            $this->db->execute($query);
+            foreach($r['node']['alternatives'] as $alternative){
+              $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)
+              ."', `local_content_id` = '".$this->db->escape($local_content_id)
+              ."', `alternative_id` = '".$this->db->escape($alternative['id'])  
+              ."', `p` = '".$this->db->escape($alternative['p']) 
+              ."', `active_alternative_id` = '".$this->db->escape($r['node']['active_alternative_id'])          
+              ."', `type` = '".$this->db->escape($r['node']['type'])
+              ."', `label` = '".$this->db->escape($alternative['label'])
+              ."', `text` = '".$this->db->escape($alternative['text'])
+              ."', `reliability` = '".(is_numeric($alternative['reliability']) ? $r['node']['reliability'] : 0)
+              ."', `importance` = '".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0)."', created_at = NOW()";
+              $this->db->execute($query);
+            }
           }catch (Exception $e) {
             $this->db->rollbackTransaction();
             $this->error("Error during transaction: ".mysql_error().". Transaction rollbacked.");
