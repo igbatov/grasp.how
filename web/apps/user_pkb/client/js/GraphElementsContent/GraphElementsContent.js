@@ -150,10 +150,10 @@ YOVALUE.GraphElementsContent.prototype = {
           // function to save new node (here and in repo) and to set response with new node
           var saveNewNode = function(graphId, newNode){
             that.publisher
-              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:content}])
+              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:newNode}])
               .then(function(answer){
                 newNode.nodeContentId = answer.nodeContentId;
-                that.cacheContent.add({elementType:'node', contentId:answer.nodeContentId, content:content});
+                that.cacheContent.add({elementType:'node', contentId:answer.nodeContentId, content:newNode});
                 event.setResponse(newNode);
               });
           };
@@ -178,7 +178,10 @@ YOVALUE.GraphElementsContent.prototype = {
           else{
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
+            newNode.alternatives[0].reliability = 50;
             newNode.alternatives[1].label = 'НЕВЕРНО ЧТО: '+event.getData().element.label;
+            newNode.alternatives[1].reliability = 50;
+
             newNode.type = event.getData().element.type;
             newNode.importance = 50;
             newNode.icon = null;

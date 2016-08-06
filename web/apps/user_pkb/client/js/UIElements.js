@@ -86,7 +86,7 @@ YOVALUE.UIElements.prototype = {
 
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
 
-    if(attrs.defaultValue){
+    if(typeof(attrs.defaultValue) != 'undefined' && attrs.defaultValue != null){
       YOVALUE.updateElement(selectedItem, {value:attrs.defaultValue}, attrs.items[attrs.defaultValue]);
       YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
     }

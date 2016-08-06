@@ -150,6 +150,7 @@ YOVALUE.GraphElementEditor.prototype = {
     formDef['active_alternative_id'] = {type:'hidden'};
     formDef['addAlternative'] = {type:'hidden'};
     formDef['removeAlternative'] = {type:'hidden'};
+    formDef['removeButton'] ={type:'button',label:'remove Node'};
     formDef['type'] = {type:'select',items:[],value:''};
     formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100};
     formDef['node-alternative_division_line'] = {type:'hidden'};
@@ -157,7 +158,6 @@ YOVALUE.GraphElementEditor.prototype = {
     formDef['editConditionals'] ={type:'button',label:'Conditional probabilities'};
     formDef['reliability'] = {type:'range',min:0,max:99,step:1,value:100,disabled:true};
     //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
-    formDef['removeButton'] ={type:'button',label:'remove'};
     formDef['text'] ={type:'textarea',label:''};
     formDef['list'] ={type:'list'};
 
@@ -187,7 +187,7 @@ YOVALUE.GraphElementEditor.prototype = {
           };
 
           var removeAlternative = function(){
-            
+
             if(YOVALUE.getObjectKeys(node.alternatives).length == 2){
               alert('Извините, но должно быть минимум 2 альтернативы!');
               return;
@@ -221,7 +221,7 @@ YOVALUE.GraphElementEditor.prototype = {
           that.UI.updateForm(form, 'editConditionals', {type:'button',label:'Conditional probabilities',callback:editConditionals});
           that.UI.updateForm(form, 'reliability', {type:'range',min:0,max:99,step:1,value:activeAlternative.reliability,callback:attrChange,disabled:true});
           //  formDef['icon',      {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
-          that.UI.updateForm(form, 'removeButton', {type:'button',label:'remove',callback:removeNode});
+          that.UI.updateForm(form, 'removeButton', {type:'button',label:'remove Node',callback:removeNode});
 
           that._addContent(form, nodeContentId, node.type, graphId, isEditable, contents);
     });
@@ -375,7 +375,7 @@ YOVALUE.GraphElementEditor.prototype = {
       },
       'removeButton':{
         type:'button',
-        value:'Remove edge',
+        label:'Remove edge',
         callback:function(){
           if(confirm('Are you sure?')){
             that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeEdge', elementId:edge.id}]);
