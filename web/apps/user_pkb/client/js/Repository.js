@@ -193,6 +193,12 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
+    }else if(name == 'query_grain'){
+      this.pendingRequests.push({url:'query_grain', data:e.getData(), callback:function(data){
+        e.setResponse(JSON.parse(data));
+      }});
+      this.sendPendingRequests();
+
     }
   },
 

@@ -1,4 +1,51 @@
-YOVALUE.BayesCalculator = function(approx_sampling_num, mloca, randomGeneratorFactory, is_debug_on){
+/**
+ * This is Bayes calculator for special type of networks - it assumes that facts can be only leafs in graph
+ * TODO: Сделать полноценный вариант. Простой алгоритм сэмплинга такой:
+ * Предварительные условия.
+ * 1. Если факт, то есть поле soft evidence
+ (заполняется на основе источников данных, алгоритм вычисления reliability его не может менять).
+ Это же называется reliability. У факта может быть только две альтерантивы - факт верен и не верен.
+ Соответственно soft evidence задается в виде {"true":0.99, "false":"0.01"}
+ 2. Если proposition, то есть поле априорная вероятность (человек его не может менять).
+ Изначально это поле равно 1/<кол-во альтернатив>. Потом вычисляется исходя из
+ soft evidence родителей и условных вероятностей P(proposition|родители)
+ 3. У каждого следствия CHILD (=ребенка="узла с кружочком"), не важно факт это или proposition, есть условные вероятности
+ P(CHILD|родители) для каждой комбинации значений родителя. Заполняется человеком.
+ 4. Любое proposition должно быть связано хотя бы с одним фактом или другим proposition. В графе должен быть хотя бы один факт.
+ 5. Факты-причины (=факты-родители) должны быть независимы
+ 6. Все следствия child1,child2,child3 причин parent1, parent2, ... должны быть независимы при parent1, parent2, ...
+ то есть P(child1,child2,child3|parent1, parent2, ... )=P(child1|parent1, parent2, ...)P(s2|parent1, parent2, ...)P(s3|parent1, parent2, ...)
+ 7. Граф не должен содержать направленных циклов.
+
+
+ Алгоритм обновления вероятностей работает следующим образом
+ 1. Берутся все факты, для каждого генерируется его значение в соответствии с soft evidence.
+ 2. Берутся вершины которые не являются ничьим ребенком (ни одно ребро не входит, все только выходят).
+ Если это факт для которого уже есть значение с шага 1. Если нет, то
+ генерируется значение альтернативы в соответствии с априорной вероятностью этой альтернативы.
+ 1 Цикл по всем детям - берется ребенок, всего его родители, для каждого родителя генерируется значение альтернативы
+ в соответствии с априорной вероятностью этой альтернативы (если еще не сгенерилось). Для факта эта вероятность берется из soft evidence.
+ 2 генерируется значение ребенка в соответствии с распределением P(child|parent1,parent2,...).
+ Если ребенок это факт, то он имеет сгенеренное значение на шаге 1. Если только что сгенеренное значение совпадает с этим,
+ то заносим в таблицу. Если нет, останавливаем цикл и переходим на шаг 1.
+ Если ребенок это proposition, то делаем для него шаг 2.1
+ 3. Если мы находимся на этом шаге, значит мы сгенерили для узлов значения альтернатив, соответствующие soft evidence фактов.
+ Заносим этот вектор в таблицу consistentAlternativeValues. Если мы сделали шаг 3 уже 10000 раз
+ или consistentAlternativeValues содержит 1000 значений Идем на шаг 4.
+ 4.Вероятность каждой альтернативы считается как
+ "кол-во её вхождений в consistentAlternativeValues"/"кол-во строк в consistentAlternativeValues"
+
+ Всего получается O(10000*(кол-во вершин в графе)) операций
+
+ Другое алгоритмы - Markov Chain Monte Carlo, message passing
+ * @param approx_sampling_num
+ * @param mloca
+ * @param randomGeneratorFactory
+ * @param is_debug_on
+ * @constructor
+ */
+
+YOVALUE.BayesCalculatorTree = function(approx_sampling_num, mloca, randomGeneratorFactory, is_debug_on){
   this.IS_DEBUG_ON = typeof(is_debug_on) == 'undefined' ? false : is_debug_on;
   this.MLOCA = typeof(mloca) == 'undefined' ? 10000 : mloca;  // Maximum Length Of Children Combination Alternatives
   this.APPROX_SAMPLING_NUM = typeof(approx_sampling_num) == 'undefined' ? 10000 : approx_sampling_num;
@@ -20,7 +67,7 @@ YOVALUE.BayesCalculator = function(approx_sampling_num, mloca, randomGeneratorFa
   this.graph = {};
 };
 
-YOVALUE.BayesCalculator.prototype = {
+YOVALUE.BayesCalculatorTree.prototype = {
   setApproxSamplingNum: function(approx_sampling_num){
     this.APPROX_SAMPLING_NUM = approx_sampling_num;
   },
@@ -31,6 +78,10 @@ YOVALUE.BayesCalculator.prototype = {
 
   setRandomSeed: function(){
     this.randomGenerator = this.randomGeneratorFactory('hello.');
+  },
+
+  calculateNodeAlternativeProbabilities: function(graph, probabilities, callback){
+    callback(this.getEvidences());
   },
 
   getEvidences: function (graph, probabilities){
@@ -161,7 +212,9 @@ YOVALUE.BayesCalculator.prototype = {
    *
    */
   getNodeEvidences: function(parentId, parent, graph, probabilities){
+    // all parentId children
     var childrenIds = this.getChildren(graph, [parentId]);
+    // all parents of parentId children (including parentId)
     var parentIds = this.getParents(graph, childrenIds);
 
     // init posteriorDPD

@@ -1,6 +1,7 @@
 <?php
 
 include("class.Diff.php");
+include("GRainQuerier.php");
 include("GraphDiffCreator.php");
 include("ContentIdConverter.php");
 
@@ -115,6 +116,16 @@ class AppUserPkb extends App
     switch($action){
 
       /* READ METHODS */
+      case 'query_grain':
+        // create text of R script for gRain
+        $graph = $this->getRequest()['graph'];
+        $probabilities = $this->getRequest()['probabilities'];
+
+        $grain_querier = new GRainQuerier();
+        $grain_querier->queryGrain($graph, $probabilities);
+
+        break;
+
       case 'getGraphsModelSettings':
         if($access_level == 'read'){
           $graphs_settings = $this->getGraphs(array($showGraphId));
