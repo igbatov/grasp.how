@@ -26,6 +26,12 @@ class Config{
     return $config_json['admin_secret'];
   }
 
+  public function getRscriptPath(){
+    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
+    $config_json = json_decode($string, true);
+    return $config_json['RscriptPath'];
+  }
+
   public function getWebDomainURL(){
     return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName() .'/';
   }
@@ -44,6 +50,9 @@ class Config{
         break;
       case "log":
         return $this->getWebRootPath()."/../logs";
+        break;
+      case "tmp":
+        return $this->getWebRootPath()."/../tmp";
         break;
       default:
         return false;

@@ -121,7 +121,7 @@ class AppUserPkb extends App
         $graph = $this->getRequest()['graph'];
         $probabilities = $this->getRequest()['probabilities'];
 
-        $grain_querier = new GRainQuerier();
+        $grain_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
         $grain_querier->queryGrain($graph, $probabilities);
 
         break;

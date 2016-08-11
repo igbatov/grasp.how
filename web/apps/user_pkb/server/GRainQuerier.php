@@ -1,9 +1,11 @@
 <?php
 class GRainQuerier {
   private $rscript_path;
+  private $tmp_dir;
 
-  public function __construct($rscript_path){
+  public function __construct($rscript_path, $tmp_dir){
     $this->rscript_path = $rscript_path;
+    $this->tmp_dir = $tmp_dir;
   }
   /**
    * Create R script for gRain and execute it
@@ -97,8 +99,16 @@ class GRainQuerier {
 
   public function queryGrain($graph, $probabilities){
     $text = $this->createScriptText($graph, $probabilities);
+    $tmp_filename = $this->tmp_dir."/GRainQuerier.tmp.".rand(1,1000).".".time().".Rmd";
+
+    $myfile = fopen($tmp_filename, "w") or die("Unable to open file!");
+    fwrite($myfile, $text);
+    fclose($myfile);
+
+    $cmd = '"'.$this->rscript_path.'" "'.$tmp_filename.'"';
     $output = array();
-    exec($this->rscript_path.' ', $output);
+    exec($cmd, $output);
+    return $output;
   }
 
   /**

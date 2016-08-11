@@ -1,6 +1,12 @@
 <?php
+// init config
+$path = dirname(__FILE__);
+require_once ($path.'/../../../../../web/lib/server/Config.php');
+$c = new Config();
+
 include_once('../GRainQuerier.php');
-$grain_querier = new GRainQuerier('');
+
+$grain_querier = new GRainQuerier($c->getRscriptPath(), $c->getDefaultPath('tmp'));
 
 /**
  * GRAPH 3:
@@ -15,6 +21,9 @@ $edges = array(
   array("h1","e1"),
   array("h2","e1")
 );
+
+$graph = array('nodes'=>$nodes, 'edges'=>$edges);
+
 $probabilities = array(
   'e1'=>array(
     'soft'=>array('1'=>0.85, '2'=>0.15), // soft evidence for e2 and ^e2
@@ -36,7 +45,8 @@ var_dump($args, array(
 ));
 */
 
-$text = $grain_querier->createScriptText(array('nodes'=>$nodes, 'edges'=>$edges),$probabilities);
+/*
+$text = $grain_querier->createScriptText($graph,$probabilities);
 
 // test 2
 var_dump($text,"library(gRain)\n
@@ -48,3 +58,8 @@ net <- grain(plist)\n
 net <- setEvidence(net, evidence=list(node_e1=c(0.85,0.15)))\n
 querygrain(net, nodes=c('node_h1','node_h2'), type='marginal')");
 
+*/
+
+
+$result = $grain_querier->queryGrain($graph, $probabilities);
+var_dump($result);
