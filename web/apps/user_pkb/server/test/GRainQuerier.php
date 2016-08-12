@@ -34,8 +34,7 @@ $probabilities = array(
   ),
 );
 
-// test 1
-/*
+// =========== test 1
 $args = $grain_querier->getOrderedCptableArgs(array('h1','h2'),$nodes,$probabilities['e1'],$nodes['e1']);
 
 var_dump($args, array(
@@ -43,12 +42,10 @@ var_dump($args, array(
     'values'=>array(0.9,0.1,0.2,0.8,0.15,0.85,0.25,0.75),
     'levels'=>array('1', '2')
 ));
-*/
 
-/*
 $text = $grain_querier->createScriptText($graph,$probabilities);
 
-// test 2
+// =========== test 2
 var_dump($text,"library(gRain)\n
 node_h1 <- cptable(~node_h1,values=c(0.5, 0.5),levels=c('1', '2'))\n
 node_h2 <- cptable(~node_h2,values=c(0.5, 0.5),levels=c('1', '2'))\n
@@ -58,8 +55,17 @@ net <- grain(plist)\n
 net <- setEvidence(net, evidence=list(node_e1=c(0.85,0.15)))\n
 querygrain(net, nodes=c('node_h1','node_h2'), type='marginal')");
 
-*/
-
-
+// =========== test 3
 $result = $grain_querier->queryGrain($graph, $probabilities);
-var_dump($result);
+var_dump($result, array (
+    'h1' =>
+        array (
+            1 => '0.6272727',
+            2 => '0.3727273',
+        ),
+    'h2' =>
+        array (
+            1 => '0.6484848',
+            2 => '0.3515152',
+        ),
+));

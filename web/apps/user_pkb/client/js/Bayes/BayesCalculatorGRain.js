@@ -3,13 +3,13 @@
  * @param type - package that is used on server, now only "gRain" (= gRain for R)
  * @constructor
  */
-YOVALUE.BayesCalculatorServer = function(type, publisher){
+YOVALUE.BayesCalculatorGRain = function(type, publisher){
   this.publisher = publisher;
   if(typeof(type) == 'undefined') this.type="gRain";
   else this.type=type;
 };
 
-YOVALUE.BayesCalculatorServer.prototype = {
+YOVALUE.BayesCalculatorGRain.prototype = {
   /**
    * @param graph - structure of network in a form {
    *   nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2']}, // every node contains array of its alternatives

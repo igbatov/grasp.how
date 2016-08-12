@@ -122,8 +122,8 @@ class AppUserPkb extends App
         $probabilities = $this->getRequest()['probabilities'];
 
         $grain_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
-        $grain_querier->queryGrain($graph, $probabilities);
-
+        $probabilities = $grain_querier->queryGrain($graph, $probabilities);
+        $this->showRawData(json_encode($probabilities));
         break;
 
       case 'getGraphsModelSettings':
@@ -1172,7 +1172,7 @@ class AppUserPkb extends App
       'GraphElementEditor.js',
 
       'Bayes/BayesPubSub.js',
-      'Bayes/BayesCalculator.js',
+      'Bayes/BayesCalculatorGrain.js',
     );
   }
 }

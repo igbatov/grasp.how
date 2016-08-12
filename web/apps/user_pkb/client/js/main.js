@@ -65,7 +65,7 @@ var Modules = {
   NodeListCache: YOVALUE.NodeListCache,
 
   BayesPubSub: YOVALUE.BayesPubSub,
-  BayesCalculator: YOVALUE.BayesCalculator
+  BayesCalculator: YOVALUE.BayesCalculatorGRain
 };
 
 /**
@@ -177,7 +177,7 @@ var DI = {
 
   NodeListCache: ['Publisher'],
 
-  BayesCalculator: [10000, 1000, YOVALUE.randomGeneratorFactory, false],
+  BayesCalculator: ['Publisher'],
   BayesPubSub: ['Publisher','BayesCalculator']
 };
 

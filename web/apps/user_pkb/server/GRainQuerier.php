@@ -77,9 +77,9 @@ class GRainQuerier {
     $text .= "plist <- compileCPT(list(node_".implode(",node_",array_keys($graph['nodes']))."))"."\n";
     $text .= "net <- grain(plist)"."\n";
 
-    // for all nodes with soft evidences - set soft evidences cptable
+    // for all facts (=nodes with soft evidences) - set evidence
     foreach($probabilities as $node_id => $probability){
-      if(isset($probability['soft'])){
+      if(!$this->isProposition($node_id, $probabilities)){
         $evidence = array();
         // sort soft probabilities in accordance with previous definitions
         foreach($graph['nodes'][$node_id] as $node_alternative_id) $evidence[] = $probability['soft'][$node_alternative_id];
@@ -90,11 +90,21 @@ class GRainQuerier {
     // query for all nodes without soft evidences
     $proposition_names = array();
     foreach($graph['nodes'] as $node_id=>$node_alternative_ids){
-      if(!isset($probabilities[$node_id]) || !isset($probabilities[$node_id]['soft'])) $proposition_names[] = 'node_'.$node_id;
+      if($this->isProposition($node_id, $probabilities)) $proposition_names[] = 'node_'.$node_id;
     }
 
     $text .= "querygrain(net, nodes=c('".implode("','",$proposition_names)."'), type='marginal')"."\n";
     return $text;
+  }
+
+  /**
+   * Returns true if node is proposition (and hence its probability must be calculated from facts)
+   * @param $node_id
+   * @param $probabilities
+   * @return bool
+   */
+  public function isProposition($node_id, $probabilities){
+    return !isset($probabilities[$node_id]) || !isset($probabilities[$node_id]['soft']);
   }
 
   public function queryGrain($graph, $probabilities){
@@ -108,7 +118,23 @@ class GRainQuerier {
     $cmd = '"'.$this->rscript_path.'" "'.$tmp_filename.'"';
     $output = array();
     exec($cmd, $output);
-    return $output;
+
+    $proposition_probabilities = array();
+    foreach($output as $i=>$str){
+      foreach($graph['nodes'] as $node_id=>$node_alternative_ids){
+        if($this->isProposition($node_id, $probabilities)){
+          if($str == 'node_'.$node_id){
+            $node_alternative_ids = preg_split('/\s+/', trim($output[$i+1]));
+            $node_alternative_probabilities = preg_split('/\s+/', $output[$i+2]);
+            $proposition_probabilities[$node_id] = array();
+            foreach($node_alternative_ids as $j=>$node_alternative_id)
+              $proposition_probabilities[$node_id][$node_alternative_id] = $node_alternative_probabilities[$j];
+          }
+        }
+      }
+    }
+
+    return $proposition_probabilities;
   }
 
   /**
