@@ -222,10 +222,12 @@ YOVALUE.GraphElementEditor.prototype = {
                 .then(function(parentContents){
                   console.log(parentContents);
 
-                  
-                  var fields = {title: {type:'title',text:'Введите вероятности этой альтернативы'}};
+                  var fields = {};
                   var formKeys = [{}];
 
+                  // add parentContent alternatives to formKeys:
+                  // input formKeys = [{p1:1},{p1:2}]
+                  // output [{p1:1,p2:1},{p1:1,p2:1},{p1:2,p2:1},{p1:2,p2:1}]
                   function addAlternativeColumn(formKeys, parentContentId, parentContent){
                     for(var i in formKeys){
                       for(var parentAlternativeId in parentContent.alternatives){
@@ -239,31 +241,44 @@ YOVALUE.GraphElementEditor.prototype = {
                   for(var parentContentId in parentContents){
                     addAlternativeColumn(formKeys, parentContentId, parentContents[parentContentId]);
                   }
-console.log(formKeys);
-/*
-                  var modalWindow = that.UI.createModal();
-                  var form = that.UI.createForm({
-                     
 
-                     button:{type:'button', label:'Сохранить'}
-                   },
-                   // form submit callback
-                   function (form) {
-                     // set form fields to item
+                  // create form fields for each combination of parent alternatives
+                  for(var i in formKeys){
+                    var fieldLabel = '';
+                    for(var j in formKeys[i]){
+                      fieldLabel = parentContents[j].alternatives[formKeys[i][j]].label;
+                      fields[i+'_'+j+'_label'] = {type:'title',value:'ЕСЛИ - "'+fieldLabel+'"'};
+                    }
+                    fields[i+'_label'] = {type:'title',value:'ТО ВЕРОЯТНОСТЬ - "'+activeAlternative.label+'"'};
+                    var formKeyStr = JSON.stringify(formKeys[i]);
+                    fields[formKeyStr] = {type:'text', value:activeAlternative.p[formKeyStr]};
+                  }
+                  console.log('activeAlternative',activeAlternative);
+                  fields['button'] = {type:'button', label:'Сохранить'};
+
+                  var modalWindow = that.UI.createModal();
+                  var form = that.UI.createForm(
+                    fields,
+                    // form submit callback
+                    function (form) {
+                     var probabilities = {};
+                      for(var i in formKeys){
+                        var formKeyStr = JSON.stringify(formKeys[i]);
+                       probabilities[formKeyStr] = form[formKeyStr];
+                     }
                      that.publisher.publish(["request_for_graph_element_content_change", {
                            graphId: graphId,
-                           type: 'pChanged',
+                           type: 'updateNodeAttribute',
                            nodeContentId: nodeContentId,
-                           p: form.label
+                           node_alternative_id: node.active_alternative_id,
+                           nodeAttribute: {name:'p', value:probabilities}
                          }]).then(function(){
                        that._reloadEvent();
                      });
-
                      that.UI.closeModal(modalWindow);
                    });
 
                    that.UI.setModalContent(modalWindow, form);
-                   */
                 });
           };
 
@@ -271,7 +286,7 @@ console.log(formKeys);
             that.UI.updateForm(form, 'active_alternative_id', {type:'select',items:[],callback:attrChange});
             that.UI.updateForm(form, 'addAlternative', {type:'button',label:'Add alternative',callback:addAlternative});
             that.UI.updateForm(form, 'removeAlternative', {type:'button',label:'Remove alternative',callback:removeAlternative});
-            that.UI.updateForm(form, 'node-alternative_division_line', {type:'title',text:'================== Alternative =============='});
+            that.UI.updateForm(form, 'node-alternative_division_line', {type:'title',value:'================== Alternative =============='});
           }
 
           if(node.type == that.NODE_TYPE_PROPOSITION || node.type == that.NODE_TYPE_FACT){

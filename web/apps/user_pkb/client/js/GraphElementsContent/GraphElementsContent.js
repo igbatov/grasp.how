@@ -96,7 +96,7 @@ YOVALUE.GraphElementsContent.prototype = {
           e['alternatives'][newAlternativeId]['label'] = event.getData()['label'];
           e['active_alternative_id'] = newAlternativeId;
           er = {};
-          ed = event.getData()
+          ed = event.getData();
           ed.new_alternative_id = newAlternativeId
           ed.alternative = e['alternatives'][newAlternativeId];
 
@@ -106,8 +106,8 @@ YOVALUE.GraphElementsContent.prototype = {
           /// if we changed 'type' attribute, then reload full node from server
           if(event.getData().nodeAttribute.name == 'type'){
             // update type so that graph redraw fired on 'graph_element_content_changed'' will be done correctly
-            // TODO: it looks like upgly hack that we need because 'graph_element_content_changed' fire attribute change as well as attribute redraw 
-            // do we need to separate it on two different events (so we can process one after another)?
+            // TODO: it looks like ugly hack that we need because 'graph_element_content_changed' fire attribute change as well as attribute redraw
+            // Do 'graph_element_content_changed' need to be separated on two different events (so we can process one after another)?
             e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
             e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
             that.publisher
@@ -287,7 +287,7 @@ YOVALUE.GraphElementsContent.prototype = {
                 var rows = that.cacheContent.get({elementType:'node',contentId: nodeContentId});
                 // if there is a row for this node, update its content
                 if(rows.length){
-                  row = rows[0];
+                  var row = rows[0];
                   row['content'] = nodeContents[nodeContentId];
                 }
                 // else create brand new row

@@ -268,7 +268,11 @@ YOVALUE.UIElements.prototype = {
    */
   createTitle: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('h1',{id:uniqId},attrs.text);
+
+    // create DOM
+    var el = YOVALUE.createElement('h1',{id:uniqId},attrs.value);
+
+    // update internal list of all UI elements
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:null, type:'title', definition:attrs, dom:el});
 
     return el;
@@ -339,7 +343,7 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox({name:name, items:fields[name]['items'], addCallback:fields[name]['addCallback'], removeCallback:fields[name]['removeCallback'], disabled:fields[name]['disabled'], formname:uniqId}));
       if(fields[name]['type'] == 'range') form.appendChild(this.createRange({name:name, value:fields[name]['value'], min:fields[name]['min'], max:fields[name]['max'], step:fields[name]['step'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId}));
       if(fields[name]['type'] == 'hidden') form.appendChild(this.createHidden({name:name,value:fields[name]['value'], formname:uniqId}));
-      if(fields[name]['type'] == 'title') form.appendChild(this.createTitle({text:fields[name]['value'], formname:uniqId}));
+      if(fields[name]['type'] == 'title') form.appendChild(this.createTitle({value:fields[name]['value'], formname:uniqId}));
       if(fields[name]['type'] == 'list') form.appendChild(this.createListBox({name:name,items:fields[name]['items'], itemActions:fields[name]['itemActions'], addLabel: fields[name]['addLabel'], addCallback:fields[name]['addCallback'], formname:uniqId}));
     }
 

@@ -167,7 +167,8 @@ class AppUserPkb extends App
             $content = array();
             // general node attributes
             foreach($this->node_attribute_names as $name){
-              $content[$name] = $node_rows[0][$name];
+              if($name == 'p') $content[$name] = json_decode($node_rows[0][$name], true);
+              else $content[$name] = $node_rows[0][$name];
             }
 
             // alternatives
@@ -425,7 +426,11 @@ class AppUserPkb extends App
 
         }else if($r['type'] == 'updateNodeAttribute'){
           if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-          if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
+          if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)){
+            if($r['nodeAttribute']['name'] == 'p') $value = $this->db->escape(json_encode($r['nodeAttribute']['value']));
+            else $value = $this->db->escape($r['nodeAttribute']['value']);
+            $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
+          }
           $this->db->execute($query);
         }else if($r['type'] == 'updateEdgeAttribute'){
           $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
