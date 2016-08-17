@@ -167,8 +167,7 @@ class AppUserPkb extends App
             $content = array();
             // general node attributes
             foreach($this->node_attribute_names as $name){
-              if($name == 'p') $content[$name] = json_decode($node_rows[0][$name], true);
-              else $content[$name] = $node_rows[0][$name];
+              $content[$name] = $node_rows[0][$name];
             }
 
             // alternatives
@@ -178,7 +177,12 @@ class AppUserPkb extends App
 
               // alternative attributes
               foreach($this->node_alternative_attribute_names as $name){
-                $alternative[$name] = $node_row[$name];
+                if($name == 'p'){
+                  $alternative[$name] = json_decode($node_rows[0][$name], true);
+                  $this->log(print_r($alternative[$name], true));
+                }else{
+                  $alternative[$name] = $node_row[$name];
+                }
               }
 
               // alternative text
