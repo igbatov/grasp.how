@@ -118,9 +118,13 @@ class AppUserPkb extends App
       /* READ METHODS */
       case 'query_grain':
         // create text of R script for gRain
-        $graph = $this->getRequest()['graph'];
-        $probabilities = $this->getRequest()['probabilities'];
+        $graph_id = $this->getRequest()['graphId'];
 
+        $graph = $this->getBayesGraph($graph_id);
+        $probabilities = $this->getBayesProbabilities($graph_id, $graph);
+       // var_dump($graph);
+        var_dump($probabilities);
+exit();
         $grain_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
         $probabilities = $grain_querier->queryGrain($graph, $probabilities);
         $this->showRawData(json_encode($probabilities));
@@ -337,7 +341,6 @@ class AppUserPkb extends App
       case 'addGraphHistoryItem':
         $r = $this->getRequest();
         $query = 'INSERT INTO graph_history SET graph_id = "'.$r['graphId'].'", step = "'.$r['step'].'", timestamp = "'.$r['timestamp'].'", elements = "'.$this->db->escape(json_encode($r['elements'], JSON_FORCE_OBJECT)).'", node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
-        error_log($query);
         if($this->db->execute($query)){
           $this->showRawData('success');
         }else{
@@ -1099,6 +1102,99 @@ class AppUserPkb extends App
     }
 
     return $graphs_history;
+  }
+
+ /**
+  * Return structure of graph in a form
+  * {
+  *   nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2']}, // every node contains array of its alternative_ids
+  *   edges:[['h1','e1'],['e2','h1']] // first element is source, second is destination
+  * };
+  *
+  * e1,e2,h1 are local_content_ids in our terminology
+  * @param $graph_id
+  * @return array|bool
+  */
+  private function getBayesGraph($graph_id){
+    $history = $this->getGraphsHistoryChunk(array($graph_id=>null));
+    if(!count($history)) return false;
+
+    // form nodes
+    $node_local_content_ids = array();
+    foreach($history[0]['elements']['nodes'] as $node) $node_local_content_ids[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
+
+    $query = "SELECT local_content_id, alternative_id, type FROM node_content WHERE graph_id = '".$graph_id
+        ."' AND local_content_id IN ('".implode("','",$node_local_content_ids)."') ORDER BY local_content_id, alternative_id";
+    $this->log($query);
+    $graph = array('nodes'=>array(), 'edges'=>array());
+    $rows = $this->db->execute($query);
+    foreach($rows as $row){
+      if(!in_array($row['type'], array('fact','proposition'))) continue;
+      $graph['nodes'][$row['local_content_id']][] = $row['alternative_id'];
+    }
+
+    // form edges
+    foreach($history[0]['elements']['edges'] as $edge){
+      $src_node = $history[0]['elements']['nodes'][$edge['source']];
+      $dst_node = $history[0]['elements']['nodes'][$edge['target']];
+      $src = $this->contentIdConverter->getLocalContentId($src_node['nodeContentId']);
+      $dst = $this->contentIdConverter->getLocalContentId($dst_node['nodeContentId']);
+      // if both src and dst exists in $graph['nodes'], include in edges (thus we get only edges between facts and propositions)
+      if(isset($graph['nodes'][$src]) && isset($graph['nodes'][$dst])) $graph['edges'][] = array($src,$dst);
+    }
+
+    return $graph;
+  }
+
+ /**
+  * Return probability of graph in a form
+  * {
+  *  e1: {
+  *    soft:{1:1, 2:0}, // soft evidence for e1 and ^e1, sum must be equal to 1
+  *    '{"h1":"1"}':{1:0.01, 2:0.99}, // sum must be equal to 1
+  *    '{"h1":"2"}':{1:0.99, 2:0.01}  // sum must be equal to 1
+  *  },
+  *  e2: {
+  *    soft:{1:1, 2:0} // soft evidence for e2 and ^e2,  sum must be equal to 1
+  *  },
+  *  h1: {
+  *    // prior probability of proposition alternative is 1/<number of alternatives>
+  *    '{"e2":"1"}':{1:0.9999, 2:0.0001}, // sum must be equal to 1
+  *    '{"e2":"2"}':{1:0.99, 2:0.01}  // sum must be equal to 1
+  *   }
+  * }
+  * GRAPH
+  *   e2 --> h1 --> e1
+  * Interpretation
+  * h1: 1 - I not have HIV, 2 - I have HIV
+  * e1: 1 - HIV test is +, 2 - HIV test is -
+  * e2: 1 - only 1 of 10000 has HIV, 2 - 1 is not true
+  * @param $graph_id
+  * @param $bayes_graph - graph returned by $this->getBayesGraph()
+  * @return array|bool
+  */
+  private function getBayesProbabilities($graph_id, $bayes_graph){
+    $probabilities = array();
+    foreach($bayes_graph['nodes'] as $local_content_id => $node){
+      $query = "SELECT alternative_id, p, type FROM node_content WHERE graph_id = '".$graph_id
+          ."' AND local_content_id = '".$local_content_id."'";
+      $alternatives = $this->db->execute($query);
+
+      $probabilities[$local_content_id] = array();
+      foreach($alternatives as $alternative){
+        if($alternative['type'] == 'fact'){
+          if(!$probabilities[$local_content_id]['soft']) $probabilities[$local_content_id]['soft'] = array();
+          $probabilities[$local_content_id]['soft'][$alternative['alternative_id']] = $alternative['reliability'];
+        }
+        $p = json_decode($alternative['p'], true);
+        foreach($p as $parents_key => $prob_value){
+          if(!$probabilities[$local_content_id][$parents_key]) $probabilities[$local_content_id][$parents_key] = array();
+          $probabilities[$local_content_id][$parents_key][$alternative['alternative_id']] = $prob_value;
+        }
+      }
+    }
+
+    return $probabilities;
   }
 
   public function getJsIncludeList(){

@@ -253,7 +253,7 @@ YOVALUE.GraphElementEditor.prototype = {
                     var formKeyStr = JSON.stringify(formKeys[i]);
                     fields[formKeyStr] = {type:'text', value:activeAlternative.p[formKeyStr]};
                   }
-                  console.log('activeAlternative',activeAlternative);
+
                   fields['button'] = {type:'button', label:'Сохранить'};
 
                   var modalWindow = that.UI.createModal();
@@ -264,7 +264,11 @@ YOVALUE.GraphElementEditor.prototype = {
                      var probabilities = {};
                       for(var i in formKeys){
                         var formKeyStr = JSON.stringify(formKeys[i]);
-                       probabilities[formKeyStr] = form[formKeyStr];
+                        if(form[formKeyStr]>=0 && form[formKeyStr]<=1) probabilities[formKeyStr] = form[formKeyStr];
+                        else{
+                          alert('Вероятность должна быть больше 0 и меньше 1');
+                          return true;
+                        }
                      }
                      that.publisher.publish(["request_for_graph_element_content_change", {
                            graphId: graphId,
@@ -276,6 +280,7 @@ YOVALUE.GraphElementEditor.prototype = {
                        that._reloadEvent();
                      });
                      that.UI.closeModal(modalWindow);
+                     return true;
                    });
 
                    that.UI.setModalContent(modalWindow, form);
