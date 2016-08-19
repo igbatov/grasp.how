@@ -1176,25 +1176,61 @@ exit();
   private function getBayesProbabilities($graph_id, $bayes_graph){
     $probabilities = array();
     foreach($bayes_graph['nodes'] as $local_content_id => $node){
-      $query = "SELECT alternative_id, p, type FROM node_content WHERE graph_id = '".$graph_id
+      $query = "SELECT alternative_id, p, type, reliability FROM node_content WHERE graph_id = '".$graph_id
           ."' AND local_content_id = '".$local_content_id."'";
       $alternatives = $this->db->execute($query);
 
       $probabilities[$local_content_id] = array();
       foreach($alternatives as $alternative){
+        // if node is a fact use reliability as soft evidence
         if($alternative['type'] == 'fact'){
-          if(!$probabilities[$local_content_id]['soft']) $probabilities[$local_content_id]['soft'] = array();
-          $probabilities[$local_content_id]['soft'][$alternative['alternative_id']] = $alternative['reliability'];
+          $probabilities[$local_content_id]['soft'][$alternative['alternative_id']] = $alternative['reliability']/100;
         }
+
         $p = json_decode($alternative['p'], true);
+        if(!is_array($p)) continue;
+
         foreach($p as $parents_key => $prob_value){
-          if(!$probabilities[$local_content_id][$parents_key]) $probabilities[$local_content_id][$parents_key] = array();
           $probabilities[$local_content_id][$parents_key][$alternative['alternative_id']] = $prob_value;
+        }
+      }
+
+      if(count($alternatives) == 1 && $alternatives[0]['type'] != 'fact'){
+        $this->log('Error: only one alternative for graph = '.$graph_id.', node = '.$local_content_id.' and it\'s type is not "fact"');
+      }
+
+      if(count($alternatives) == 1 && $alternatives[0]['type'] == 'fact' && $alternatives[0]['alternative_id']!=0){
+        $this->log('Error: fact for graph = '.$graph_id.', node = '.$local_content_id.' has only one alternative, but its alternative_id != 0');
+      }
+
+      // we can have only one alternative for fact, probability of second is calculated automatically as (1 - first alternative)
+      if(count($alternatives) == 1 && $alternatives[0]['type'] == 'fact' && $alternatives[0]['alternative_id']==0){
+        foreach($probabilities[$local_content_id] as $key => $value){
+          $probabilities[$local_content_id][$key][1] = 1 - $probabilities[$local_content_id][$key][0];
         }
       }
     }
 
     return $probabilities;
+  }
+
+  /**
+   * Get nodes that has incomplete or incorrect probability information (to calculate bayes graph)
+   * @param $probabilities
+   * @param $bayes_graph
+   */
+  private function getImperfectNodes($probabilities, $bayes_graph){
+    foreach($bayes_graph['nodes'] as $node_local_id => $alternatives){
+      // for each combination of this node parents alternatives and alternative it must have probability in [0,1]
+      foreach($bayes_graph['edges'] as $edge){
+        if($edge[1] == $node_local_id) $parents[] = $edge[1];
+      }
+      // sum of all alternatives under given parent combination must be = 1
+    }
+
+    foreach($bayes_graph['nodes'] as $node){
+      // if node is a fact it must has soft evidence with two alternatives in it
+    }
   }
 
   public function getJsIncludeList(){

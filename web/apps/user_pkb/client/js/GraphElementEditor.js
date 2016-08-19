@@ -251,7 +251,7 @@ YOVALUE.GraphElementEditor.prototype = {
                     }
                     fields[i+'_label'] = {type:'title',value:'ТО ВЕРОЯТНОСТЬ - "'+activeAlternative.label+'"'};
                     var formKeyStr = JSON.stringify(formKeys[i]);
-                    fields[formKeyStr] = {type:'text', value:activeAlternative.p[formKeyStr]};
+                    fields[formKeyStr] = {type:'text', value: YOVALUE.typeof(activeAlternative.p) == 'object' ? activeAlternative.p[formKeyStr] : ""};
                   }
 
                   fields['button'] = {type:'button', label:'Сохранить'};
