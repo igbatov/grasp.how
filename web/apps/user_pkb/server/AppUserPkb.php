@@ -122,12 +122,21 @@ class AppUserPkb extends App
 
         $graph = $this->getBayesGraph($graph_id);
         $probabilities = $this->getBayesProbabilities($graph_id, $graph);
-       // var_dump($graph);
-        var_dump($probabilities);
-exit();
+        $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
+
+        foreach($imperfect_nodes as $class) if(count($class) != 0){
+          $this->log('query_grain: imperfect_nodes is not empty '
+              .'$graph = '.print_r($graph, true)
+              .'$probabilities = '.print_r($probabilities, true)
+              .'$imperfect_nodes = '.print_r($imperfect_nodes, true
+              ));
+          $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'error', 'data'=>$imperfect_nodes)));
+          return false;
+        }
+
         $grain_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
         $probabilities = $grain_querier->queryGrain($graph, $probabilities);
-        $this->showRawData(json_encode($probabilities));
+        $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'success', 'data'=>$probabilities)));
         break;
 
       case 'getGraphsModelSettings':
@@ -408,8 +417,8 @@ exit();
           ."', `type` = '".$this->db->escape($type)
           ."', `label` = '".$this->db->escape($alternative['label'])
           ."', `text` = '".$this->db->escape($alternative['text'])
-          ."', `reliability` = '".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
-          ."', `importance` = '".(is_numeric($importance) ? $importance : 0)."', created_at = NOW()";
+          ."', `reliability` = ".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
+          .", `importance` = ".(is_numeric($importance) ? $importance : 0).", created_at = NOW()";
           $this->log($query);
           $this->db->execute($query);
 
@@ -472,8 +481,8 @@ exit();
               ."', `type` = '".$this->db->escape($r['node']['type'])
               ."', `label` = '".$this->db->escape($alternative['label'])
               ."', `text` = '".$this->db->escape($alternative['text'])
-              ."', `reliability` = '".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
-              ."', `importance` = '".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0)."', created_at = NOW()";
+              ."', `reliability` = ".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
+              .", `importance` = ".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0).", created_at = NOW()";
               $this->db->execute($query);
             }
           }catch (Exception $e) {
@@ -571,7 +580,7 @@ exit();
       case 'findSources':
         $r = $this->getRequest();
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
-        $q = "SELECT * FROM source WHERE name LIKE '".$substring."'";
+        $q = "SELECT * FROM source WHERE name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
         $this->log($q);
         $rows = $this->db->execute($q);
         $items = array();
@@ -617,9 +626,9 @@ exit();
         ."', author='".$this->db->escape($r['item']['author'])
         ."', editor='".$this->db->escape($r['item']['editor'])
         ."', publisher='".$this->db->escape($r['item']['publisher'])
-        ."', publisher_reliability='".$this->db->escape($r['item']['publisher_reliability'])
-        ."', scopus_title_list_id='".$this->db->escape($r['item']['scopus_title_list_id'])
-        ."', publish_date='".$this->db->escape($r['item']['publish_date'])
+        ."', publisher_reliability=".doubleval($r['item']['publisher_reliability'])
+        .",  scopus_title_list_id=".(strlen($r['item']['scopus_title_list_id']) ? (int)($r['item']['scopus_title_list_id']) : "NULL")
+        .",  publish_date='".$this->db->escape($r['item']['publish_date'])
         ."', comment='".$this->db->escape($r['item']['comment'])
         ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
         $this->log($q);
@@ -637,9 +646,9 @@ exit();
           ."', author='".$this->db->escape($r['item']['author'])
           ."', editor='".$this->db->escape($r['item']['editor'])
           ."', publisher='".$this->db->escape($r['item']['publisher'])
-          ."', publisher_reliability='".$this->db->escape($r['item']['publisher_reliability'])
-          ."', scopus_title_list_id='".$this->db->escape($r['item']['scopus_title_list_id'])
-          ."', publish_date='".$this->db->escape($r['item']['publish_date'])
+          ."', publisher_reliability=".doubleval($r['item']['publisher_reliability'])
+          .",  scopus_title_list_id=".(strlen($r['item']['scopus_title_list_id']) ? (int)($r['item']['scopus_title_list_id']) : "NULL")
+          .",  publish_date='".$this->db->escape($r['item']['publish_date'])
           ."', comment='".$this->db->escape($r['item']['comment'])
           ."', source_id='".$this->db->escape($r['item']['source_id'])
           ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
@@ -679,8 +688,8 @@ exit();
           . "', editor='" . $this->db->escape($r['item']['editor'])
           . "', publisher='" . $this->db->escape($r['item']['publisher'])
           . "', publisher_reliability='" . $this->db->escape($r['item']['publisher_reliability'])
-          . "', scopus_title_list_id='" . $this->db->escape($r['item']['scopus_title_list_id'])
-          . "', publish_date='" . $this->db->escape($r['item']['publish_date'])
+          . "', scopus_title_list_id=" . (strlen($r['item']['scopus_title_list_id']) ? (int)($r['item']['scopus_title_list_id']) : "NULL")
+          . ", publish_date='" . $this->db->escape($r['item']['publish_date'])
           . "', comment='" . $this->db->escape($r['item']['comment'])
           . "', `pages`='" . $this->db->escape($r['item']['pages'])
           . "' WHERE id = '" . $this->db->escape($r['item']['id']) . "'";
@@ -1130,7 +1139,8 @@ exit();
     $rows = $this->db->execute($query);
     foreach($rows as $row){
       if(!in_array($row['type'], array('fact','proposition'))) continue;
-      $graph['nodes'][$row['local_content_id']][] = $row['alternative_id'];
+      if($row['type'] == 'fact') $graph['nodes'][$row['local_content_id']] = ['0','1']; // fact always has only two alternatives
+      if($row['type'] == 'proposition') $graph['nodes'][$row['local_content_id']][] = $row['alternative_id'];
     }
 
     // form edges
@@ -1175,7 +1185,7 @@ exit();
   */
   private function getBayesProbabilities($graph_id, $bayes_graph){
     $probabilities = array();
-    foreach($bayes_graph['nodes'] as $local_content_id => $node){
+    foreach(array_keys($bayes_graph['nodes']) as $local_content_id){
       $query = "SELECT alternative_id, p, type, reliability FROM node_content WHERE graph_id = '".$graph_id
           ."' AND local_content_id = '".$local_content_id."'";
       $alternatives = $this->db->execute($query);
@@ -1191,7 +1201,7 @@ exit();
         if(!is_array($p)) continue;
 
         foreach($p as $parents_key => $prob_value){
-          $probabilities[$local_content_id][$parents_key][$alternative['alternative_id']] = $prob_value;
+          $probabilities[$local_content_id][$parents_key][$alternative['alternative_id']] = doubleval($prob_value);
         }
       }
 
@@ -1216,21 +1226,68 @@ exit();
 
   /**
    * Get nodes that has incomplete or incorrect probability information (to calculate bayes graph)
+   * - check number of rows in $probabilities[$node_local_id] equal to
+   *   number of parent alternative combinations (+1 for fact because of 'soft' key)
+   * - check number of cells in $probabilities[$node_local_id][parents_alternatives_comb] equal to node alternatives
+   * - check that each cell in a $probabilities[$node_local_id] is from [0,1]
+   * - check that "sum of cells in a row" == 1
+   * - check that every fact has 'soft' key in a $probabilities[$node_local_id]
+   * @param $graph_id
    * @param $probabilities
    * @param $bayes_graph
+   * @return array
    */
-  private function getImperfectNodes($probabilities, $bayes_graph){
+  private function getImperfectNodes($graph_id, $bayes_graph, $probabilities){
+    $imperfect_nodes = array(
+        'wrong_number_of_rows'=>array(),
+        'wrong_number_of_cells_in_a_row'=>array(),
+        'cell_out_of_range'=>array(),
+        'wrong_row_sum'=>array(),
+        'fact_without_soft'=>array()
+    );
+    $pnum = array(); // $pnum[$node_local_id] is the number of elements that must be in a $probabilities[$node_local_id]
     foreach($bayes_graph['nodes'] as $node_local_id => $alternatives){
-      // for each combination of this node parents alternatives and alternative it must have probability in [0,1]
-      foreach($bayes_graph['edges'] as $edge){
-        if($edge[1] == $node_local_id) $parents[] = $edge[1];
+      // for each combination of parents alternatives and alternative it must have probability in [0,1]
+      $parents_alternatives = array();
+      foreach($bayes_graph['edges'] as $edge) if($edge[1] == $node_local_id) $parents_alternatives[] = $bayes_graph['nodes'][$edge[0]];
+      $pnum[$node_local_id] = 1;
+      foreach($parents_alternatives as $parent_alternatives) $pnum[$node_local_id] *= count($parent_alternatives);
+      if(isset($probabilities[$node_local_id]['soft'])) $pnum[$node_local_id]++;
+      //echo '$pnum['.$node_local_id.'] = '.$pnum[$node_local_id]."\n";
+
+      // check that number of rows in a $probabilities[$node_local_id] equals $pnum[$node_local_id]
+      if(count($probabilities[$node_local_id]) != $pnum[$node_local_id])
+        $imperfect_nodes['wrong_number_of_rows'][] = $node_local_id;
+
+      // check that number of cells in every row equals to count($alternatives)
+      foreach($probabilities[$node_local_id] as $row) if(count($row) != count($alternatives))
+        $imperfect_nodes['wrong_number_of_cells_in_a_row'][] = $node_local_id;
+
+      // check that every cells has a number from 0 to 1
+      foreach($probabilities[$node_local_id] as $row){
+        foreach($row as $cell) if(!is_numeric($cell) || $cell<0 || $cell>1) $imperfect_nodes['cell_out_of_range'][] = $node_local_id;
       }
-      // sum of all alternatives under given parent combination must be = 1
+
+      // sum of all alternatives under given parent combination must be equal to 1
+      foreach($probabilities[$node_local_id] as $row) if(array_sum($row) != 1) $imperfect_nodes['wrong_row_sum'][] = $node_local_id;
     }
 
-    foreach($bayes_graph['nodes'] as $node){
+    foreach(array_keys($bayes_graph['nodes']) as $node_local_id){
       // if node is a fact it must has soft evidence with two alternatives in it
+      $query = "SELECT type FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$node_local_id."' LIMIT 1";
+      $alternatives = $this->db->execute($query);
+      if($alternatives[0]['type'] == 'fact' && !isset($probabilities[$node_local_id]['soft'])) $imperfect_nodes['fact_without_soft'][] = $node_local_id;
     }
+
+    $imperfect_nodes = array(
+      'wrong_number_of_rows'=>array_unique($imperfect_nodes['wrong_number_of_rows']),
+      'wrong_number_of_cells_in_a_row'=>array_unique($imperfect_nodes['wrong_number_of_cells_in_a_row']),
+      'cell_out_of_range'=>array_unique($imperfect_nodes['cell_out_of_range']),
+      'wrong_row_sum'=>array_unique($imperfect_nodes['wrong_row_sum']),
+      'fact_without_soft'=>array_unique($imperfect_nodes['fact_without_soft'])
+    );
+
+    return $imperfect_nodes;
   }
 
   public function getJsIncludeList(){

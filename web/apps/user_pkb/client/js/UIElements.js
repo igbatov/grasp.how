@@ -128,7 +128,7 @@ YOVALUE.UIElements.prototype = {
       }
     });
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'selectBox', definition:attrs, dom:selectBox});
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'select', definition:attrs, dom:selectBox});
 
     return selectBox;
   },
@@ -151,7 +151,7 @@ YOVALUE.UIElements.prototype = {
       attrs.addCallback(this.files,list);
     });
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'fileBox', definition:attrs, dom:container});
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'file', definition:attrs, dom:container});
 
     return container;
   },
@@ -214,7 +214,7 @@ YOVALUE.UIElements.prototype = {
     var uniqId = this.generateId();
     var el = YOVALUE.createElement('input',{id:uniqId, type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.label, disabled:attrs.disabled},'',attrs.callback);
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'textBox', definition:attrs, dom:el});
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'text', definition:attrs, dom:el});
 
     return el;
   },
@@ -228,7 +228,7 @@ YOVALUE.UIElements.prototype = {
     var uniqId = this.generateId();
     var el = YOVALUE.createElement('textarea',{id:uniqId,name:attrs.name, placeholder:attrs.label, disabled:attrs.disabled}, attrs.value, attrs.callback);
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'textareaBox', definition:attrs, dom:el});
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'textarea', definition:attrs, dom:el});
 
     return el;
   },
@@ -294,7 +294,7 @@ YOVALUE.UIElements.prototype = {
        var HTMLList = this.createList(attrs.items, attrs.itemActions);
        div.appendChild(HTMLList);
     }
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'listBox', definition:attrs, dom:div});
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'list', definition:attrs, dom:div});
 
     return div;
   },
@@ -364,6 +364,7 @@ YOVALUE.UIElements.prototype = {
 
       // fill in absent attrs from old version
       for(var i in el.definition) if(typeof(attrs[i]) == 'undefined') attrs[i] = el.definition[i];
+      if(typeof(attrs.type) == 'undefined') attrs.type = el.type;
 
       // create new version
       var newDom = null;
@@ -387,36 +388,24 @@ YOVALUE.UIElements.prototype = {
       this.elements.removeRowByIds(this.elements.getRowIds({id:el.id}));
 
       newDom.dispatchEvent(new Event('input'));
-/*
-      // if attrs has 'options' field then remove old list and create new one
-      if(el.type == 'selectBox' && YOVALUE.getObjectKeys(attrs).indexOf('options') != -1){
-        var options = attrs['options'];
-        var selectedItemDom = el.dom.querySelector('[name="'+name+'"]');
-
-        var value = typeof(attrs['value']) == 'undefined' ? selectedItemDom.value : attrs['value'];
-        var callback = typeof(attrs['callback']) == 'undefined' ? el.callback : attrs['callback'];
-        var disabled = typeof(attrs['disabled']) == 'undefined' ? el.definition['disabled'] : attrs['disabled'];
-        var newDom = this.createSelectBox({name:name, items:attrs['options'], defaultValue:value, callback:callback, disabled:disabled, formname:form.id});
-
-        // remove from selectBox div children
-        while (el.dom.firstChild) el.dom.removeChild(el.dom.firstChild);
-        while (newDom.firstChild) el.dom.appendChild(newDom.firstChild);
-
-        // update this.elements
-        el.definition = this.elements.getRows({id:newDom.id})[0].definition;
-
-        // remove new selectBox from this.elements
-        this.elements.removeRowByIds(this.elements.getRowIds({id:newDom.id}));
-
-      }else{
-        YOVALUE.updateElement(el.dom,attrs);
-
-        // TODO: update this.elements definition
-
-        el.dom.dispatchEvent(new Event('input'));
-      }
-      */
     }
+  },
+
+  /**
+   *
+   * @param form
+   * @param fieldname
+   * @returns {*}
+   */
+  getFormValue: function(form, fieldname){
+    var els = this.elements.getRows({formname:form.id, name:fieldname});
+
+    if(els.length){
+      var el = els[0];
+      var domfield = el.dom.querySelectorAll("[name="+fieldname)[0];
+      return domfield.value;
+    }
+    return false;
   },
 
   /**

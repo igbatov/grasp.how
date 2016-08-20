@@ -179,7 +179,7 @@ YOVALUE.GraphElementsContent.prototype = {
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
             newNode.alternatives[0].reliability = 50;
-            newNode.alternatives[1].label = 'НЕВЕРНО ЧТО: '+event.getData().element.label;
+            newNode.alternatives[1].label = 'НЕ ВЕРНО, ЧТО: '+event.getData().element.label;
             newNode.alternatives[1].reliability = 50;
 
             newNode.type = event.getData().element.type;
