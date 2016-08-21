@@ -111,7 +111,11 @@ class GRainQuerier {
     $text = $this->createScriptText($graph, $probabilities);
     $tmp_filename = $this->tmp_dir."/GRainQuerier.tmp.".rand(1,1000).".".time().".Rmd";
 
-    $myfile = fopen($tmp_filename, "w") or die("Unable to open file!");
+    $myfile = fopen($tmp_filename, "w");
+    if(!$myfile){
+      error_log("Unable to open file ".$tmp_filename." !");
+      return;
+    }
     fwrite($myfile, $text);
     fclose($myfile);
 

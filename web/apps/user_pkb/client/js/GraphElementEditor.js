@@ -326,8 +326,7 @@ YOVALUE.GraphElementEditor.prototype = {
                         (function(formKeyStr, j, alternativeIds){
                           that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[j], {callback: function(name,value){
                             var newValue = parseFloat(Number((1 - parseFloat(value))).toFixed(15));
-                            console.log(newValue);
-                            that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
+                              that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
                           }});
                         })(formKeyStr, j, alternativeIds);
                       }
@@ -431,6 +430,10 @@ YOVALUE.GraphElementEditor.prototype = {
                 nodeType:nodeType
               }])
             .then(function (updateAnswer) {
+                console.log(contents[nodeContentId].type, that.NODE_TYPE_FACT);
+                // We do not change reliability of proposition based on falsification yet
+                if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return {then:function(cb){cb()}};
+
                 return that.publisher.publish(['request_for_graph_element_content_change',{
                   type: 'updateNodeAttribute',
                   graphId: graphId,
@@ -451,6 +454,9 @@ YOVALUE.GraphElementEditor.prototype = {
       that.publisher.publish(
           ['request_for_graph_element_content_change', {type:'node_list_remove_request', graphId:graphId, nodeContentId:nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, itemId:id}]
       ).then(function (updateAnswer) {
+        // We do not change reliability of proposition based on falsification yet
+        if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return {then:function(cb){cb()}};
+
         return that.publisher.publish(['request_for_graph_element_content_change',{
           type: 'updateNodeAttribute',
           graphId: graphId,
@@ -479,6 +485,9 @@ YOVALUE.GraphElementEditor.prototype = {
                   item:item
                 }])
             .then(function (updateAnswer) {
+              // We do not change reliability of proposition based on falsification yet
+              if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return {then:function(cb){cb()}};
+
               return that.publisher.publish(['request_for_graph_element_content_change',{
                 type: 'updateNodeAttribute',
                 graphId: graphId,

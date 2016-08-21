@@ -12,7 +12,7 @@ YOVALUE.BayesPubSub.prototype = {
 
     switch (eventName){
       case "graph_element_content_changed":
-          if(event.getData()['type'] == 'updateNodeAttribute' && event.getData().nodeAttribute.name == 'p'){
+          if(event.getData()['type'] == 'updateNodeAlternativesP'){
             this.bayesCalculator.calculateNodeAlternativeProbabilities(event.getData().graphId, function(d){
               console.log('BayesPubSub got response',d);
               event.setResponse(d);

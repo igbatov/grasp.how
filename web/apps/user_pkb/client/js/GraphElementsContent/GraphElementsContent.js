@@ -1,8 +1,12 @@
 /**
  * This module is used by node editor to get/set graph nodes contents and attributes
  * It encapsulates read/write from/to repository and caching
- * You can think of it as extra layer above repository that implements caching and some extra logic for addNode,
- * addIcon events
+ * You can think of it as extra layer above repository that implements caching and some extra logic for:
+ * - addNode: copy from existsing ot from empty node
+ * - updateNodeAttribute, for attribute 'reliability' of "fact": for alternative #1 it changes alternative #2 as (1 - reliability/100)
+ * - TODO: updateNodeAttribute, for attribute 'reliability' of "proposition": if node doesn't has alternative with falsification, it sets reliability of alternatives as equally possible
+ * - addIcon: upload file and creates Image object
+ *
  *
  * Though client (javascript) code do not rely on structure of contentId, I describe it here for reference -
  * contentId has the form 'graphId-contentId' or 'graphId-contentId/graphId-contentId' for diff graph.
@@ -112,12 +116,12 @@ YOVALUE.GraphElementsContent.prototype = {
         }
         // update node attribute
         else if(event.getData()['type'] == 'updateNodeAttribute'){
+          e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           /// if we changed 'type' attribute, then reload full node from server
           if(event.getData().nodeAttribute.name == 'type'){
             // update type so that graph redraw fired on 'graph_element_content_changed'' will be done correctly
             // TODO: it looks like ugly hack that we need because 'graph_element_content_changed' fire attribute change as well as attribute redraw
             // Do 'graph_element_content_changed' need to be separated on two different events (so we can process one after another)?
-            e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
             e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
             that.publisher
               .publish(["graph_element_content_changed",  event.getData()])
@@ -126,8 +130,25 @@ YOVALUE.GraphElementsContent.prototype = {
                 that.cacheContent.remove({elementType:'node', contentId:event.getData().nodeContentId});
                 event.setResponse({});
               });
+
+          }else if(event.getData().nodeAttribute.name == 'reliability' && e.type == 'fact'){
+            e['alternatives'][0]['reliability'] = event.getData().nodeAttribute.value;
+            e['alternatives'][1]['reliability'] = parseFloat(100-parseFloat(event.getData().nodeAttribute.value));
+            var secondAlternativeEvent = YOVALUE.clone(event.getData());
+            secondAlternativeEvent.node_alternative_id = 1;
+            secondAlternativeEvent.nodeAttribute.value = e['alternatives'][1]['reliability'];
+            that.publisher
+                .publish(["graph_element_content_changed",  event.getData()]).then(function(){
+                  return that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent]);
+                }).then(function(){
+                  event.setResponse({});
+                })
+
+          }else if(event.getData().nodeAttribute.name == 'reliability' && e.type == 'proposition'){
+            // check if we have any falsifications in a proposition list?
+
           }else{
-            e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
+
             if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
             if(this.nodeAlternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
             er = {};

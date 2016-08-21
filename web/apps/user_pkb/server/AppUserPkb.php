@@ -1195,6 +1195,7 @@ class AppUserPkb extends App
   * @return array|bool
   */
   private function getBayesProbabilities($graph_id, $bayes_graph){
+    $conv = new ContentIdConverter();
     $probabilities = array();
     foreach(array_keys($bayes_graph['nodes']) as $local_content_id){
       $query = "SELECT alternative_id, p, type, reliability FROM node_content WHERE graph_id = '".$graph_id
@@ -1212,7 +1213,13 @@ class AppUserPkb extends App
         if(!is_array($p)) continue;
 
         foreach($p as $parents_key => $prob_value){
-          $probabilities[$local_content_id][$parents_key][$alternative['alternative_id']] = doubleval($prob_value);
+          // reformat $parents_key to contain only $local_content_id
+          $parents_local_key = array();
+          foreach(json_decode($parents_key, true) as $key=>$value){
+            $parents_local_key[$conv->getLocalContentId($key)] = $value;
+          }
+          $parents_local_key = json_encode($parents_local_key);
+          $probabilities[$local_content_id][$parents_local_key][$alternative['alternative_id']] = doubleval($prob_value);
         }
       }
 
