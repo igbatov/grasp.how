@@ -1388,7 +1388,7 @@ class AppUserPkb extends App
       'GraphElementEditor.js',
 
       'Bayes/BayesPubSub.js',
-      'Bayes/BayesCalculatorGrain.js',
+      'Bayes/BayesCalculatorGRain.js',
     );
   }
 }
