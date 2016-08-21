@@ -147,6 +147,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
     // create empty form with all necessary fields
     var formDef = {};
+    formDef['editConditionals'] ={type:'hidden'};
     formDef['active_alternative_id'] = {type:'hidden'};
     formDef['addAlternative'] = {type:'hidden'};
     formDef['removeAlternative'] = {type:'hidden'};
@@ -155,7 +156,6 @@ YOVALUE.GraphElementEditor.prototype = {
     formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100};
     formDef['node-alternative_division_line'] = {type:'hidden'};
     formDef['label'] =       {type:'textarea',value:''};
-    formDef['editConditionals'] ={type:'hidden'};
     formDef['reliability'] = {type:'hidden'};
     //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
     formDef['text'] ={type:'textarea',label:''};
@@ -208,12 +208,8 @@ YOVALUE.GraphElementEditor.prototype = {
 
           var editConditionals = function(){
             var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
-            var parentEdges = model.getEdges(model.getEdgesFromParentIds(nodeId));
-            var parentNodeIds = [];
-            for(var i in parentEdges) parentNodeIds.push(parentEdges[i].source);
-            var parentNodes = model.getNodes(parentNodeIds);
-            var parentNodeContentIds = [];
-            for(i in parentNodes) parentNodeContentIds.push(parentNodes[i].nodeContentId);
+            var parentNodeContentIds = model.getParentNodesContentIds(nodeId);
+
             that.publisher
                 .publish(
                     ['get_graph_node_content', {graphId:graphId, nodeContentIds:parentNodeContentIds}]
@@ -243,13 +239,24 @@ YOVALUE.GraphElementEditor.prototype = {
                   // create form fields for each combination of parent alternatives
                   for(var i in formKeys){
                     var fieldLabel = '';
+                    fields[i+'_'+j+'_label'] = {type:'title',value:'ЕСЛИ'};
                     for(var j in formKeys[i]){
                       fieldLabel = parentContents[j].alternatives[formKeys[i][j]].label;
-                      fields[i+'_'+j+'_label'] = {type:'title',value:'ЕСЛИ - "'+fieldLabel+'"'};
+                      fields[i+'_'+j+'_label'] = {type:'title',value:'----- "'+fieldLabel+'"'};
                     }
-                    fields[i+'_label'] = {type:'title',value:'ТО ВЕРОЯТНОСТЬ - "'+activeAlternative.label+'"'};
+
+                    fields[i+'_label'] = {type:'title',value:'ТО'};
+
                     var formKeyStr = JSON.stringify(formKeys[i]);
-                    fields[formKeyStr] = {type:'text', value: YOVALUE.typeof(activeAlternative.p) == 'object' ? activeAlternative.p[formKeyStr] : ""};
+
+                    // create text fields for conditional probabilities of node's alternatives
+                    for(var j in node.alternatives){
+                      fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- ВЕРОЯТНОСТЬ: "'+node.alternatives[j].label+'"'};
+                      fields[formKeyStr+'__'+j] = {
+                        type:'text',
+                        value: YOVALUE.typeof(node.alternatives[j].p) == 'object' ? node.alternatives[j].p[formKeyStr] : ""
+                      };
+                    }
                   }
 
                   fields['button'] = {type:'button', label:'Сохранить'};
@@ -259,29 +266,75 @@ YOVALUE.GraphElementEditor.prototype = {
                     fields,
                     // form submit callback
                     function (form) {
-                     var probabilities = {};
+                      var probabilities = {};
+
+                      for(var j in node.alternatives){
+                        probabilities[j] = {};
+                        for(var i in formKeys){
+                          var formKeyStr = JSON.stringify(formKeys[i]);
+                          probabilities[j][formKeyStr] = form[formKeyStr+'__'+j];
+                        }
+                      }  
+
                       for(var i in formKeys){
                         var formKeyStr = JSON.stringify(formKeys[i]);
-                        if(form[formKeyStr]>=0 && form[formKeyStr]<=1) probabilities[formKeyStr] = form[formKeyStr];
-                        else{
-                          alert('Вероятность должна быть больше 0 и меньше 1');
+                       
+                        // check that every probability in [0,1]
+                        for(var j in node.alternatives){
+                          if(form[formKeyStr+'__'+j]<0 || form[formKeyStr+'__'+j]>1){
+                            alert('Вероятность должна быть больше 0 и меньше 1');
+                            return true;
+                          }
+                        }
+
+                        // check that sum of probabilities by row equals 1
+                        var sum = 0;
+                        var alertMsg = '';
+                        for(var j in node.alternatives){
+                          sum += parseFloat(form[formKeyStr+'__'+j]);
+                          alertMsg += form[formKeyStr+'__'+j]+'+';
+                        }
+                        if(sum != 1){
+                          alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
+                          alert(alertMsg+"\n"+'Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его причин) должна быть равна 1');
                           return true;
                         }
-                     }
-                     that.publisher.publish(["request_for_graph_element_content_change", {
-                           graphId: graphId,
-                           type: 'updateNodeAttribute',
-                           nodeContentId: nodeContentId,
-                           node_alternative_id: node.active_alternative_id,
-                           nodeAttribute: {name:'p', value:probabilities}
-                         }]).then(function(){
-                       that._reloadEvent();
-                     });
-                     that.UI.closeModal(modalWindow);
-                     return true;
-                   });
 
-                   that.UI.setModalContent(modalWindow, form);
+                      }
+
+                      that.publisher.publish(["request_for_graph_element_content_change", {
+                           graphId: graphId,
+                           type: 'updateNodeAlternativesP',
+                           nodeContentId: nodeContentId,
+                           alternatives: probabilities
+                         }])
+                      .then(function(){
+                        that._reloadEvent();
+                      });
+
+                      that.UI.closeModal(modalWindow);
+                      return true;
+                    }
+                  );
+
+                  // add auto-change of field values so that sum by row equals 1 (only for case of 2 alternatives)
+                  if(YOVALUE.getObjectLength(node.alternatives) == 2){
+                    for(var i in formKeys){
+                      var formKeyStr = JSON.stringify(formKeys[i]);
+                      var alternativeIds = YOVALUE.getObjectKeys(node.alternatives);
+                      for(var j in alternativeIds){
+                        (function(formKeyStr, j, alternativeIds){
+                          that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[j], {callback: function(name,value){
+                            var newValue = parseFloat(Number((1 - parseFloat(value))).toFixed(15));
+                            console.log(newValue);
+                            that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
+                          }});
+                        })(formKeyStr, j, alternativeIds);
+                      }
+                    }
+                  }
+
+                  that.UI.setModalContent(modalWindow, form);
                 });
           };
 
@@ -294,8 +347,10 @@ YOVALUE.GraphElementEditor.prototype = {
 
           if(node.type == that.NODE_TYPE_PROPOSITION || node.type == that.NODE_TYPE_FACT){
             // if node is a child - let user edit its conditional probabilities
-            that.UI.updateForm(form, 'editConditionals', {type:'button',label:'Conditional probabilities',callback:editConditionals});
-            that.UI.updateForm(form, 'reliability', {type:'range',min:0,max:99,step:1,value:activeAlternative.reliability,callback:attrChange,disabled:true});
+            var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
+            var parentNodeContentIds = model.getParentNodesContentIds(nodeId);
+            if(parentNodeContentIds.length) that.UI.updateForm(form, 'editConditionals', {type:'button',label:'Conditional probabilities',callback:editConditionals});
+            that.UI.updateForm(form, 'reliability', {type:'range',min:0,max:100,step:1,value:activeAlternative.reliability,callback:attrChange,disabled:true});
           }
 
           that.UI.updateForm(form, 'type', {type:'select',items:types,defaultValue:node.type,callback:attrChange});

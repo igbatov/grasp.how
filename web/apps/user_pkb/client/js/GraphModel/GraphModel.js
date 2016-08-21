@@ -349,6 +349,21 @@ YOVALUE.GraphModel.prototype = {
   },
 
   /**
+   * Returns contentIds of nodeId parents
+   * @param nodeId
+   * @returns {Array}
+   */
+  getParentNodesContentIds: function(nodeId){
+    var parentEdges = this.getEdges(this.getEdgesFromParentIds(nodeId));
+    var parentNodeIds = [];
+    for(var i in parentEdges) parentNodeIds.push(parentEdges[i].source);
+    var parentNodes = this.getNodes(parentNodeIds);
+    var parentNodeContentIds = [];
+    for(i in parentNodes) parentNodeContentIds.push(parentNodes[i].nodeContentId);
+    return parentNodeContentIds;
+  },
+
+  /**
    *
    * @param ids {Array.<number>} opt_argument
    * @returns {*}

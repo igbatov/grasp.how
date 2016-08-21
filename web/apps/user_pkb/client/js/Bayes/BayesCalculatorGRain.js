@@ -13,11 +13,7 @@ YOVALUE.BayesCalculatorGRain.prototype = {
    * @param callback - function that will be called when result is calculated
    */
   calculateNodeAlternativeProbabilities: function (graphId,callback){
-    console.log('2222222222222');
-
     this.publisher.publish(['query_grain', {graphId:graphId}]).then(function(d){
-      console.log('33333333333333');
-
       callback(d);
     });
   }

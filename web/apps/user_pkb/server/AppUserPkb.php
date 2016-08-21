@@ -191,8 +191,9 @@ class AppUserPkb extends App
               // alternative attributes
               foreach($this->node_alternative_attribute_names as $name){
                 if($name == 'p'){
-                  $alternative[$name] = json_decode($node_rows[0][$name], true);
-                  $this->log(print_r($alternative[$name], true));
+                  $p = json_decode($node_row[$name], true);
+                  if($p) $alternative[$name] = $p;
+                  else $alternative[$name] = '';
                 }else{
                   $alternative[$name] = $node_row[$name];
                 }
@@ -376,6 +377,7 @@ class AppUserPkb extends App
         'node_list_add_request',
         'node_list_remove_request',
         'node_list_update_request',
+        'updateNodeAlternativesP',
         'updateNodeAttribute',
         'addIcon',
         'addAlternative',
@@ -440,6 +442,13 @@ class AppUserPkb extends App
           $this->log($query);
           $this->db->execute($query);
 
+        }else if($r['type'] == 'updateNodeAlternativesP'){
+          foreach($r['alternatives'] as $alternative_id => $p){
+            $value = $this->db->escape(json_encode($p));
+            $query = "UPDATE node_content SET p = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
+            $this->db->execute($query);
+          }
+
         }else if($r['type'] == 'updateNodeAttribute'){
           if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)){
@@ -448,9 +457,11 @@ class AppUserPkb extends App
             $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
           }
           $this->db->execute($query);
+
         }else if($r['type'] == 'updateEdgeAttribute'){
           $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
           $this->db->execute($query);
+
         }else if($r['type'] == 'addEdge'){
           $this->db->startTransaction();
             try{
@@ -739,7 +750,7 @@ class AppUserPkb extends App
     $rows = $this->db->execute($q);
     $reliability_array = array();
     foreach($rows as $row) $reliability_array[] = $row['publisher_reliability'];
-    return min(array_sum($reliability_array)*10,99);
+    return min(array_sum($reliability_array)*10,100);
   }
 
   protected function getGraphSettings($graph_ids){
@@ -1213,7 +1224,7 @@ class AppUserPkb extends App
         $this->log('Error: fact for graph = '.$graph_id.', node = '.$local_content_id.' has only one alternative, but its alternative_id != 0');
       }
 
-      // we can have only one alternative for fact, probability of second is calculated automatically as (1 - first alternative)
+      // "fact" must have only two alternatives, probability of the second is calculated automatically as (1 - first alternative)
       if(count($alternatives) == 1 && $alternatives[0]['type'] == 'fact' && $alternatives[0]['alternative_id']==0){
         foreach($probabilities[$local_content_id] as $key => $value){
           $probabilities[$local_content_id][$key][1] = 1 - $probabilities[$local_content_id][$key][0];
@@ -1252,7 +1263,7 @@ class AppUserPkb extends App
       foreach($bayes_graph['edges'] as $edge) if($edge[1] == $node_local_id) $parents_alternatives[] = $bayes_graph['nodes'][$edge[0]];
       $pnum[$node_local_id] = 1;
       foreach($parents_alternatives as $parent_alternatives) $pnum[$node_local_id] *= count($parent_alternatives);
-      if(isset($probabilities[$node_local_id]['soft'])) $pnum[$node_local_id]++;
+      if(isset($probabilities[$node_local_id]['soft']) && count($parents_alternatives)) $pnum[$node_local_id]++;
       //echo '$pnum['.$node_local_id.'] = '.$pnum[$node_local_id]."\n";
 
       // check that number of rows in a $probabilities[$node_local_id] equals $pnum[$node_local_id]

@@ -97,9 +97,18 @@ YOVALUE.GraphElementsContent.prototype = {
           e['active_alternative_id'] = newAlternativeId;
           er = {};
           ed = event.getData();
-          ed.new_alternative_id = newAlternativeId
+          ed.new_alternative_id = newAlternativeId;
           ed.alternative = e['alternatives'][newAlternativeId];
 
+        }
+        // for all node's alternatives update theirs attribute p
+        else if(event.getData()['type'] == 'updateNodeAlternativesP'){
+          e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
+          for(var i in e.alternatives){
+            e.alternatives[i].p = event.getData().alternatives[i];
+          }
+          er = {};
+          ed = event.getData();
         }
         // update node attribute
         else if(event.getData()['type'] == 'updateNodeAttribute'){

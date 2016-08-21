@@ -301,6 +301,7 @@ Modules['Mediator'].setSubscriptions(
     'repository_get_graph_node_list':[Modules['Repository']],
     'find_publishers':[Modules['Repository']],
     'find_sources':[Modules['Repository']],
+    'query_grain':[Modules['Repository']],
 
     'get_selected_layout':[Modules['SelectGraphLayoutModel']],
     'get_layout_by_name':[Modules['SelectGraphLayoutModel']],
