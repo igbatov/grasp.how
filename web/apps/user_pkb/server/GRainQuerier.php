@@ -119,9 +119,10 @@ class GRainQuerier {
     fwrite($myfile, $text);
     fclose($myfile);
 
-    $cmd = '"'.$this->rscript_path.'" "'.$tmp_filename.'"';
+    $cmd = '"'.$this->rscript_path.'" "'.$tmp_filename.'" 2>&1';
     $output = array();
-    exec($cmd, $output);
+    exec($cmd, $output, $error);
+    //error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));
 
     $proposition_probabilities = array();
     foreach($output as $i=>$str){
