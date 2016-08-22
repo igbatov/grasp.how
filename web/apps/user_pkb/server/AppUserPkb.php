@@ -136,7 +136,13 @@ class AppUserPkb extends App
 
         $grain_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
         $probabilities = $grain_querier->queryGrain($graph, $probabilities);
-        $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'success', 'data'=>$probabilities)));
+        // reformat local_node_ids to global ids
+        $converter = new ContentIdConverter();
+        $data = array();
+        foreach($probabilities as $local_node_id => $probability){
+          $data[$converter->createGlobalContentId($graph_id, $local_node_id)] = $probability;
+        }
+        $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'success', 'data'=>$data)));
         break;
 
       case 'getGraphsModelSettings':

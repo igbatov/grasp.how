@@ -15,7 +15,7 @@ YOVALUE.BayesPubSub.prototype = {
           if(event.getData()['type'] == 'updateNodeAlternativesP'){
             this.bayesCalculator.calculateNodeAlternativeProbabilities(event.getData().graphId, function(d){
               console.log('BayesPubSub got response',d);
-              event.setResponse(d);
+              that.publisher.publish(['request_for_graph_element_content_change',{type:'updateNodeReliabilities', data:d}]);
             });
           }
         break;
