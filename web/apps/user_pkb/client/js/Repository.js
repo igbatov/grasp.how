@@ -55,7 +55,10 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'graph_element_content_changed'){
+    }
+    // 'repository_request_for_graph_element_content_change' is for cases when we need first to update server
+    // and only after that fire 'graph_element_content_changed' (see use cases in code)
+    else if(name == 'repository_request_for_graph_element_content_change'){
       this.pendingRequests.push({url:'updateGraphElementContent', data:e.getData(), files: e.getData().file,  callback:function(data){
         if(YOVALUE.isJson(data)) e.setResponse(JSON.parse(data));
         else e.setResponse(data);

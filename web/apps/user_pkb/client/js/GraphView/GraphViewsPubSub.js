@@ -42,6 +42,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }
         break;
 
+      case "update_graph_view_decoration":
       case "draw_graph_view":
 
         // GraphViewSettings can be in two forms - iGraphViewSettingsStructOne or iGraphViewSettingsStructTwo

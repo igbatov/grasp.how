@@ -1253,6 +1253,7 @@ YOVALUE.createElement = function(tag, attrs, text, callback){
     if(i == 'disabled' && attrs[i] != true) continue;
     if(typeof(attrs[i]) != 'undefined') el.setAttribute(i, attrs[i]);
   }
+  if(typeof(text) != 'undefined') text = String(text);
   if(typeof(text) != 'undefined' && text.length > 0) el.appendChild(document.createTextNode(text));
 
   // Bind callback on form field value change

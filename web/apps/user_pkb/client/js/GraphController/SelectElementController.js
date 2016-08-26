@@ -20,16 +20,28 @@ YOVALUE.SelectElementController.prototype = {
     eventName = event.getName(),
     e = event.getData().element;
 
+    if(
+      eventName == 'draw_graph_view'
+    ){
+      graphId = event.getData()['graphId'];
+      that.initDecorations(graphId, event.getData().decoration);
+
+      if(selectedElement){
+        that.selectedDecoration[graphId] = that.enlargeNodes(that.initialDecoration[graphId], [selectedElement.element.id]);
+        graphViewSettings = {
+          graphId: graphId,
+          decoration: that.selectedDecoration[graphId]
+        };
+        that.publisher.publish(["update_graph_view_decoration", graphViewSettings]);
+      }
+    }
+
     if(eventName === 'clicknode' ||
         eventName === 'clickedge' ||
         eventName === 'mouseenternode' ||
         eventName === 'mouseenteredge'){
       var graphId = event.getData().graphId;
 
-      if(typeof(this.initialDecoration[graphId]) === 'undefined'){
-        this.initDecorations(graphId);
-        this.selectedDecoration[graphId] = this.initialDecoration[graphId];
-      }
       if(eventName === 'clicknode' || eventName === 'clickedge'){
         selectedElement.graphId = graphId;
         selectedElement.elementType = event.getData().elementType;
@@ -40,6 +52,7 @@ YOVALUE.SelectElementController.prototype = {
       var edgesToSelect = [];
 
       if(eventName === 'clicknode') nodesToSelect = [e.id];
+
       if(eventName === 'mouseenternode'){
         var model = this.publisher.getInstant('get_graph_models', [graphId])[graphId];
         nodesToSelect = [e.id];
@@ -50,14 +63,14 @@ YOVALUE.SelectElementController.prototype = {
       if(eventName === 'clickedge' || eventName === 'mouseenteredge') edgesToSelect = [e.id];
 
       // now highlight them depending on event type
-      if(eventName === 'mouseenternode') this.selectedDecoration[graphId] = this.lowerOpacity(this.selectedDecoration[graphId], nodesToSelect, edgesToSelect, true);
-      if(eventName === 'clicknode') this.selectedDecoration[graphId] = this.enlargeNodes(this.initialDecoration[graphId], nodesToSelect);
-      if(eventName === 'clickedge') this.selectedDecoration[graphId] = this.enlargeEdges(this.initialDecoration[graphId], edgesToSelect);
+      if(eventName === 'mouseenternode') this.selectedDecoration[graphId] = this.lowerOpacity(that.initialDecoration[graphId], nodesToSelect, edgesToSelect, true);
+      if(eventName === 'clicknode') this.selectedDecoration[graphId] = this.enlargeNodes(that.initialDecoration[graphId], nodesToSelect);
+      if(eventName === 'clickedge') this.selectedDecoration[graphId] = this.enlargeEdges(that.initialDecoration[graphId], edgesToSelect);
       var graphViewSettings = {
         graphId: graphId,
         decoration: this.selectedDecoration[graphId]
       };
-      this.publisher.publish(["draw_graph_view", graphViewSettings]);
+      this.publisher.publish(["update_graph_view_decoration", graphViewSettings]);
 
     }else if(eventName === 'mouseleavenode' || eventName === 'mouseleaveedge' || eventName === 'clickbackground'){
       graphId = event.getData().graphId;
@@ -77,30 +90,10 @@ YOVALUE.SelectElementController.prototype = {
         decoration: this.selectedDecoration[graphId],
       };
 
-      this.publisher.publish(["draw_graph_view", graphViewSettings]);
+      this.publisher.publish(["update_graph_view_decoration", graphViewSettings]);
 
     }
-    // if  node type, reliability or importance changed
-    else if(
-        eventName == 'graph_element_content_changed' &&
-        event.getData()['type'] == 'updateNodeAttribute' &&
-        ['type', 'reliability', 'importance'].indexOf(event.getData()['nodeAttribute']['name']) != -1
-    ){
-      // plan decoration update after
-      setTimeout(function(){
-        graphId = event.getData()['graphId'];
-        that.initDecorations(graphId);
-
-        var node = that.publisher.getInstant('get_node_by_nodeContentId', {graphId: graphId, nodeContentId: event.getData()['nodeContentId']});
-        var nodeId = node.id;
-        that.selectedDecoration[graphId] = that.enlargeNodes(that.initialDecoration[graphId], [nodeId]);
-        graphViewSettings = {
-          graphId: graphId,
-          decoration: that.selectedDecoration[graphId]
-        };
-        that.publisher.publish(["draw_graph_view", graphViewSettings]);
-      },0);
-    }else if(eventName == 'graph_model_changed'){
+    else if(eventName == 'graph_model_changed'){
 
       var graphModel = event.getData().graphModel;
       var graphId = graphModel.getGraphId();
@@ -188,8 +181,8 @@ YOVALUE.SelectElementController.prototype = {
     }
   },
 
-  initDecorations: function(graphId){
+  initDecorations: function(graphId, decoration){
     var that = this;
-    that.initialDecoration[graphId] = that.publisher.getInstant('get_graph_view_decoration', {graphId: graphId});
+    that.initialDecoration[graphId] = decoration;
   }
 };

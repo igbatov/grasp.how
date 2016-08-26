@@ -62,7 +62,10 @@ YOVALUE.GraphElementEditor.prototype = {
           if(event.getData().nodeContentId == this.currentElement.elementId
               && this.getEventElementType(event) == this.currentElement.elementType)
           {
-            if(['addAlternative', 'removeAlternative', 'updateAlternative', 'updateNodeAlternativesP'].indexOf(event.getData().type) != -1){
+            if([
+                'addAlternative', 'removeAlternative', 'updateAlternative', 'updateNodeAlternativesP',
+                'node_list_update_request', 'node_list_remove_request', 'node_list_add_request'
+              ].indexOf(event.getData().type) != -1){
               this._reloadEvent();
               break;
 
@@ -225,9 +228,12 @@ YOVALUE.GraphElementEditor.prototype = {
         )
       // nodes - text, list - sources or falsifications
         .then(function(contents){
-console.info('+++++++++++++++++++', contents);
+
+        console.info('contents',YOVALUE.clone(contents));
+
           var node = contents[nodeContentId];
           var activeAlternative = node.alternatives[node.active_alternative_id];
+
           var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
 
           var attrChange = function(name,value){

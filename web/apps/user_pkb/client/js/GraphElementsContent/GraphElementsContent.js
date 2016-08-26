@@ -53,10 +53,11 @@ YOVALUE.GraphElementsContent.prototype = {
           var list = alternative['list'];
           var item = event.getData()['item'];
           list[item.id] = item;
-          this.publisher.publish(["graph_element_content_changed",  event.getData()])
+          this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()])
               .then(function(updateAnswer){
                 if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
                 event.setResponse(updateAnswer);
+                that.publisher.publish(["graph_element_content_changed",  event.getData()]);
               });
 
         }else if(event.getData()['type'] == 'node_list_remove_request'){
@@ -66,10 +67,11 @@ YOVALUE.GraphElementsContent.prototype = {
           var list = alternative['list'];
           var itemId = event.getData()['itemId'];
           if(typeof(list[itemId]) != 'undefined') delete list[itemId];
-          this.publisher.publish(["graph_element_content_changed",  event.getData()])
+          this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()])
               .then(function(updateAnswer){
                 if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
                 event.setResponse(updateAnswer);
+                that.publisher.publish(["graph_element_content_changed",  event.getData()]);
               });
 
         }else if(event.getData()['type'] == 'node_list_add_request'){
@@ -77,12 +79,13 @@ YOVALUE.GraphElementsContent.prototype = {
           var alternative = e['alternatives'][event.getData()['node_alternative_id']];
           var list = alternative['list'];
           var item = event.getData()['item'];
-          this.publisher.publish(["graph_element_content_changed",  event.getData()])
+          this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()])
               .then(function(updateAnswer){
                 item.id = updateAnswer.id;
                 if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
                 list[item.id] = item;
                 event.setResponse(updateAnswer);
+                that.publisher.publish(["graph_element_content_changed",  event.getData()]);
               });
 
         }else if(event.getData()['type'] == 'removeAlternative'){
@@ -121,6 +124,7 @@ YOVALUE.GraphElementsContent.prototype = {
             e = this.cacheContent.get({elementType: 'node', contentId: nodeContentId})[0].content;
             if(typeof(e) == 'undefined') continue;
             for(var j in alternatives){
+              // TODO: check if we have any falsifications in a proposition list, then change event.getData() accordingly
               e.alternatives[j]['reliability'] = alternatives[j];
             }
           }
@@ -133,15 +137,13 @@ YOVALUE.GraphElementsContent.prototype = {
           /// if we changed 'type' attribute, then reload full node from server
           if(event.getData().nodeAttribute.name == 'type'){
             // update type so that graph redraw fired on 'graph_element_content_changed' will be done correctly
-            // TODO: it looks like ugly hack that we need because 'graph_element_content_changed' fire attribute change as well as attribute redraw
-            // Do 'graph_element_content_changed' need to be separated on two different events (so we can process one after another)?
             e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
-            that.publisher
-              .publish(["graph_element_content_changed",  event.getData()])
-              .then(function(answer){
-                // for node editor we must update whole node content, so remove it from cache here
-                that.cacheContent.remove({elementType:'node', contentId:event.getData().nodeContentId});
+            // for node editor we must update whole node content, so remove it from cache here
+            this.cacheContent.remove({elementType:'node', contentId:event.getData().nodeContentId});
+            this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()]).then(function(){
                 event.setResponse({});
+                // server is updated, now we can fire 'graph_element_content_changed'
+                that.publisher.publish(["graph_element_content_changed",  event.getData()])
               });
 
           }else if(event.getData().nodeAttribute.name == 'reliability' && e.type == 'fact'){
@@ -150,15 +152,14 @@ YOVALUE.GraphElementsContent.prototype = {
             var secondAlternativeEvent = YOVALUE.clone(event.getData());
             secondAlternativeEvent.node_alternative_id = 1;
             secondAlternativeEvent.nodeAttribute.value = e['alternatives'][1]['reliability'];
-            that.publisher
-                .publish(["graph_element_content_changed",  event.getData()]).then(function(){
-                  return that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent]);
+
+            this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()]).then(function(){
+                  return that.publisher.publish(["repository_request_for_graph_element_content_change",  secondAlternativeEvent]);
                 }).then(function(){
                   event.setResponse({});
+                  that.publisher.publish(["graph_element_content_changed",  event.getData()]);
+                  that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent]);
                 })
-
-          }else if(event.getData().nodeAttribute.name == 'reliability' && e.type == 'proposition'){
-            // check if we have any falsifications in a proposition list?
 
           }else{
 
@@ -181,10 +182,11 @@ YOVALUE.GraphElementsContent.prototype = {
           newEdge.type = event.getData().elementType;
 
           this.publisher
-            .publish(["graph_element_content_changed", {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge}])
+            .publish(["repository_request_for_graph_element_content_change", {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge}])
             .then(function(answer){
               newEdge.edgeContentId = answer.edgeContentId;
               that.cacheContent.add({elementType:'edge', contentId:newEdge.edgeContentId, content:newEdge});
+              that.publisher.publish(["graph_element_content_changed",  {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge}]);
               event.setResponse(newEdge);
             });
 
@@ -193,10 +195,11 @@ YOVALUE.GraphElementsContent.prototype = {
           // function to save new node (here and in repo) and to set response with new node
           var saveNewNode = function(graphId, newNode){
             that.publisher
-              .publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:newNode}])
+              .publish(["repository_request_for_graph_element_content_change",  {graphId:graphId, type:'addNode', node:newNode}])
               .then(function(answer){
                 newNode.nodeContentId = answer.nodeContentId;
                 that.cacheContent.add({elementType:'node', contentId:answer.nodeContentId, content:newNode});
+                that.publisher.publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:newNode}]);
                 event.setResponse(newNode);
               });
           };
@@ -238,6 +241,7 @@ YOVALUE.GraphElementsContent.prototype = {
           var reader  = new FileReader();
           reader.onload = function () {
             icon.src = reader.result;
+            that.publisher.publish(["repository_request_for_graph_element_content_change", event.getData()]);
             that.publisher.publish(["graph_element_content_changed", event.getData()]);
             event.setResponse({});
           };
@@ -246,7 +250,10 @@ YOVALUE.GraphElementsContent.prototype = {
 
         }
 
-        if(ed) this.publisher.publish(["graph_element_content_changed", ed]);
+        if(ed){
+          this.publisher.publish(["repository_request_for_graph_element_content_change", ed]);
+          this.publisher.publish(["graph_element_content_changed", ed]);
+        }
         if(er) event.setResponse(er);
         break;
 

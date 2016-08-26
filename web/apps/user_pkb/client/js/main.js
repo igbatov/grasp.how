@@ -1,4 +1,4 @@
-var DEBUG_MODE = true;
+var DEBUG_MODE = !true;
 
 /**
  * List of modules
@@ -203,9 +203,9 @@ Modules['Mediator'].setSubscriptions(
     'graph_element_content_changed':[
       Modules['GraphControllerPubSub'],
       Modules['GraphElementEditor'],
-      Modules['Repository'],
       Modules['BayesPubSub']
     ],
+    'repository_request_for_graph_element_content_change':[Modules['Repository']],
     'graph_position_changed':[
       Modules['GraphControllerPubSub'],
       Modules['Repository']
@@ -260,7 +260,8 @@ Modules['Mediator'].setSubscriptions(
     'get_node_mapping':[Modules['GraphNodeMappingsPubSub']],
 
     'hide_all_graphs':[Modules['GraphViewsPubSub']],
-    'draw_graph_view':[Modules['GraphViewsPubSub']],
+    'draw_graph_view':[Modules['GraphControllerPubSub'],Modules['GraphViewsPubSub']],
+    'update_graph_view_decoration':[Modules['GraphViewsPubSub']],
     'get_graph_view_label_area':[Modules['GraphViewsPubSub']],
     'get_graph_view_node_mapping':[Modules['GraphViewsPubSub']],
     'get_graph_view_node_label_mapping':[Modules['GraphViewsPubSub']],
