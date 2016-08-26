@@ -16,7 +16,7 @@ YOVALUE.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIn
   this.jQuery = jQuery;
   this.UI = UI;
 
-  this.currentElementHash = null;
+  this.currentElement = null;
   this.currentEvent = null;
 
   this.ajaxIndicator = ajaxIndicator;
@@ -42,24 +42,55 @@ YOVALUE.GraphElementEditor.prototype = {
   eventListener: function(event){
     var $ = this.jQuery, v;
 
-    // save for reload()
-    this.currentEvent = event;
-
     if(event.getData().position == 'rightGraphView') v = $('#'+this.leftContainer.id);
     else if(event.getData().position == 'leftGraphView') v = $('#'+this.rightContainer.id);
 
     var eventName = event.getName();
     switch (eventName)
     {
+      case "graph_element_content_changed":
+        if(this.currentElement == null) break;
+        if(event.getData().graphId != this.currentElement.graphId) break;
+
+        // reload editor if some reliabilities changed
+        if(event.getData().type == 'updateNodesReliabilities'){
+          this._reloadEvent();
+          break;
+
+        }else{
+          // If this is update of opened node, then reload it
+          if(event.getData().nodeContentId == this.currentElement.elementId
+              && this.getEventElementType(event) == this.currentElement.elementType)
+          {
+            if(['addAlternative', 'removeAlternative', 'updateAlternative', 'updateNodeAlternativesP'].indexOf(event.getData().type) != -1){
+              this._reloadEvent();
+              break;
+
+            }else if(event.getData().type == 'updateNodeAttribute'
+                && event.getData().nodeAttribute.name != 'importance'
+                && event.getData().nodeAttribute.name != 'label'){
+              this._reloadEvent();
+              break;
+
+            }
+          }
+
+        }
+        break;
+
       case "show_graph_element_editor":
-
-        var newElementHash = JSON.stringify({
+        var currentElement = {
           graphId:event.getData().graphId,
-          elementId:event.getData().elementType == 'node' ? event.getData().nodeId : event.getData().edge.id
-        });
+          elementType:event.getData().elementType,
+          elementId:event.getData().elementType == 'node' ? event.getData().nodeContentId : event.getData().edge.id
+        };
 
-        // only one editor can be opened
-        if(this.currentElementHash != null && this.currentElementHash != newElementHash) return;
+        // we do not want to open another editor, we let renew this one
+        if(this.currentElement != null && JSON.stringify(this.currentElement) != JSON.stringify(currentElement)) return;
+
+        this.currentElement = currentElement;
+        // save for reload()
+        this.currentEvent = event;
 
         v.html('');
         if(event.getData().elementType == 'node'){
@@ -85,13 +116,38 @@ YOVALUE.GraphElementEditor.prototype = {
         v.show();
         break;
       case 'hide_graph_element_editor':
-        this.currentElementHash = null;
+        this.currentElement = null;
+        this.currentEvent = null;
+
         $('#'+this.leftContainer.id).hide();
         $('#'+this.rightContainer.id).hide();
         break;
       default:
         break;
     }
+  },
+
+  getEventElementType: function(event){
+    if(event.getName() == 'graph_element_content_changed' && [
+      'updateEdgeAttribute',
+      'addEdge',
+    ].indexOf(event.getData().type) != -1) return 'edge';
+
+    if(event.getName() == 'graph_element_content_changed' && [
+      'updateNodeAttribute',
+      'addAlternative',
+      'removeAlternative',
+      'updateAlternative',
+      'updateNodeAlternativesP',
+      'updateNodeText',
+      'node_list_update_request',
+      'node_list_remove_request',
+      'node_list_add_request',
+      'addNode',
+      'addIcon',
+    ].indexOf(event.getData().type) != -1) return 'node';
+
+    return false;
   },
 
   _reloadEvent: function(){
@@ -124,7 +180,7 @@ YOVALUE.GraphElementEditor.prototype = {
               nodeContentId: nodeContentId,
               label: form.label
             }]).then(function(){
-              that._reloadEvent();
+             // that._reloadEvent();
             });
 
             that.UI.closeModal(modalWindow);
@@ -169,7 +225,7 @@ YOVALUE.GraphElementEditor.prototype = {
         )
       // nodes - text, list - sources or falsifications
         .then(function(contents){
-
+console.info('+++++++++++++++++++', contents);
           var node = contents[nodeContentId];
           var activeAlternative = node.alternatives[node.active_alternative_id];
           var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
@@ -183,7 +239,7 @@ YOVALUE.GraphElementEditor.prototype = {
               nodeAttribute: {name:name, value:value}
             }]).then(function(){
               // if attribute is importance or label we do not want to reload whole node editor
-              if(name != 'importance' && name != 'label') that._reloadEvent();
+            //  if(name != 'importance' && name != 'label') that._reloadEvent();
             });
           };
 
@@ -200,7 +256,7 @@ YOVALUE.GraphElementEditor.prototype = {
                     nodeContentId: nodeContentId,
                     node_alternative_id: node.active_alternative_id
               }]).then(function(){
-                that._reloadEvent();
+               // that._reloadEvent();
               });
             }
 
@@ -309,7 +365,7 @@ YOVALUE.GraphElementEditor.prototype = {
                            alternatives: probabilities
                          }])
                       .then(function(){
-                        that._reloadEvent();
+                       // that._reloadEvent();
                       });
 
                       that.UI.closeModal(modalWindow);
@@ -430,7 +486,6 @@ YOVALUE.GraphElementEditor.prototype = {
                 nodeType:nodeType
               }])
             .then(function (updateAnswer) {
-                console.log(contents[nodeContentId].type, that.NODE_TYPE_FACT);
                 // We do not change reliability of proposition based on falsification yet
                 if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return {then:function(cb){cb()}};
 
@@ -443,7 +498,7 @@ YOVALUE.GraphElementEditor.prototype = {
                 }]);
 
             }).then(function(){
-                that._reloadEvent();
+              //  that._reloadEvent();
             });
         });
       return true;
@@ -466,7 +521,7 @@ YOVALUE.GraphElementEditor.prototype = {
         }]);
 
       }).then(function(){
-        that._reloadEvent();
+       // that._reloadEvent();
       });
       return true;
     };
@@ -497,7 +552,7 @@ YOVALUE.GraphElementEditor.prototype = {
               }]);
 
             }).then(function(){
-              that._reloadEvent();
+             // that._reloadEvent();
             });
       });
     };

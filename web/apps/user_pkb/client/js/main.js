@@ -1,4 +1,4 @@
-var DEBUG_MODE = !true;
+var DEBUG_MODE = true;
 
 /**
  * List of modules
@@ -202,6 +202,7 @@ Modules['Mediator'].setSubscriptions(
     ],
     'graph_element_content_changed':[
       Modules['GraphControllerPubSub'],
+      Modules['GraphElementEditor'],
       Modules['Repository'],
       Modules['BayesPubSub']
     ],

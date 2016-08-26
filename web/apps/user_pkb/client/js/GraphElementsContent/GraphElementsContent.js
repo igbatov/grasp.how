@@ -114,12 +114,25 @@ YOVALUE.GraphElementsContent.prototype = {
           er = {};
           ed = event.getData();
         }
+        // update nodes reliabilities attribute
+        else if(event.getData()['type'] == 'updateNodesReliabilities'){
+          for(var nodeContentId in event.getData().data){
+            var alternatives =  event.getData().data[nodeContentId];
+            e = this.cacheContent.get({elementType: 'node', contentId: nodeContentId})[0].content;
+            if(typeof(e) == 'undefined') continue;
+            for(var j in alternatives){
+              e.alternatives[j]['reliability'] = alternatives[j];
+            }
+          }
+          er = {};
+          ed = event.getData();
+
         // update node attribute
-        else if(event.getData()['type'] == 'updateNodeAttribute'){
+        }else if(event.getData()['type'] == 'updateNodeAttribute'){
           e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           /// if we changed 'type' attribute, then reload full node from server
           if(event.getData().nodeAttribute.name == 'type'){
-            // update type so that graph redraw fired on 'graph_element_content_changed'' will be done correctly
+            // update type so that graph redraw fired on 'graph_element_content_changed' will be done correctly
             // TODO: it looks like ugly hack that we need because 'graph_element_content_changed' fire attribute change as well as attribute redraw
             // Do 'graph_element_content_changed' need to be separated on two different events (so we can process one after another)?
             e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;

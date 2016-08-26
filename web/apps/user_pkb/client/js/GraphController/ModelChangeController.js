@@ -64,6 +64,7 @@ YOVALUE.ModelChangeController.prototype = {
    * @param graphModel
    */
   showGraph: function(graphModel){
+    console.log('=======================showGraph');
     // Choose left or right side of canvas for this GraphView
     var that = this;
     this.publisher

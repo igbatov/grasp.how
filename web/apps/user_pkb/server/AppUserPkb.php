@@ -394,7 +394,7 @@ class AppUserPkb extends App
         }else if($r['type'] == 'updateEdgeAttribute'){
           $graph_id = $this->contentIdConverter->getGraphId($r['edgeContentId']);
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['edgeContentId']);
-        }else if($r['type'] == 'addEdge' || $r['type'] == 'addNode'){
+        }else if($r['type'] == 'addEdge' || $r['type'] == 'addNode' || $r['type'] == 'updateNodesReliabilities'){
           $graph_id = $r['graphId'];
         }
 
@@ -447,6 +447,17 @@ class AppUserPkb extends App
           $query = "UPDATE node_content SET active_alternative_id = '".$rows[0]['alternative_id']."' WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
           $this->log($query);
           $this->db->execute($query);
+
+        }else if($r['type'] == 'updateNodesReliabilities'){
+          foreach($r['data'] as $node_content_id => $node){
+            $local_content_id = $this->contentIdConverter->getLocalContentId($node_content_id);
+            foreach($node as $alternative_id => $reliability){
+              $value = $this->db->escape($reliability);
+              $query = "UPDATE node_content SET reliability = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
+              $this->log($query);
+              $this->db->execute($query);
+            }
+          }
 
         }else if($r['type'] == 'updateNodeAlternativesP'){
           foreach($r['alternatives'] as $alternative_id => $p){
