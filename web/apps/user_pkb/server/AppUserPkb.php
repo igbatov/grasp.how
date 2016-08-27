@@ -766,7 +766,9 @@ class AppUserPkb extends App
     $this->log($q);
     $rows = $this->db->execute($q);
     $reliability_array = array();
-    foreach($rows as $row) $reliability_array[] = $row['publisher_reliability'];
+    foreach($rows as $row){
+      $reliability_array[] = $row['publisher_reliability'];
+    }
     return min(array_sum($reliability_array)*10,100);
   }
 

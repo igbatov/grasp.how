@@ -182,9 +182,7 @@ YOVALUE.GraphElementEditor.prototype = {
               type: 'addAlternative', 
               nodeContentId: nodeContentId,
               label: form.label
-            }]).then(function(){
-             // that._reloadEvent();
-            });
+            }]);
 
             that.UI.closeModal(modalWindow);
           });
@@ -243,10 +241,7 @@ YOVALUE.GraphElementEditor.prototype = {
               nodeContentId: nodeContentId,
               node_alternative_id: node.active_alternative_id, 
               nodeAttribute: {name:name, value:value}
-            }]).then(function(){
-              // if attribute is importance or label we do not want to reload whole node editor
-            //  if(name != 'importance' && name != 'label') that._reloadEvent();
-            });
+            }]);
           };
 
           var removeAlternative = function(){
@@ -261,9 +256,7 @@ YOVALUE.GraphElementEditor.prototype = {
                     type: 'removeAlternative',
                     nodeContentId: nodeContentId,
                     node_alternative_id: node.active_alternative_id
-              }]).then(function(){
-               // that._reloadEvent();
-              });
+              }]);
             }
 
           };
@@ -369,10 +362,7 @@ YOVALUE.GraphElementEditor.prototype = {
                            type: 'updateNodeAlternativesP',
                            nodeContentId: nodeContentId,
                            alternatives: probabilities
-                         }])
-                      .then(function(){
-                       // that._reloadEvent();
-                      });
+                         }]);
 
                       that.UI.closeModal(modalWindow);
                       return true;
@@ -432,8 +422,10 @@ YOVALUE.GraphElementEditor.prototype = {
    * Create promises to add text and source list (for fact) or falsification list (for proposition)
    * @param form
    * @param nodeContentId
+   * @param nodeType
    * @param graphId
    * @param isEditable
+   * @param contents
    * @private
    */
   _addContent: function(form, nodeContentId, nodeType, graphId, isEditable, contents){
@@ -478,9 +470,22 @@ YOVALUE.GraphElementEditor.prototype = {
     var htmllist = {};
     for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
 
+    var validateListItem = function(item){
+      // check that publisher reliability is from 0 to 10
+      item.publisher_reliability = Number(item.publisher_reliability);
+      if(item.publisher_reliability < 0 || item.publisher_reliability > 10){
+        alert('reliability должен быть от 0 до 10');
+        return false;
+      }
+      return true;
+    };
+
     var updateListItem = function(id, el){
       that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, list[id],
+         // this callback is called on 'submit' button
         function(graphId, nodeContentId, node_alternative_id, item){
+          if(!validateListItem(item)) return false;
+
           // save updated list
           that.publisher
             .publish(['request_for_graph_element_content_change', {
@@ -493,9 +498,9 @@ YOVALUE.GraphElementEditor.prototype = {
               }])
             .then(function (updateAnswer) {
                 // We do not change reliability of proposition based on falsification yet
-                if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return {then:function(cb){cb()}};
+                if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return true;
 
-                return that.publisher.publish(['request_for_graph_element_content_change',{
+                that.publisher.publish(['request_for_graph_element_content_change',{
                   type: 'updateNodeAttribute',
                   graphId: graphId,
                   nodeContentId: nodeContentId,
@@ -503,9 +508,9 @@ YOVALUE.GraphElementEditor.prototype = {
                   nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
                 }]);
 
-            }).then(function(){
-              //  that._reloadEvent();
+                return true;
             });
+          return true;
         });
       return true;
     };
@@ -516,9 +521,9 @@ YOVALUE.GraphElementEditor.prototype = {
           ['request_for_graph_element_content_change', {type:'node_list_remove_request', graphId:graphId, nodeContentId:nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, itemId:id}]
       ).then(function (updateAnswer) {
         // We do not change reliability of proposition based on falsification yet
-        if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return {then:function(cb){cb()}};
+        if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return true;
 
-        return that.publisher.publish(['request_for_graph_element_content_change',{
+        that.publisher.publish(['request_for_graph_element_content_change',{
           type: 'updateNodeAttribute',
           graphId: graphId,
           nodeContentId: nodeContentId,
@@ -526,8 +531,7 @@ YOVALUE.GraphElementEditor.prototype = {
           nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
         }]);
 
-      }).then(function(){
-       // that._reloadEvent();
+        return true;
       });
       return true;
     };
@@ -536,6 +540,8 @@ YOVALUE.GraphElementEditor.prototype = {
     var addListItem = function(){
       that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, {},
           function(graphId, nodeContentId, node_alternative_id, item){
+            if(!validateListItem(item)) return false;
+
             that.publisher
             .publish(['request_for_graph_element_content_change', {
                   type:'node_list_add_request',
@@ -547,9 +553,9 @@ YOVALUE.GraphElementEditor.prototype = {
                 }])
             .then(function (updateAnswer) {
               // We do not change reliability of proposition based on falsification yet
-              if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return {then:function(cb){cb()}};
+              if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return true;
 
-              return that.publisher.publish(['request_for_graph_element_content_change',{
+              that.publisher.publish(['request_for_graph_element_content_change',{
                 type: 'updateNodeAttribute',
                 graphId: graphId,
                 nodeContentId: nodeContentId,
@@ -557,10 +563,12 @@ YOVALUE.GraphElementEditor.prototype = {
                 nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
               }]);
 
-            }).then(function(){
-             // that._reloadEvent();
+              return true;
             });
-      });
+
+            return true;
+          }
+      );
     };
 
     that.UI.updateForm(form, 'list', {
@@ -653,12 +661,44 @@ YOVALUE.GraphElementEditor.prototype = {
     var formFields = {};
     var MANUAL_RELIABILITY_SOURCE_TYPES = ['personal experience'];
 
+    var itemTypeVisible = {
+      'all':{
+        'name':'text','url':'text','author':'text','editor':'text',
+        'publisher':'search','publisher_reliability':'text',
+        'publish_date':'date','pages':'text','comment':'textarea'
+      },
+      'personal experience':{'name':'text','comment':'text','publisher_reliability':'text'}
+    };
+
     var _createSourceFields = function(source_type){
        var formFields = {
         'source_type':{'type':'select', 'label':'Тип',
           callback:function(name, value){
-            if(MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(value) != -1) that.UI.updateForm(form,'publisher_reliability',{disabled:false});
-            else that.UI.updateForm(form,'publisher_reliability',{disabled:true});
+            if(MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(value) != -1){
+              that.UI.updateForm(form,'publisher_reliability',{disabled:false});
+            }else{
+              that.UI.updateForm(form,'publisher_reliability',{disabled:true});
+            }
+
+            // show only fields that is valid for 'personal experience'
+            if(value == 'personal experience'){
+              var allfields = YOVALUE.getObjectKeys(itemTypeVisible['all']);
+              for(var fieldname in itemTypeVisible['all']){
+                console.info(allfields,fieldname, allfields.indexOf(fieldname));
+                if(YOVALUE.getObjectKeys(itemTypeVisible['personal experience']).indexOf(fieldname) == -1){
+                  console.info(fieldname);
+                  that.UI.updateForm(form,fieldname,{type:'hidden'});
+                }
+              }
+            }
+            // show all fields
+            else{
+              for(var fieldname in itemTypeVisible['all']){
+                var fieldtype = itemTypeVisible['all'][fieldname];
+                console.info(fieldname, fieldtype);
+                that.UI.updateForm(form,fieldname,{type:fieldtype});
+              }
+            }
           },
           'items':{
             'article':'статья (peer-reviewed)',
@@ -667,7 +707,9 @@ YOVALUE.GraphElementEditor.prototype = {
             'book':'книга',
             'news':'новость',
             'personal experience':'личный опыт'
-          },'value':'article'},
+          },
+          'value':'article'
+        },
         'name':{'type':'search', label:'Название',
           findCallback:function(str){
             var source_type = that.UI.getFormValue(form, 'source_type');
@@ -711,13 +753,17 @@ YOVALUE.GraphElementEditor.prototype = {
             that.UI.updateForm(form, 'scopus_title_list_id', {value:null});
           }
         },
-        'publisher_reliability':{type:'text',disabled:(typeof(source_type) != 'undefined' && MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(source_type) != -1) ? false : true,label:'reliability'},
+        'publisher_reliability':{
+          type:'text',
+          disabled:(typeof(source_type) != 'undefined' && MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(source_type) != -1) ? false : true,
+          label:'reliability'
+        },
         'scopus_title_list_id':{type:'hidden'},
         'publish_date':{type:'date', label:'Дата издания'},
         'pages':{type:'text', label:'Том, страницы'},
         'comment':{type:'textarea', label:'Комментарий'},
         'source_id':{type:'hidden'},
-        'button':{type:'button', label:'Добавить'}
+        'button':{type:'button', label:'Сохранить'}
       };
 
       return formFields;
@@ -753,8 +799,9 @@ YOVALUE.GraphElementEditor.prototype = {
         YOVALUE.getObjectKeys(form).forEach(function (v) {
           if (typeof(form[v]) != 'undefined') item[v] = form[v];
         });
-        callback(graphId, nodeContentId, node_alternative_id, item);
-        that.UI.closeModal(modalWindow);
+        if(callback(graphId, nodeContentId, node_alternative_id, item)){
+          that.UI.closeModal(modalWindow);
+        }
       }
     );
 

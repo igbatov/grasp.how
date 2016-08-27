@@ -378,6 +378,7 @@ YOVALUE.UIElements.prototype = {
       if(attrs.type == 'hidden') newDom = this.createHidden(attrs);
       if(attrs.type == 'title') newDom = this.createTitle(attrs);
       if(attrs.type == 'list') newDom = this.createListBox(attrs);
+      if(attrs.type == 'date') newDom = this.createDate(attrs);
 
       //var oldDom = document.getElementById(el.id);
       var oldDom = el.dom;
