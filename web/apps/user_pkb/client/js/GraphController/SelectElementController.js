@@ -24,7 +24,8 @@ YOVALUE.SelectElementController.prototype = {
       eventName == 'draw_graph_view'
     ){
       graphId = event.getData()['graphId'];
-      that.initDecorations(graphId, event.getData().decoration);
+
+      if(typeof(event.getData().decoration) != 'undefined') that.initDecorations(graphId, event.getData().decoration);
 
       if(selectedElement){
         that.selectedDecoration[graphId] = that.enlargeNodes(that.initialDecoration[graphId], [selectedElement.element.id]);
@@ -63,13 +64,17 @@ YOVALUE.SelectElementController.prototype = {
       if(eventName === 'clickedge' || eventName === 'mouseenteredge') edgesToSelect = [e.id];
 
       // now highlight them depending on event type
-      if(eventName === 'mouseenternode') this.selectedDecoration[graphId] = this.lowerOpacity(that.initialDecoration[graphId], nodesToSelect, edgesToSelect, true);
+      if(eventName === 'mouseenternode'){
+        this.selectedDecoration[graphId] = this.lowerOpacity(that.initialDecoration[graphId], nodesToSelect, edgesToSelect, true);
+      }
       if(eventName === 'clicknode') this.selectedDecoration[graphId] = this.enlargeNodes(that.initialDecoration[graphId], nodesToSelect);
       if(eventName === 'clickedge') this.selectedDecoration[graphId] = this.enlargeEdges(that.initialDecoration[graphId], edgesToSelect);
+
       var graphViewSettings = {
         graphId: graphId,
         decoration: this.selectedDecoration[graphId]
       };
+
       this.publisher.publish(["update_graph_view_decoration", graphViewSettings]);
 
     }else if(eventName === 'mouseleavenode' || eventName === 'mouseleaveedge' || eventName === 'clickbackground'){
@@ -94,10 +99,8 @@ YOVALUE.SelectElementController.prototype = {
 
     }
     else if(eventName == 'graph_model_changed'){
-
       var graphModel = event.getData().graphModel;
       var graphId = graphModel.getGraphId();
-      delete this.initialDecoration[graphId];
 
       // update selectedElement if any
       if(selectedElement.element !== null && selectedElement.graphId == graphId){
