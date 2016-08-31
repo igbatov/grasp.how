@@ -607,6 +607,7 @@ class AppUserPkb extends App
 
       case 'findSources':
         $r = $this->getRequest();
+        if(strlen($r['substring']) == 0) break;
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
         $q = "SELECT * FROM source WHERE name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
         $this->log($q);
