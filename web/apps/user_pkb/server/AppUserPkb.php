@@ -645,7 +645,7 @@ class AppUserPkb extends App
   private function addNodeContentList($r){
     if($r['nodeType'] == $this->node_basic_types['fact']){
         // if it is a new source - add it to the main list
-      if(empty($r['source']['source_id'])){
+      if(empty($r['item']['source_id'])){
          // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
 
         $q = "INSERT INTO source SET "
