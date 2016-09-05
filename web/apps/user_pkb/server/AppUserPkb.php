@@ -975,7 +975,10 @@ class AppUserPkb extends App
   private function cloneGraph($graph_id, $graph_history_step, $auth_id){
     // copy row in graph table
     $q = "SELECT graph FROM graph WHERE id = '".$graph_id."'";
+    $this->log($q);
     $rows = $this->db->execute($q);
+    if(!count($rows)) return false;
+
     $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', auth_id = '".$auth_id."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."'";
     $new_graph_id = $this->db->execute($q);
 
@@ -1000,17 +1003,31 @@ class AppUserPkb extends App
     }
     $elements = json_encode(array("nodes"=>$nodes, "edges"=>$edges), JSON_FORCE_OBJECT);
     $q = "INSERT INTO graph_history SET graph_id = '".$new_graph_id."', step = '1', timestamp = '".time()."', elements = '".$elements."', node_mapping = '".$rows[0]['node_mapping']."'";
+    $this->log($q);
     $this->db->execute($q);
 
-    // Copy local_content_id, created_at, updated_at
-    $q = "INSERT INTO node_content (graph_id, local_content_id, ".implode(',', $this->node_attribute_names).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	".implode(',', $this->node_attribute_names).", text, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    // Copy node_contents
+    $q = "INSERT INTO node_content (graph_id, local_content_id, alternative_id, ".implode(',', $this->node_attribute_names).", ".implode(',', $this->node_alternative_attribute_names).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, alternative_id,	".implode(',', $this->node_attribute_names).", ".implode(',', $this->node_alternative_attribute_names).", text, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $this->log($q);
+    $this->db->execute($q);
+
+    // Copy node_content_sources
+    $q = "INSERT INTO node_content_source (graph_id, local_content_id, alternative_id, source_type, field_type, `name`, url, author,	editor,	publisher, publisher_reliability, scopus_title_list_id, publish_date,	pages,	comment,	source_id, created_at, updated_at) SELECT '".$new_graph_id."', local_content_id,	alternative_id, source_type, field_type, `name`, url, author,	editor,	publisher, publisher_reliability, scopus_title_list_id, publish_date,	pages,comment,source_id, NOW(), NOW() FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $this->log($q);
+    $this->db->execute($q);
+
+    // Copy node_content_falsification
+    $q = "INSERT INTO node_content_falsification (graph_id, local_content_id, alternative_id, `name`, comment,	created_at, updated_at) SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment, NOW(), NOW() FROM node_content_falsification WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $this->log($q);
     $this->db->execute($q);
 
     // just copy edges as is
     $q = "INSERT INTO edge_content (graph_id, local_content_id,	".implode(',', $this->edge_attribute_names).", updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, ".implode(',', $this->edge_attribute_names).", NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $this->log($q);
     $this->db->execute($q);
 
     $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
+    $this->log($q);
     $this->db->execute($q);
   }
 
@@ -1062,7 +1079,7 @@ class AppUserPkb extends App
   }
 
   private function removeGraph($graph_id, $auth_id=null){
-    $tables = array('graph_history','graph_settings','node_content','edge_content');
+    $tables = array('graph_history','graph_settings','node_content','edge_content','node_content_source','node_content_falsification');
     $result = array();
 
     // check permission
