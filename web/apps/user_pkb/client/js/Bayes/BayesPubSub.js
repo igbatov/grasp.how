@@ -14,7 +14,8 @@ YOVALUE.BayesPubSub.prototype = {
       case "graph_element_content_changed":
           if(event.getData()['type'] == 'updateNodeAlternativesP'){
             this.bayesCalculator.calculateNodeAlternativeProbabilities(graphId, function(d){
-              console.log('BayesPubSub got response',d);
+              console.log('BayesPubSub got response',YOVALUE.clone(d));
+              if(d.result == 'error') return;
               // normalize probabilities to be in [1,100] interval
               for(var i in d.data){
                 var node = d.data[i];

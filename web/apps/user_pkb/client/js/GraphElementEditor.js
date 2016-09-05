@@ -261,6 +261,9 @@ YOVALUE.GraphElementEditor.prototype = {
 
           };
 
+          /**
+           * Form of conditional probabilities editor
+           */
           var editConditionals = function(){
             var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
             var parentNodeContentIds = model.getParentNodesContentIds(nodeId);
@@ -306,9 +309,12 @@ YOVALUE.GraphElementEditor.prototype = {
 
                     // create text fields for conditional probabilities of node's alternatives
                     for(var j in node.alternatives){
-                      fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- ВЕРОЯТНОСТЬ: "'+node.alternatives[j].label+'"'};
+                      // do not show second alternative for facts,
+                      // as it is always filled in automatically from first alternative probability
+                      var isFactDenial = node.type == that.NODE_TYPE_FACT && j!=0;
+                      if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- ВЕРОЯТНОСТЬ: "'+node.alternatives[j].label+'"'};
                       fields[formKeyStr+'__'+j] = {
-                        type:'text',
+                        type: isFactDenial ? 'hidden' : 'text',
                         value: YOVALUE.typeof(node.alternatives[j].p) == 'object' ? node.alternatives[j].p[formKeyStr] : ""
                       };
                     }

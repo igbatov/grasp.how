@@ -51,7 +51,7 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'get_graph_diff'){
       this.pendingRequests.push({url:'getGraphDiff', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
@@ -67,25 +67,25 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'graph_name_changed'){
       this.pendingRequests.push({url:'updateGraphName', data:e.getData(),  callback:function(data){
-        e.setResponse(data);
+        that.setEventResponse(e, data);
       }});
       this.sendPendingRequests();
 
     }else if(name == 'create_new_graph'){
       this.pendingRequests.push({url:'createNewGraph', data:e.getData(),  callback:function(data){
-        e.setResponse(data);
+        that.setEventResponse(e, data);
       }});
       this.sendPendingRequests();
 
     }else if(name == 'set_graph_attributes'){
       this.pendingRequests.push({url:'setGraphAttributes', data:e.getData(),  callback:function(data){
-        e.setResponse(data);
+        that.setEventResponse(e, data);
       }});
       this.sendPendingRequests();
 
     }else if(name == 'graph_position_changed'){
       this.pendingRequests.push({url:'changeGraphPosition', data:e.getData(),  callback:function(data){
-        e.setResponse(data);
+        that.setEventResponse(e, data);
       }});
       this.sendPendingRequests();
 
@@ -126,13 +126,13 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'repository_get_graphs_model_settings'){
       this.pendingRequests.push({url:'getGraphsModelSettings', data:null, callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
     }else if(name == 'repository_get_graphs_model_elements'){
       this.pendingRequests.push({url:'getGraphsHistoryChunk', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
@@ -158,13 +158,13 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'repository_get_graph_node_content'){
       this.pendingRequests.push({url:'getGraphNodeContent', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
     }else if(name == 'repository_get_graphs_history_timeline'){
       this.pendingRequests.push({url:'getGraphsHistoryTimeline', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
@@ -174,35 +174,48 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'repository_get_graphs_clone_list'){
       this.pendingRequests.push({url:'getGraphsCloneList', data:null, callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
     }else if(name == 'repository_get_graph_node_list'){
       this.pendingRequests.push({url:'getNodeContentList', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
     }else if(name == 'find_publishers'){
       this.pendingRequests.push({url:'findPublishers', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
     }else if(name == 'find_sources'){
       this.pendingRequests.push({url:'findSources', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
     }else if(name == 'query_grain'){
       this.pendingRequests.push({url:'query_grain', data:e.getData(), callback:function(data){
-        e.setResponse(JSON.parse(data));
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 
     }
+  },
+
+  setEventResponse: function(e, data, dataType){
+    if(typeof(dataType) == 'undefined') dataType = 'STRING';
+    if(dataType=='JSON' && YOVALUE.isJson(data)){
+      e.setResponse(JSON.parse(data));
+    }
+
+    if(dataType=='JSON' && !YOVALUE.isJson(data)){
+      this.publisher.publish(["repository_error", {reason:'Answer is not JSON'}]);
+    }
+
+    if(dataType=='STRING')  e.setResponse(data);
   },
 
   sendPendingRequests: function(){

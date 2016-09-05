@@ -645,7 +645,7 @@ class AppUserPkb extends App
   private function addNodeContentList($r){
     if($r['nodeType'] == $this->node_basic_types['fact']){
         // if it is a new source - add it to the main list
-      if(empty($r['source']['source_id'])){
+      if(empty($r['item']['source_id'])){
          // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
 
         $q = "INSERT INTO source SET "
@@ -1305,9 +1305,9 @@ class AppUserPkb extends App
       // for each combination of parents alternatives and alternative it must have probability in [0,1]
       $parents_alternatives = array();
       foreach($bayes_graph['edges'] as $edge) if($edge[1] == $node_local_id) $parents_alternatives[] = $bayes_graph['nodes'][$edge[0]];
-      $pnum[$node_local_id] = 1;
+      $pnum[$node_local_id] = count($parents_alternatives) ? 1 : 0;
       foreach($parents_alternatives as $parent_alternatives) $pnum[$node_local_id] *= count($parent_alternatives);
-      if(isset($probabilities[$node_local_id]['soft']) && count($parents_alternatives)) $pnum[$node_local_id]++;
+      if(isset($probabilities[$node_local_id]['soft'])) $pnum[$node_local_id]++;
       //echo '$pnum['.$node_local_id.'] = '.$pnum[$node_local_id]."\n";
 
       // check that number of rows in a $probabilities[$node_local_id] equals $pnum[$node_local_id]
