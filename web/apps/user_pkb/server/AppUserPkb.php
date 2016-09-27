@@ -120,7 +120,8 @@ class AppUserPkb extends App
         // create text of R script for gRain
         $graph_id = $this->getRequest()['graphId'];
 
-        $graph = $this->getBayesGraphs($graph_id);
+        // Note: GRain can han handle graph that in fact consists from several splittered subgraphs
+        $graph = $this->getBayesGraph($graph_id);
         $probabilities = $this->getBayesProbabilities($graph_id, $graph);
         $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
 
@@ -1184,7 +1185,7 @@ class AppUserPkb extends App
   * @param $graph_id
   * @return array|bool
   */
-  private function getBayesGraphs($graph_id){
+  private function getBayesGraph($graph_id){
     $history = $this->getGraphsHistoryChunk(array($graph_id=>null));
     if(!count($history)) return false;
 
@@ -1193,7 +1194,8 @@ class AppUserPkb extends App
     foreach($history[0]['elements']['nodes'] as $node) $node_local_content_ids[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
 
     $query = "SELECT local_content_id, alternative_id, type FROM node_content WHERE graph_id = '".$graph_id
-        ."' AND local_content_id IN ('".implode("','",$node_local_content_ids)."') ORDER BY local_content_id, alternative_id";
+        ."' AND type IN ('fact','proposition')"
+        ." AND local_content_id IN ('".implode("','",$node_local_content_ids)."') ORDER BY local_content_id, alternative_id";
     $this->log($query);
     $graph = array('nodes'=>array(), 'edges'=>array());
     $rows = $this->db->execute($query);
