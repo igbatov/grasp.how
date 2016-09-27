@@ -178,8 +178,8 @@ YOVALUE.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
-    }else if(name == 'repository_get_graph_node_list'){
-      this.pendingRequests.push({url:'getNodeContentList', data:e.getData(), callback:function(data){
+    }else if(name == 'repository_get_graph_node_types'){
+      this.pendingRequests.push({url:'getNodeContentTypes', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();

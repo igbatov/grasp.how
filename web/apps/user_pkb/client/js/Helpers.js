@@ -494,6 +494,19 @@ YOVALUE.getObjectKeys = function(obj) {
 };
 
 /**
+ * Get object values
+ * @param obj
+ * @return {Array} - array of object values
+ */
+YOVALUE.getObjectValues = function(obj) {
+  var values = [], key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) values.push(obj[key]);
+  }
+  return values;
+};
+
+/**
  * Object that contains RGB <-> Hex converters
  */
 YOVALUE.ColorHelper = {};

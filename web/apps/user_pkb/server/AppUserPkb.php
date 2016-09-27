@@ -120,7 +120,7 @@ class AppUserPkb extends App
         // create text of R script for gRain
         $graph_id = $this->getRequest()['graphId'];
 
-        $graph = $this->getBayesGraph($graph_id);
+        $graph = $this->getBayesGraphs($graph_id);
         $probabilities = $this->getBayesProbabilities($graph_id, $graph);
         $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
 
@@ -158,6 +158,18 @@ class AppUserPkb extends App
       case 'getGraphsHistoryChunk':
         $chunk = $this->getGraphsHistoryChunk($this->getRequest());
         $this->showRawData(json_encode($chunk));
+        break;
+
+      case 'getNodeContentTypes':
+        $content_ids = $this->getRequest()['nodeContentIds'];
+        $node_types = array();
+        foreach($content_ids as $content_id){
+          $graph_id = $this->contentIdConverter->getGraphId($content_id);
+          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
+          $node_rows = $this->db->execute("SELECT type FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+          $node_types[$content_id] = $node_rows[0]['type'];
+        }
+        $this->showRawData(json_encode($node_types));
         break;
 
       case 'getGraphNodeContent':
@@ -1162,17 +1174,17 @@ class AppUserPkb extends App
   }
 
  /**
-  * Return structure of graph in a form
+  * Extract Bayes Graphs from graph_id Graph.
+  * The structure of every extracted Bayes Graph is in a form
   * {
   *   nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2']}, // every node contains array of its alternative_ids
   *   edges:[['h1','e1'],['e2','h1']] // first element is source, second is destination
   * };
-  *
-  * e1,e2,h1 are local_content_ids in our terminology
+  * where e1,e2,h1 are local_content_ids in our terminology
   * @param $graph_id
   * @return array|bool
   */
-  private function getBayesGraph($graph_id){
+  private function getBayesGraphs($graph_id){
     $history = $this->getGraphsHistoryChunk(array($graph_id=>null));
     if(!count($history)) return false;
 

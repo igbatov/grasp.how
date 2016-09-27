@@ -277,6 +277,11 @@ YOVALUE.GraphElementEditor.prototype = {
                   var fields = {};
                   var formKeys = [{}];
 
+                  // we calc conditional probabilities only for facts and propositions, so filter out others here
+                  for(var i in parentContents){
+                    if([that.NODE_TYPE_FACT, that.NODE_TYPE_PROPOSITION].indexOf(parentContents[i].type) == -1) delete parentContents[i];
+                  }
+
                   // add parentContent alternatives to formKeys:
                   // input formKeys = [{p1:1},{p1:2}]
                   // output [{p1:1,p2:1},{p1:1,p2:1},{p1:2,p2:1},{p1:2,p2:1}]
@@ -406,7 +411,12 @@ YOVALUE.GraphElementEditor.prototype = {
             // if node is a child - let user edit its conditional probabilities
             var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
             var parentNodeContentIds = model.getParentNodesContentIds(nodeId);
-            if(parentNodeContentIds.length) that.UI.updateForm(form, 'editConditionals', {type:'button',label:'Conditional probabilities',callback:editConditionals});
+            if(parentNodeContentIds.length){
+              // if parents contains node types 'fact' or 'proposition', then let user edit conditional probabilities
+              that.checkNodesHasFactOrProposition(graphId, parentNodeContentIds, function(yes){
+                if(yes) that.UI.updateForm(form, 'editConditionals', {type:'button',label:'Conditional probabilities',callback:editConditionals});
+              });
+            }
             that.UI.updateForm(form, 'reliability', {type:'range',min:0,max:100,step:1,value:activeAlternative.reliability,callback:attrChange,disabled:true});
           }
 
@@ -419,9 +429,25 @@ YOVALUE.GraphElementEditor.prototype = {
           that._addContent(form, nodeContentId, node.type, graphId, isEditable, contents);
     });
 
-
-
     return form;
+  },
+
+  /**
+   * Check if node_content_ids contains 'fact' or 'proposition'
+   * @param graphId
+   * @param node_content_ids
+   * @param cb
+   */
+  checkNodesHasFactOrProposition: function(graphId, node_content_ids, cb){
+    var that = this;
+    this.publisher
+        .publish(
+            ['repository_get_graph_node_types', {graphId:graphId, nodeContentIds:node_content_ids}]
+        )
+        .then(function(node_types){
+          var nt = YOVALUE.getObjectValues(node_types);
+          cb(nt.indexOf(that.NODE_TYPE_PROPOSITION) != -1 || nt.indexOf(that.NODE_TYPE_FACT) != -1);
+        });
   },
 
   /**
@@ -669,7 +695,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
     var itemTypeVisible = {
       'all':{
-        'name':'text','url':'text','author':'text','editor':'text',
+        'name':'search','url':'text','author':'text','editor':'text',
         'publisher':'search','publisher_reliability':'text',
         'publish_date':'date','pages':'text','comment':'textarea'
       },
@@ -688,11 +714,8 @@ YOVALUE.GraphElementEditor.prototype = {
 
             // show only fields that is valid for 'personal experience'
             if(value == 'personal experience'){
-              var allfields = YOVALUE.getObjectKeys(itemTypeVisible['all']);
               for(var fieldname in itemTypeVisible['all']){
-                console.info(allfields,fieldname, allfields.indexOf(fieldname));
                 if(YOVALUE.getObjectKeys(itemTypeVisible['personal experience']).indexOf(fieldname) == -1){
-                  console.info(fieldname);
                   that.UI.updateForm(form,fieldname,{type:'hidden'});
                 }
               }
@@ -701,7 +724,6 @@ YOVALUE.GraphElementEditor.prototype = {
             else{
               for(var fieldname in itemTypeVisible['all']){
                 var fieldtype = itemTypeVisible['all'][fieldname];
-                console.info(fieldname, fieldtype);
                 that.UI.updateForm(form,fieldname,{type:fieldtype});
               }
             }
