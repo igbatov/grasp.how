@@ -96,6 +96,7 @@ YOVALUE.GraphElementsContent.prototype = {
             er = {};
             ed = event.getData();
           }
+
         }else if(event.getData()['type'] == 'addAlternative'){
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
           var newAlternativeId = Math.max.apply(null, YOVALUE.getObjectKeys(e['alternatives']))+1;
@@ -162,7 +163,6 @@ YOVALUE.GraphElementsContent.prototype = {
                 })
 
           }else{
-
             if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
             if(this.nodeAlternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
             er = {};
@@ -259,7 +259,7 @@ YOVALUE.GraphElementsContent.prototype = {
 
       /**
        * Returns
-       *  - nodes attributes - all node content that we need to show in graph - active alternative type, label, reliability, node importance, ... - these are called node 'attributes'
+       *  - nodes attributes - all node content that we need to show in graph - active alternative label, reliability, node type, importance, ... - these are called node 'attributes'
        *  - edges attributes
        */
       case "get_elements_attributes":

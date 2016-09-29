@@ -300,7 +300,6 @@ Modules['Mediator'].setSubscriptions(
     'repository_get_graphs_clone_list':[Modules['Repository']],
     'repository_update_node_mapping':[Modules['Repository']],
     'get_graph_diff':[Modules['Repository']],
-    'repository_get_graph_node_types':[Modules['Repository']],
     'find_publishers':[Modules['Repository']],
     'find_sources':[Modules['Repository']],
     'query_grain':[Modules['Repository']],

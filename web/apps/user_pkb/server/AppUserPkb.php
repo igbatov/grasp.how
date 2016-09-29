@@ -161,18 +161,6 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($chunk));
         break;
 
-      case 'getNodeContentTypes':
-        $content_ids = $this->getRequest()['nodeContentIds'];
-        $node_types = array();
-        foreach($content_ids as $content_id){
-          $graph_id = $this->contentIdConverter->getGraphId($content_id);
-          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT type FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
-          $node_types[$content_id] = $node_rows[0]['type'];
-        }
-        $this->showRawData(json_encode($node_types));
-        break;
-
       case 'getGraphNodeContent':
         $content_ids = $this->getRequest()['nodeContentIds'];
         $node_contents = array();

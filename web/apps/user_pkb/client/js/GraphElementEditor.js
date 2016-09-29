@@ -442,11 +442,14 @@ YOVALUE.GraphElementEditor.prototype = {
     var that = this;
     this.publisher
         .publish(
-            ['repository_get_graph_node_types', {graphId:graphId, nodeContentIds:node_content_ids}]
+            ['get_elements_attributes', {nodes:node_content_ids}]
         )
-        .then(function(node_types){
-          var nt = YOVALUE.getObjectValues(node_types);
-          cb(nt.indexOf(that.NODE_TYPE_PROPOSITION) != -1 || nt.indexOf(that.NODE_TYPE_FACT) != -1);
+        .then(function(attrs){
+          var types = [];
+          for(var i in attrs['nodes']){
+            types.push(attrs['nodes'][i]['type']);
+          }
+          cb(types.indexOf(that.NODE_TYPE_PROPOSITION) != -1 || types.indexOf(that.NODE_TYPE_FACT) != -1);
         });
   },
 
