@@ -89,7 +89,7 @@ class AppUserPkb extends App
 
     // define node and edge attributes (must be the same as db table column names)
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
-    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id');
+    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers');
     $this->node_alternative_attribute_names = array('label', 'reliability','p');
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
@@ -383,7 +383,7 @@ class AppUserPkb extends App
 
         if(in_array($r['type'], array(
         'updateNodeText',
-        'node_list_add_request',
+        'node_list_add_re quest',
         'node_list_remove_request',
         'node_list_update_request',
         'updateNodeAlternativesP',
@@ -397,7 +397,7 @@ class AppUserPkb extends App
         }else if($r['type'] == 'updateEdgeAttribute'){
           $graph_id = $this->contentIdConverter->getGraphId($r['edgeContentId']);
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['edgeContentId']);
-        }else if($r['type'] == 'addEdge' || $r['type'] == 'addNode' || $r['type'] == 'updateNodesReliabilities'){
+        }else if($r['type'] == 'addEdge' || $r['type'] == 'addNode' || $r['type'] == 'updateNodesReliabilities' || $r['type'] == 'node_stickers_add_request' || $r['type'] == 'node_stickers_remove_request'){
           $graph_id = $r['graphId'];
         }
 

@@ -17,6 +17,8 @@ YOVALUE.iGraphViewNode = {
   getColor: function(){},
   setSize: function(v){},
   getSize: function(){},
+  setStickers: function(v){},
+  getStickers: function(){},
   setOpacity: function(v){},
   getOpacity: function(){}
 };

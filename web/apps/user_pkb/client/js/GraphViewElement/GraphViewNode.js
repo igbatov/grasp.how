@@ -55,6 +55,15 @@ YOVALUE.GraphViewNode.prototype = {
     }
   },
 
+  getStickers: function(){
+    return this.stickers;
+  },
+
+  setStickers: function(v){
+    this.stickers = v;
+    return true;
+  },
+
   getIcon: function(){
     return null;
   },

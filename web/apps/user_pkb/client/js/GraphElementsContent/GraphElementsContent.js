@@ -47,6 +47,27 @@ YOVALUE.GraphElementsContent.prototype = {
           er = {};
           ed = event.getData();
 
+        }else if(event.getData()['type'] == 'node_stickers_add_request'){
+          for(var nodeContentId in event.getData()['stickers']){
+            var es = this.cacheContent.get({elementType:'node', contentId: nodeContentId});
+            if(!es.length) continue;
+            e = es[0].content;
+            if(typeof(e['stickers']) != 'undefined' || e['stickers'] == null) e['stickers'] = [];
+            e['stickers'] = YOVALUE.arrayHelper.union(e['stickers'], event.getData()['stickers'][nodeContentId]);
+            console.log('e',e);
+          }
+          er = {};
+          ed = event.getData();
+
+        }else if(event.getData()['type'] == 'node_stickers_remove_request'){
+          for(var nodeContentId in event.getData()['stickers']){
+            e = this.cacheContent.get({elementType:'node', contentId: nodeContentId})[0].content;
+            if(typeof(e['stickers']) != 'undefined' || e['stickers'] == null) e['stickers'] = [];
+            e['stickers'] = YOVALUE.arrayHelper.difference(e['stickers'], event.getData()['stickers'][nodeContentId]);
+          }
+          er = {};
+          ed = event.getData();
+
         }else if(event.getData()['type'] == 'node_list_update_request'){
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
           var alternative = e['alternatives'][event.getData()['node_alternative_id']];
@@ -259,7 +280,7 @@ YOVALUE.GraphElementsContent.prototype = {
 
       /**
        * Returns
-       *  - nodes attributes - all node content that we need to show in graph - active alternative label, reliability, node type, importance, ... - these are called node 'attributes'
+       *  - nodes attributes - all node content that we need to show in graph - active alternative label, reliability, node type, importance, stickers, ... - all these are called node 'attributes'
        *  - edges attributes
        */
       case "get_elements_attributes":

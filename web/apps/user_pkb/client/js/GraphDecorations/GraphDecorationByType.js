@@ -48,7 +48,12 @@ YOVALUE.GraphDecorationByType.prototype = {
       reliability = graphNodeAttributes[nodes[i].nodeContentId].reliability;
       importance = graphNodeAttributes[nodes[i].nodeContentId].importance;
       color = skin.node.attr.typeColors[type];
-      decoration.nodes[i] = {color:color, borderColor:color, opacity:Math.max(0.1,reliability/99), size:Math.max(5, size*importance/20), stickers:graphNodeAttributes[nodes[i].nodeContentId].stickers};
+      var stickers = {};
+      for(var j in graphNodeAttributes[nodes[i].nodeContentId].stickers){
+        var stickername = graphNodeAttributes[nodes[i].nodeContentId].stickers[j];
+        if(typeof(skin.node.attr.stickers[stickername]) != 'undefined') stickers[stickername] = skin.node.attr.stickers[stickername];
+      }
+      decoration.nodes[i] = {color:color, borderColor:color, opacity:Math.max(0.1,reliability/99), size:Math.max(5, size*importance/20), stickers:stickers};
       decoration.nodeLabels[i] = {opacity: 1, size:Math.max(5, labelSize*importance/50)};
     }
     for(i in edges){
