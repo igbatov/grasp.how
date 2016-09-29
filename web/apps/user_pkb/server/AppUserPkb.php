@@ -123,8 +123,10 @@ class AppUserPkb extends App
         // Note: GRain can han handle graph that in fact consists from several splittered subgraphs
         $graph = $this->getBayesGraph($graph_id);
         $probabilities = $this->getBayesProbabilities($graph_id, $graph);
+        // check for errors
         $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
 
+        // if we have a non-empty class error, output all errors to client
         foreach($imperfect_nodes as $class) if(count($class) != 0){
           $this->log('query_grain: imperfect_nodes is not empty '
               .'$graph = '.print_r($graph, true)
@@ -1295,6 +1297,7 @@ class AppUserPkb extends App
    * @return array
    */
   private function getImperfectNodes($graph_id, $bayes_graph, $probabilities){
+    $converter = new ContentIdConverter();
     $imperfect_nodes = array(
         'wrong_number_of_rows'=>array(),
         'wrong_number_of_cells_in_a_row'=>array(),
@@ -1314,26 +1317,26 @@ class AppUserPkb extends App
 
       // check that number of rows in a $probabilities[$node_local_id] equals $pnum[$node_local_id]
       if(count($probabilities[$node_local_id]) != $pnum[$node_local_id])
-        $imperfect_nodes['wrong_number_of_rows'][] = $node_local_id;
+        $imperfect_nodes['wrong_number_of_rows'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
 
       // check that number of cells in every row equals to count($alternatives)
       foreach($probabilities[$node_local_id] as $row) if(count($row) != count($alternatives))
-        $imperfect_nodes['wrong_number_of_cells_in_a_row'][] = $node_local_id;
+        $imperfect_nodes['wrong_number_of_cells_in_a_row'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
 
       // check that every cells has a number from 0 to 1
       foreach($probabilities[$node_local_id] as $row){
-        foreach($row as $cell) if(!is_numeric($cell) || $cell<0 || $cell>1) $imperfect_nodes['cell_out_of_range'][] = $node_local_id;
+        foreach($row as $cell) if(!is_numeric($cell) || $cell<0 || $cell>1) $imperfect_nodes['cell_out_of_range'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
       }
 
       // sum of all alternatives under given parent combination must be equal to 1
-      foreach($probabilities[$node_local_id] as $row) if(array_sum($row) != 1) $imperfect_nodes['wrong_row_sum'][] = $node_local_id;
+      foreach($probabilities[$node_local_id] as $row) if(array_sum($row) != 1) $imperfect_nodes['wrong_row_sum'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
     }
 
     foreach(array_keys($bayes_graph['nodes']) as $node_local_id){
       // if node is a fact it must has soft evidence with two alternatives in it
       $query = "SELECT type FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$node_local_id."' LIMIT 1";
       $alternatives = $this->db->execute($query);
-      if($alternatives[0]['type'] == 'fact' && !isset($probabilities[$node_local_id]['soft'])) $imperfect_nodes['fact_without_soft'][] = $node_local_id;
+      if($alternatives[0]['type'] == 'fact' && !isset($probabilities[$node_local_id]['soft'])) $imperfect_nodes['fact_without_soft'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
     }
 
     $imperfect_nodes = array(

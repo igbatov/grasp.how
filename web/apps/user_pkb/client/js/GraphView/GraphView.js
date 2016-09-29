@@ -221,7 +221,12 @@ YOVALUE.GraphView.prototype = {
   },
 
   /**
-   * @param decoration - must be in form {nodeId1:{color:color1,opacity:opacity1}, nodeId2:{color:color2,opacity:opacity2}, ...}
+   * @param decoration - must be in a form
+   * {
+   *  nodeId1:{color:color1,opacity:opacity1,stickers:[stickerName1,...]},
+   *  nodeId2:{color:color2,opacity:opacity2,stickers:[stickerName1,...]},
+   *  ...
+   * }
    */
   setDecoration: function(decoration){
     this.decoration = decoration;
