@@ -164,7 +164,7 @@ YOVALUE.SVGDrawer.prototype = {
       var arrayLength = els.length;
       for(i=0; i<arrayLength; i++){
         el = els[i];
-        shapesUnderPoint.push(this.shapes[el.getAttribute('id')]);
+        shapesUnderPoint.push(this._getShapeIdByEventTargetId(this.shapes[el.getAttribute('id')]));
       }
     }
     // hack for firefox (ver 43.0.4 still does not support getIntersectionList)
@@ -175,7 +175,7 @@ YOVALUE.SVGDrawer.prototype = {
       while(id != this.svgroot.getAttribute('id') && count<10){
         count++;
         el = document.elementFromPoint(x, y);
-        id = el.getAttribute('id');
+        id = this._getShapeIdByEventTargetId(el.getAttribute('id'));
 
         if(typeof(this.shapes[id]) != 'undefined'){
           if(!YOVALUE.isObjectInArray(shapesUnderPoint, this.shapes[id])) shapesUnderPoint.push(this.shapes[id]);
@@ -205,6 +205,10 @@ YOVALUE.SVGDrawer.prototype = {
     return shapesUnderPoint;
   },
 
+  createGroup: function(args){
+    return new YOVALUE.SVGDrawer.Group(new YOVALUE.SVGDrawer.BaseShape(args));
+  },
+
   createShape: function(type, args){
     if(type == 'circle'){
       return new YOVALUE.SVGDrawer.Circle(new YOVALUE.SVGDrawer.BaseShape(args), args);
@@ -218,8 +222,6 @@ YOVALUE.SVGDrawer.prototype = {
   },
 
   /**
-   * Adds SVGDrawer callback for events of type SVGDrawer.eventNames
-   * on all shapes with class classname
    * @private
    */
   _initEventHandler: function(){
@@ -249,7 +251,7 @@ YOVALUE.SVGDrawer.prototype = {
     // e.preventDefault(); 
 
     // our custom events
-    if(['dragstart', 'dragging', 'dragend','dbltap'].indexOf(e.type) != -1){
+    if(['dragstart', 'dragging', 'dragend', 'dbltap'].indexOf(e.type) != -1){
       targetId = e.detail.id;
       xy = {x:e.detail.x, y:e.detail.y};
     }
@@ -375,7 +377,7 @@ YOVALUE.SVGDrawer.prototype = {
 
       // fix for firefox image dragging do not interfere with our custom dragging
    //   if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
-
+      evt.target.id = that._getShapeIdByEventTargetId(evt.target.id);
       // if not mousemove
       if(evt.type == "mousedown" || evt.type == "mouseup" || evt.type == "touchstart" || evt.type == "touchend"){
 
@@ -456,9 +458,21 @@ YOVALUE.SVGDrawer.prototype = {
         y:(that.dragShapeStartXY.y + evt.y - that.dragPointerStartXY.y)
       });
     });
-  }
+  },
 
+  /**
+   * Sometimes event.target.id points to svg element which is only part of the shape.
+   * The whole shape is represented by parent element - svg group.
+   * @param targetId
+   * @returns {*}
+   * @private
+   */
+  _getShapeIdByEventTargetId: function(targetId){
+    if(typeof(this.shapes[targetId]) != 'undefined') return targetId;
+    else return document.getElementById(targetId) ? (typeof(this.shapes[document.getElementById(targetId).parentNode.id]) != 'undefined' ? document.getElementById(targetId).parentNode.id : targetId) : targetId;
+  }
 };
+
 /**
  * BaseShape
  * @param args
@@ -495,6 +509,10 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
   },
   getId: function(){
     return this.id;
+  },
+
+  getType: function(){
+    return this.shape.tagName.toLowerCase();
   },
 
   setClass: function(v){
@@ -620,6 +638,36 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
   }
 };
 
+/**
+ * Group
+ * You can add shapes to group, remove them and set x, y of group.
+ * @constructor
+ */
+YOVALUE.SVGDrawer.Group = function(baseShape){
+  YOVALUE.mixin(baseShape, this);
+  this.shape = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  baseShape.setShape(this.shape);
+  baseShape.init();
+};
+
+YOVALUE.SVGDrawer.Group.prototype = {
+  /**
+   * Add YOVALUE.SVGDrawer.<ShapeName> to YOVALUE.SVGDrawer.Group
+   * @param e - YOVALUE.SVGDrawer.<ShapeName>
+   */
+  add: function(e){
+    this.shape.appendChild(e.getShape());
+  },
+
+  /**
+   * Remove YOVALUE.SVGDrawer.<ShapeName> from YOVALUE.SVGDrawer.Group by shape id
+   * @param id - YOVALUE.SVGDrawer.<ShapeName>.getShape().getId()
+   */
+  remove: function(id){
+    var el = document.getElementById(id);
+    this.shape.removeChild(el.getShape());
+  }
+};
 
 /**
  * Rectangle

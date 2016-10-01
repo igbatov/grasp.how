@@ -8,18 +8,25 @@ YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
   this.stickers = args.stickers; // definition of stickers pictures in a form {'stickerName':<svg picture>, ...}
   this.drawer = drawer;
   this.graphViewElement = graphViewElement;
+  this.stickers = {};  // {svgId:svgObject, ...}
   YOVALUE.mixin(graphViewElement, this);
 
-  this.shape = this.drawer.createShape('circle', {
+  this.shape = this.drawer.createGroup({
     x: args.x,
     y: args.y,
+    draggable: true
+  });
+
+  this.circle = this.drawer.createShape('circle', {
+    x: 0,
+    y: 0,
     radius: args.size,
     fill: args.color,
     stroke: args.color,
     strokeWidth: 1,
-    opacity: args.opacity,
-    draggable: true
+    opacity: args.opacity
   });
+  this.shape.add(this.circle);
 
   graphViewElement.setDrawerShape(this.shape);
 };
@@ -39,19 +46,19 @@ YOVALUE.GraphViewNode.prototype = {
   },
 
   setSize: function(v){
-    if(v != this.shape.getRadius()){
-      this.shape.setRadius(v);
+    if(v != this.circle.getRadius()){
+      this.circle.setRadius(v);
     }
   },
 
   getSize: function(){
-    return this.shape.getRadius();
+    return this.circle.getRadius();
   },
 
   setColor: function(color){
-    if(color != this.shape.getFill()){
-      this.shape.setFill(color);
-      this.shape.setStroke(color);
+    if(color != this.circle.getFill()){
+      this.circle.setFill(color);
+      this.circle.setStroke(color);
     }
   },
 
@@ -73,7 +80,7 @@ YOVALUE.GraphViewNode.prototype = {
   },
 
   getColor: function(){
-    return this.shape.getFill();
+    return this.circle.getFill();
   },
 
   setXY: function(x,y){

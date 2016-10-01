@@ -357,17 +357,18 @@ YOVALUE.GraphView.prototype = {
         elNode.getOpacity() != this.decoration.nodes[nodeId].opacity ||
         elNode.getColor() != this.decoration.nodes[nodeId].color ||
         elNode.getNodeType() != nodes[nodeId].type ||
-        elNode.getStickers() != this.decoration.nodes[nodeId].stickers ||
-        elNode.getXY().x != nodeMapping[nodeId].x ||
-        elNode.getXY().y != nodeMapping[nodeId].y
+        elNode.getStickers() != this.decoration.nodes[nodeId].stickers
       ){
-        doNeedRedraw = true;
         elNode.setSize(this.decoration.nodes[nodeId].size);
         elNode.setOpacity(this.decoration.nodes[nodeId].opacity);
         elNode.setColor(this.decoration.nodes[nodeId].color);
         elNode.setNodeType(nodes[nodeId].type);
-        elNode.setXY(nodeMapping[nodeId].x, nodeMapping[nodeId].y);
         elNode.setStickers(this.decoration.nodes[nodeId].stickers);
+      }
+
+      if(elNode.getXY().x != nodeMapping[nodeId].x || elNode.getXY().y != nodeMapping[nodeId].y){
+        doNeedRedraw = true;
+        elNode.setXY(nodeMapping[nodeId].x, nodeMapping[nodeId].y);
       }
 
       if(elNode.getIcon() != nodes[nodeId].icon || (elNode.getIcon() && nodes[nodeId].icon && (elNode.getIcon().src != nodes[nodeId].icon.src))){
