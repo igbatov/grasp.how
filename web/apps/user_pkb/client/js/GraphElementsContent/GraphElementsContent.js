@@ -54,7 +54,6 @@ YOVALUE.GraphElementsContent.prototype = {
             e = es[0].content;
             if(typeof(e['stickers']) != 'undefined' || e['stickers'] == null) e['stickers'] = [];
             e['stickers'] = YOVALUE.arrayHelper.union(e['stickers'], event.getData()['stickers'][nodeContentId]);
-            console.log('e',e);
           }
           er = {};
           ed = event.getData();

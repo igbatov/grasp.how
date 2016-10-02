@@ -218,7 +218,8 @@ YOVALUE.ModelChangeController.prototype = {
         label:nodeTypes[i],
         type:nodeTypes[i],
         reliability: 99,
-        importance: 50
+        importance: 50,
+        stickers: []
       };
     }
 

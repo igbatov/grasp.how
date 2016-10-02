@@ -218,6 +218,8 @@ YOVALUE.SVGDrawer.prototype = {
       return new YOVALUE.SVGDrawer.Path(new YOVALUE.SVGDrawer.BaseShape(args), args);
     }else if(type == 'text'){
       return new YOVALUE.SVGDrawer.Text(new YOVALUE.SVGDrawer.BaseShape(args), args);
+    }else if(type == 'svg'){
+      return new YOVALUE.SVGDrawer.SVG(new YOVALUE.SVGDrawer.BaseShape(args), args);
     }
   },
 
@@ -260,6 +262,8 @@ YOVALUE.SVGDrawer.prototype = {
       targetId = e.target.id;
       xy = this._getEventAbsXY(e);
     }
+
+    targetId = that._getShapeIdByEventTargetId(targetId);
     var shape = that.shapes[targetId];
 
     if(e.type == 'dbltap'){
@@ -355,7 +359,8 @@ YOVALUE.SVGDrawer.prototype = {
       if((timesince < 600) && (timesince > 0)){
         // this is doubletap, baby
         evt.preventDefault();
-        var shape = that.shapes[evt.target.id];
+        var targetId = that._getShapeIdByEventTargetId(evt.target.id);
+        var shape = that.shapes[targetId];
         var myEvent = new CustomEvent("dbltap", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
         that.svgroot.dispatchEvent(myEvent);
       }else{
@@ -377,11 +382,12 @@ YOVALUE.SVGDrawer.prototype = {
 
       // fix for firefox image dragging do not interfere with our custom dragging
    //   if(evt.type.substr(0, 5) != 'touch') evt.preventDefault();
-      evt.target.id = that._getShapeIdByEventTargetId(evt.target.id);
+
       // if not mousemove
       if(evt.type == "mousedown" || evt.type == "mouseup" || evt.type == "touchstart" || evt.type == "touchend"){
 
-        shape = that.shapes[evt.target.id];
+        var targetId = that._getShapeIdByEventTargetId(evt.target.id);
+        shape = that.shapes[targetId];
 
         if(!shape) return;
         if(!shape.getDraggable()) return;
@@ -480,9 +486,9 @@ YOVALUE.SVGDrawer.prototype = {
  */
 YOVALUE.SVGDrawer.BaseShape = function(args){
   this.id = typeof args.id == 'undefined' ? YOVALUE.getUniqId() : args.id;
-  this.x = args.x;
-  this.y = args.y;
-  this.matrix = [1, 0, 0, 1, args.x, args.y];
+  this.x = typeof args.x == 'undefined' ? 0 : args.x;
+  this.y = typeof args.y == 'undefined' ? 0 : args.y;
+  this.matrix = [1, 0, 0, 1, this.x, this.y];
   this.fill = args.fill;
   this.opacity = args.opacity;
   this.stroke = args.stroke;
@@ -639,6 +645,27 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
 };
 
 /**
+ * SVG
+ * Create SVG from SVG XML string
+ * @param baseShape - YOVALUE.SVGDrawer.BaseShape
+ * @param args - {svgxml:"<svg xmlns='http://www.w3.org/2000/svg' width='25' height='25'><path d='M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z'/></svg>"}
+ * @constructor
+ */
+YOVALUE.SVGDrawer.SVG = function(baseShape, args){
+  YOVALUE.mixin(baseShape, this);
+  var doc = YOVALUE.DOMParser.parseFromString(args.svgxml, "image/svg+xml");
+  this.shape = doc.documentElement;
+  baseShape.setShape(this.shape);
+  baseShape.init();
+
+  this.children = {};
+};
+
+YOVALUE.SVGDrawer.SVG.prototype = {
+
+};
+
+/**
  * Group
  * You can add shapes to group, remove them and set x, y of group.
  * @constructor
@@ -648,6 +675,8 @@ YOVALUE.SVGDrawer.Group = function(baseShape){
   this.shape = document.createElementNS("http://www.w3.org/2000/svg", "g");
   baseShape.setShape(this.shape);
   baseShape.init();
+
+  this.children = {};
 };
 
 YOVALUE.SVGDrawer.Group.prototype = {
@@ -656,6 +685,7 @@ YOVALUE.SVGDrawer.Group.prototype = {
    * @param e - YOVALUE.SVGDrawer.<ShapeName>
    */
   add: function(e){
+    this.children[e.getShape().id] = e;
     this.shape.appendChild(e.getShape());
   },
 
@@ -665,7 +695,12 @@ YOVALUE.SVGDrawer.Group.prototype = {
    */
   remove: function(id){
     var el = document.getElementById(id);
-    this.shape.removeChild(el.getShape());
+    this.shape.getShape().removeChild(el);
+    delete this.children[id];
+  },
+
+  getChildren: function(){
+    return this.children;
   }
 };
 

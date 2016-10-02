@@ -1350,8 +1350,11 @@ YOVALUE.isChildOf = function(child, parent) {
  */
 YOVALUE.randomGeneratorFactory = xor4096;
 
-console = console || {}; // just in case
-console.watch = function(oObj, sProp) {
+/**
+ * With YOVALUE.watch you can trace any change of oObj property sProp
+ * @type {{}|*}
+ */
+YOVALUE.watch = function(oObj, sProp) {
   var sPrivateProp = "$_"+sProp+"_$"; // to minimize the name clash risk
   oObj[sPrivateProp] = oObj[sProp];
 
@@ -1367,4 +1370,7 @@ console.watch = function(oObj, sProp) {
       oObj[sPrivateProp] = value;
     }
   });
-}
+};
+
+
+YOVALUE.DOMParser = new DOMParser();

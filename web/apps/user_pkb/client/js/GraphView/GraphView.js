@@ -357,7 +357,7 @@ YOVALUE.GraphView.prototype = {
         elNode.getOpacity() != this.decoration.nodes[nodeId].opacity ||
         elNode.getColor() != this.decoration.nodes[nodeId].color ||
         elNode.getNodeType() != nodes[nodeId].type ||
-        elNode.getStickers() != this.decoration.nodes[nodeId].stickers
+        !YOVALUE.compare(elNode.getStickers(), this.decoration.nodes[nodeId].stickers)
       ){
         elNode.setSize(this.decoration.nodes[nodeId].size);
         elNode.setOpacity(this.decoration.nodes[nodeId].opacity);

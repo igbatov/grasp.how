@@ -67,6 +67,16 @@ YOVALUE.GraphViewNode.prototype = {
   },
 
   setStickers: function(v){
+    // remove all old stickers
+    var chs = YOVALUE.getObjectKeys(this.shape.getChildren());
+    for(var i in chs) if(chs[i] != this.circle.getShape().id) this.shape.remove(chs[i]);
+    // add new stickers
+    for(var i in v){
+      var sticker = this.drawer.createShape('svg', {
+        svgxml:v[i]
+      });
+      this.shape.add(sticker);
+    }
     this.stickers = v;
     return true;
   },
