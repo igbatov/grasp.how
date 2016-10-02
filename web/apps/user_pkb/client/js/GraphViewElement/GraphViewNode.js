@@ -71,10 +71,16 @@ YOVALUE.GraphViewNode.prototype = {
     var chs = YOVALUE.getObjectKeys(this.shape.getChildren());
     for(var i in chs) if(chs[i] != this.circle.getShape().id) this.shape.remove(chs[i]);
     // add new stickers
+    var nodeSize = 2*this.getSize();
+    var cnt = 0; // position icon according its number from left-top to right bottom, left to right
     for(var i in v){
       var sticker = this.drawer.createShape('svg', {
         svgxml:v[i]
       });
+      if(cnt == 0) sticker.setX(Number(-nodeSize)); sticker.setY(Number(-nodeSize));
+      if(cnt == 1) sticker.setX(Number(-nodeSize)); sticker.setY(0);
+      if(cnt == 2) sticker.setX(0); sticker.setY(Number(-nodeSize));
+      cnt++;
       this.shape.add(sticker);
     }
     this.stickers = v;

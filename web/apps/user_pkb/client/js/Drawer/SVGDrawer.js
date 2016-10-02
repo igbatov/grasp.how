@@ -662,7 +662,19 @@ YOVALUE.SVGDrawer.SVG = function(baseShape, args){
 };
 
 YOVALUE.SVGDrawer.SVG.prototype = {
+  setX: function(v){
+    if(YOVALUE.typeof(v) != 'number') return false;
+    if(this.shape) this.shape.setAttributeNS(null, "x", v);
+    this.x = v;
+    return true;
+  },
 
+  setY: function(v){
+    if(YOVALUE.typeof(v) != 'number') return false;
+    if(this.shape) this.shape.setAttributeNS(null, "y", v);
+    this.y = v;
+    return true;
+  }
 };
 
 /**
@@ -695,7 +707,7 @@ YOVALUE.SVGDrawer.Group.prototype = {
    */
   remove: function(id){
     var el = document.getElementById(id);
-    this.shape.getShape().removeChild(el);
+    this.shape.removeChild(el);
     delete this.children[id];
   },
 
