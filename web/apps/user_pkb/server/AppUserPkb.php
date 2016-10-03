@@ -974,6 +974,7 @@ class AppUserPkb extends App
    * @param $graph_id - original graph id
    * @param $graph_history_step - step in history of original graph
    * @param $auth_id - user which clones graph
+   * @return boolean
    */
   private function cloneGraph($graph_id, $graph_history_step, $auth_id){
     // copy row in graph table

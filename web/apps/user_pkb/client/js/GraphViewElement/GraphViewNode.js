@@ -74,12 +74,15 @@ YOVALUE.GraphViewNode.prototype = {
     var nodeSize = 2*this.getSize();
     var cnt = 0; // position icon according its number from left-top to right bottom, left to right
     for(var i in v){
+      // we cannot position more than 4 stickers
+      if(cnt > 3) continue;
       var sticker = this.drawer.createShape('svg', {
         svgxml:v[i]
       });
       if(cnt == 0) sticker.setX(Number(-nodeSize)); sticker.setY(Number(-nodeSize));
       if(cnt == 1) sticker.setX(Number(-nodeSize)); sticker.setY(0);
       if(cnt == 2) sticker.setX(0); sticker.setY(Number(-nodeSize));
+      if(cnt == 3) sticker.setX(0); sticker.setY(0);
       cnt++;
       this.shape.add(sticker);
     }

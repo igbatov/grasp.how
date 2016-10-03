@@ -62,4 +62,10 @@ class Config{
   public function getWebRootPath(){
     return dirname(__FILE__)."/../../../web";
   }
+
+  public function isDebugOn(){
+    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
+    $config_json = json_decode($string, true);
+    return isset($config_json['is_debug_on']) ? $config_json['is_debug_on'] : false;
+  }
 }

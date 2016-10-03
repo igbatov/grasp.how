@@ -20,12 +20,24 @@ abstract class App
   }
 
   protected function error($msg){
+    error_log($msg);
+    $this->dbLog('error',$msg);
     $this->eh->throwError($msg);
     exit();
   }
 
+  protected function dbLog($type,$msg,$data=null){
+    // try to log error in request_log table
+    if($this->db){
+      $username = $this->session ? $this->session->getUsername() : null;
+      $q = "INSERT INTO request_log SET user_login = '".$username."', user_id = '".$this->auth_id."', type='".$type."', msg = '".$this->db->escape($msg)."', data = '".$this->db->escape($data)."'";
+      $this->db->execute($q);
+    }
+  }
+
   protected function log($msg){
     error_log($msg);
+    $this->dbLog('log',$msg);
   }
 
   public function getAppRoot($isWeb){
@@ -88,6 +100,9 @@ abstract class App
 
     // get request params
     $vars = $this->getRoute();
+
+    // log request to db
+    if($this->config && $this->config->isDebugOn()) $this->dbLog('request', $_SERVER["REQUEST_URI"], var_export($_REQUEST, true));
 
     // logout action
     switch($vars[0]){

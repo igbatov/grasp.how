@@ -16,3 +16,14 @@ foreach(scandir($rootpath."/web/apps") as $app_dir){
     if(substr($script,0,strlen('cron.'.$type)) == 'cron.'.$type) include($rootpath."/web/apps/".$app_dir.'/server/'.$script);
   }
 }
+
+/**
+ * Run general tasks here
+ */
+
+if($type == 'daily'){
+  // clear old rows from request_log
+  $q = 'DELETE FROM request_log WHERE created_at < "'.date('Y-m-d H:i:s', strtotime(' -7 day')).'" ';
+  $db->execute($q);
+
+}

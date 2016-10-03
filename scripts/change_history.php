@@ -1,4 +1,8 @@
 <?php
+/**
+ * Dev script for manual change of history table
+ */
+exit();
 $path = dirname(__FILE__);
 require_once ($path.'/../web/lib/server/Config.php');
 require_once ($path.'/../web/lib/server/DB.php');

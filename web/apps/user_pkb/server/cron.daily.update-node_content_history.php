@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is running by script/cron.daily.php
+ * This file is running by script/cron.php
  *
  * we can use here (all defined in cli.bootstrap.php)
  * - $db to access DB
