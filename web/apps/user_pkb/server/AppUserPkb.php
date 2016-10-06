@@ -1,6 +1,6 @@
 <?php
 
-include("class.Diff.php");
+include("TextDiff.php");
 include("GRainQuerier.php");
 include("GraphDiffCreator.php");
 include("ContentIdConverter.php");
@@ -90,7 +90,7 @@ class AppUserPkb extends App
     // define node and edge attributes (must be the same as db table column names)
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
     $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers');
-    $this->node_alternative_attribute_names = array('label', 'reliability','p');
+    $this->node_alternative_attribute_names = array('label', 'reliability','p','created_at','updated_at');
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
@@ -244,47 +244,8 @@ class AppUserPkb extends App
 
       case 'getGraphElementsAttributes':
         $r = $this->getRequest();
-        $nodes = array();
-        $edges = array();
-        foreach($r['nodes'] as $content_id){
-          $graph_id = $this->contentIdConverter->getGraphId($content_id);
-          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          $node_rows = $this->db->execute("SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->node_alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
-
-          $node_attributes = array();
-
-          // == fill in node attributes ==
-          $node_row = $node_rows[0];
-          // general attributes
-          foreach($this->node_attribute_names as $name){
-            $node_attributes[$name] = $node_row[$name];
-          }
-          // icon
-          $node_row['iconSrc'] = $node_row['has_icon'] == 1 ? 'getIcon/?data="'.$content_id.'"' : null;
-          unset($node_row['has_icon']);
-          // set active alternative
-          foreach($node_rows as $row){
-            $node_attributes['active_alternative_id'] = $row['active_alternative_id'];
-          }
-
-          //  == fill in attributes for every alternative ==
-          $node_attributes['alternatives'] = array();
-          foreach($node_rows as $row){
-            if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
-            foreach($this->node_alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
-          }
-          $nodes[$content_id] = $node_attributes;
-        }
-
-        foreach($r['edges'] as $content_id){
-          $graph_id = $this->contentIdConverter->getGraphId($content_id);
-          $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          $query = "SELECT '".$content_id."' as edgeContentId, type, label FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-          $edge_rows = $this->db->execute($query);
-          $edge_row = $edge_rows[0];
-          $edges[$content_id] = $edge_row;
-        }
-
+        $nodes = $this->getNodeAttributes($r['nodes']);
+        $edges = $this->getEdgeAttributes($r['edges']);
         $graphs_elements = array('nodes'=>$nodes, 'edges'=>$edges);
         $this->showRawData(json_encode($graphs_elements));
         break;
@@ -339,18 +300,19 @@ class AppUserPkb extends App
       case 'changeGraphPosition':
         $graphId = $this->getRequest()['graphId'];
         $position = $this->getRequest()['position'];
-        $query = "SELECT graph_id, settings FROM graph_settings";
+        $user_graph_ids = $this->getGraphIds($this->getAuthId());
+        $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id IN (".implode(',',$user_graph_ids).")";
         $rows = $this->db->execute($query);
         foreach($rows as $row){
           $settings = json_decode($row['settings'], true);
           if($settings['position'] == $position){
             $settings['position'] = 'not to be shown';
-            $update_query = "UPDATE graph_settings SET settings = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE graph_id = '".$row['graph_id']."'";
+            $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
             $this->db->execute($update_query);
           }
           if($row['graph_id'] == $graphId){
             $settings['position'] = $position;
-            $update_query = "UPDATE graph_settings SET settings = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE graph_id = '".$row['graph_id']."'";
+            $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
             $this->db->execute($update_query);
           }
         }
@@ -785,19 +747,32 @@ class AppUserPkb extends App
     return $s;
   }
 
+  protected function flattenNodeAttrs($attrs){
+    $graph1NodeAttributes = array();
+    foreach($attrs as $id => $content){
+      $graph1NodeAttributes[$id] = array();
+      foreach($this->node_attribute_names as $attribute_name){
+        $graph1NodeAttributes[$id][$attribute_name] = $content[$attribute_name];
+      }
+      foreach($this->node_alternative_attribute_names as $attribute_name){
+        $graph1NodeAttributes[$id][$attribute_name] = $content['alternatives'][$content['active_alternative_id']][$attribute_name];
+      }
+    }
+    return $graph1NodeAttributes;
+  }
+
   protected function getGraphDiff($graphId1, $graphId2){
     $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$graphId2."'";
     $rows = $this->db->execute($q);
     $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
     $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
-
-    $graph1NodeContent = $this->getNodeAttributes($graphId1);
-    $graph2NodeContent = $this->getNodeAttributes($graphId2);
-
-    $graph1EdgeContent = $this->getEdgeAttributes($graphId1);
-    $graph2EdgeContent = $this->getEdgeAttributes($graphId2);
+    $graph1NodeContent = $this->flattenNodeAttrs($this->getGraphNodeAttributes($graphId1));
+    $graph2NodeContent = $this->flattenNodeAttrs($this->getGraphNodeAttributes($graphId2));
+    $graph1EdgeContent = $this->getGraphEdgeAttributes($graphId1);
+    $graph2EdgeContent = $this->getGraphEdgeAttributes($graphId2);
 //var_dump($graph1EdgeContent);
 //var_dump($graph2EdgeContent);
+
     $graph_diff_creator = new GraphDiffCreator(
       $graph1,
       $graph2,
@@ -808,7 +783,6 @@ class AppUserPkb extends App
       $this->contentIdConverter
     );
     $graphModel = $graph_diff_creator->getDiffGraph();
-
     // create array of diff node attributes
     $diffNodeAttributes = array();
     foreach($graphModel['nodes'] as $node){
@@ -816,8 +790,8 @@ class AppUserPkb extends App
       if($contentId['graphId1']) $diffNodeAttributes[$node['nodeContentId']] = $graph1NodeContent[$contentId['localContentId1']];
       // if we have graph2 attributes for this node, use it
       if($contentId['graphId2']){
-        foreach($this->node_attribute_names as $attribute_name){
-          if($graph2NodeContent[$contentId['localContentId2']][$attribute_name] != null)
+        foreach(array_keys($graph2NodeContent[$contentId['localContentId2']]) as $attribute_name){
+          if(isset($graph2NodeContent[$contentId['localContentId2']][$attribute_name]) && $graph2NodeContent[$contentId['localContentId2']][$attribute_name] != null)
             $diffNodeAttributes[$node['nodeContentId']][$attribute_name] = $graph2NodeContent[$contentId['localContentId2']][$attribute_name];
         }
       }
@@ -825,7 +799,6 @@ class AppUserPkb extends App
       $diffNodeAttributes[$node['nodeContentId']]['nodeContentId'] = $node['nodeContentId'];
       unset($diffNodeAttributes[$node['nodeContentId']]['local_content_id']);
     }
-
     // create array of diff edge attributes
     $diffEdgeAttributes = array();
     foreach($graphModel['edges'] as $edge){
@@ -836,7 +809,6 @@ class AppUserPkb extends App
       $diffEdgeAttributes[$edge['edgeContentId']]['edgeContentId'] = $edge['edgeContentId'];
       unset($diffEdgeAttributes[$edge['edgeContentId']]['local_content_id']);
     }
-
     $s = $this->getGraphSettings(array($graphId1, $graphId2));
     // check that settings for $graphId1 is the sane as for $graphId2
     if($s[$graphId1]['skin'] != $s[$graphId2]['skin']) exit('Skins are different');
@@ -868,7 +840,6 @@ class AppUserPkb extends App
         $diff_node_mapping[$id]['id'] = $id;
       }
     }
-
     // get graph model settings
     $diffGraphId = 'diff_'.$graphId1.'_'.$graphId2;
     $q = "SELECT graph FROM graph WHERE id = '".$graphId1."'";
@@ -887,7 +858,6 @@ class AppUserPkb extends App
       'skin' => $s[$graphId1]['skin'],
       'graphModelSettings' => $graphModelSettings
     );
-//var_dump($graphViewSettings); exit();
     return $graphViewSettings;
   }
 
@@ -921,20 +891,82 @@ class AppUserPkb extends App
     return null;
   }
 
-  protected function getNodeAttributes($graphId){
-    $q = "SELECT local_content_id, ".implode(',',$this->node_attribute_names).", updated_at, created_at FROM node_content WHERE graph_id = '".$graphId."'";
+  protected function getGraphEdgeAttributes($graphId){
+    $attributes = array();
+    $q = "SELECT local_content_id FROM edge_content WHERE graph_id = '".$graphId."'";
     $rows = $this->db->execute($q);
-    $attrs = array();
-    foreach($rows as $row) $attrs[$row['local_content_id']] = $row;
-    return $attrs;
+    $contentIds = array();
+    foreach($rows as $row) $contentIds[] = $this->contentIdConverter->createGlobalContentId($graphId, $row['local_content_id']);
+
+    $attrs = $this->getEdgeAttributes($contentIds);
+    foreach($attrs as $global_content_id => $attr){
+      $attributes[$this->contentIdConverter->getLocalContentId($global_content_id)] = $attr;
+    }
+    return $attributes;
   }
 
-  protected function getEdgeAttributes($graphId){
-    $q = "SELECT local_content_id, ".implode(',',$this->edge_attribute_names).", updated_at, created_at FROM edge_content WHERE graph_id = '".$graphId."'";
+  protected function getGraphNodeAttributes($graphId){
+    $attributes = array();
+    $q = "SELECT local_content_id FROM node_content WHERE graph_id = '".$graphId."'";
     $rows = $this->db->execute($q);
-    $attrs = array();
-    foreach($rows as $row) $attrs[$row['local_content_id']] = $row;
-    return $attrs;
+    $contentIds = array();
+    foreach($rows as $row) $contentIds[] = $this->contentIdConverter->createGlobalContentId($graphId, $row['local_content_id']);
+
+    $attrs = $this->getNodeAttributes($contentIds);
+    foreach($attrs as $global_content_id => $attr){
+      $attributes[$this->contentIdConverter->getLocalContentId($global_content_id)] = $attr;
+    }
+    return $attributes;
+  }
+
+  protected function getNodeAttributes($content_ids){
+    $nodes = array();
+    foreach($content_ids as $content_id){
+      $graph_id = $this->contentIdConverter->getGraphId($content_id);
+      $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
+      $query = "SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->node_alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+      $node_rows = $this->db->execute($query);
+
+      $node_attributes = array();
+
+      // == fill in node attributes ==
+      $node_row = $node_rows[0];
+      // general attributes
+      foreach($this->node_attribute_names as $name){
+        $node_attributes[$name] = $node_row[$name];
+      }
+
+      // icon
+      $node_row['iconSrc'] = $node_row['has_icon'] == 1 ? 'getIcon/?data="'.$content_id.'"' : null;
+      unset($node_row['has_icon']);
+      // set active alternative
+      foreach($node_rows as $row){
+        $node_attributes['active_alternative_id'] = $row['active_alternative_id'];
+      }
+
+      //  == fill in attributes for every alternative ==
+      $node_attributes['alternatives'] = array();
+      foreach($node_rows as $row){
+        if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
+        foreach($this->node_alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
+      }
+      $nodes[$content_id] = $node_attributes;
+    }
+
+    return $nodes;
+  }
+
+  protected function getEdgeAttributes($contentIds){
+    $edges = array();
+    foreach($contentIds as $content_id){
+      $graph_id = $this->contentIdConverter->getGraphId($content_id);
+      $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
+      $query = "SELECT '".$content_id."' as edgeContentId, type, label, created_at, updated_at FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+      $edge_rows = $this->db->execute($query);
+      $edge_row = $edge_rows[0];
+      $edges[$content_id] = $edge_row;
+    }
+    return $edges;
   }
 
   protected function createNewUser($login, $password){

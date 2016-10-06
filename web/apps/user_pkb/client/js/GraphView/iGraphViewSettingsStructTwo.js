@@ -3,13 +3,13 @@
  * @type {Object}
  */
 YOVALUE.iGraphViewSettingsStructTwo = {
+  decoration:{},
+  graphEdgeAttributes:{},
   graphId:'',
   graphModel:{nodes:{},edges:{}},
-  skin:{},
-  layout:{},
   graphNodeAttributes:{},
-  graphEdgeAttributes:{},
-  decoration:{},
+  layout:{},
   nodeMapping:{},
+  skin:{},
   dragMode:''
 };

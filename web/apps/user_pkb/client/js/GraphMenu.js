@@ -157,7 +157,6 @@ YOVALUE.GraphMenu.prototype = {
                 }
             );
             graphViewSettings.decoration = decoration;
-
             // Create node label layout for GraphView
             var nodeLabels = {};
             var graphNodes = graphViewSettings.graphModel.nodes;
@@ -173,6 +172,7 @@ YOVALUE.GraphMenu.prototype = {
               skin:graphViewSettings.skin
             });
             var nodeMappingHint = graphViewSettings.nodeMapping;
+
             graphViewSettings.layout = that.publisher.getInstant("get_layout_by_name",'basicLayout');
             // Create node layout for GraphView
             graphViewSettings.nodeMapping = that.publisher.getInstant("get_node_mapping", {
@@ -183,7 +183,8 @@ YOVALUE.GraphMenu.prototype = {
               nodeLabelAreaList:nodeLabelAreaList,
               area:graphArea
             });
-
+            delete graphViewSettings['graphModelSettings'];
+            graphViewSettings['dragMode'] = 'move';
            // that.publisher.publish(['hide_all_graphs']);
             that.publisher.publish(["draw_graph_view", graphViewSettings]);
           });

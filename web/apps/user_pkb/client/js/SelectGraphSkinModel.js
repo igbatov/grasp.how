@@ -1,5 +1,45 @@
 /**
- *
+ * skin structure
+ * var
+ {
+ "skin":{
+   "node":{
+     "constr":{
+       "withoutIcon":"GraphViewNode",
+       "withIcon":"GraphViewNodeImage"
+     },
+     "attr":{
+       "typeColors":{
+         "fact":"#00BFFF",
+         "proposition":"#3CB371",
+         "illustration":"#FF69B4",
+         "question":"#FFFFE0",
+         "to_read":"#FFFF00",
+         "best_known_practice":"#FFA500"
+       }
+     }
+   },
+   "edge":{
+     "constr":"GraphViewEdge",
+     "attr":{
+       "typeColors":{
+         "link":"#00BFFF",
+         "in_favour_of":"#87CEFA",
+         "contrary_to":"#3CB371"
+       }
+     }
+   },
+   "nodeLabel":{
+     "constr":"GraphViewNodeLabel",
+     "attr":{
+       "font":"Calibri",
+       "fill":"#BBBBBB","maxSize":24
+     }
+   }
+ },
+ "layout":"basicLayout",
+ "position":"not to be shown"
+ }
  * @param publisher
  * @param constrs
  * @param default_skin

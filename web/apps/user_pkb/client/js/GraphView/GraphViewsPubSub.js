@@ -55,6 +55,12 @@ YOVALUE.GraphViewsPubSub.prototype = {
         }
 
         if(typeof(this.graphViewList[graphId]) == 'undefined'){
+          if(!YOVALUE.implements(graphViewSettings, YOVALUE.iGraphViewSettingsStructOne)){
+            console.log('Error: cannot draw graph - ',graphViewSettings, 'do not implement', YOVALUE.iGraphViewSettingsStructOne);
+            YOVALUE.errorHandler.throwError('Error: cannot draw graph');
+            return false;
+          }
+
           this.graphViewList[graphId] = this.graphViewFactory.create(graphId, this.drawer);
           this.graphViewList[graphId].setGraphArea(graphViewSettings['graphArea']);
           this.graphViewList[graphId].setModel(graphViewSettings['graphModel']);
@@ -64,6 +70,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
           this.graphViewList[graphId].setSkin(graphViewSettings['skin']);
           this.graphViewList[graphId].setDragMode(graphViewSettings['dragMode']);
           this.graphViewList[graphId].drawGraph();
+
           //bind event fire for various graphView manipulations
           this.bindPublishers(graphId, graphViewSettings['eventsToListen']);
         }else{
@@ -158,18 +165,19 @@ YOVALUE.GraphViewsPubSub.prototype = {
 
     var nodes = {};
     var graphNode;
-
+    var nodeAttr;
     for(i in graphNodes){
       graphNode = graphNodes[i];
+      nodeAttr = graphNodeAttributes[graphNode.nodeContentId];
       nodes[graphNode.id] = {
         id: graphNode.id,
-        type: graphNodeAttributes[graphNode.nodeContentId].type,
-        label: graphNodeAttributes[graphNode.nodeContentId].label,
-        reliability: graphNodeAttributes[graphNode.nodeContentId].reliability,
-        importance: graphNodeAttributes[graphNode.nodeContentId].importance,
-        icon: graphNodeAttributes[graphNode.nodeContentId].icon,
+        type: nodeAttr.type,
+        label: nodeAttr.label,
+        reliability: nodeAttr.reliability,
+        importance: nodeAttr.importance,
+        icon: nodeAttr.icon,
         nodeContentId: graphNode.nodeContentId,
-        active_alternative_id: graphNodeAttributes[graphNode.nodeContentId].active_alternative_id
+        active_alternative_id: nodeAttr.active_alternative_id
       };
     }
 

@@ -239,7 +239,7 @@ YOVALUE.GraphView.prototype = {
 
   setSkin: function(skin){
     this.skin = skin;
-    this.backgroundShape.setFill(this.skin.background.attr.fill);
+    if(typeof(this.skin.background) != 'undefined') this.backgroundShape.setFill(this.skin.background.attr.fill);
   },
 
   /**
@@ -271,7 +271,6 @@ YOVALUE.GraphView.prototype = {
     this.show();
 
     if(this.dragMode == 'connect' && this.isNodeDraggedStarted) return;
-
     if(this.arrangeNodeShapes()){
       this.drawer.drawLayer(this.nodeLayerId);
     }
