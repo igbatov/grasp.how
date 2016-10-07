@@ -208,7 +208,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
       skin: skin,
       dragMode: graphViewSettingsStructTwo.dragMode
     };
-
+    console.log(graphViewSettings);
     return graphViewSettings;
   },
 

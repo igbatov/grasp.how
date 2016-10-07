@@ -185,6 +185,9 @@ YOVALUE.GraphMenu.prototype = {
             });
             delete graphViewSettings['graphModelSettings'];
             graphViewSettings['dragMode'] = 'move';
+
+            console.log(graphViewSettings);
+
            // that.publisher.publish(['hide_all_graphs']);
             that.publisher.publish(["draw_graph_view", graphViewSettings]);
           });
