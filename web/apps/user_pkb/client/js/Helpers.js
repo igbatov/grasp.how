@@ -398,8 +398,14 @@ YOVALUE.extend = (function () {
     for (i in parent) {
         if (parent.hasOwnProperty(i)) {
             if (typeof parent[i] === "object") {
-                child[i] = (toStr.call(parent[i]) === astr) ? [] : {};
-                extendDeep(parent[i], child[i]);
+                if(typeof child[i] == 'undefined'){
+                  child[i] = (toStr.call(parent[i]) === astr) ? [] : {};
+                  extendDeep(parent[i], child[i]);
+                }else if(YOVALUE.typeof(child[i]) === YOVALUE.typeof(parent[i])){
+                  extendDeep(parent[i], child[i]);
+                }else{
+                  // do nothing - child has precedence and can redefine parents property
+                }
             } else {
                 if(!child.hasOwnProperty(i)) child[i] = parent[i];
             }

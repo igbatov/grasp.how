@@ -5,10 +5,9 @@
  * @constructor
  */
 YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
-  this.stickers = args.stickers; // definition of stickers pictures in a form {'stickerName':<svg picture>, ...}
+  this.stickers = args.stickers; // definition of stickers pictures in a form {'stickerName':<svg xml>, ...}
   this.drawer = drawer;
   this.graphViewElement = graphViewElement;
-  this.stickers = {};  // {svgId:svgObject, ...}
   YOVALUE.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createGroup({
@@ -27,6 +26,8 @@ YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
     opacity: args.opacity
   });
   this.shape.add(this.circle);
+
+  this.setStickers(args.stickers);
 
   graphViewElement.setDrawerShape(this.shape);
 };
@@ -67,6 +68,7 @@ YOVALUE.GraphViewNode.prototype = {
   },
 
   setStickers: function(v){
+    if(YOVALUE.typeof(v) != 'object') return;
     // remove all old stickers
     var chs = YOVALUE.getObjectKeys(this.shape.getChildren());
     for(var i in chs) if(chs[i] != this.circle.getShape().id) this.shape.remove(chs[i]);
