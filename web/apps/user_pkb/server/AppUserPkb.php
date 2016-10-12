@@ -169,64 +169,69 @@ class AppUserPkb extends App
         foreach($content_ids as $content_id){
           if(GraphDiffCreator::isDiffContentId($content_id)){
             $contentId = GraphDiffCreator::decodeContentId($content_id);
-            $text1 = "";
-            $text2 = "";
-            if($contentId['graphId1']) $text1 = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$contentId['graphId1']."' AND local_content_id = '".$contentId['localContentId1']."'")[0]['text'];
-            if($contentId['graphId2']) $text2 = $this->db->execute("SELECT text FROM node_content WHERE graph_id = '".$contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'")[0]['text'];
-            if($contentId['graphId1'] && $contentId['graphId2']){
-              $text1 = mb_convert_encoding($text1, 'HTML-ENTITIES', 'UTF-8');
-              $text2 = mb_convert_encoding($text2, 'HTML-ENTITIES', 'UTF-8');
-              $node_texts[$content_id] = mb_convert_encoding(Diff::toString(Diff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
-            }
-            else $node_texts[$content_id] = $text1.$text2;
+
+            $graph_id = $contentId['graphId2'];
+            $local_content_id = $contentId['localContentId2'];
           }else{
             // we MUST use $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
             // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
             $graph_id = $this->contentIdConverter->getGraphId($content_id);
             $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-            $node_rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
-
-            $content = array();
-            // general node attributes
-            foreach($this->node_attribute_names as $name){
-              $content[$name] = $node_rows[0][$name];
-            }
-
-            // alternatives
-            $content['alternatives'] = array();
-            foreach($node_rows as $node_row){
-              $alternative = array();
-
-              // alternative attributes
-              foreach($this->node_alternative_attribute_names as $name){
-                if($name == 'p'){
-                  $p = json_decode($node_row[$name], true);
-                  if($p) $alternative[$name] = $p;
-                  else $alternative[$name] = '';
-                }else{
-                  $alternative[$name] = $node_row[$name];
-                }
-              }
-
-              // alternative text
-              $alternative['text'] = $node_row['text'];
-
-              // get alternative lists
-              $q = "SELECT * FROM ".($content['type'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification').
-                  " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
-              $this->log($q);
-              $rows = $this->db->execute($q);
-              $list_items = array();
-              foreach($rows as $row){
-                $list_items[$row['id']] = $row;
-              }
-              $alternative['list'] = $list_items;
-
-              $content['alternatives'][$node_row['alternative_id']] = $alternative;
-            }
-
-            $node_contents[$content_id] = $content;
           }
+
+          $node_rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+
+          $content = array();
+          // general node attributes
+          foreach($this->node_attribute_names as $name){
+            $content[$name] = $node_rows[0][$name];
+          }
+
+          // alternatives
+          $content['alternatives'] = array();
+          foreach($node_rows as $node_row){
+            $alternative = array();
+
+            // alternative attributes
+            foreach($this->node_alternative_attribute_names as $name){
+              if($name == 'p'){
+                $p = json_decode($node_row[$name], true);
+                if($p) $alternative[$name] = $p;
+                else $alternative[$name] = '';
+              }else{
+                $alternative[$name] = $node_row[$name];
+              }
+            }
+
+            // alternative text
+            if(GraphDiffCreator::isDiffContentId($content_id)){
+              $alternative['text'] = GraphDiffCreator::getDiffText(
+                  $this->db,
+                  $contentId['graphId1'],
+                  $contentId['localContentId1'],
+                  $node_row['alternative_id'],
+                  $contentId['graphId2'],
+                  $contentId['localContentId2'],
+                  $node_row['alternative_id']
+              );
+            }else{
+              $alternative['text'] = $node_row['text'];
+            }
+
+            // get alternative lists
+            $q = "SELECT * FROM ".($content['type'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification').
+                " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
+            $this->log($q);
+            $rows = $this->db->execute($q);
+            $list_items = array();
+            foreach($rows as $row){
+              $list_items[$row['id']] = $row;
+            }
+            $alternative['list'] = $list_items;
+
+            $content['alternatives'][$node_row['alternative_id']] = $alternative;
+          }
+          $node_contents[$content_id] = $content;
         }
         $this->showRawData(json_encode($node_contents));
         break;
@@ -747,6 +752,38 @@ class AppUserPkb extends App
     return $s;
   }
 
+  /**
+   * Convert structure {
+   *   node_attr1: v1,
+   *   node_attr1: v2,
+   *   ...
+   *   active_alternative_id: 0
+   *   alternatives: [
+   *    0: {
+   *     alternative_attr1: a0v1,
+   *     alternative_attr2: a0v1,
+   *     ...
+   *    },
+   *    1: {
+   *     alternative_attr1: a1v1,
+   *     alternative_attr2: a1v1,
+   *     ...
+   *   },
+   *    ...
+   *   ]
+   * }
+   * to{
+   *   node_attr1: v1,
+   *   node_attr1: v2,
+   *   ...
+   *   active_alternative_id
+   *   alternative_attr1: a0v1,
+   *   alternative_attr2: a0v1,
+   *   ...
+   * }
+   * @param $attrs
+   * @return array
+   */
   protected function flattenNodeAttrs($attrs){
     $graph1NodeAttributes = array();
     foreach($attrs as $id => $content){
@@ -766,23 +803,47 @@ class AppUserPkb extends App
     $rows = $this->db->execute($q);
     $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
     $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
-    $graph1NodeContent = $this->flattenNodeAttrs($this->getGraphNodeAttributes($graphId1));
-    $graph2NodeContent = $this->flattenNodeAttrs($this->getGraphNodeAttributes($graphId2));
+    $graph1NodeContent = $this->getGraphNodeAttributes($graphId1);
+    $graph2NodeContent = $this->getGraphNodeAttributes($graphId2);
     $graph1EdgeContent = $this->getGraphEdgeAttributes($graphId1);
     $graph2EdgeContent = $this->getGraphEdgeAttributes($graphId2);
 //var_dump($graph1EdgeContent);
 //var_dump($graph2EdgeContent);
 
+    // get updated_at for every node of graph1
+    $graph1NodeContentUpdatedAt = array();
+    foreach($graph1NodeContent as $local_content_id => $content){
+      $graph1NodeContentUpdatedAt[$local_content_id] = array('updated_at'=>'0000-00-00 00:00:00', 'created_at'=>'9999-99-99 99:99:99');
+      foreach($content['alternatives'] as $alternative){
+        if($alternative['updated_at'] > $graph1NodeContentUpdatedAt[$local_content_id]['updated_at']) $graph1NodeContentUpdatedAt[$local_content_id]['updated_at'] = $alternative['updated_at'];
+        if($alternative['created_at'] < $graph1NodeContentUpdatedAt[$local_content_id]['created_at']) $graph1NodeContentUpdatedAt[$local_content_id]['created_at'] = $alternative['created_at'];
+      }
+    }
+
+    // get updated_at for every node of graph2
+    $graph2NodeContentUpdatedAt = array();
+    foreach($graph2NodeContent as $local_content_id => $content){
+      $graph2NodeContentUpdatedAt[$local_content_id] = array('updated_at'=>'0000-00-00 00:00:00', 'created_at'=>'9999-99-99 99:99:99');
+      foreach($content['alternatives'] as $alternative){
+        if($alternative['updated_at'] > $graph2NodeContentUpdatedAt[$local_content_id]['updated_at']) $graph2NodeContentUpdatedAt[$local_content_id]['updated_at'] = $alternative['updated_at'];
+        if($alternative['created_at'] < $graph2NodeContentUpdatedAt[$local_content_id]['created_at']) $graph2NodeContentUpdatedAt[$local_content_id]['created_at'] = $alternative['created_at'];
+      }
+    }
+
     $graph_diff_creator = new GraphDiffCreator(
       $graph1,
       $graph2,
-      $graph1NodeContent,
-      $graph2NodeContent,
+      $graph1NodeContentUpdatedAt,
+      $graph2NodeContentUpdatedAt,
       $graph1EdgeContent,
       $graph2EdgeContent,
       $this->contentIdConverter
     );
     $graphModel = $graph_diff_creator->getDiffGraph();
+
+    $graph1NodeContent = $this->flattenNodeAttrs($graph1NodeContent);
+    $graph2NodeContent = $this->flattenNodeAttrs($graph2NodeContent);
+
     // create array of diff node attributes
     $diffNodeAttributes = array();
     foreach($graphModel['nodes'] as $node){

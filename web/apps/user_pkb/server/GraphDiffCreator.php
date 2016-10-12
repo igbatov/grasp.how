@@ -25,10 +25,10 @@ class GraphDiffCreator{
    *    edges=>array(id=>array(source=>123, target=>234, edgeContentId=>globalContentId))
    *  )
    * @param $graph2 - row from history of graph 2
-   * @param $graph1NodeContentUpdatedAt - update time of content of graph 1 nodes in array(nodeContentId=>array('updated_at'=>'2015-11-23 23:22:13'), ...)
-   * @param $graph2NodeContentUpdatedAt - update time of content of graph 2 nodes
-   * @param $graph1EdgeContentUpdatedAt - update time of content of graph 1 edges
-   * @param $graph2EdgeContentUpdatedAt - update time of content of graph 2 edges
+   * @param $graph1NodeContentUpdatedAt - update time and create time of content of graph 1 nodes in array(nodeContentId=>array('updated_at'=>'2015-11-23 23:22:13', 'created_at'=>'2015-11-23 23:22:13'), ...)
+   * @param $graph2NodeContentUpdatedAt - update time and create time of content of graph 2 nodes
+   * @param $graph1EdgeContentUpdatedAt - update time and create time of content of graph 1 edges
+   * @param $graph2EdgeContentUpdatedAt - update time and create time of content of graph 2 edges
    * @param ContentIdConverter $contentIdConverter
    */
   public function __construct(
@@ -203,6 +203,70 @@ class GraphDiffCreator{
 
   public static function isDiffContentId($contentId){
     return strpos($contentId, '/') !== false;
+  }
+
+  public static function isCloneAlternativeModified($db, $graphId, $localContentId, $alternativeId){
+    $q = "SELECT updated_at, created_at FROM node_content WHERE graph_id = '".$graphId."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
+    $rows = $db->execute($q);
+    if($rows && count($rows) && $rows[0]['updated_at'] > $rows[0]['created_at']) return true;
+    else return false;
+  }
+
+  public  static function getDiffText($db, $graphId1, $localContentId1, $alternativeId1, $graphId2, $localContentId2, $alternativeId2){
+    // new node in $graph2 - return its text
+    if(!$graphId1){
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
+      $rows = $db->execute($q);
+      if($rows && count($rows)) return $rows[0]['text'];
+
+      return false;
+    }
+
+    // removed $graph1 node - return its text
+    if(!$graphId2){
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId1."' AND alternative_id='".$alternativeId1."'";
+      $rows = $db->execute($q);
+      if($rows && count($rows)) return $rows[0]['text'];
+
+      return false;
+    }
+
+    // comparing different alternatives or different nodes, give text of node from $graphId2 if it exists, else give text of node from $graphId2
+    if($alternativeId1 != $alternativeId2 || $localContentId1 != $localContentId2){
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
+      $rows = $db->execute($q);
+      if($rows && count($rows)) return $rows[0]['text'];
+
+      // not found text in $graphId2, try in $graphId1
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId1."' AND alternative_id='".$alternativeId1."'";
+      $rows = $db->execute($q);
+      if($rows && count($rows)) return $rows[0]['text'];
+
+      return false;
+    }
+
+    $localContentId = $localContentId1;
+    $alternativeId = $alternativeId1;
+
+    $is_modified = GraphDiffCreator::isCloneAlternativeModified($db, $graphId2, $localContentId, $alternativeId);
+
+    // if it is cloned node and alternative content was not modified
+    if(!$is_modified){
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
+      $rows = $db->execute($q);
+      // in case clone removed one of alternatives we will find nothing in $contentId['graphId1']
+      if($rows && count($rows)) $text1 = $rows[0]['text'];
+    }
+    // it is cloned node and alternative was modified
+    else{
+      $text1 = $db->execute("SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
+      $text2 = $db->execute("SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
+      $text1 = mb_convert_encoding($text1, 'HTML-ENTITIES', 'UTF-8');
+      $text2 = mb_convert_encoding($text2, 'HTML-ENTITIES', 'UTF-8');
+      return mb_convert_encoding(Diff::toString(Diff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
+    }
+
+    return false;
   }
 }
 ?>

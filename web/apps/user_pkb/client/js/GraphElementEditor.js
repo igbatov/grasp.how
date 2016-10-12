@@ -97,8 +97,6 @@ YOVALUE.GraphElementEditor.prototype = {
 
         v.html('');
         if(event.getData().elementType == 'node'){
-          // show in view-only form
-          if(!event.getData().isEditable) document.getElementById(v.attr('id')).append(this.ajaxIndicator);
           document.getElementById(v.attr('id')).appendChild(
             this._createNodeForm(
               event.getData().graphId,
