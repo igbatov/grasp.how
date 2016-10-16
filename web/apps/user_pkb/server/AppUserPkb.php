@@ -94,6 +94,11 @@ class AppUserPkb extends App
     $this->edge_attribute_names = array('type', 'label');
     $this->contentIdConverter = new ContentIdConverter();
 
+    $this->log('var_export($this->getRoute(),true) '.var_export($this->getRoute(),true));
+    $this->log('var_export($this->getRequest(),true) '.var_export($this->getRequest(),true));
+    if(isset($this->getRequest()['graphId'])) $this->log("var_export(GraphDiffCreator::isDiffGraphId(this->getRequest()['graphId']) ".var_export(GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId']),true));
+    if(isset($this->getRequest()['graphId']) && GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId'])) $access_level = 'read';
+
     $this->writeActions = array(
         'updateGraphName',
         'setGraphAttributes',
@@ -104,7 +109,6 @@ class AppUserPkb extends App
         'createNewGraph',
         'copyGraph',
         'cloneGraph',
-        'getGraphDiff',
         'removeGraph',
         'addNodeContentList',
         'updateNodeContentList',
@@ -167,17 +171,10 @@ class AppUserPkb extends App
         $content_ids = $this->getRequest()['nodeContentIds'];
         $node_contents = array();
         foreach($content_ids as $content_id){
-          if(GraphDiffCreator::isDiffContentId($content_id)){
-            $contentId = GraphDiffCreator::decodeContentId($content_id);
-
-            $graph_id = $contentId['graphId2'];
-            $local_content_id = $contentId['localContentId2'];
-          }else{
-            // we MUST use $graph_id decoded from $content_id because node content can belong not to $this->getRequest()['graphId']
-            // but to other graph (i.e. when node is shared between two different graphs (node of one graph linked to another) or in case of "difference graph")
-            $graph_id = $this->contentIdConverter->getGraphId($content_id);
-            $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
-          }
+          if(GraphDiffCreator::isDiffContentId($content_id)) $contentId = GraphDiffCreator::decodeContentId($content_id);
+          
+          $graph_id = $this->decodeContentId($content_id)['graph_id'];
+          $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
 
           $node_rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
 
@@ -350,7 +347,7 @@ class AppUserPkb extends App
 
         if(in_array($r['type'], array(
         'updateNodeText',
-        'node_list_add_re quest',
+        'node_list_add_request',
         'node_list_remove_request',
         'node_list_update_request',
         'updateNodeAlternativesP',
@@ -996,11 +993,35 @@ class AppUserPkb extends App
     return $attributes;
   }
 
+  /**
+   * Check if $content_id if from diff graph or just ordinary one.
+   * In either case appropriately decode it on $graph_id and $local_content_id
+   * @param $content_id
+   * @return array
+   */
+  protected function decodeContentId($content_id){
+    if(GraphDiffCreator::isDiffContentId($content_id)){
+      $contentId = GraphDiffCreator::decodeContentId($content_id);
+      if(is_numeric($contentId['graphId2'])){
+        $graph_id = $contentId['graphId2'];
+        $local_content_id = $contentId['localContentId2'];
+      }else{
+        $graph_id = $contentId['graphId1'];
+        $local_content_id = $contentId['localContentId1'];
+      }
+    }else{
+      $graph_id = $this->contentIdConverter->getGraphId($content_id);
+      $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
+    }
+    return array('graph_id'=>$graph_id, 'local_content_id'=>$local_content_id);
+  }
+
   protected function getNodeAttributes($content_ids){
     $nodes = array();
     foreach($content_ids as $content_id){
-      $graph_id = $this->contentIdConverter->getGraphId($content_id);
-      $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
+      $graph_id = $this->decodeContentId($content_id)['graph_id'];
+      $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
+
       $query = "SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->node_alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
       $node_rows = $this->db->execute($query);
 
@@ -1036,8 +1057,8 @@ class AppUserPkb extends App
   protected function getEdgeAttributes($contentIds){
     $edges = array();
     foreach($contentIds as $content_id){
-      $graph_id = $this->contentIdConverter->getGraphId($content_id);
-      $local_content_id = $this->contentIdConverter->getLocalContentId($content_id);
+      $graph_id = $this->decodeContentId($content_id)['graph_id'];
+      $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
       $query = "SELECT '".$content_id."' as edgeContentId, type, label, created_at, updated_at FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
       $edge_rows = $this->db->execute($query);
       $edge_row = $edge_rows[0];

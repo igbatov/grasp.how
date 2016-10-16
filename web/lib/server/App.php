@@ -90,7 +90,7 @@ abstract class App
 
   protected function getRequest(){
     if(substr(phpversion(), 0, 3) == '5.2') return json_decode(stripslashes(urldecode($_REQUEST['data'])), true); // ugly fix for old php
-    return json_decode($_REQUEST['data'], true);
+    return isset($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : null;
   }
 
   protected function showView(){

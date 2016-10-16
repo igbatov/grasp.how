@@ -201,6 +201,9 @@ class GraphDiffCreator{
     );
   }
 
+  public static function isDiffGraphId($graphId){
+    return substr($graphId, 1, 5) !== 'diff_';
+  }
   public static function isDiffContentId($contentId){
     return strpos($contentId, '/') !== false;
   }
@@ -231,7 +234,7 @@ class GraphDiffCreator{
       return false;
     }
 
-    // comparing different alternatives or different nodes, give text of node from $graphId2 if it exists, else give text of node from $graphId2
+    // comparing different alternatives or different nodes, give text of node from $graphId2 if it exists, else give text of node from $graphId1
     if($alternativeId1 != $alternativeId2 || $localContentId1 != $localContentId2){
       $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
       $rows = $db->execute($q);
@@ -255,7 +258,7 @@ class GraphDiffCreator{
       $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
       $rows = $db->execute($q);
       // in case clone removed one of alternatives we will find nothing in $contentId['graphId1']
-      if($rows && count($rows)) $text1 = $rows[0]['text'];
+      if($rows && count($rows)) return $rows[0]['text'];
     }
     // it is cloned node and alternative was modified
     else{
@@ -263,7 +266,7 @@ class GraphDiffCreator{
       $text2 = $db->execute("SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
       $text1 = mb_convert_encoding($text1, 'HTML-ENTITIES', 'UTF-8');
       $text2 = mb_convert_encoding($text2, 'HTML-ENTITIES', 'UTF-8');
-      return mb_convert_encoding(Diff::toString(Diff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
+      return mb_convert_encoding(TextDiff::toString(TextDiff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
     }
 
     return false;
