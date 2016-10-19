@@ -202,7 +202,7 @@ class GraphDiffCreator{
   }
 
   public static function isDiffGraphId($graphId){
-    return substr($graphId, 1, 5) !== 'diff_';
+    return substr($graphId, 0, 5) == 'diff_';
   }
   public static function isDiffContentId($contentId){
     return strpos($contentId, '/') !== false;

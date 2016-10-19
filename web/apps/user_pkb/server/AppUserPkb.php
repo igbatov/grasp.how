@@ -172,7 +172,7 @@ class AppUserPkb extends App
         $node_contents = array();
         foreach($content_ids as $content_id){
           if(GraphDiffCreator::isDiffContentId($content_id)) $contentId = GraphDiffCreator::decodeContentId($content_id);
-          
+
           $graph_id = $this->decodeContentId($content_id)['graph_id'];
           $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
 

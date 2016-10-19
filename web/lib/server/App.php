@@ -31,7 +31,11 @@ abstract class App
     if($this->db){
       $username = $this->session ? $this->session->getUsername() : null;
       $q = "INSERT INTO request_log SET user_login = '".$username."', user_id = '".$this->auth_id."', type='".$type."', msg = '".$this->db->escape($msg)."', data = '".$this->db->escape($data)."'";
-      $this->db->execute($q);
+      try{
+        $this->db->execute($q);
+      }catch (Exception $e) {
+
+      }
     }
   }
 
