@@ -279,7 +279,7 @@ YOVALUE.GraphElementsContent.prototype = {
 
       /**
        * Returns
-       *  - nodes attributes - all node content that we need to show in graph - active alternative label, reliability, node type, importance, stickers, ... - all these are called node 'attributes'
+       *  - nodes attributes - all node data except text
        *  - edges attributes
        */
       case "get_elements_attributes":

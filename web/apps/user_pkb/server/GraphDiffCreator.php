@@ -11,10 +11,6 @@
 class GraphDiffCreator{
   private $graph1;
   private $graph2;
-  private $graph1NodeContentUpdatedAt;
-  private $graph2NodeContentUpdatedAt;
-  private $graph1EdgeContentUpdatedAt;
-  private $graph2EdgeContentUpdatedAt;
   private $contentIdConverter;
 
   /**
@@ -25,27 +21,15 @@ class GraphDiffCreator{
    *    edges=>array(id=>array(source=>123, target=>234, edgeContentId=>globalContentId))
    *  )
    * @param $graph2 - row from history of graph 2
-   * @param $graph1NodeContentUpdatedAt - update time and create time of content of graph 1 nodes in array(nodeContentId=>array('updated_at'=>'2015-11-23 23:22:13', 'created_at'=>'2015-11-23 23:22:13'), ...)
-   * @param $graph2NodeContentUpdatedAt - update time and create time of content of graph 2 nodes
-   * @param $graph1EdgeContentUpdatedAt - update time and create time of content of graph 1 edges
-   * @param $graph2EdgeContentUpdatedAt - update time and create time of content of graph 2 edges
    * @param ContentIdConverter $contentIdConverter
    */
   public function __construct(
     $graph1,
     $graph2,
-    $graph1NodeContentUpdatedAt,
-    $graph2NodeContentUpdatedAt,
-    $graph1EdgeContentUpdatedAt,
-    $graph2EdgeContentUpdatedAt,
     ContentIdConverter $contentIdConverter
   ){
     $this->graph1 = $graph1;
     $this->graph2 = $graph2;
-    $this->graph1NodeContentUpdatedAt = $graph1NodeContentUpdatedAt;
-    $this->graph2NodeContentUpdatedAt = $graph2NodeContentUpdatedAt;
-    $this->graph1EdgeContentUpdatedAt = $graph1EdgeContentUpdatedAt;
-    $this->graph2EdgeContentUpdatedAt = $graph2EdgeContentUpdatedAt;
     $this->contentIdConverter = $contentIdConverter;
   }
 
@@ -56,9 +40,11 @@ class GraphDiffCreator{
    * @return array
    */
   public function getDiffGraph(){
+    $graph1NodeLocalContentIds = array();
     foreach($this->graph1['elements']['nodes'] as $node)
       $graph1NodeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
 
+    $graph2NodeLocalContentIds = array();
     foreach($this->graph2['elements']['nodes'] as $node)
       $graph2NodeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
 
@@ -75,7 +61,6 @@ class GraphDiffCreator{
       $diff_nodes[$i] = array(
         'id'=>$i,
         'nodeContentId'=>self::encodeContentId($this->graph1['graphId'], $localContentId, null, null),
-        'status'=>'absent'
       );
     }
     foreach($absentInGraph1 as $localContentId){
@@ -83,7 +68,6 @@ class GraphDiffCreator{
       $diff_nodes[$i] = array(
         'id'=>$i,
         'nodeContentId'=>self::encodeContentId(null, null, $this->graph2['graphId'], $localContentId),
-        'status'=>'added'
       );
     }
     foreach($common as $localContentId){
@@ -91,7 +75,6 @@ class GraphDiffCreator{
       $diff_nodes[$i] = array(
         'id'=>$i,
         'nodeContentId'=>self::encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId),
-        'status'=>$this->graph2NodeContentUpdatedAt[$localContentId]['updated_at'] > $this->graph2NodeContentUpdatedAt[$localContentId]['created_at'] ? 'modified' : 'unmodified'
       );
     }
 
@@ -101,9 +84,11 @@ class GraphDiffCreator{
     $this->addDiffEdges($diff_edges, $this->graph2, $diff_nodes);
 
     // reformat edges to diff_nodes form
+    $graph1EdgeLocalContentIds = array();
     foreach($this->graph1['elements']['edges'] as $edge)
       $graph1EdgeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
 
+    $graph2EdgeLocalContentIds = array();
     foreach($this->graph2['elements']['edges'] as $edge)
       $graph2EdgeLocalContentIds[] = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
 
@@ -118,17 +103,14 @@ class GraphDiffCreator{
       $diff_edges[$i] = $diff_edge;
       if(in_array($localContentId, $absentInGraph2)){
         $diff_edges[$i]['edgeContentId'] = self::encodeContentId($this->graph1['graphId'], $localContentId, null, null);
-        $diff_edges[$i]['status'] = 'absent';
         $diff_edges[$i]['id'] = $i;
       }
       if(in_array($localContentId, $absentInGraph1)){
         $diff_edges[$i]['edgeContentId'] = self::encodeContentId(null, null, $this->graph2['graphId'], $localContentId);
-        $diff_edges[$i]['status'] = 'added';
         $diff_edges[$i]['id'] = $i;
       }
       if(in_array($localContentId, $common)){
         $diff_edges[$i]['edgeContentId'] = self::encodeContentId($this->graph1['graphId'], $localContentId, $this->graph2['graphId'], $localContentId);
-        $diff_edges[$i]['status'] = $this->graph2EdgeContentUpdatedAt[$localContentId]['updated_at'] > $this->graph2EdgeContentUpdatedAt[$localContentId]['created_at'] ? 'modified' : 'unmodified';
         $diff_edges[$i]['id'] = $i;
       }
       unset($diff_edges[$key]);
@@ -185,10 +167,22 @@ class GraphDiffCreator{
     return null;
   }
 
+  public static function encodeDiffGraphId($graphId1, $graphId2){
+    return 'diff_'.$graphId1."_".$graphId2;
+  }
+  
+  public static function decodeDiffGraphId($diffGraphId){
+    $t = explode('_',substr($diffGraphId, 5));
+    return array(
+      'graphId1'=>$t[0],
+      'graphId2'=>$t[1]
+    );
+  }
+
   public static function encodeContentId($graphId1, $localContentId1, $graphId2, $localContentId2){
     return $graphId1."-".$localContentId1.'/'.$graphId2."-".$localContentId2;
   }
-  
+
   public static function decodeContentId($contentId){
     $t = explode('/',$contentId);
     $t0 = explode('-',$t[0]);
@@ -204,14 +198,25 @@ class GraphDiffCreator{
   public static function isDiffGraphId($graphId){
     return substr($graphId, 0, 5) == 'diff_';
   }
+
   public static function isDiffContentId($contentId){
     return strpos($contentId, '/') !== false;
   }
 
-  public static function isCloneAlternativeModified($db, $graphId, $localContentId, $alternativeId){
-    $q = "SELECT updated_at, created_at FROM node_content WHERE graph_id = '".$graphId."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
-    $rows = $db->execute($q);
-    if($rows && count($rows) && $rows[0]['updated_at'] > $rows[0]['created_at']) return true;
+  public static function isCloneModified($nodeAlternatives){
+    foreach($nodeAlternatives as $row){
+       if(GraphDiffCreator::isCloneAlternativeModified($row)) return true;
+    }
+    return false;
+  }
+
+  /**
+   *
+   * @param $alternative - alternative row from node_content table
+   * @return bool
+   */
+  public static function isCloneAlternativeModified($alternative){
+    if($alternative['updated_at'] > $alternative['created_at']) return true;
     else return false;
   }
 
@@ -251,7 +256,9 @@ class GraphDiffCreator{
     $localContentId = $localContentId1;
     $alternativeId = $alternativeId1;
 
-    $is_modified = GraphDiffCreator::isCloneAlternativeModified($db, $graphId2, $localContentId, $alternativeId);
+    $q = "SELECT updated_at, created_at FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
+    $rows = $db->execute($q);
+    $is_modified = GraphDiffCreator::isCloneAlternativeModified($rows);
 
     // if it is cloned node and alternative content was not modified
     if(!$is_modified){
@@ -270,6 +277,29 @@ class GraphDiffCreator{
     }
 
     return false;
+  }
+
+  public static function getGraphSettings($db, $graphId1, $graphId2){
+    $diffGraphId = GraphDiffCreator::encodeDiffGraphId($graphId1, $graphId2);
+    $q = "SELECT graph FROM graph WHERE id = '".$graphId1."'";
+    $graphModelSettings = json_decode($db->execute($q)[0]['graph'], true);
+    $graphModelSettings['name'] = $diffGraphId;
+    $graphModelSettings['isEditable'] = false;
+
+    // check that settings for $graphId1 is the sane as for $graphId2
+    if($graphModelSettings['skin'] != $graphModelSettings['skin']){
+      exit('Skins are different');
+    }
+
+    // add to skin modification stickers
+    $diffSkin = $graphModelSettings['skin'];
+    $diffSkin['node']['attr']['stickers']['absent'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'><g id=\'alert\' fill=\'yellow\'><rect id=\'point\' x=\'11\' y=\'16\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' width=\'2\' height=\'2\'/><polygon id=\'stroke\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' points=\'13.516,10 10.516,10 11,15 13,15\'/><g id=\'triangle\'><path d=\'M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z\'/></g></g></svg>';
+    $diffSkin['node']['attr']['stickers']['added'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'><g id=\'alert\' fill=\'yellow\'><rect id=\'point\' x=\'11\' y=\'16\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' width=\'2\' height=\'2\'/><polygon id=\'stroke\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' points=\'13.516,10 10.516,10 11,15 13,15\'/><g id=\'triangle\'><path d=\'M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z\'/></g></g></svg>';
+    $diffSkin['node']['attr']['stickers']['modified'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'><g id=\'alert\' fill=\'yellow\'><rect id=\'point\' x=\'11\' y=\'16\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' width=\'2\' height=\'2\'/><polygon id=\'stroke\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' points=\'13.516,10 10.516,10 11,15 13,15\'/><g id=\'triangle\'><path d=\'M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z\'/></g></g></svg>';
+    $diffSkin['node']['attr']['stickers']['unmodified'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'></svg>';
+    $graphModelSettings['skin'] = $diffSkin;
+
+    return $graphModelSettings;
   }
 }
 ?>

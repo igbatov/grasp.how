@@ -130,23 +130,22 @@ YOVALUE.GraphMenu.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == pos) graphId = i;
         }
-        that.UI.showModalList(clones[graphId], {'show diff':function(cloneId, html){
+        that.UI.showModalList(clones[graphId], {'show diff':function(cloneId){
           // get graph diff and show it
           that.publisher.publish(['get_graph_diff', {graphId:graphId, cloneId:cloneId}]).then(function(graphViewSettings){
-            //create graphModel for diff graph
+
+            // set graphModel for diff graph
             that.publisher.publish(["add_graph_model", {
               graphId:graphViewSettings.graphId,
               graphSettings:graphViewSettings.graphModelSettings,
               elements:graphViewSettings.graphModel
             }]);
 
-            // set graphArea for diff graph
-            var position = 'rightGraphView';
-            var graphArea = that.viewManager.getViewContainer(position);
-            that.selectedPosition[graphViewSettings.graphId] = position;
+            // set selectedPosition
+            that.selectedPosition[graphViewSettings.graphId] = 'rightGraphView';
 
             // build graphViewSettings
-            graphViewSettings.skin = that.publisher.getInstant("get_skin_by_skin_settings", graphViewSettings.skin);
+            // graphViewSettings.skin = that.publisher.getInstant("get_skin_by_skin_settings", graphViewSettings.skin);
 
             var decoration = that.publisher.getInstant("get_graph_decoration", {
                   graphModel:graphViewSettings.graphModel,

@@ -742,10 +742,17 @@ class AppUserPkb extends App
 
   protected function getGraphSettings($graph_ids){
     $s = array();
-    $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id IN ('".implode("','",$graph_ids)."')";
-    foreach($this->db->execute($query) as $row){
-      $s[$row['graph_id']] = json_decode($row['settings'], true);
+    foreach($graph_ids as $graph_id){
+      if(GraphDiffCreator::isDiffGraphId($graph_id)){
+        $t = GraphDiffCreator::decodeDiffGraphId($graph_id);
+        $s[$graph_id] = GraphDiffCreator::getGraphSettings($this->db, $t['graphId1'], $t['graphId2']);
+      }else{
+        $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
+        $row = $this->db->execute($query)[0];
+        $s[$graph_id] = json_decode($row['settings'], true);
+      }
     }
+
     return $s;
   }
 
@@ -800,139 +807,21 @@ class AppUserPkb extends App
     $rows = $this->db->execute($q);
     $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
     $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
-    $graph1NodeContent = $this->getGraphNodeAttributes($graphId1);
-    $graph2NodeContent = $this->getGraphNodeAttributes($graphId2);
-    $graph1EdgeContent = $this->getGraphEdgeAttributes($graphId1);
-    $graph2EdgeContent = $this->getGraphEdgeAttributes($graphId2);
-//var_dump($graph1EdgeContent);
-//var_dump($graph2EdgeContent);
-
-    // get updated_at for every node of graph1
-    $graph1NodeContentUpdatedAt = array();
-    foreach($graph1NodeContent as $local_content_id => $content){
-      $graph1NodeContentUpdatedAt[$local_content_id] = array('updated_at'=>'0000-00-00 00:00:00', 'created_at'=>'9999-99-99 99:99:99');
-      foreach($content['alternatives'] as $alternative){
-        if($alternative['updated_at'] > $graph1NodeContentUpdatedAt[$local_content_id]['updated_at']) $graph1NodeContentUpdatedAt[$local_content_id]['updated_at'] = $alternative['updated_at'];
-        if($alternative['created_at'] < $graph1NodeContentUpdatedAt[$local_content_id]['created_at']) $graph1NodeContentUpdatedAt[$local_content_id]['created_at'] = $alternative['created_at'];
-      }
-    }
-
-    // get updated_at for every node of graph2
-    $graph2NodeContentUpdatedAt = array();
-    foreach($graph2NodeContent as $local_content_id => $content){
-      $graph2NodeContentUpdatedAt[$local_content_id] = array('updated_at'=>'0000-00-00 00:00:00', 'created_at'=>'9999-99-99 99:99:99');
-      foreach($content['alternatives'] as $alternative){
-        if($alternative['updated_at'] > $graph2NodeContentUpdatedAt[$local_content_id]['updated_at']) $graph2NodeContentUpdatedAt[$local_content_id]['updated_at'] = $alternative['updated_at'];
-        if($alternative['created_at'] < $graph2NodeContentUpdatedAt[$local_content_id]['created_at']) $graph2NodeContentUpdatedAt[$local_content_id]['created_at'] = $alternative['created_at'];
-      }
-    }
 
     $graph_diff_creator = new GraphDiffCreator(
       $graph1,
       $graph2,
-      $graph1NodeContentUpdatedAt,
-      $graph2NodeContentUpdatedAt,
-      $graph1EdgeContent,
-      $graph2EdgeContent,
       $this->contentIdConverter
     );
     $graphModel = $graph_diff_creator->getDiffGraph();
 
-    $graph1NodeContent = $this->flattenNodeAttrs($graph1NodeContent);
-    $graph2NodeContent = $this->flattenNodeAttrs($graph2NodeContent);
-
-    // create array of diff node attributes
-    $diffNodeAttributes = array();
-    foreach($graphModel['nodes'] as $node){
-      $contentId = GraphDiffCreator::decodeContentId($node['nodeContentId']);
-      if($contentId['graphId1']) $diffNodeAttributes[$node['nodeContentId']] = $graph1NodeContent[$contentId['localContentId1']];
-      // if we have graph2 attributes for this node, use it
-      if($contentId['graphId2']){
-        foreach(array_keys($graph2NodeContent[$contentId['localContentId2']]) as $attribute_name){
-          if(isset($graph2NodeContent[$contentId['localContentId2']][$attribute_name]) && $graph2NodeContent[$contentId['localContentId2']][$attribute_name] != null)
-            $diffNodeAttributes[$node['nodeContentId']][$attribute_name] = $graph2NodeContent[$contentId['localContentId2']][$attribute_name];
-        }
-      }
-
-      $diffNodeAttributes[$node['nodeContentId']]['nodeContentId'] = $node['nodeContentId'];
-
-      // add stickers that show status of node modification
-      $diffNodeAttributes[$node['nodeContentId']]['stickers'][] = $node['status'];
-
-      unset($diffNodeAttributes[$node['nodeContentId']]['local_content_id']);
-    }
-
-    //$this->log(var_export($diffNodeAttributes,true));
-
-    // create array of diff edge attributes
-    $diffEdgeAttributes = array();
-    foreach($graphModel['edges'] as $edge){
-      $contentId = GraphDiffCreator::decodeContentId($edge['edgeContentId']);
-      if($contentId['graphId2']) $diffEdgeAttributes[$edge['edgeContentId']] = $graph2EdgeContent[$contentId['localContentId2']];
-      else $diffEdgeAttributes[$edge['edgeContentId']] = $graph1EdgeContent[$contentId['localContentId1']];
-
-      $diffEdgeAttributes[$edge['edgeContentId']]['edgeContentId'] = $edge['edgeContentId'];
-      unset($diffEdgeAttributes[$edge['edgeContentId']]['local_content_id']);
-    }
-    $s = $this->getGraphSettings(array($graphId1, $graphId2));
-
-    // check that settings for $graphId1 is the sane as for $graphId2
-    if($s[$graphId1]['skin'] != $s[$graphId2]['skin']) exit('Skins are different');
-
-    // add to skin modification stickers
-    $diffSkin = $s[$graphId1]['skin'];
-    $diffSkin['node']['attr']['stickers']['absent'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'><g id=\'alert\' fill=\'yellow\'><rect id=\'point\' x=\'11\' y=\'16\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' width=\'2\' height=\'2\'/><polygon id=\'stroke\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' points=\'13.516,10 10.516,10 11,15 13,15\'/><g id=\'triangle\'><path d=\'M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z\'/></g></g></svg>';
-    $diffSkin['node']['attr']['stickers']['added'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'><g id=\'alert\' fill=\'yellow\'><rect id=\'point\' x=\'11\' y=\'16\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' width=\'2\' height=\'2\'/><polygon id=\'stroke\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' points=\'13.516,10 10.516,10 11,15 13,15\'/><g id=\'triangle\'><path d=\'M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z\'/></g></g></svg>';
-    $diffSkin['node']['attr']['stickers']['modified'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'><g id=\'alert\' fill=\'yellow\'><rect id=\'point\' x=\'11\' y=\'16\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' width=\'2\' height=\'2\'/><polygon id=\'stroke\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' points=\'13.516,10 10.516,10 11,15 13,15\'/><g id=\'triangle\'><path d=\'M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z\'/></g></g></svg>';
-    $diffSkin['node']['attr']['stickers']['unmodified'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'></svg>';
-    $this->log(var_export($diffSkin, true));
-
-    /**
-     * create mapping merging node_mapping of graphId1 and graphId2
-     */
-    // first of all adapt area of mappings to area of graph1
-    $graph2['node_mapping'] = $this->adjustMappingToArea($graph2['node_mapping'], $graph1['node_mapping']['area']);
-
-    // now merge two mappings
-    // mapping of graph1 takes precedence
-    $diff_node_mapping = array();
-    foreach($graphModel['nodes'] as $id=>$node){
-      $contentId = GraphDiffCreator::decodeContentId($node['nodeContentId']);
-      if($contentId['graphId1']){
-        $nodeId = $this->findNodeIdByNodeContentId(
-          $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']),
-          $graph1['elements']['nodes']
-        );
-        $diff_node_mapping[$id] = $graph1['node_mapping']['mapping'][$nodeId];
-        $diff_node_mapping[$id]['id'] = $id;
-      }else{
-        $nodeId = $this->findNodeIdByNodeContentId(
-          $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']),
-          $graph2['elements']['nodes']
-        );
-        $diff_node_mapping[$id] = $graph2['node_mapping']['mapping'][$nodeId];
-        $diff_node_mapping[$id]['id'] = $id;
-      }
-    }
     // get graph model settings
-    $diffGraphId = 'diff_'.$graphId1.'_'.$graphId2;
-    $q = "SELECT graph FROM graph WHERE id = '".$graphId1."'";
-    $graphModelSettings = json_decode($this->db->execute($q)[0]['graph'], true);
-    $graphModelSettings['name'] = $diffGraphId;
-    $graphModelSettings['isEditable'] = false;
+    $graphModelSettings = GraphDiffCreator::getGraphSettings($this->db, $graphId1, $graphId2);
 
     // == create graphViewSettings ==
-    $graphViewSettings = array(
-      'graphId' => $diffGraphId,
-      'graphModel' => $graphModel,
-      'graphNodeAttributes' => $diffNodeAttributes,
-      'graphEdgeAttributes' => $diffEdgeAttributes,
-     // 'graphArea'=> $graph1['node_mapping']['area'],
-      'nodeMapping' => array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping),
-      'skin' => $diffSkin,
-      'graphModelSettings' => $graphModelSettings
-    );
-    return $graphViewSettings;
+    $diffGraphId = GraphDiffCreator::encodeDiffGraphId($graphId1, $graphId2);
+
+    return $graphModel;
   }
 
   protected function adjustMappingToArea($mapping, $area){
@@ -1019,50 +908,99 @@ class AppUserPkb extends App
   protected function getNodeAttributes($content_ids){
     $nodes = array();
     foreach($content_ids as $content_id){
-      $graph_id = $this->decodeContentId($content_id)['graph_id'];
-      $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
+      if(GraphDiffCreator::isDiffContentId($content_id)){
+        $contentId = GraphDiffCreator::decodeContentId($content_id);
+        if($contentId['graphId1']){
+          $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']);
+          $graph1NodeContents = $this->getNodeAttributes(array($global_content_id));
+          $nodes[$content_id] = $graph1NodeContents[0];
+        }
+        // if we have also graph2 attributes for this node, overwrite them
+        if($contentId['graphId2']){
+          $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']);
+          $graph2NodeContent = $this->getNodeAttributes(array($global_content_id))[0];
+          foreach(array_keys($graph2NodeContent) as $attribute_name){
+            if(isset($graph2NodeContent[$attribute_name]) && $graph2NodeContent[$attribute_name] != null)
+              $nodes[$content_id][$attribute_name] = $graph2NodeContent[$attribute_name];
+          }
+        }
 
-      $query = "SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->node_alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-      $node_rows = $this->db->execute($query);
+        $nodes[$content_id]['nodeContentId'] = $content_id;
 
-      $node_attributes = array();
+        // add stickers that show status of node modification
+        $status = 'unmodified';
+        if($contentId['graphId1'] && !$contentId['graphId2']) $status = 'absent';
+        elseif(!$contentId['graphId1'] && $contentId['graphId2']) $status = 'added';
+        elseif($contentId['graphId1'] && $contentId['graphId2']){
+          $q = "SELECT alternative_id FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
+          $rows = $this->db->execute($q);
+          if(GraphDiffCreator::isCloneModified($rows)) $status = 'modified';
+        }
+        $nodes[$content_id]['stickers'][] = $status;
 
-      // == fill in node attributes ==
-      $node_row = $node_rows[0];
-      // general attributes
-      foreach($this->node_attribute_names as $name){
-        $node_attributes[$name] = $node_row[$name];
+      }else{
+        $graph_id = $this->decodeContentId($content_id)['graph_id'];
+        $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
+
+        $query = "SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->node_alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+        $node_rows = $this->db->execute($query);
+
+        $node_attributes = array();
+
+        // == fill in node attributes ==
+        $node_row = $node_rows[0];
+        // general attributes
+        foreach($this->node_attribute_names as $name){
+          $node_attributes[$name] = $node_row[$name];
+        }
+
+        // icon
+        $node_row['iconSrc'] = $node_row['has_icon'] == 1 ? 'getIcon/?data="'.$content_id.'"' : null;
+        unset($node_row['has_icon']);
+        // set active alternative
+        foreach($node_rows as $row){
+          $node_attributes['active_alternative_id'] = $row['active_alternative_id'];
+        }
+
+        //  == fill in attributes for every alternative ==
+        $node_attributes['alternatives'] = array();
+        foreach($node_rows as $row){
+          if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
+          foreach($this->node_alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
+        }
+        $nodes[$content_id] = $node_attributes;
       }
-
-      // icon
-      $node_row['iconSrc'] = $node_row['has_icon'] == 1 ? 'getIcon/?data="'.$content_id.'"' : null;
-      unset($node_row['has_icon']);
-      // set active alternative
-      foreach($node_rows as $row){
-        $node_attributes['active_alternative_id'] = $row['active_alternative_id'];
-      }
-
-      //  == fill in attributes for every alternative ==
-      $node_attributes['alternatives'] = array();
-      foreach($node_rows as $row){
-        if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
-        foreach($this->node_alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
-      }
-      $nodes[$content_id] = $node_attributes;
     }
 
     return $nodes;
   }
 
+  /**
+   * @param $contentIds - global content id
+   * @return array
+   */
   protected function getEdgeAttributes($contentIds){
     $edges = array();
     foreach($contentIds as $content_id){
-      $graph_id = $this->decodeContentId($content_id)['graph_id'];
-      $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
-      $query = "SELECT '".$content_id."' as edgeContentId, type, label, created_at, updated_at FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-      $edge_rows = $this->db->execute($query);
-      $edge_row = $edge_rows[0];
-      $edges[$content_id] = $edge_row;
+      if(GraphDiffCreator::isDiffContentId($content_id)){
+        $contentId = GraphDiffCreator::decodeContentId($content_id);
+        if($contentId['graphId2']){
+          $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']);
+          $edges[$content_id] = $this->getEdgeAttributes(array($global_content_id))[0];
+        }else{
+          $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']);
+          $edges[$content_id] = $this->getEdgeAttributes(array($global_content_id))[0];
+        }
+        $edges[$content_id]['edgeContentId'] = $content_id;
+
+      }else{
+        $graph_id = $this->decodeContentId($content_id)['graph_id'];
+        $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
+        $query = "SELECT '".$content_id."' as edgeContentId, type, label, created_at, updated_at FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+        $edge_rows = $this->db->execute($query);
+        $edge_row = $edge_rows[0];
+        $edges[$content_id] = $edge_row;
+      }
     }
     return $edges;
   }
@@ -1270,25 +1208,73 @@ class AppUserPkb extends App
   private function getGraphsHistoryChunk($request){
     $graphs_history = array();
     foreach($request as $graph_id => $step){
-
-      // if step is null we assume that they wanted the very last step
-      if($step == null){
-        $query = "SELECT step FROM `graph_history` WHERE graph_id = '".$graph_id."' ORDER BY step DESC LIMIT 1";
-        $rows = $this->db->execute($query);
-        if(!$rows) $this->error("returned no rows on query: ".$query);
-        $step = $rows[0]['step'];
-      }
-
-      $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$graph_id."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
-      $rows = $this->db->execute($query);
-      foreach($rows as $row){
-        $graphs_history[] = array(
-          'graphId'=>$graph_id,
-          'step'=>$row['step'],
-          'timestamp'=>$row['timestamp'],
-          'elements'=>json_decode($row['elements'], true),
-          'node_mapping'=>json_decode($row['node_mapping'], true)
+      if(GraphDiffCreator::isDiffGraphId($graph_id)){
+        $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$graphId2."'";
+        $rows = $this->db->execute($q);
+        $graphId1 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId1'];
+        $graphId2 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId2'];
+        $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
+        $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
+        $graph_diff_creator = new GraphDiffCreator(
+            $graph1,
+            $graph2,
+            $this->contentIdConverter
         );
+        $graphModel = $graph_diff_creator->getDiffGraph();
+        /**
+         * create mapping merging node_mapping of graphId1 and graphId2
+         */
+        // first of all adapt area of mappings to area of graph1
+        $graph2['node_mapping'] = $this->adjustMappingToArea($graph2['node_mapping'], $graph1['node_mapping']['area']);
+
+        // now merge two mappings
+        // mapping of graph1 takes precedence
+        $diff_node_mapping = array();
+        foreach($graphModel['nodes'] as $id=>$node){
+          $contentId = GraphDiffCreator::decodeContentId($node['nodeContentId']);
+          if($contentId['graphId1']){
+            $nodeId = $this->findNodeIdByNodeContentId(
+                $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']),
+                $graph1['elements']['nodes']
+            );
+            $diff_node_mapping[$id] = $graph1['node_mapping']['mapping'][$nodeId];
+            $diff_node_mapping[$id]['id'] = $id;
+          }else{
+            $nodeId = $this->findNodeIdByNodeContentId(
+                $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']),
+                $graph2['elements']['nodes']
+            );
+            $diff_node_mapping[$id] = $graph2['node_mapping']['mapping'][$nodeId];
+            $diff_node_mapping[$id]['id'] = $id;
+          }
+        }
+        $graphs_history[] = array(
+            'graphId'=>$graph_id,
+            'step'=>$row['step'],
+            'timestamp'=>$row['timestamp'],
+            'elements'=>$graphModel,
+            'node_mapping'=>array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping)
+        );
+      }else{
+        // if step is null we assume that they wanted the very last step
+        if($step == null){
+          $query = "SELECT step FROM `graph_history` WHERE graph_id = '".$graph_id."' ORDER BY step DESC LIMIT 1";
+          $rows = $this->db->execute($query);
+          if(!$rows) $this->error("returned no rows on query: ".$query);
+          $step = $rows[0]['step'];
+        }
+
+        $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$graph_id."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
+        $rows = $this->db->execute($query);
+        foreach($rows as $row){
+          $graphs_history[] = array(
+              'graphId'=>$graph_id,
+              'step'=>$step,
+              'timestamp'=>time(),
+              'elements'=>json_decode($row['elements'], true),
+              'node_mapping'=>json_decode($row['node_mapping'], true)
+          );
+        }
       }
     }
 
