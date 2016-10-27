@@ -279,13 +279,14 @@ class GraphDiffCreator{
     return false;
   }
 
-  public static function getGraphSettings($db, $graphId1, $graphId2){
+  public static function getGraphModelSettings($db, $graphId1, $graphId2){
     $diffGraphId = GraphDiffCreator::encodeDiffGraphId($graphId1, $graphId2);
     $q = "SELECT graph FROM graph WHERE id = '".$graphId1."'";
     $graphModelSettings = json_decode($db->execute($q)[0]['graph'], true);
     $graphModelSettings['name'] = $diffGraphId;
     $graphModelSettings['isEditable'] = false;
 
+    return $graphModelSettings;
     // check that settings for $graphId1 is the sane as for $graphId2
     if($graphModelSettings['skin'] != $graphModelSettings['skin']){
       exit('Skins are different');

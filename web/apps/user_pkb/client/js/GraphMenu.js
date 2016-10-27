@@ -132,6 +132,8 @@ YOVALUE.GraphMenu.prototype = {
         }
         that.UI.showModalList(clones[graphId], {'show diff':function(cloneId){
           // get graph diff and show it
+          that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]);
+/*
           that.publisher.publish(['get_graph_diff', {graphId:graphId, cloneId:cloneId}]).then(function(graphViewSettings){
 
             // set graphModel for diff graph
@@ -190,7 +192,7 @@ YOVALUE.GraphMenu.prototype = {
            // that.publisher.publish(['hide_all_graphs']);
             that.publisher.publish(["draw_graph_view", graphViewSettings]);
           });
-
+*/
         }});
       };
 

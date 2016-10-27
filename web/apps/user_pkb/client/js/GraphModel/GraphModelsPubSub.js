@@ -48,7 +48,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
 
       case "load_graph_models":
         this.publisher
-          .publish(["repository_get_graphs_model_settings", {}])
+          .publish(["repository_get_graphs_model_settings", event.getData()])
           .then(function(graphsSettings){
             var r, graphId, graphSettings;
             for(graphId in graphsSettings){
@@ -68,7 +68,8 @@ YOVALUE.GraphModelsPubSub.prototype = {
 
             // for all graphs determine its current version (position, index, step) in history
             // (for the first time it will be just the very last version)
-            return that.publisher.publish(["get_current_graph_step", YOVALUE.getObjectKeys(graphsSettings)]);
+            var graphIds = YOVALUE.getObjectKeys(graphsSettings);
+            return that.publisher.publish(["get_current_graph_step", graphIds]);
           })
           .then(function(steps){
             return that.publisher.publish(["graph_history_get_model_elements", steps]);

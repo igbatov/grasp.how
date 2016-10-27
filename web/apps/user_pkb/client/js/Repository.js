@@ -125,13 +125,7 @@ YOVALUE.Repository.prototype = {
       this.sendPendingRequests();
 
     }else if(name == 'repository_get_graphs_model_settings'){
-      this.pendingRequests.push({url:'getGraphsModelSettings', data:null, callback:function(data){
-        that.setEventResponse(e, data, 'JSON');
-      }});
-      this.sendPendingRequests();
-
-    }else if(name == 'repository_get_graphs_model_elements'){
-      this.pendingRequests.push({url:'getGraphsHistoryChunk', data:e.getData(), callback:function(data){
+      this.pendingRequests.push({url:'getGraphsModelSettings', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
@@ -164,6 +158,12 @@ YOVALUE.Repository.prototype = {
 
     }else if(name == 'repository_get_graphs_history_timeline'){
       this.pendingRequests.push({url:'getGraphsHistoryTimeline', data:e.getData(), callback:function(data){
+        that.setEventResponse(e, data, 'JSON');
+      }});
+      this.sendPendingRequests();
+
+    }else if(name == 'repository_get_graphs_model_elements'){
+      this.pendingRequests.push({url:'getGraphsHistoryChunk', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();

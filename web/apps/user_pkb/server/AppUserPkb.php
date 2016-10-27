@@ -157,14 +157,14 @@ class AppUserPkb extends App
           $graphs_settings = $this->getGraphs(array($showGraphId));
           $graphs_settings[$showGraphId]['isEditable'] = false;
         }else{
-          $graphs_settings = $this->getGraphs($this->getGraphIds($this->getAuthId()));
+          if(isset($this->getRequest()['graphId'])){
+            $graph_ids= $this->getRequest()['graphIds'];
+          }else{
+            $graph_ids = $this->getGraphIds($this->getAuthId());
+          }
+          $graphs_settings = $this->getGraphs($graph_ids);
         }
         $this->showRawData(json_encode($graphs_settings));
-        break;
-
-      case 'getGraphsHistoryChunk':
-        $chunk = $this->getGraphsHistoryChunk($this->getRequest());
-        $this->showRawData(json_encode($chunk));
         break;
 
       case 'getGraphNodeContent':
@@ -264,6 +264,11 @@ class AppUserPkb extends App
           }
         }
         $this->showRawData(json_encode($timeline));
+        break;
+
+      case 'getGraphsHistoryChunk':
+        $chunk = $this->getGraphsHistoryChunk($this->getRequest());
+        $this->showRawData(json_encode($chunk));
         break;
 
       case "getGraphSettings":
@@ -816,12 +821,16 @@ class AppUserPkb extends App
     $graphModel = $graph_diff_creator->getDiffGraph();
 
     // get graph model settings
-    $graphModelSettings = GraphDiffCreator::getGraphSettings($this->db, $graphId1, $graphId2);
+    $graphModelSettings = GraphDiffCreator::getGraphModelSettings($this->db, $graphId1, $graphId2);
 
     // == create graphViewSettings ==
     $diffGraphId = GraphDiffCreator::encodeDiffGraphId($graphId1, $graphId2);
 
-    return $graphModel;
+    return array(
+      'graphId' => $diffGraphId,
+      'graphSettings' => $graphModelSettings,
+      'elements' => $graphModel
+    );
   }
 
   protected function adjustMappingToArea($mapping, $area){
@@ -1196,10 +1205,15 @@ class AppUserPkb extends App
   private function getGraphs($graph_ids){
     $s = array();
     foreach($graph_ids as $graph_id){
-      $graph_query = "SELECT id, graph FROM graph WHERE id = '".$graph_id."'";
-      $rows = $this->db->execute($graph_query);
-      foreach($rows as $row){
-        $s[$row['id']] = json_decode($row['graph'], true);
+      if(GraphDiffCreator::isDiffGraphId($graph_id)){
+        $graphId = GraphDiffCreator::decodeDiffGraphId($graph_id);
+        $s[$graph_id] = GraphDiffCreator::getGraphModelSettings($this->db, $graphId['graphId1'], $graphId['graphId2']);
+      }else{
+        $graph_query = "SELECT id, graph FROM graph WHERE id = '".$graph_id."'";
+        $rows = $this->db->execute($graph_query);
+        foreach($rows as $row){
+          $s[$row['id']] = json_decode($row['graph'], true);
+        }
       }
     }
     return $s;
