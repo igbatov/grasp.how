@@ -1,0 +1,37 @@
+Nicely pictured by https://www.websequencediagrams.com/
+
+------------------------------------------------------------------
+title Event: load_graph_models
+
+GraphModelsPubSub.js->AppUserPkb.php: getGraphsModelSettings
+note right of AppUserPkb.php: SELECT graph FROM graph
+GraphModelsPubSub.js->+GraphHistory.js: get_current_graph_step
+GraphHistory.js->-AppUserPkb.php: getGraphsHistoryTimeline
+note right of AppUserPkb.php: SELECT step, timestamp FROM graph_history
+GraphModelsPubSub.js->+GraphHistory.js: graph_history_get_model_elements
+GraphHistory.js->-AppUserPkb.php: getGraphsHistoryChunk
+note right of AppUserPkb.php: SELECT * FROM graph_history
+
+-------------------------------------------------------------------
+title Event: show_graphs
+
+ModelChangeController.js->GraphViewsPubSub.js: hide_all_graphs
+ModelChangeController.js->GraphModelsPubSub.js: get_graph_models
+ModelChangeController.js->GraphMenu.js: get_selected_positions
+GraphMenu.js->AppUserPkb.php: getGraphSettings
+note right of AppUserPkb.php: SELECT settings FROM graph_settings
+ModelChangeController.js->GraphMenu.js: get_selected_positions
+ModelChangeController.js->SelectGraphSkinModel.js: get_selected_skin
+SelectGrapphSkinModel.js->AppUserPkb.php: getGraphSettings
+note right of AppUserPkb.php: SELECT settings FROM graph_settings
+ModelChangeController.js->SelectGraphLayoutModel.js: get_selected_layout
+SelectGraphLayoutModel.js->AppUserPkb.php: getGraphSettings
+note right of AppUserPkb.php: SELECT settings FROM graph_settings
+ModelChangeController.js->GraphElementsContent.js: get_elements_attributes
+GraphElementsContent.js->AppUserPkb.php: getGraphElementsAttributes
+note right of AppUserPkb.php: SELECT * FROM node_content
+ModelChangeController.js->GraphHistory.js: node_mapping_changed
+GraphHistory.js->AppUserPkb.php: updateNodeMapping
+note right of AppUserPkb.php: UPDATE graph_history SET node_mapping =
+
+------------------------------------------------------------------------

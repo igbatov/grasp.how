@@ -1223,10 +1223,10 @@ class AppUserPkb extends App
     $graphs_history = array();
     foreach($request as $graph_id => $step){
       if(GraphDiffCreator::isDiffGraphId($graph_id)){
-        $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$graphId2."'";
-        $rows = $this->db->execute($q);
         $graphId1 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId1'];
         $graphId2 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId2'];
+        $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$graphId2."'";
+        $rows = $this->db->execute($q);
         $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
         $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
         $graph_diff_creator = new GraphDiffCreator(
