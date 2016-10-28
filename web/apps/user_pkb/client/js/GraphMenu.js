@@ -132,7 +132,10 @@ YOVALUE.GraphMenu.prototype = {
         }
         that.UI.showModalList(clones[graphId], {'show diff':function(cloneId){
           // get graph diff and show it
-          that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]);
+          that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
+            // and then show them
+            that.publisher.publish('show_graphs');
+          });
 /*
           that.publisher.publish(['get_graph_diff', {graphId:graphId, cloneId:cloneId}]).then(function(graphViewSettings){
 

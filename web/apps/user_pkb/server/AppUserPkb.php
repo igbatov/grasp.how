@@ -157,7 +157,7 @@ class AppUserPkb extends App
           $graphs_settings = $this->getGraphs(array($showGraphId));
           $graphs_settings[$showGraphId]['isEditable'] = false;
         }else{
-          if(isset($this->getRequest()['graphId'])){
+          if(isset($this->getRequest()['graphIds'])){
             $graph_ids= $this->getRequest()['graphIds'];
           }else{
             $graph_ids = $this->getGraphIds($this->getAuthId());
@@ -257,10 +257,14 @@ class AppUserPkb extends App
         $timeline = array();
 
         foreach($r['ids'] as $graph_id){
-          $timeline[$graph_id] = array();
-          $query = "SELECT step, timestamp FROM graph_history WHERE graph_id = '".$graph_id."'";
-          foreach($this->db->execute($query) as $row){
-            $timeline[$graph_id][$row['step']] = (int)$row['timestamp'];
+          if(GraphDiffCreator::isDiffGraphId($graph_id)){
+            $timeline[$graph_id][0] = time();
+          }else{
+            $timeline[$graph_id] = array();
+            $query = "SELECT step, timestamp FROM graph_history WHERE graph_id = '".$graph_id."'";
+            foreach($this->db->execute($query) as $row){
+              $timeline[$graph_id][$row['step']] = (int)$row['timestamp'];
+            }
           }
         }
         $this->showRawData(json_encode($timeline));
@@ -995,10 +999,10 @@ class AppUserPkb extends App
         $contentId = GraphDiffCreator::decodeContentId($content_id);
         if($contentId['graphId2']){
           $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']);
-          $edges[$content_id] = $this->getEdgeAttributes(array($global_content_id))[0];
+          $edges[$content_id] = $this->getEdgeAttributes(array($global_content_id))[$global_content_id];
         }else{
           $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']);
-          $edges[$content_id] = $this->getEdgeAttributes(array($global_content_id))[0];
+          $edges[$content_id] = $this->getEdgeAttributes(array($global_content_id))[$global_content_id];
         }
         $edges[$content_id]['edgeContentId'] = $content_id;
 
@@ -1264,8 +1268,8 @@ class AppUserPkb extends App
         }
         $graphs_history[] = array(
             'graphId'=>$graph_id,
-            'step'=>$row['step'],
-            'timestamp'=>$row['timestamp'],
+            'step'=>0,
+            'timestamp'=>time(),
             'elements'=>$graphModel,
             'node_mapping'=>array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping)
         );
