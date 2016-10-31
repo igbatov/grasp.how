@@ -18,7 +18,7 @@ YOVALUE.SelectElementController.prototype = {
   execute: function(event, selectedElement){
     var i, that = this,
     eventName = event.getName(),
-    e = event.getData().element;
+    e = event.getData() ? event.getData().element : undefined;
 
     if(
       eventName == 'draw_graph_view'
@@ -27,7 +27,7 @@ YOVALUE.SelectElementController.prototype = {
 
       if(typeof(event.getData().decoration) != 'undefined') that.initDecorations(graphId, event.getData().decoration);
 
-      if(selectedElement){
+      if(selectedElement && selectedElement.element){
         that.selectedDecoration[graphId] = that.enlargeNodes(that.initialDecoration[graphId], [selectedElement.element.id]);
         graphViewSettings = {
           graphId: graphId,

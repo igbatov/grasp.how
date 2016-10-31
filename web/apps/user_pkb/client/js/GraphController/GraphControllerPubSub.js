@@ -1,3 +1,11 @@
+/**
+ * This is container for all modules that react on user-generated events (mouseonnode, mouseclicknode, etc.)
+ * It stores current selected element - this.selectedElement
+ * and call all its models in a given order after event reception.
+ * @param publisher
+ * @param controllerModules
+ * @constructor
+ */
 YOVALUE.GraphControllerPubSub = function(publisher, controllerModules){
   this.controllerModules = controllerModules;
   this.publisher = publisher;
@@ -9,7 +17,7 @@ YOVALUE.GraphControllerPubSub.prototype = {
   eventListener: function(event){
     var i;
     for(i in this.controllerModules){
-      this.controllerModules[i].execute(event, this.selectedElement);
+      if(this.controllerModules[i].execute) this.controllerModules[i].execute(event, this.selectedElement);
     }
   }
 };

@@ -16,6 +16,7 @@ YOVALUE.Event = function (name, data, deferred) {
   this._name = name;
   this._data = data;
   this._response = null;
+  this._isResolved = false;
   YOVALUE.mixin(deferred, this);
 };
 
@@ -42,15 +43,21 @@ YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
       var codeLine = src.substr(src.indexOf(":")+1);
       if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
       // log it
-      YOVALUE.debug.print(fileName,codeLine,'response',this.getName(), v, YOVALUE.getObjectId(this));
+      YOVALUE.debug.printEvent(undefined,fileName,codeLine,'response',this.getName(), v, YOVALUE.getObjectId(this));
     }
     // endof debugging
 
     this._response = v;
+    this._isResolved = true;
     this.resolve(v);
   },
+
   getResponse: function(){
     return this._response;
+  },
+
+  isResolved: function(){
+    return this._isResolved;
   }
 });
 

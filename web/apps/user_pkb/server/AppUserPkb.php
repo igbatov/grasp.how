@@ -171,8 +171,6 @@ class AppUserPkb extends App
         $content_ids = $this->getRequest()['nodeContentIds'];
         $node_contents = array();
         foreach($content_ids as $content_id){
-          if(GraphDiffCreator::isDiffContentId($content_id)) $contentId = GraphDiffCreator::decodeContentId($content_id);
-
           $graph_id = $this->decodeContentId($content_id)['graph_id'];
           $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
 
@@ -202,6 +200,7 @@ class AppUserPkb extends App
 
             // alternative text
             if(GraphDiffCreator::isDiffContentId($content_id)){
+              $contentId = GraphDiffCreator::decodeContentId($content_id);
               $alternative['text'] = GraphDiffCreator::getDiffText(
                   $this->db,
                   $contentId['graphId1'],
@@ -904,7 +903,7 @@ class AppUserPkb extends App
   protected function decodeContentId($content_id){
     if(GraphDiffCreator::isDiffContentId($content_id)){
       $contentId = GraphDiffCreator::decodeContentId($content_id);
-      if(is_numeric($contentId['graphId2'])){
+      if(!empty($contentId['graphId2'])){
         $graph_id = $contentId['graphId2'];
         $local_content_id = $contentId['localContentId2'];
       }else{
@@ -926,12 +925,12 @@ class AppUserPkb extends App
         if($contentId['graphId1']){
           $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId1'], $contentId['localContentId1']);
           $graph1NodeContents = $this->getNodeAttributes(array($global_content_id));
-          $nodes[$content_id] = $graph1NodeContents[0];
+          $nodes[$content_id] = $graph1NodeContents[$global_content_id];
         }
         // if we have also graph2 attributes for this node, overwrite them
-        if($contentId['graphId2']){
+        if(!empty($contentId['graphId2'])){
           $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']);
-          $graph2NodeContent = $this->getNodeAttributes(array($global_content_id))[0];
+          $graph2NodeContent = $this->getNodeAttributes(array($global_content_id))[$global_content_id];
           foreach(array_keys($graph2NodeContent) as $attribute_name){
             if(isset($graph2NodeContent[$attribute_name]) && $graph2NodeContent[$attribute_name] != null)
               $nodes[$content_id][$attribute_name] = $graph2NodeContent[$attribute_name];
@@ -945,7 +944,7 @@ class AppUserPkb extends App
         if($contentId['graphId1'] && !$contentId['graphId2']) $status = 'absent';
         elseif(!$contentId['graphId1'] && $contentId['graphId2']) $status = 'added';
         elseif($contentId['graphId1'] && $contentId['graphId2']){
-          $q = "SELECT alternative_id FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
+          $q = "SELECT created_at, updated_at FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
           $rows = $this->db->execute($q);
           if(GraphDiffCreator::isCloneModified($rows)) $status = 'modified';
         }

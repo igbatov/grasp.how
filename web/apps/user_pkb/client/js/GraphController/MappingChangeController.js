@@ -14,6 +14,9 @@ YOVALUE.MappingChangeController = function(publisher){
 
 YOVALUE.MappingChangeController.prototype = {
   execute: function(event, selectedElement){
+
+    if(!event.getData()) return false;
+
     var that = this,
         m, eventName = event.getName(),
         dragMode,

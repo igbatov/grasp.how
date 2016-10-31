@@ -10,6 +10,7 @@ YOVALUE.Mediator = function (listenerTypes, listenerTypesCallOrder) {
   this._listenerTypes = YOVALUE.clone(listenerTypes) || {'undefined':null};
   this._listenerTypesCallOrder = listenerTypesCallOrder || [];
   this._listeners = {};
+  this._eventsStack = [];   // track fired events (this is for debug purposes only)
 };
 
 YOVALUE.Mediator.prototype = {
@@ -129,6 +130,7 @@ YOVALUE.Mediator.prototype = {
 
     // for debugging: get info about event publisher and listeners
     if(DEBUG_MODE){
+      var currentEvent = undefined;
       var stack = printStackTrace();
       for(i = 0; i < stack.length; i++){
         if(stack[i].indexOf("Publisher.js") > 0 && stack[i+1].indexOf("Publisher.js") < 0) break;
@@ -140,7 +142,7 @@ YOVALUE.Mediator.prototype = {
       var codeLine = src.substr(src.indexOf(":")+1);
       if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
       // log it
-      YOVALUE.debug.print(fileName,codeLine,'fire',event.getName(),event.getData(), YOVALUE.getObjectId(event));
+      YOVALUE.debug.printEvent(currentEvent, fileName,codeLine,'fire',event.getName(),event.getData(), YOVALUE.getObjectId(event));
       //YOVALUE.logger.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), YOVALUE.clone(event.getData()), YOVALUE.getObjectId(event));
     }
     // endof debugging
@@ -150,12 +152,46 @@ YOVALUE.Mediator.prototype = {
 
         // for debugging
         if(DEBUG_MODE){
-          YOVALUE.debug.print(listeners[i].moduleName,'','receive',event.getName(),event.getData(), YOVALUE.getObjectId(event));
+          YOVALUE.debug.printEvent(currentEvent, listeners[i].moduleName,'','receive',event.getName(),event.getData(), YOVALUE.getObjectId(event));
         }
         // endof debugging
 
         listeners[i].eventListener(event);
-      } catch (e) {}
+      } catch (e) {
+        console.log(e);
+      }
     }
+
+
   }
+/*
+  _getCurrentEvent: function(){
+    var maxResolvedEventId = -1;
+    var currentEventId = undefined;
+    for(var i in this._eventsStack){
+      for(var j in this._eventsStack[i]){
+        if(this._eventsStack[i][j].isResolved()){
+          if(YOVALUE.getObjectId(this._eventsStack[i][j]) > maxResolvedEventId){
+            maxResolvedEventId = YOVALUE.getObjectId(this._eventsStack[i][j]);
+            currentEventId = i;
+          }
+          delete this._eventsStack[YOVALUE.getObjectId(this._eventsStack[i][j])];
+          delete this._eventsStack[i][j];
+        }
+      }
+    }
+
+    if(typeof(currentEventId) != 'undefined'){
+      return currentEventId;
+    }else{
+      return Math.max.apply(null, YOVALUE.getObjectKeys(this._eventsStack));
+    }
+  },
+
+  _addCurrentEvent: function(e){
+    if(typeof(this._eventsStack[this._getCurrentEvent()]) == 'undefined') this._eventsStack[this._getCurrentEvent()] = [];
+    this._eventsStack[this._getCurrentEvent()].push(e);
+    this._eventsStack[YOVALUE.getObjectId(e)] = [];
+  }
+  */
 };

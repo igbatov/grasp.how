@@ -299,6 +299,7 @@ YOVALUE.debug = (function(Table){
 
   /**
    *
+   * @param currentEvent
    * @param moduleName
    * @param codeLine
    * @param direction - 'fire','receive','response'
@@ -306,17 +307,19 @@ YOVALUE.debug = (function(Table){
    * @param eventData
    * @param eventId
    */
-  logger.print = function(moduleName,codeLine,direction,eventName,eventData,eventId){
+  logger.printEvent = function(currentEvent,moduleName,codeLine,direction,eventName,eventData,eventId){
+    if(typeof(currentEvent) == 'undefined') currentEvent = '';
     logger.printCounter++;
     var data = YOVALUE.clone(eventData);
     var hhmmss = (new Date()).toLocaleTimeString();
     var moduleCSS = 'color:hsl(0, 0%, 80%);background-color:hsl(0, 0%, 0%);';
-    var eventCSS = 'color:hsl(0, 100%, 90%);background-color:hsl(0, 100%, 50%);';
+    var eventCSS = 'color:hsl(60, 2%, 22%);background-color:hsl(56, 100%, 91%);';
+    var currentEventCSS = 'color:hsl(60, 2%, 22%);background-color:hsl(60, 7%, 51%);';
     if(direction == 'fire'){
-      console.log(logger.printCounter+' '+hhmmss+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' %c'+currentEvent+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,currentEventCSS,moduleCSS,eventCSS, data, eventId);
     }
     if(direction == 'receive'){
-      console.log(logger.printCounter+' '+hhmmss+' ----> '+'%c'+moduleName+' %c'+eventName,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' ----> '+' %c'+currentEvent+'%c'+moduleName+' %c'+eventName,currentEventCSS,moduleCSS,eventCSS, data, eventId);
     }
     if(direction == 'response'){
       console.log(logger.printCounter+' '+hhmmss+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId);

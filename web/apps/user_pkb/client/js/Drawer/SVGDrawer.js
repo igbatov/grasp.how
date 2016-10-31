@@ -293,7 +293,7 @@ YOVALUE.SVGDrawer.prototype = {
     var event = {type:eventType, targetNode:shape, x:xy.x, y:xy.y};
 
     if(DEBUG_MODE){
-      YOVALUE.debug.print('SVGDrawer', '295:5', 'fire', event.type, event, YOVALUE.getObjectId(event));
+      YOVALUE.debug.printEvent(undefined,'SVGDrawer', '295:5', 'fire', event.type, event, YOVALUE.getObjectId(event));
 
       //YOVALUE.logger.log('SVGDrawer is going to fire event ',YOVALUE.clone(event));
     }

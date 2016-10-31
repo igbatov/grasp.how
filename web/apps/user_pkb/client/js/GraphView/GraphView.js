@@ -872,7 +872,7 @@ YOVALUE.GraphView.prototype = {
         opacity: 1
       });
     var result = {width:label.getDrawerShapeWidth(), height:label.getDrawerShapeHeight()};
-    this._removeElement(label.getShape().getId());
+   // this._removeElement(label.getDrawerShape().getId());
 
     return result;
   },
