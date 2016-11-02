@@ -373,7 +373,7 @@ class AppUserPkb extends App
           $graph_id = $r['graphId'];
         }
 
-        $this->isUserOwnGraph($graph_id);
+        if(!$this->isUserOwnGraph($graph_id)) return false;
 
         if($r['type'] == 'updateNodeText'){
           $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
@@ -756,7 +756,9 @@ class AppUserPkb extends App
         $s[$graph_id] = GraphDiffCreator::getGraphSettings($this->db, $t['graphId1'], $t['graphId2']);
       }else{
         $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
-        $row = $this->db->execute($query)[0];
+        $rows = $this->db->execute($query);
+        if(count($rows) == 0) return false;
+        $row = $rows[0];
         $s[$graph_id] = json_decode($row['settings'], true);
       }
     }

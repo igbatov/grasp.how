@@ -57,8 +57,10 @@ YOVALUE.SelectElementController.prototype = {
       if(eventName === 'mouseenternode'){
         var model = this.publisher.getInstant('get_graph_models', [graphId])[graphId];
         nodesToSelect = [e.id];
-        nodesToSelect = nodesToSelect.concat(model.getNeighbourIds([e.id]));
-        edgesToSelect = model.getNeighbourEdgeIds(e.id);
+        if(model){
+          nodesToSelect = nodesToSelect.concat(model.getNeighbourIds([e.id]));
+          edgesToSelect = model.getNeighbourEdgeIds(e.id);
+        }
       }
 
       if(eventName === 'clickedge' || eventName === 'mouseenteredge') edgesToSelect = [e.id];

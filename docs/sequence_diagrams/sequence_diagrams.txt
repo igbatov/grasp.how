@@ -5,18 +5,29 @@ We skip here repository_processing events (to make diagrams more clear)
 title Event: load_graph_models
 
 main.js->GraphModelsPubSub.js: load_graph_models
-GraphModelsPubSub.js->Repository.js: repository_get_graphs_model_settings
-Repository.js->AppUserPkb.php: getGraphsModelSettings
+GraphModelsPubSub.js->+Repository.js: repository_get_graphs_model_settings
+Repository.js->+AppUserPkb.php: getGraphsModelSettings
 note right of AppUserPkb.php: SELECT graph FROM graph
-GraphModelsPubSub.js->GraphHistory.js: get_current_graph_step
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphModelsPubSub.js:
+
+
+GraphModelsPubSub.js->+GraphHistory.js: get_current_graph_step
 GraphHistory.js->GraphHistory.js: get_graphs_history_timeline
-GraphHistory.js->Repository.js: repository_get_graphs_history_timeline
-Repository.js->AppUserPkb.php: getGraphsHistoryTimeline
+GraphHistory.js->+Repository.js: repository_get_graphs_history_timeline
+Repository.js->+AppUserPkb.php: getGraphsHistoryTimeline
 note right of AppUserPkb.php: SELECT step, timestamp FROM graph_history
-GraphModelsPubSub.js->GraphHistory.js: graph_history_get_model_elements
-GraphHistory.js->Repository.js: repository_get_graphs_model_elements
-Repository.js->AppUserPkb.php: getGraphsHistoryChunk
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphHistory.js:
+GraphHistory.js-->-GraphModelsPubSub.js:
+
+GraphModelsPubSub.js->+GraphHistory.js: graph_history_get_model_elements
+GraphHistory.js->+Repository.js: repository_get_graphs_model_elements
+Repository.js->+AppUserPkb.php: getGraphsHistoryChunk
 note right of AppUserPkb.php: SELECT * FROM graph_history
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphHistory.js:
+GraphHistory.js-->-GraphModelsPubSub.js:
 
 -------------------------------------------------------------------
 title Event: show_graphs
@@ -24,54 +35,83 @@ title Event: show_graphs
 main.js->GraphControllerPubSub: show_graphs
 GraphControllerPubSub->ModelChangeController.js: <direct .execute call>
 ModelChangeController.js->GraphViewsPubSub.js: hide_all_graphs
-ModelChangeController.js->GraphModelsPubSub.js: get_graph_models
 
-ModelChangeController.js->GraphMenu.js: get_selected_positions
-GraphMenu.js->Repository.js: repository_get_selected_positions
-Repository.js->AppUserPkb.php: getGraphSettings
+ModelChangeController.js->+GraphModelsPubSub.js: get_graph_models
+GraphModelsPubSub.js-->-ModelChangeController.js:
+
+ModelChangeController.js->+GraphMenu.js: get_selected_positions
+GraphMenu.js->+Repository.js: repository_get_selected_positions
+Repository.js->+AppUserPkb.php: getGraphSettings
 note right of AppUserPkb.php: SELECT settings FROM graph_settings
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphMenu.js:
+GraphMenu.js-->-ModelChangeController.js:
 
-GraphMenu.js->GraphModelsPubSub.js: get_graph_models
+GraphMenu.js->+GraphModelsPubSub.js: get_graph_models
+GraphModelsPubSub.js-->-GraphMenu.js:
 
-GraphMenu.js->Repository.js: repository_get_graphs_clone_list
-Repository.js->AppUserPkb.php: getGraphsCloneList
+GraphMenu.js->+Repository.js: repository_get_graphs_clone_list
+Repository.js->+AppUserPkb.php: getGraphsCloneList
 note right of AppUserPkb.php: SELECT * FROM graph WHERE cloned_from_graph_id IN
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphMenu.js:
 
-ModelChangeController.js->GraphMenu.js: get_selected_positions
+ModelChangeController.js->+GraphMenu.js: get_selected_positions
+GraphMenu.js-->-ModelChangeController.js:
 
-ModelChangeController.js->SelectGraphSkinModel.js: get_selected_skin
-SelectGraphSkinModel.js->Repository.js: repository_get_selected_skins
-Repository.js->AppUserPkb.php: getGraphSettings
+ModelChangeController.js->+SelectGraphSkinModel.js: get_selected_skin
+SelectGraphSkinModel.js->+Repository.js: repository_get_selected_skins
+Repository.js->+AppUserPkb.php: getGraphSettings
 note right of AppUserPkb.php: SELECT settings FROM graph_settings
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-SelectGraphSkinModel.js:
+SelectGraphSkinModel.js-->-ModelChangeController.js:
 
-ModelChangeController.js->SelectGraphLayoutModel.js: get_selected_layout
-SelectGraphLayoutModel.js->Repository.js: repository_get_selected_layouts
-Repository.js->AppUserPkb.php: getGraphSettings
+ModelChangeController.js->+SelectGraphLayoutModel.js: get_selected_layout
+SelectGraphLayoutModel.js->+Repository.js: repository_get_selected_layouts
+Repository.js->+AppUserPkb.php: getGraphSettings
 note right of AppUserPkb.php: SELECT settings FROM graph_settings
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-SelectGraphLayoutModel.js:
+SelectGraphLayoutModel.js-->-ModelChangeController.js:
 
-ModelChangeController.js->GraphElementsContent.js: get_elements_attributes
-GraphElementsContent.js->Repository.js: repository_get_graph_elements_attributes
-Repository.js->AppUserPkb.php: getGraphElementsAttributes
+ModelChangeController.js->+GraphElementsContent.js: get_elements_attributes
+GraphElementsContent.js->+Repository.js: repository_get_graph_elements_attributes
+Repository.js->+AppUserPkb.php: getGraphElementsAttributes
 note right of AppUserPkb.php: SELECT * FROM node_content
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphElementsContent.js:
+GraphElementsContent.js-->-ModelChangeController.js:
 
-ModelChangeController.js->GraphMenu.js: get_selected_positions
+ModelChangeController.js->+GraphMenu.js: get_selected_positions
+GraphMenu.js-->-ModelChangeController.js:
 
-ModelChangeController.js->SelectGraphSkinModel.js: get_selected_skin
-SelectGraphSkinModel.js->Repository.js: repository_get_selected_skins
-Repository.js->AppUserPkb.php: getGraphSettings
+ModelChangeController.js->+SelectGraphSkinModel.js: get_selected_skin
+SelectGraphSkinModel.js->+Repository.js: repository_get_selected_skins
+Repository.js->+AppUserPkb.php: getGraphSettings
 note right of AppUserPkb.php: SELECT settings FROM graph_settings
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-SelectGraphSkinModel.js:
+SelectGraphSkinModel.js-->-ModelChangeController.js:
 
-ModelChangeController.js->SelectGraphLayoutModel.js: get_selected_layout
-SelectGraphLayoutModel.js->Repository.js: repository_get_selected_layouts
-Repository.js->AppUserPkb.php: getGraphSettings
+ModelChangeController.js->+SelectGraphLayoutModel.js: get_selected_layout
+SelectGraphLayoutModel.js->+Repository.js: repository_get_selected_layouts
+Repository.js->+AppUserPkb.php: getGraphSettings
 note right of AppUserPkb.php: SELECT settings FROM graph_settings
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-SelectGraphLayoutModel.js:
+SelectGraphLayoutModel.js-->-ModelChangeController.js:
 
-ModelChangeController.js->GraphElementsContent.js: get_elements_attributes
-GraphElementsContent.js->Repository.js: repository_get_graph_elements_attributes
-Repository.js->AppUserPkb.php: getGraphElementsAttributes
+ModelChangeController.js->+GraphElementsContent.js: get_elements_attributes
+GraphElementsContent.js->+Repository.js: repository_get_graph_elements_attributes
+Repository.js->+AppUserPkb.php: getGraphElementsAttributes
 note right of AppUserPkb.php: SELECT * FROM node_content
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphElementsContent.js:
+GraphElementsContent.js-->-ModelChangeController.js:
 
-ModelChangeController.js->GraphDecorationsPubSub.js: get_graph_decoration
+ModelChangeController.js->+GraphDecorationsPubSub.js: get_graph_decoration
+GraphDecorationsPubSub.js-->-ModelChangeController.js:
 
 ModelChangeController.js->GraphControllerPubSub: draw_graph_view
 ModelChangeController.js->GraphViewsPubSub : draw_graph_view
@@ -80,16 +120,87 @@ ModelChangeController.js->GraphViewsPubSub : draw_graph_view
 title Event: mouseenternode
 
 GraphViewsPubSub.js->GraphControllerPubSub.js: mouseenternode
-GraphControllerPubSub.js->SelectElementController.js: mouseenternode
-SelectElementController.js->GraphModelsPubSub.js: get_graph_models
+GraphControllerPubSub.js->SelectElementController.js: <direct module call>
+
+SelectElementController.js->+GraphModelsPubSub.js: get_graph_models
+GraphModelsPubSub.js-->-SelectElementController.js:
+
 SelectElementController.js->GraphViewsPubSub.js: update_graph_view_decoration
-GraphControllerPubSub.js->ShowEditorController.js: mouseenternode
-ShowEditorController.js->GraphModelsPubSub.js: get_graph_models
-ShowEditorController.js->GraphMenu.js: get_selected_positions
+GraphControllerPubSub.js->ShowEditorController.js: <direct module call>
+
+ShowEditorController.js->+GraphModelsPubSub.js: get_graph_models
+GraphModelsPubSub.js-->-ShowEditorController.js:
+
+ShowEditorController.js->+GraphMenu.js: get_selected_positions
+GraphMenu.js-->-ShowEditorController.js:
+
 ShowEditorController.js->GraphElementEditor.js: show_graph_element_editor
-GraphElementEditor.js->GraphElementsContent.js: get_graph_node_content
-GraphElementsContent.js->Repository.js: repository_get_graph_node_content
-Repository.js->AppUserPkb: getGraphNodeContent
-note right of AppUserPkb: SELECT * FROM node_content
-SelectElementController.js->GraphModelsPubSub.js: get_graph_models
-GraphElementEditor.js->GraphElementsContent.js: get_elements_attributes
+
+GraphElementEditor.js->+GraphElementsContent.js: get_graph_node_content
+GraphElementsContent.js->+Repository.js: repository_get_graph_node_content
+Repository.js->+AppUserPkb.php: getGraphNodeContent
+note right of AppUserPkb.php: SELECT * FROM node_content
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphElementsContent.js:
+GraphElementsContent.js-->-GraphElementEditor.js:
+
+SelectElementController.js->+GraphModelsPubSub.js: get_graph_models
+GraphModelsPubSub.js-->-SelectElementController.js:
+
+GraphElementEditor.js->+GraphElementsContent.js: get_elements_attributes
+GraphElementsContent.js-->-GraphElementEditor.js:
+
+-----------------------------------------------------------------------------
+title Node alternative select
+
+GraphElementEditor.js->+GraphElementsContent.js: request_for_graph_element_content_change
+GraphElementsContent.js->+Repository.js: repository_request_for_graph_element_content_change
+Repository.js->+AppUserPkb.php: updateGraphElementContent
+note right of AppUserPkb.php: UPDATE / INSERT node_content
+AppUserPkb.php-->-Repository.js:
+Repository.js-->-GraphElementsContent.js:
+GraphElementsContent.js-->-GraphElementEditor.js:
+
+GraphElementsContent.js->GraphControllerPubSub.js: graph_element_content_changed
+GraphControllerPubSub.js->ModelChangeController.js: <direct module call>
+ModelChangeController.js->+GraphModelsPubSub.js: get_graph_models
+GraphModelsPubSub.js-->-ModelChangeController.js:
+ModelChangeController.js->+GraphMenu.js: get_selected_positions
+GraphMenu.js-->-ModelChangeController.js:
+ModelChangeController.js->+SelectGraphSkinModel.js: get_selected_skin
+SelectGraphSkinModel.js-->-ModelChangeController.js:
+ModelChangeController.js->+GraphDecorationsPubSub.js: get_graph_decoration
+GraphDecorationsPubSub.js-->-ModelChangeController.js:
+ModelChangeController.js->GraphControllerPubSub.js: draw_graph_view
+ModelChangeController.js->GraphViewsPubSub.js: draw_graph_view
+
+GraphElementsContent.js->+GraphElementEditor.js: graph_element_content_changed
+GraphElementEditor.js->+GraphElementsContent.js: get_graph_node_content
+GraphElementsContent.js-->-GraphElementEditor.js:
+GraphElementEditor.js->+GraphModelsPubSub.js: get_graph_models
+GraphModelsPubSub.js-->-GraphElementEditor.js:
+GraphElementEditor.js->+GraphElementsContent.js: get_elements_attributes
+GraphElementsContent.js-->GraphElementEditor.js:
+
+GraphControllerPubSub.js->ModelChangeController.js: <direct module call>
+ModelChangeController.js->+SelectGraphSkinModel.js: get_selected_skin
+SelectGraphSkinModel.js-->-ModelChangeController.js:
+ModelChangeController.js->+SelectGraphLayoutModel.js: get_selected_layout
+SelectGraphLayoutModel.js-->-ModelChangeController.js:
+ModelChangeController.js->+GraphElementsContent.js: get_elements_attributes
+GraphElementsContent.js-->-ModelChangeController.js:
+ModelChangeController.js->+GraphDecorationsPubSub.js: get_graph_decoration
+GraphDecorationsPubSub.js-->-ModelChangeController.js:
+ModelChangeController.js->+GraphViewsPubSub.js: get_graph_view_label_area
+GraphViewsPubSub.js-->-ModelChangeController.js:
+ModelChangeController.js->+GraphHistory.js: graph_history_get_node_mapping
+GraphHistory.js-->-ModelChangeController.js:
+ModelChangeController.js->+GraphNodeMappingsPubSub.js: get_node_mapping
+GraphNodeMappingsPubSub.js-->-ModelChangeController.js:
+ModelChangeController.js->GraphControllerPubSub: draw_graph_view
+
+GraphControllerPubSub.js->SelectElementController: <direct module call>
+SelectElementController.js->GraphViewsPubSub.js: update_graph_view_decoration
+
+ModelChangeController.js->GraphViewsPubSub: draw_graph_view
+
