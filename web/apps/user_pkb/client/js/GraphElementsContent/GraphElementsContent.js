@@ -278,8 +278,8 @@ YOVALUE.GraphElementsContent.prototype = {
         break;
 
       /**
-       * Returns
-       *  - nodes attributes - all node data except text
+       * Returns from cache (get from repo if cache is empty)
+       *  - nodes attributes - all node data except text and list
        *  - edges attributes
        */
       case "get_elements_attributes":
@@ -314,7 +314,6 @@ YOVALUE.GraphElementsContent.prototype = {
                 that.cacheContent.add({elementType:'node', contentId:contentId, content:data.nodes[contentId]});
                 elementAttributes.nodes[contentId] = data.nodes[contentId];
               }
-
               for(contentId in data.edges){
                 that.cacheContent.add({elementType:'edge', contentId:contentId, content:data.edges[contentId]});
                 elementAttributes.edges[contentId] = data.edges[contentId];

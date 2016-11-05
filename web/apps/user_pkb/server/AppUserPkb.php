@@ -169,39 +169,21 @@ class AppUserPkb extends App
 
       case 'getGraphNodeContent':
         $content_ids = $this->getRequest()['nodeContentIds'];
-        $node_contents = array();
-        foreach($content_ids as $content_id){
+        $nodes = $this->getNodeAttributes($content_ids);
+
+        // add text
+        foreach($nodes as $content_id=>$node){
           $graph_id = $this->decodeContentId($content_id)['graph_id'];
           $local_content_id = $this->decodeContentId($content_id)['local_content_id'];
 
           $node_rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
 
-          $content = array();
-          // general node attributes
-          foreach($this->node_attribute_names as $name){
-            $content[$name] = $node_rows[0][$name];
-          }
-
           // alternatives
-          $content['alternatives'] = array();
           foreach($node_rows as $node_row){
-            $alternative = array();
-
-            // alternative attributes
-            foreach($this->node_alternative_attribute_names as $name){
-              if($name == 'p'){
-                $p = json_decode($node_row[$name], true);
-                if($p) $alternative[$name] = $p;
-                else $alternative[$name] = '';
-              }else{
-                $alternative[$name] = $node_row[$name];
-              }
-            }
-
             // alternative text
             if(GraphDiffCreator::isDiffContentId($content_id)){
               $contentId = GraphDiffCreator::decodeContentId($content_id);
-              $alternative['text'] = GraphDiffCreator::getDiffText(
+              $nodes[$content_id]['alternatives'][$node_row['alternative_id']]['text'] = GraphDiffCreator::getDiffText(
                   $this->db,
                   $contentId['graphId1'],
                   $contentId['localContentId1'],
@@ -211,11 +193,11 @@ class AppUserPkb extends App
                   $node_row['alternative_id']
               );
             }else{
-              $alternative['text'] = $node_row['text'];
+              $nodes[$content_id]['alternatives'][$node_row['alternative_id']]['text'] = $node_row['text'];
             }
 
             // get alternative lists
-            $q = "SELECT * FROM ".($content['type'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification').
+            $q = "SELECT * FROM ".($node['type'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification').
                 " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
             $this->log($q);
             $rows = $this->db->execute($q);
@@ -223,13 +205,11 @@ class AppUserPkb extends App
             foreach($rows as $row){
               $list_items[$row['id']] = $row;
             }
-            $alternative['list'] = $list_items;
-
-            $content['alternatives'][$node_row['alternative_id']] = $alternative;
+            $nodes[$content_id]['alternatives'][$node_row['alternative_id']]['list'] = $list_items;
           }
-          $node_contents[$content_id] = $content;
         }
-        $this->showRawData(json_encode($node_contents));
+        $this->log('getGraphNodeContent', $nodes);
+        $this->showRawData(json_encode($nodes));
         break;
 
       case 'getIcon':
@@ -980,7 +960,16 @@ class AppUserPkb extends App
         $node_attributes['alternatives'] = array();
         foreach($node_rows as $row){
           if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
-          foreach($this->node_alternative_attribute_names as $name) $node_attributes['alternatives'][$row['alternative_id']][$name] = $row[$name];
+          foreach($this->node_alternative_attribute_names as $name){
+            if($name == 'p'){
+              $p = json_decode($row[$name], true);
+              if($p) $v = $p;
+              else $v = '';
+            }else{
+              $v = $row[$name];
+            }
+            $node_attributes['alternatives'][$row['alternative_id']][$name] = $v;
+          }
         }
         $nodes[$content_id] = $node_attributes;
       }
