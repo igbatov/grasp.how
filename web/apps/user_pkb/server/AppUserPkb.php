@@ -16,15 +16,15 @@ class AppUserPkb extends App
 
   public function showView(){
     parent::showView();
-    $vars = $this->getRoute();
-    // choose the mode of access level
-    if($vars[0] === 'showGraph'){
-      $access_level = 'read';
-      $showGraphId = $vars[1];
-      $action = $vars[2];
 
-    // create new user: my.grasp.how/createNewUser/<login>/<password>/<admin secret>
-    }elseif($vars[0] === 'signupSuccess'){
+    $this->contentIdConverter = new ContentIdConverter();
+
+    $vars = $this->getRoute();
+    $this->log('REQUEST ', $this->getRoute(), $this->getRequest());
+
+    /**** SPECIAL ACTIONS ***/
+    // send email to admin on signup
+    if($vars[0] === 'signupSuccess'){
       // send email to me signalling that someone want to signup
       $this->sendMail("info@grasp.how", "igbatov@gmail.com", "someone want to signup", print_r($_REQUEST, true));
 
@@ -32,6 +32,7 @@ class AppUserPkb extends App
       include($this->getAppDir("template", false)."/signupSuccess.php");
       exit();
 
+    // create new user: my.grasp.how/createNewUser/<login>/<password>/<admin secret>
     }elseif($vars[0] === 'createNewUser'){
       if($vars[3] != $this->getAdminSecret()) exit('wrong secret!');
       $this->createNewUser($vars[1], $vars[2]);
@@ -47,33 +48,76 @@ class AppUserPkb extends App
       var_dump($this->removeGraph($vars[1]));
       exit();
 
+    }
+
+    /************** SET READ-ONLY MODE FOR SPECIAL CASES **********************/
+    // choose the mode of access level based on URL
+    if($vars[0] === 'showGraph'){
+      $access_level = 'read';
+      $showGraphId = $vars[1];
+      $action = $vars[2];
+
     }else{
       $access_level = 'read&write';
       $showGraphId = null;
       $action = $vars[0];
+
     }
+
+    $this->writeActions = array(
+        'updateGraphName',
+        'setGraphAttributes',
+        'changeGraphPosition',
+        'addGraphHistoryItem',
+        'updateNodeMapping',
+        'updateGraphElementContent'
+    );
+
+    // if user tries to update graph that not belongs to him, skip it
+    if(in_array($action, $this->writeActions)){
+      $r = $this->getRequest();
+      if($action == 'updateGraphName') $graphId = $r['graphId'];
+      if($action == 'setGraphAttributes') $graphId = $r['graphId'];
+      if($action == 'changeGraphPosition') $graphId = $r['graphId'];
+      if($action == 'addGraphHistoryItem') $graphId = $r['graphId'];
+      if($action == 'updateNodeMapping') $graphId = $r['graphId'];
+      if($action == 'updateGraphElementContent'){
+        if(isset($r['nodeContentId'])) $graphId = $this->contentIdConverter->getGraphId($r['nodeContentId']);
+        else if(isset($r['edgeContentId'])) $graphId = $this->contentIdConverter->getGraphId($r['edgeContentId']);
+        else if(isset($r['graphId'])) $graphId = $r['graphId'];
+      }
+      if($action == 'removeGraph') $graphId = $r['graphId'];
+
+      if(!$this->isUserOwnGraph($graphId))  $access_level = 'read';
+    }
+
+    if(isset($this->getRequest()['graphId']) && GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId'])) $access_level = 'read';
+
+    if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
 
     // if we are not authorized and want to go edit mode, just show login form
     if($access_level == 'read&write' && !$this->session->checkAuth()){
       header('HTTP/1.1 401 Unauthorized');
       $login_form_vars = $this->session->getLoginFormVars();
       $signup_form_vars = array(
-        "method"=>"post",
-        "action"=>"signupSuccess",
-        "fields"=>array(
-          "email"=>array("type"=>"text"),
-          "profile url"=>array("type"=>"text"),
-          /*
-          "password"=>array("type"=>"password"),
-          "password again"=>array("type"=>"password")
-          */
-        )
+          "method"=>"post",
+          "action"=>"signupSuccess",
+          "fields"=>array(
+              "email"=>array("type"=>"text"),
+              "profile url"=>array("type"=>"text"),
+            /*
+            "password"=>array("type"=>"password"),
+            "password again"=>array("type"=>"password")
+            */
+          )
       );
       include($this->getAppDir("template", false)."/login.php");
       exit();
     }
+    /*************   END OF READ-ONLY PROCESS STAFF    ****************/
 
     // check that user browsing from supported device/browser
+    /*
     $mobile_checker = new Mobile_Detect();
     $deviceType = ($mobile_checker->isMobile() ? ($mobile_checker->isTablet() ? 'tablet' : 'phone') : 'computer');
     $browser_checker = new \Sinergi\BrowserDetector\Browser();
@@ -83,40 +127,21 @@ class AppUserPkb extends App
       || $deviceType != 'computer'
       || $os_checker->getName() != \Sinergi\BrowserDetector\Os::WINDOWS
     ){
-     // include($this->getAppDir("template", false)."/browserUnsupported.php");
-     // exit();
+      include($this->getAppDir("template", false)."/browserUnsupported.php");
+      exit();
     }
+*/
+
+
+
 
     // define node and edge attributes (must be the same as db table column names)
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
     $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers');
     $this->node_alternative_attribute_names = array('label', 'reliability','p','created_at','updated_at');
     $this->edge_attribute_names = array('type', 'label');
-    $this->contentIdConverter = new ContentIdConverter();
 
-    $this->log('var_export($this->getRoute(),true) '.var_export($this->getRoute(),true));
-    $this->log('var_export($this->getRequest(),true) '.var_export($this->getRequest(),true));
-    if(isset($this->getRequest()['graphId'])) $this->log("var_export(GraphDiffCreator::isDiffGraphId(this->getRequest()['graphId']) ".var_export(GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId']),true));
-    if(isset($this->getRequest()['graphId']) && GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId'])) $access_level = 'read';
-
-    $this->writeActions = array(
-        'updateGraphName',
-        'setGraphAttributes',
-        'changeGraphPosition',
-        'addGraphHistoryItem',
-        'updateNodeMapping',
-        'updateGraphElementContent',
-        'createNewGraph',
-        'copyGraph',
-        'cloneGraph',
-        'removeGraph',
-        'addNodeContentList',
-        'updateNodeContentList',
-        'removeNodeContentList'
-    );
-    if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
-
-    // else process action defined by url
+    // process action defined by url
     switch($action){
 
       /* READ METHODS */
@@ -153,17 +178,22 @@ class AppUserPkb extends App
         break;
 
       case 'getGraphsModelSettings':
-        if($access_level == 'read'){
+        if($vars[0] === 'showGraph'){
           $graphs_settings = $this->getGraphs(array($showGraphId));
           $graphs_settings[$showGraphId]['isEditable'] = false;
         }else{
           if(isset($this->getRequest()['graphIds'])){
-            $graph_ids= $this->getRequest()['graphIds'];
+            $graph_ids = $this->getRequest()['graphIds'];
           }else{
             $graph_ids = $this->getGraphIds($this->getAuthId());
           }
           $graphs_settings = $this->getGraphs($graph_ids);
         }
+
+        foreach($graphs_settings as $id=>$settings){
+          if(!$this->isUserOwnGraph($id)) $graphs_settings[$id]['isEditable'] = false;
+        }
+
         $this->showRawData(json_encode($graphs_settings));
         break;
 
@@ -510,11 +540,6 @@ class AppUserPkb extends App
       case 'getGraphDiff':
         $r = $this->getRequest();
         $this->showRawData(json_encode($this->getGraphDiff($r['graphId'], $r['cloneId'])));
-        break;
-
-      case 'removeGraph':
-       // $r = $this->getRequest();
-       // var_dump($this->removeGraph($r['graph_id'], $this->getAuthId()));
         break;
 
       case 'getGraphsCloneList':

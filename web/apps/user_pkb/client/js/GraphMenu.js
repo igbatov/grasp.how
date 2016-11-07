@@ -9,7 +9,7 @@
  */
 YOVALUE.GraphMenu = function(publisher, viewManager, UI, jQuery){
   this.publisher = publisher;
-  this.selectedPosition = {};
+  this.selectedPosition = {};  // {graphId:<'leftGraphView', 'rightGraphView', 'not to be shown'>, ...}
   this.viewManager = viewManager;
   this.UI = UI;
   this.jQuery = jQuery;
@@ -125,78 +125,35 @@ YOVALUE.GraphMenu.prototype = {
         }});
       };
 
+      /**
+       * show graph diff between graph selected in panel pos and its clone
+       * @param pos
+       */
       var showClones = function(pos){
         var graphId;
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == pos) graphId = i;
         }
-        that.UI.showModalList(clones[graphId], {'show diff':function(cloneId){
-          // get graph diff and show it
-          that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
-            // and then show them
-            that.publisher.publish('show_graphs');
-          });
-/*
-          that.publisher.publish(['get_graph_diff', {graphId:graphId, cloneId:cloneId}]).then(function(graphViewSettings){
-
-            // set graphModel for diff graph
-            that.publisher.publish(["add_graph_model", {
-              graphId:graphViewSettings.graphId,
-              graphSettings:graphViewSettings.graphModelSettings,
-              elements:graphViewSettings.graphModel
-            }]);
-
-            // set selectedPosition
-            that.selectedPosition[graphViewSettings.graphId] = 'rightGraphView';
-
-            // build graphViewSettings
-            // graphViewSettings.skin = that.publisher.getInstant("get_skin_by_skin_settings", graphViewSettings.skin);
-
-            var decoration = that.publisher.getInstant("get_graph_decoration", {
-                  graphModel:graphViewSettings.graphModel,
-                  graphNodeAttributes:graphViewSettings.graphNodeAttributes,
-                  graphEdgeAttributes:graphViewSettings.graphEdgeAttributes,
-                  scale:Math.min(graphArea.width, graphArea.height),
-                  skin:graphViewSettings.skin
-                }
-            );
-            graphViewSettings.decoration = decoration;
-            // Create node label layout for GraphView
-            var nodeLabels = {};
-            var graphNodes = graphViewSettings.graphModel.nodes;
-            for(var nodeId in graphNodes){
-              nodeLabels[graphNodes[nodeId].id] = {
-                id: graphNodes[nodeId].id,
-                label: graphViewSettings.graphNodeAttributes[graphNodes[nodeId].nodeContentId].label,
-                size: decoration.nodeLabels[nodeId].size
-              };
+        that.UI.showModalList(clones[graphId],
+            {
+              'show clone':function(cloneId){
+                // get graph diff and show it
+                that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
+                  // change change graph position
+                  that.selectedPosition[cloneId] = 'rightGraphView';
+                  // and then show them
+                  that.publisher.publish('show_graphs');
+                });
+              },
+              'show diff':function(cloneId){
+                // get graph diff and show it
+                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
+                  // and then show them
+                  that.publisher.publish('show_graphs');
+                });
+              }
             }
-            var nodeLabelAreaList = that.publisher.getInstant("get_graph_view_label_area", {
-              nodeLabels:nodeLabels,
-              skin:graphViewSettings.skin
-            });
-            var nodeMappingHint = graphViewSettings.nodeMapping;
-
-            graphViewSettings.layout = that.publisher.getInstant("get_layout_by_name",'basicLayout');
-            // Create node layout for GraphView
-            graphViewSettings.nodeMapping = that.publisher.getInstant("get_node_mapping", {
-              graphId:graphViewSettings.graphId,
-              model:graphViewSettings.graphModel,
-              hint:nodeMappingHint,
-              layout:graphViewSettings.layout,
-              nodeLabelAreaList:nodeLabelAreaList,
-              area:graphArea
-            });
-            delete graphViewSettings['graphModelSettings'];
-            graphViewSettings['dragMode'] = 'move';
-
-            console.log(graphViewSettings);
-
-           // that.publisher.publish(['hide_all_graphs']);
-            that.publisher.publish(["draw_graph_view", graphViewSettings]);
-          });
-*/
-        }});
+        );
       };
 
       var onSelect = function(position, graphId){
