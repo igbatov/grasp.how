@@ -134,25 +134,29 @@ YOVALUE.GraphMenu.prototype = {
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == pos) graphId = i;
         }
-        that.UI.showModalList(clones[graphId],
-            {
-              'show clone':function(cloneId){
-                // get graph diff and show it
-                that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
-                  // change change graph position
-                  that.selectedPosition[cloneId] = 'rightGraphView';
-                  // and then show them
-                  that.publisher.publish('show_graphs');
-                });
-              },
-              'show diff':function(cloneId){
-                // get graph diff and show it
-                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
-                  // and then show them
-                  that.publisher.publish('show_graphs');
-                });
-              }
+
+        var m = that.UI.createModal();
+        that.UI.setModalContent(m,that.UI.createList(clones[graphId],
+          {
+            'show clone':function(cloneId){
+              // get graph diff and show it
+              that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
+                // change change graph position
+                that.selectedPosition[cloneId] = 'rightGraphView';
+                // and then show them
+                that.publisher.publish('show_graphs');
+                that.UI.closeModal(m);
+              });
+            },
+            'show diff':function(cloneId){
+              // get graph diff and show it
+              that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
+                // and then show them
+                that.publisher.publish('show_graphs');
+                that.UI.closeModal(m);
+              });
             }
+          })
         );
       };
 

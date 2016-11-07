@@ -77,8 +77,8 @@ YOVALUE.GraphElementEditor.prototype = {
 
             }
           }
-
         }
+
         break;
 
       case "show_graph_element_editor":
@@ -204,17 +204,17 @@ YOVALUE.GraphElementEditor.prototype = {
     var formDef = {};
     formDef['editConditionals'] ={type:'hidden'};
     formDef['active_alternative_id'] = {type:'hidden'};
-    formDef['addAlternative'] = {type:'hidden'};
-    formDef['removeAlternative'] = {type:'hidden'};
-    formDef['removeButton'] ={type:'button',label:'remove Node'};
-    formDef['type'] = {type:'select',items:[],value:''};
-    formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100};
+    formDef['addAlternative'] = {type:'hidden',disabled:!isEditable};
+    formDef['removeAlternative'] = {type:'hidden',disabled:!isEditable};
+    formDef['removeButton'] ={type:'button',label:'remove Node',disabled:!isEditable};
+    formDef['type'] = {type:'select',items:[],value:'',disabled:!isEditable};
+    formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100,disabled:!isEditable};
     formDef['node-alternative_division_line'] = {type:'hidden'};
-    formDef['label'] =       {type:'textarea',value:''};
+    formDef['label'] = {type:'textarea',value:'',disabled:!isEditable};
     formDef['reliability'] = {type:'hidden'};
     //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
-    formDef['text'] ={type:'textarea',label:''};
-    formDef['list'] ={type:'list'};
+    formDef['text'] ={type:'textarea',label:'',disabled:!isEditable};
+    formDef['list'] ={type:'list',disabled:!isEditable};
 
     var form = this.UI.createForm(formDef);
 
@@ -225,7 +225,7 @@ YOVALUE.GraphElementEditor.prototype = {
       // nodes - text, list - sources or falsifications
         .then(function(contents){
 
-        console.info('contents',YOVALUE.clone(contents));
+         console.info('contents',YOVALUE.clone(contents));
 
           var node = contents[nodeContentId];
           var activeAlternative = node.alternatives[node.active_alternative_id];
@@ -318,12 +318,13 @@ YOVALUE.GraphElementEditor.prototype = {
                       if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- ВЕРОЯТНОСТЬ: "'+node.alternatives[j].label+'"'};
                       fields[formKeyStr+'__'+j] = {
                         type: isFactDenial ? 'hidden' : 'text',
-                        value: YOVALUE.typeof(node.alternatives[j].p) == 'object' ? node.alternatives[j].p[formKeyStr] : ""
+                        value: YOVALUE.typeof(node.alternatives[j].p) == 'object' ? node.alternatives[j].p[formKeyStr] : "",
+                        disabled:!isEditable
                       };
                     }
                   }
 
-                  fields['button'] = {type:'button', label:'Сохранить'};
+                  fields['button'] = {type:'button', label:'Сохранить',disabled:!isEditable};
 
                   var modalWindow = that.UI.createModal();
                   var form = that.UI.createForm(
@@ -609,7 +610,8 @@ YOVALUE.GraphElementEditor.prototype = {
       items:htmllist,
       itemActions:{edit:updateListItem, remove:removeListItem},
       addLabel: (nodeType == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
-      addCallback: addListItem
+      addCallback: addListItem,
+      disabled:!isEditable
     });
   },
 

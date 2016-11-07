@@ -254,7 +254,7 @@ YOVALUE.UIElements.prototype = {
    */
   createHidden: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('input',{type:'hidden',id:uniqId, name:attrs.name, value:attrs.value},'');
+    var el = YOVALUE.createElement('input',{type:'hidden',id:uniqId, name:attrs.name, value:attrs.value, disabled:attrs.disabled},'');
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'hidden', definition:attrs, dom:el});
 
@@ -289,9 +289,9 @@ YOVALUE.UIElements.prototype = {
   createListBox: function(attrs){
     var uniqId = this.generateId();
     var div = YOVALUE.createElement('div',{id:uniqId},'');
-    if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback}));
+    if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback, disabled: attrs.disabled}));
     if(typeof(attrs.items)!='undefined' && YOVALUE.getObjectKeys(attrs.items).length > 0){
-       var HTMLList = this.createList(attrs.items, attrs.itemActions);
+       var HTMLList = this.createList(attrs.items, attrs.itemActions, attrs.disabled);
        div.appendChild(HTMLList);
     }
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'list', definition:attrs, dom:div});
@@ -342,7 +342,7 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'search') form.appendChild(this.createSearch({name:name, label:fields[name]['label'], value:fields[name]['value'], findCallback:fields[name]['findCallback'], typeCallback:fields[name]['typeCallback'], selectCallback:fields[name]['selectCallback'], disabled:fields[name]['disabled'], formname:uniqId}));
       if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox({name:name, items:fields[name]['items'], addCallback:fields[name]['addCallback'], removeCallback:fields[name]['removeCallback'], disabled:fields[name]['disabled'], formname:uniqId}));
       if(fields[name]['type'] == 'range') form.appendChild(this.createRange({name:name, value:fields[name]['value'], min:fields[name]['min'], max:fields[name]['max'], step:fields[name]['step'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId}));
-      if(fields[name]['type'] == 'hidden') form.appendChild(this.createHidden({name:name,value:fields[name]['value'], formname:uniqId}));
+      if(fields[name]['type'] == 'hidden') form.appendChild(this.createHidden({name:name,value:fields[name]['value'], formname:uniqId, disabled:fields[name]['disabled']}));
       if(fields[name]['type'] == 'title') form.appendChild(this.createTitle({value:fields[name]['value'], formname:uniqId}));
       if(fields[name]['type'] == 'list') form.appendChild(this.createListBox({name:name,items:fields[name]['items'], itemActions:fields[name]['itemActions'], addLabel: fields[name]['addLabel'], addCallback:fields[name]['addCallback'], formname:uniqId}));
     }
@@ -489,11 +489,12 @@ YOVALUE.UIElements.prototype = {
    * @param {Object<string, string | HTMLElement>} items - in a form {id:label, ...}, id is string, label is string or HTMLElement
    * @param {Object<string, function>} actions - action that can be made on item, in a form {name:callback, ...}, action args are item id and li (HTMLElement that represents item)
    */
-  createList: function(items, actions){
+  createList: function(items, actions, disabled){
+    var disabled = disabled || false;
     var uniqId = this.generateId();
     var ul = YOVALUE.createElement('ul', {id:uniqId, class:'ui_list'});
     for(var id in items){
-      ul.appendChild(this.createListItem(id,items[id],actions));
+      ul.appendChild(this.createListItem(id,items[id],actions,disabled));
     }
     return ul;
   },
@@ -505,7 +506,8 @@ YOVALUE.UIElements.prototype = {
    * @param actions
    * @returns {HTMLElement}
    */
-  createListItem: function(id,label,actions){
+  createListItem: function(id,label,actions,disabled){
+    var disabled = disabled || false;
     var li = YOVALUE.createElement('li',{});
     if(typeof(label) == 'string'){
       li.appendChild(document.createTextNode(label));
@@ -517,7 +519,7 @@ YOVALUE.UIElements.prototype = {
     li.appendChild(buttons);
 
     for(var name in actions){
-      var button = this.createButton({name:name, label:name});
+      var button = this.createButton({name:name, label:name, disabled:disabled});
       (function(button, callback, id,li){
         button.addEventListener('click', function(evt){
           callback(id, li);
