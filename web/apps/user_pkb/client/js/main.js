@@ -202,7 +202,9 @@ Modules['Mediator'].setSubscriptions(
     ],
     'graph_element_content_changed':[
       Modules['GraphControllerPubSub'],
-      Modules['GraphElementEditor'],
+      Modules['GraphElementEditor']
+    ],
+    'calculate_bayes_probabilities':[
       Modules['BayesPubSub']
     ],
     'repository_request_for_graph_element_content_change':[Modules['Repository']],

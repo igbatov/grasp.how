@@ -80,6 +80,7 @@ YOVALUE.GraphMenu.prototype = {
           if(that.selectedPosition[i] == position) graphId = i;
         }
         if(typeof(graphs[graphId]) == 'undefined') return;
+
         var m = that.UI.createModal();
         that.UI.setModalContent(m, that.UI.createForm({
           'graphId':{'type':'hidden', 'value':graphId},
@@ -123,6 +124,15 @@ YOVALUE.GraphMenu.prototype = {
           // redraw menu
           that._createView();
         }});
+      };
+
+      var calculateBayes = function(position){
+        var graphId = null;
+        for(var i in that.selectedPosition){
+          if(that.selectedPosition[i] == position) graphId = i;
+        }
+        if(typeof(graphs[graphId]) == 'undefined') return;
+        that.publisher.publish(['calculate_bayes_probabilities', {graphId:graphId}]);
       };
 
       /**
@@ -198,6 +208,7 @@ YOVALUE.GraphMenu.prototype = {
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'EditName',label:'Edit name', callback:function(){onEdit('leftGraphView')}}));
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('leftGraphView')}}));
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Clones', label:'Clones', callback:function(){showClones('leftGraphView')}}));
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'CalculateBayes', label:'Bayes|>', callback:function(){calculateBayes('leftGraphView')}}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Edit', label:'Edit', callback:function(){onEdit('rightGraphView')}}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
     });
