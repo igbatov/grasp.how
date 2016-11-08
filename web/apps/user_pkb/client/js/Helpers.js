@@ -13,7 +13,31 @@ var YOVALUE = YOVALUE || {};
  * @returns {string}
  */
 YOVALUE.typeof = function(obj) {
-  return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
+  return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+};
+
+/**
+ * Check if o is a DOM Node
+ * @param o
+ * @returns {boolean}
+ */
+YOVALUE.isDOMNode = function(o) {
+  return (
+      typeof Node === "object" ? o instanceof Node :
+          o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+      );
+};
+
+/**
+ * Check if o is a DOM Element
+ * @param o
+ * @returns {boolean}
+ */
+YOVALUE.isDOMElement = function(o) {
+  return (
+      typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+          o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
+      );
 };
 
 /**
@@ -1320,7 +1344,7 @@ YOVALUE.createElement = function(tag, attrs, text, callback){
  * Syntax sugar to update DOM element
  * @param {HTMLElement} el - DOM element
  * @param {Object<string, string>} attrs - DOM attributes (id, class, value), no CSS here
- * @param {String=} text - text inside element
+ * @param {String= || HTMLElement=} text - text inside element
  * @returns {HTMLElement}
  */
 YOVALUE.updateElement = function(el, attrs, text){
@@ -1328,7 +1352,13 @@ YOVALUE.updateElement = function(el, attrs, text){
     if(i == 'disabled' && attrs[i] == false) el.removeAttribute("disabled");
     else el[i] = attrs[i];
   }
-  if(typeof(text) != 'undefined') el.innerText = text;
+  if(typeof(text) != 'undefined'){
+    if(YOVALUE.isDOMNode(text)){
+      el.appendChild(text);
+    }else{
+      el.innerText = text;
+    }
+  }
   return el;
 };
 YOVALUE.getDisplay = function(el){

@@ -482,7 +482,11 @@ YOVALUE.GraphElementEditor.prototype = {
       // create list of alternative labels
       var alternativeLabels = {};
       for(var i in alternatives){
-        alternativeLabels[i] = alternatives[i].label;
+        alternativeLabels[i] = alternatives[i].label + ' ' +alternatives[i].reliability+'%';
+        var domel = YOVALUE.createElement('span',{style:'position:relative;'},alternativeLabels[i]);
+        var bar = YOVALUE.createElement('span',{style:'background-color: red; position: absolute; left: 0; width: '+alternatives[i].reliability+'%'},' ');
+        domel.appendChild(bar);
+        alternativeLabels[i] = domel;
       }
 
       // update alternatives select

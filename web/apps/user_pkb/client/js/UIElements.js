@@ -87,6 +87,7 @@ YOVALUE.UIElements.prototype = {
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
 
     if(typeof(attrs.defaultValue) != 'undefined' && attrs.defaultValue != null){
+      console.log('attrs.defaultValue',attrs.defaultValue,attrs.items[attrs.defaultValue]);
       YOVALUE.updateElement(selectedItem, {value:attrs.defaultValue}, attrs.items[attrs.defaultValue]);
       YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
     }
@@ -95,7 +96,14 @@ YOVALUE.UIElements.prototype = {
 
     // create list of items
     var lis = Object.keys(attrs.items).map(function(key){
-      return YOVALUE.createElement('li',{value:key},(attrs.items[key].length > that.SELECT_ITEM_MAX_LENGTH ? attrs.items[key].substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : attrs.items[key]))
+      if(YOVALUE.isDOMElement(attrs.items[key])){
+        var li = YOVALUE.createElement('li',{value:key});
+        li.appendChild(attrs.items[key]);
+        return li;
+      }else{
+        var text = (attrs.items[key].length > that.SELECT_ITEM_MAX_LENGTH ? attrs.items[key].substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : attrs.items[key]);
+        return YOVALUE.createElement('li',{value:key},text)
+      }
     });
 
     var ul = YOVALUE.createElement('ul',{},'');
