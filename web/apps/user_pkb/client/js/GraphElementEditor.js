@@ -705,32 +705,34 @@ YOVALUE.GraphElementEditor.prototype = {
       'personal experience':{'name':'text','comment':'text','publisher_reliability':'text'}
     };
 
-    var _createSourceFields = function(source_type){
+    var selectSourceType = function(name, value){
+      if(MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(value) != -1){
+        that.UI.updateForm(form,'publisher_reliability',{disabled:false});
+      }else{
+        that.UI.updateForm(form,'publisher_reliability',{disabled:true});
+      }
+
+      // show only fields that is valid for 'personal experience'
+      if(value == 'personal experience'){
+        for(var fieldname in itemTypeVisible['all']){
+          if(YOVALUE.getObjectKeys(itemTypeVisible['personal experience']).indexOf(fieldname) == -1){
+            that.UI.updateForm(form,fieldname,{type:'hidden'});
+          }
+        }
+      }
+      // show all fields
+      else{
+        for(var fieldname in itemTypeVisible['all']){
+          var fieldtype = itemTypeVisible['all'][fieldname];
+          that.UI.updateForm(form,fieldname,{type:fieldtype});
+        }
+      }
+    };
+
+    var _createSourceFields = function(){
        var formFields = {
         'source_type':{'type':'select', 'label':'Тип',
-          callback:function(name, value){
-            if(MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(value) != -1){
-              that.UI.updateForm(form,'publisher_reliability',{disabled:false});
-            }else{
-              that.UI.updateForm(form,'publisher_reliability',{disabled:true});
-            }
-
-            // show only fields that is valid for 'personal experience'
-            if(value == 'personal experience'){
-              for(var fieldname in itemTypeVisible['all']){
-                if(YOVALUE.getObjectKeys(itemTypeVisible['personal experience']).indexOf(fieldname) == -1){
-                  that.UI.updateForm(form,fieldname,{type:'hidden'});
-                }
-              }
-            }
-            // show all fields
-            else{
-              for(var fieldname in itemTypeVisible['all']){
-                var fieldtype = itemTypeVisible['all'][fieldname];
-                that.UI.updateForm(form,fieldname,{type:fieldtype});
-              }
-            }
-          },
+          callback:selectSourceType,
           'items':{
             'article':'статья (peer-reviewed)',
             'meta-article':'мета-статья (peer-reviewed)',
@@ -786,7 +788,7 @@ YOVALUE.GraphElementEditor.prototype = {
         },
         'publisher_reliability':{
           type:'text',
-          disabled:(typeof(source_type) != 'undefined' && MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(source_type) != -1) ? false : true,
+          disabled:true,
           label:'reliability'
         },
         'scopus_title_list_id':{type:'hidden'},
@@ -810,7 +812,7 @@ YOVALUE.GraphElementEditor.prototype = {
     };
 
     if(nodeType == this.NODE_TYPE_FACT){
-      formFields = _createSourceFields(item.source_type);
+      formFields = _createSourceFields();
     }else if(nodeType == that.NODE_TYPE_PROPOSITION){
       formFields = _createFalsificationFields();
     }
@@ -836,6 +838,8 @@ YOVALUE.GraphElementEditor.prototype = {
       }
     );
 
+    // update fields in a form accourding to item source_type
+    if(item.source_type) selectSourceType('',item.source_type);
 
     that.UI.setModalContent(modalWindow, form);
 

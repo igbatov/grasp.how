@@ -5,7 +5,7 @@
  */
 YOVALUE.UIElements = function(){
   this.uniqueId = 0;
-  this.SELECT_ITEM_MAX_LENGTH = 25;
+  this.SELECT_ITEM_MAX_LENGTH = 255;
   // list of all elements created
   this.elements = new YOVALUE.Table(['id', 'type', 'formname', 'name', 'definition', 'dom']);
 };

@@ -23,6 +23,8 @@ YOVALUE.HistoryController.prototype = {
     if(acceptedEvents.indexOf(eventName) == -1) return;
 
     if(eventName === 'undo_pressed' || eventName === 'redo_pressed'){
+      // do not react on ctrl-z anf ctrl-y if input or textarea is focused
+      if(['TEXTAREA','INPUT'].indexOf(document.activeElement.nodeName) != -1) return;
       // if focus is on test editor do nothing
       if(this.isElementEditorFocused) return;
 
