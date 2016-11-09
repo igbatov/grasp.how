@@ -81,29 +81,45 @@ YOVALUE.UIElements.prototype = {
   createSelectBox: function(attrs){
     var that = this,
         uniqId = this.generateId(),
-        selectedItem = YOVALUE.createElement('span',{class:'selected',value:'none'},'none'),
-        inputHidden = YOVALUE.createElement('input',{name:attrs.name,type:'hidden',value:null});
+        selectedItem = YOVALUE.createElement('div',{class:'selected',value:'none',style:'display:inline;'},'none'),
+        inputHidden = YOVALUE.createElement('input',{name:attrs.name,type:'hidden',value:null}),
+        selectBox = YOVALUE.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
 
-    if(typeof(attrs.defaultValue) != 'undefined' && attrs.defaultValue != null){
-      console.log('attrs.defaultValue',attrs.defaultValue,attrs.items[attrs.defaultValue]);
-      YOVALUE.updateElement(selectedItem, {value:attrs.defaultValue}, attrs.items[attrs.defaultValue]);
-      YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
+    // convert items text to DOM elements
+    console.log('1 attrs.items',YOVALUE.clone(attrs.items));
+    for(var key in attrs.items){
+      var item = attrs.items[key];
+      console.log('YOVALUE.typeof(item)',YOVALUE.typeof(item));
+      if(YOVALUE.isDOMElement(item)){
+        // do nothing
+      }else if(YOVALUE.typeof(item) == 'string'){
+        var text = (item.length > that.SELECT_ITEM_MAX_LENGTH ? item.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item);
+        item = YOVALUE.createElement('text',{},text);
+      }else{
+        item = YOVALUE.createElement('span',{},'');
+      }
+      attrs.items[key] = item;
     }
+console.log('2 attrs.items',YOVALUE.clone(attrs.items));
+    console.log('attrs.defaultValue',attrs.defaultValue);
+    if(typeof(attrs.defaultValue) != 'undefined' && YOVALUE.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
+      console.log('attrs.defaultValue',attrs.defaultValue,attrs.items[attrs.defaultValue]);
+      YOVALUE.removeChilds(selectedItem);
+      console.log(1);
+      selectedItem.appendChild(attrs.items[attrs.defaultValue]);
+      console.log(2);
+      YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
+      console.log(3);
 
-    var selectBox = YOVALUE.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
+    }
 
     // create list of items
     var lis = Object.keys(attrs.items).map(function(key){
-      if(YOVALUE.isDOMElement(attrs.items[key])){
-        var li = YOVALUE.createElement('li',{value:key});
-        li.appendChild(attrs.items[key]);
-        return li;
-      }else{
-        var text = (attrs.items[key].length > that.SELECT_ITEM_MAX_LENGTH ? attrs.items[key].substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : attrs.items[key]);
-        return YOVALUE.createElement('li',{value:key},text)
-      }
+      var li = YOVALUE.createElement('li',{value:key});
+      li.appendChild(attrs.items[key]);
+      return li;
     });
 
     var ul = YOVALUE.createElement('ul',{},'');
@@ -113,25 +129,31 @@ YOVALUE.UIElements.prototype = {
     selectBox.appendChild(inputHidden);
     selectBox.appendChild(ul);
 
-    document.body.addEventListener('click', function(evt){
+    // behaviour: toggle show/hide of menu
+    selectedItem.addEventListener('click', function(evt){
       if(attrs.disabled) return;
-
-      // toggle show/hide of menu
-      if(evt.target == selectedItem){
-        if(YOVALUE.getDisplay(ul) == 'none'){
-          YOVALUE.setDisplay(ul,'block');
-        }else{
-          YOVALUE.setDisplay(ul,'none');
-        }
+      if(YOVALUE.getDisplay(ul) == 'none'){
+        YOVALUE.setDisplay(ul,'block');
+      }else{
+        YOVALUE.setDisplay(ul,'none');
       }
-      // click on item - select new one
-      else if(lis.indexOf(evt.target) != -1 ){
-        var value = evt.target.getAttribute('value');
-        YOVALUE.updateElement(selectedItem, {value:value}, evt.target.innerText);
+    });
+
+    // behaviour: click on item - select new one
+    lis.forEach(function(li){
+      li.addEventListener('click', function(evt){
+        var value = li.getAttribute('value');
+        YOVALUE.removeChilds(selectedItem);
+        selectedItem.appendChild(attrs.items[value]);
         YOVALUE.updateElement(inputHidden, {value:value});
         if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
         YOVALUE.setDisplay(ul,'none');
-      }else{
+      });
+    });
+
+    // behaviour: hide menu when clicked outside menu
+    document.body.addEventListener('click', function(evt){
+      if(!YOVALUE.isChildOf(evt.target, selectBox)){
         YOVALUE.setDisplay(ul,'none');
       }
     });

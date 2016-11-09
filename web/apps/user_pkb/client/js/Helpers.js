@@ -1287,13 +1287,15 @@ YOVALUE.getBrowserInfo = function(){
 
 /**
  * Syntax sugar to create DOM element
- * @param {String} tag - DOM element type (div, input, h1, ...)
+ * @param {String} tag - DOM element type (div, input, h1, ...) or text for text node
  * @param {Object<string, string>} attrs - DOM attributes (id, class, value), no CSS here
  * @param {String=} text - text inside element
  * @param {function(string,string)=} callback - callback on value change (optional)
  * @returns {HTMLElement}
  */
 YOVALUE.createElement = function(tag, attrs, text, callback){
+  if(tag == 'text') return document.createTextNode(text);
+
   var el = document.createElement(tag);
   for(var i in attrs){
     if(i == 'disabled' && attrs[i] != true) continue;
@@ -1323,7 +1325,7 @@ YOVALUE.createElement = function(tag, attrs, text, callback){
       });
     }
 
-    // text input
+    // checkbox input
     else if(tag == 'input' && attrs['type'] == 'checkbox'){
       el.addEventListener('change',function(evt){
         callback(el.getAttribute('name'), el.checked);
@@ -1374,12 +1376,21 @@ YOVALUE.setDisplay = function(el, v){
  * @returns {boolean}
  */
 YOVALUE.isChildOf = function(child, parent) {
+  return parent.contains(child);
+  /*
   if (child.parentNode === parent) {
     return true;
   } else if (child.parentNode === null) {
     return false;
   } else {
     return YOVALUE.isChildOf(child.parentNode, parent);
+  }
+  */
+};
+
+YOVALUE.removeChilds = function(parent){
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
   }
 };
 
