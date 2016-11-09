@@ -372,7 +372,7 @@ YOVALUE.debug = (function(Table){
  * @return {*} - clone of o
  */
 YOVALUE.clone = function clone( obj, forceDescriptor ) {
- //if(YOVALUE.typeof(obj) != 'object') console.log('=====================================',obj,typeof(obj),YOVALUE.typeof(obj));
+  if(YOVALUE.isDOMNode(obj)) return obj.cloneNode(true);
   if(YOVALUE.typeof(obj) != 'object' && YOVALUE.typeof(obj) != 'array') return obj;
 
   var val, length, i,

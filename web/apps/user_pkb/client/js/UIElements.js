@@ -87,38 +87,32 @@ YOVALUE.UIElements.prototype = {
 
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
 
-    // convert items text to DOM elements
-    console.log('1 attrs.items',YOVALUE.clone(attrs.items));
-    for(var key in attrs.items){
-      var item = attrs.items[key];
-      console.log('YOVALUE.typeof(item)',YOVALUE.typeof(item));
+    /**
+     * Create DOM element from selectBox item
+     * @param item
+     * @returns {HTMLElement}
+     */
+    function createDOMElement(item){
       if(YOVALUE.isDOMElement(item)){
-        // do nothing
+        return YOVALUE.clone(item);
       }else if(YOVALUE.typeof(item) == 'string'){
         var text = (item.length > that.SELECT_ITEM_MAX_LENGTH ? item.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item);
-        item = YOVALUE.createElement('text',{},text);
+        return YOVALUE.createElement('text',{},text);
       }else{
-        item = YOVALUE.createElement('span',{},'');
+        return YOVALUE.createElement('span',{},'');
       }
-      attrs.items[key] = item;
     }
-console.log('2 attrs.items',YOVALUE.clone(attrs.items));
-    console.log('attrs.defaultValue',attrs.defaultValue);
-    if(typeof(attrs.defaultValue) != 'undefined' && YOVALUE.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
-      console.log('attrs.defaultValue',attrs.defaultValue,attrs.items[attrs.defaultValue]);
-      YOVALUE.removeChilds(selectedItem);
-      console.log(1);
-      selectedItem.appendChild(attrs.items[attrs.defaultValue]);
-      console.log(2);
-      YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
-      console.log(3);
 
+    if(typeof(attrs.defaultValue) != 'undefined' && YOVALUE.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
+      YOVALUE.removeChilds(selectedItem);
+      selectedItem.appendChild(createDOMElement(attrs.items[attrs.defaultValue]));
+      YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
     }
 
     // create list of items
     var lis = Object.keys(attrs.items).map(function(key){
       var li = YOVALUE.createElement('li',{value:key});
-      li.appendChild(attrs.items[key]);
+      li.appendChild(createDOMElement(attrs.items[key]));
       return li;
     });
 
@@ -144,7 +138,7 @@ console.log('2 attrs.items',YOVALUE.clone(attrs.items));
       li.addEventListener('click', function(evt){
         var value = li.getAttribute('value');
         YOVALUE.removeChilds(selectedItem);
-        selectedItem.appendChild(attrs.items[value]);
+        selectedItem.appendChild(createDOMElement(attrs.items[value]));
         YOVALUE.updateElement(inputHidden, {value:value});
         if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
         YOVALUE.setDisplay(ul,'none');

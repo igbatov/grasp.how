@@ -452,6 +452,17 @@ YOVALUE.GraphElementEditor.prototype = {
         });
   },
 
+  _getPartialGradientStyle: function(percent){
+    var str = '';
+    str += 'background: -moz-linear-gradient(top, rgba(30,87,153,0) 0%, rgba(41,137,216,0) '+percent+'%, rgba(255,48,48,1) '+(percent+1)+'%, rgba(255,0,0,1) 100%); '; /* FF3.6+ */
+    str += 'background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(30,87,153,0)), color-stop('+percent+'%,rgba(41,137,216,0)), color-stop('+(percent+1)+'%,rgba(255,48,48,1)), color-stop(100%,rgba(255,0,0,1))); '; /* Chrome,Safari4+ */
+    str += 'background: -webkit-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; /* Chrome10+,Safari5.1+ */
+    str += 'background: -o-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; /* Opera 11.10+ */
+    str += 'background: -ms-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; /* IE10+ */
+    str += 'background: linear-gradient(to bottom, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; /* W3C */
+    return str;
+  },
+
   /**
    * Create promises to add text and source list (for fact) or falsification list (for proposition)
    * @param form
@@ -482,11 +493,9 @@ YOVALUE.GraphElementEditor.prototype = {
       // create list of alternative labels
       var alternativeLabels = {};
       for(var i in alternatives){
-        alternativeLabels[i] = alternatives[i].label + ' ' +alternatives[i].reliability+'%';
-        var domel = YOVALUE.createElement('span',{style:'position:relative;'},alternativeLabels[i]);
-        var bar = YOVALUE.createElement('span',{style:'background-color: red; position: absolute; left: 0; width: '+alternatives[i].reliability+'%'},' ');
-        domel.appendChild(bar);
-        alternativeLabels[i] = domel;
+        alternativeLabels[i] = YOVALUE.createElement('span',
+          {style:'position:relative; '+that._getPartialGradientStyle(alternatives[i].reliability)},
+          alternatives[i].label + ' ' +alternatives[i].reliability+'%');
       }
 
       // update alternatives select
