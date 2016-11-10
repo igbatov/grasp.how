@@ -120,7 +120,7 @@ YOVALUE.UIElements.prototype = {
     // set selected item
     if(typeof(attrs.defaultValue) != 'undefined' && YOVALUE.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
       if(attrs.nodrop){
-        lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('selected'); });
+        lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('nodrop_selected'); });
       }else{
         YOVALUE.removeChilds(selectedItem);
         selectedItem.appendChild(createDOMElement(attrs.items[attrs.defaultValue]));
@@ -145,8 +145,8 @@ YOVALUE.UIElements.prototype = {
         YOVALUE.updateElement(inputHidden, {value:value});
         if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
         if(attrs.nodrop){
-          lis.forEach(function(li){ li.classList.remove('selected') });
-          li.classList.add('selected');
+          lis.forEach(function(li){ li.classList.remove('nodrop_selected') });
+          li.classList.add('nodrop_selected');
         } else {
           YOVALUE.removeChilds(selectedItem);
           selectedItem.appendChild(createDOMElement(attrs.items[value]));

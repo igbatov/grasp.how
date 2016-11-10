@@ -467,7 +467,7 @@ YOVALUE.GraphElementEditor.prototype = {
     str += 'background: -o-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; // Opera 11.10+
     str += 'background: -ms-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; // IE10+
     */
-    str += 'background: linear-gradient(90deg, rgba(30,87,153,1) 0%,rgba(78,137,193,1) '+percent+'%,rgba(79,138,194,0) '+(percent+1)+'%,rgba(125,185,232,0) 100%); '; // W3C
+    str += 'background: linear-gradient(90deg, rgba(30,87,153,1) 0%,rgba(78,137,193,1) '+percent+'%,rgba(79,138,194,0) '+(parseInt(percent)+1)+'%,rgba(125,185,232,0) 100%); '; // W3C
     return str;
   },
 
@@ -501,8 +501,8 @@ YOVALUE.GraphElementEditor.prototype = {
       // create list of alternative labels
       var alternativeLabels = {};
       for(var i in alternatives){
-        alternativeLabels[i] = YOVALUE.createElement('span',
-          {style:'position:relative; '+that._getPartialGradientStyle(alternatives[i].reliability)},
+        alternativeLabels[i] = YOVALUE.createElement('div',
+          {style:'position:relative; display: inline-block; width:100%; '+that._getPartialGradientStyle(alternatives[i].reliability)},
           alternatives[i].label + ' ' +alternatives[i].reliability+'%');
       }
 

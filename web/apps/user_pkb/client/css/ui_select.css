@@ -31,6 +31,6 @@
 .ui_select li:hover{
     background-color: #0000FF;
 }
-.ui_select li.selected{
+.ui_select li.nodrop_selected{
     background-color: #0000FF;
 }
