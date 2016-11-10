@@ -13,6 +13,7 @@ YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
   this.shape = this.drawer.createGroup({
     x: args.x,
     y: args.y,
+    opacity: args.opacity,
     draggable: true
   });
 
@@ -22,8 +23,7 @@ YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
     radius: args.size,
     fill: args.color,
     stroke: args.color,
-    strokeWidth: 1,
-    opacity: args.opacity
+    strokeWidth: 1
   });
   this.shape.add(this.circle);
 
