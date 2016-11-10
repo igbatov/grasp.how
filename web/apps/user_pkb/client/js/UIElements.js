@@ -70,12 +70,13 @@ YOVALUE.UIElements.prototype = {
   },
 
   /**
-   * {name:{String}, items:{Object<string, string>}, defaultValue:{String}, callback:{function(string,string)=}, disabled:{boolean=}, formname:{String}}
+   * attrs - {name:{String}, items:{Object<string, string>}, defaultValue:{String}, callback:{function(string,string)=}, disabled:{boolean=}, formname:{String}, nodrop:true}
    * Returns DOM element that can be used to select items
    * name - name of select box
    * items - in form {'value'=>'label', ...}
    * defaultValue - selected item name
    * callback - callback will receive select name and item name on selection
+   * nodrop - use drop down list or show all options at once
    * @returns {HTMLElement}
    */
   createSelectBox: function(attrs){
@@ -103,29 +104,33 @@ YOVALUE.UIElements.prototype = {
       }
     }
 
-    if(typeof(attrs.defaultValue) != 'undefined' && YOVALUE.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
-      YOVALUE.removeChilds(selectedItem);
-      selectedItem.appendChild(createDOMElement(attrs.items[attrs.defaultValue]));
-      YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
-    }
-
     // create list of items
     var lis = Object.keys(attrs.items).map(function(key){
       var li = YOVALUE.createElement('li',{value:key});
       li.appendChild(createDOMElement(attrs.items[key]));
       return li;
     });
-
-    var ul = YOVALUE.createElement('ul',{},'');
+    var ul = YOVALUE.createElement('ul',{'class': attrs.nodrop ? 'nodrop' : ''},'');
     lis.forEach(function(li){ ul.appendChild(li); });
 
-    selectBox.appendChild(selectedItem);
+    if(!attrs.nodrop) selectBox.appendChild(selectedItem);
     selectBox.appendChild(inputHidden);
     selectBox.appendChild(ul);
 
+    // set selected item
+    if(typeof(attrs.defaultValue) != 'undefined' && YOVALUE.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
+      if(attrs.nodrop){
+        lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('selected'); });
+      }else{
+        YOVALUE.removeChilds(selectedItem);
+        selectedItem.appendChild(createDOMElement(attrs.items[attrs.defaultValue]));
+      }
+      YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
+    }
+
     // behaviour: toggle show/hide of menu
     selectedItem.addEventListener('click', function(evt){
-      if(attrs.disabled) return;
+      if(attrs.disabled || attrs.nodrop) return;
       if(YOVALUE.getDisplay(ul) == 'none'){
         YOVALUE.setDisplay(ul,'block');
       }else{
@@ -137,16 +142,22 @@ YOVALUE.UIElements.prototype = {
     lis.forEach(function(li){
       li.addEventListener('click', function(evt){
         var value = li.getAttribute('value');
-        YOVALUE.removeChilds(selectedItem);
-        selectedItem.appendChild(createDOMElement(attrs.items[value]));
         YOVALUE.updateElement(inputHidden, {value:value});
         if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
-        YOVALUE.setDisplay(ul,'none');
+        if(attrs.nodrop){
+          lis.forEach(function(li){ li.classList.remove('selected') });
+          li.classList.add('selected');
+        } else {
+          YOVALUE.removeChilds(selectedItem);
+          selectedItem.appendChild(createDOMElement(attrs.items[value]));
+          YOVALUE.setDisplay(ul,'none');
+        }
       });
     });
 
     // behaviour: hide menu when clicked outside menu
     document.body.addEventListener('click', function(evt){
+      if(attrs.nodrop) return;
       if(!YOVALUE.isChildOf(evt.target, selectBox)){
         YOVALUE.setDisplay(ul,'none');
       }
@@ -339,7 +350,7 @@ YOVALUE.UIElements.prototype = {
       if(fields[name]['type'] == 'text') form.appendChild(this.createTextBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'textarea') form.appendChild(this.createTextareaBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'date') form.appendChild(this.createDate({name:name, value:fields[name]['value'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
-      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox({name:name, items:fields[name]['items'], defaultValue:fields[name]['value'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId}));
+      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox({name:name, items:fields[name]['items'], defaultValue:fields[name]['value'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId, nodrop:fields[name]['nodrop']}));
       if(fields[name]['type'] == 'button'){
         // if button field has callback - use it, if no - use general form callback and pass form data to it
         form.appendChild(this.createButton({
