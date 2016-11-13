@@ -39,6 +39,7 @@ YOVALUE.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIn
 YOVALUE.GraphElementEditor.prototype = {
   NODE_TYPE_FACT: 'fact',
   NODE_TYPE_PROPOSITION: 'proposition',
+  DEFAULT_ALTERNATIVE_LABEL_PREFIX: 'НЕ ВЕРНО, ЧТО: ',
   eventListener: function(event){
     var $ = this.jQuery, v;
 
@@ -237,9 +238,20 @@ YOVALUE.GraphElementEditor.prototype = {
               graphId: graphId,
               type: 'updateNodeAttribute',
               nodeContentId: nodeContentId,
-              node_alternative_id: node.active_alternative_id, 
+              node_alternative_id: node.active_alternative_id,
               nodeAttribute: {name:name, value:value}
             }]);
+
+            // if node is of type FACT then we should also automatically rename its alternative on label edit
+            if(name == 'label' && node.type == that.NODE_TYPE_FACT){
+              that.publisher.publish(['request_for_graph_element_content_change', {
+                graphId: graphId,
+                type: 'updateNodeAttribute',
+                nodeContentId: nodeContentId,
+                node_alternative_id: 1,
+                nodeAttribute: {name:name, value:that.DEFAULT_ALTERNATIVE_LABEL_PREFIX+value}
+              }]);
+            }
           };
 
           var removeAlternative = function(){
@@ -310,6 +322,20 @@ YOVALUE.GraphElementEditor.prototype = {
 
                     var formKeyStr = JSON.stringify(formKeys[i]);
 
+                    /**
+                     * p - is object where key is stringified obj, formKey is obj
+                     * returns p value found by formKey
+                     * @param p - like {'{"131-6":"0","131-8":"1"}': "0.5", '{"131-6":"0","131-8":"0"}': "1"}
+                     * @param formKey - like {"131-8":"0","131-6"}
+                     */
+                    function findPByFormKey(p, formKey){
+                      for(var i in p){
+                        console.log('JSON.parse(i)',JSON.stringify(JSON.parse(i)), JSON.stringify(formKey));
+                        if(YOVALUE.compare(JSON.parse(i), formKey)) return p[i];
+                      }
+                      return false;
+                    }
+
                     // create text fields for conditional probabilities of node's alternatives
                     for(var j in node.alternatives){
                       // do not show second alternative for facts,
@@ -318,7 +344,8 @@ YOVALUE.GraphElementEditor.prototype = {
                       if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- ВЕРОЯТНОСТЬ: "'+node.alternatives[j].label+'"'};
                       fields[formKeyStr+'__'+j] = {
                         type: isFactDenial ? 'hidden' : 'text',
-                        value: YOVALUE.typeof(node.alternatives[j].p) == 'object' ? node.alternatives[j].p[formKeyStr] : "",
+                        value: YOVALUE.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
+                        placeholder: 1/YOVALUE.getObjectLength(node.alternatives),
                         disabled:!isEditable
                       };
                     }
@@ -337,17 +364,18 @@ YOVALUE.GraphElementEditor.prototype = {
                         probabilities[j] = {};
                         for(var i in formKeys){
                           var formKeyStr = JSON.stringify(formKeys[i]);
-                          probabilities[j][formKeyStr] = form[formKeyStr+'__'+j];
+                          probabilities[j][formKeyStr] = form[formKeyStr+'__'+j] != '' ? form[formKeyStr+'__'+j] : 1/YOVALUE.getObjectLength(node.alternatives);
                         }
                       }  
 
+                      // sanity check of probability values
                       for(var i in formKeys){
                         var formKeyStr = JSON.stringify(formKeys[i]);
                        
                         // check that every probability in [0,1]
                         for(var j in node.alternatives){
-                          if(form[formKeyStr+'__'+j]<0 || form[formKeyStr+'__'+j]>1){
-                            alert('Вероятность должна быть больше 0 и меньше 1');
+                          if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
+                            alert('Вероятность не может быть меньше 0 и больше 1');
                             return true;
                           }
                         }
@@ -356,12 +384,12 @@ YOVALUE.GraphElementEditor.prototype = {
                         var sum = 0;
                         var alertMsg = '';
                         for(var j in node.alternatives){
-                          sum += parseFloat(form[formKeyStr+'__'+j]);
-                          alertMsg += form[formKeyStr+'__'+j]+'+';
+                          sum += parseFloat(probabilities[j][formKeyStr]);
+                          alertMsg += probabilities[j][formKeyStr]+'+';
                         }
                         if(sum != 1){
                           alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
-                          alert(alertMsg+"\n"+'Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его причин) должна быть равна 1');
+                          alert(alertMsg+"\n"+'Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его условий) должна быть равна 1');
                           return true;
                         }
 

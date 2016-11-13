@@ -158,6 +158,7 @@ class AppUserPkb extends App
         // if we have a non-empty class error, output all errors to client
         foreach($imperfect_nodes as $class) if(count($class) != 0){
           $this->log('query_grain: imperfect_nodes is not empty '
+              .'graph = {"nodes":{localContentId:[alternative_id1, alternative_id2, ...], ...}, "edges":{edgeLocalContentId:[nodelocalContentId1, nodelocalContentId2], ..}} '.print_r($graph, true)
               .'$graph = '.print_r($graph, true)
               .'$probabilities = '.print_r($probabilities, true)
               .'$imperfect_nodes = '.print_r($imperfect_nodes, true
