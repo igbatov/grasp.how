@@ -330,7 +330,6 @@ YOVALUE.GraphElementEditor.prototype = {
                      */
                     function findPByFormKey(p, formKey){
                       for(var i in p){
-                        console.log('JSON.parse(i)',JSON.stringify(JSON.parse(i)), JSON.stringify(formKey));
                         if(YOVALUE.compare(JSON.parse(i), formKey)) return p[i];
                       }
                       return false;

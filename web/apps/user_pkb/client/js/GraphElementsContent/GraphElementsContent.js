@@ -158,8 +158,8 @@ YOVALUE.GraphElementsContent.prototype = {
           e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           /// if we changed 'type' attribute, then reload full node from server
           if(event.getData().nodeAttribute.name == 'type'){
-            // update type so that graph redraw fired on 'graph_element_content_changed' will be done correctly
-            e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+            // obsolete (remove after sometime next string): update type so that graph redraw fired on 'graph_element_content_changed' will be done correctly
+           // e['alternatives'][event.getData()['node_alternative_id']]['type'] = event.getData().nodeAttribute.value;
             // for node editor we must update whole node content, so remove it from cache here
             this.cacheContent.remove({elementType:'node', contentId:event.getData().nodeContentId});
             this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()]).then(function(){
