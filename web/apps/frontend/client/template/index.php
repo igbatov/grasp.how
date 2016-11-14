@@ -31,7 +31,7 @@
 
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
   <div id="graphContainer"></div>
-  <div id="purpose" class="description">
+  <div id="quote" class="description">
     <blockquote>
       <p style="font-size: 1em;">
         ...эвристика доступности позволяет объяснить почему некоторые мысли чрезвычайно сильно занимают умы людей,
@@ -47,8 +47,16 @@
         — <cite>"Думая быстро и медленно", Даниэль Канеман, психолог, нобелевский лауреат 2002 года.</cite>
       </footer>
     </blockquote>
+  </div>
+  <div id="purpose" class="description">
     <h1>Цель проекта</h1>
-    <?php  include($this->getAppDir('template', false).'/_aim2.php'); ?>
+    <?php  include($this->getAppDir('template', false).'/_aim3.php'); ?>
+  </div>
+  <div id="video1" class="description">
+  </div>
+  <div id="video2" class="description">
+  </div>
+  <div id="video3" class="description">
   </div>
   <div id="method" class="description">
     <h1>Метод</h1>
@@ -72,6 +80,10 @@
       Наконец, связать теории и гипотезы с относящимися к ним фактами, исследованиями, иллюстрациями, проблемами, вопросами, лучшими практиками и материалами для дальнейшего чтения.
     </p>
     <?php  //include($this->getAppDir('template', false).'/_example1.php'); ?>
+  </div>
+  <div id="purpose_extended" class="description">
+    <h1>Миссия</h1>
+    <?php  include($this->getAppDir('template', false).'/_aim2.php'); ?>
   </div>
   <div id="contacts" class="description">
     <h1>Контакты</h1>

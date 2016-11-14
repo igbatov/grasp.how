@@ -26,7 +26,7 @@
 }
 .ui_select li{
     padding:0.2em 1em 0.2em 1em;
-    border-bottom:1px solid #999;
+    border:2px solid #999;
 }
 .ui_select li:hover, .ui_select li.nodrop_selected{
     border: solid 2px;

@@ -26,6 +26,7 @@ YOVALUE.GraphElementsContent = function(publisher){
   this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
   this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
   this.edgeAttributeNames = ['label', 'label'];
+  this.DEFAULT_ALTERNATIVE_LABEL_PREFIX = 'НЕ ВЕРНО, ЧТО: ';
 
   // this will be retrieved from server only on get_graph_node_content request
   this.nodeAlternativeContentNames = ['text', 'list'];
@@ -157,8 +158,8 @@ YOVALUE.GraphElementsContent.prototype = {
           e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           /// if we changed 'type' attribute, then reload full node from server
           if(event.getData().nodeAttribute.name == 'type'){
-            // update type so that graph redraw fired on 'graph_element_content_changed' will be done correctly
-            e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+            // obsolete (remove after sometime next string): update type so that graph redraw fired on 'graph_element_content_changed' will be done correctly
+           // e['alternatives'][event.getData()['node_alternative_id']]['type'] = event.getData().nodeAttribute.value;
             // for node editor we must update whole node content, so remove it from cache here
             this.cacheContent.remove({elementType:'node', contentId:event.getData().nodeContentId});
             this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()]).then(function(){
@@ -245,7 +246,7 @@ YOVALUE.GraphElementsContent.prototype = {
             var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
             newNode.alternatives[0].reliability = 50;
-            newNode.alternatives[1].label = 'НЕ ВЕРНО, ЧТО: '+event.getData().element.label;
+            newNode.alternatives[1].label = that.DEFAULT_ALTERNATIVE_LABEL_PREFIX+event.getData().element.label;
             newNode.alternatives[1].reliability = 50;
 
             newNode.type = event.getData().element.type;

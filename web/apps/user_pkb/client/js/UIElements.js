@@ -247,7 +247,7 @@ YOVALUE.UIElements.prototype = {
    */
   createTextBox: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('input',{id:uniqId, type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.label, disabled:attrs.disabled},'',attrs.callback);
+    var el = YOVALUE.createElement('input',{id:uniqId, type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.placeholder ? attrs.placeholder : attrs.label, disabled:attrs.disabled},'',attrs.callback);
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'text', definition:attrs, dom:el});
 
@@ -347,7 +347,7 @@ YOVALUE.UIElements.prototype = {
 
 
     for(name in fields){
-      if(fields[name]['type'] == 'text') form.appendChild(this.createTextBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
+      if(fields[name]['type'] == 'text') form.appendChild(this.createTextBox({name:name, value:fields[name]['value'], label:fields[name]['label'],placeholder:fields[name]['placeholder'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'textarea') form.appendChild(this.createTextareaBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'date') form.appendChild(this.createDate({name:name, value:fields[name]['value'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox({name:name, items:fields[name]['items'], defaultValue:fields[name]['value'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId, nodrop:fields[name]['nodrop']}));

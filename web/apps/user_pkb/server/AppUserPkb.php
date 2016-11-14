@@ -158,6 +158,7 @@ class AppUserPkb extends App
         // if we have a non-empty class error, output all errors to client
         foreach($imperfect_nodes as $class) if(count($class) != 0){
           $this->log('query_grain: imperfect_nodes is not empty '
+              .'graph = {"nodes":{localContentId:[alternative_id1, alternative_id2, ...], ...}, "edges":{edgeLocalContentId:[nodelocalContentId1, nodelocalContentId2], ..}} '.print_r($graph, true)
               .'$graph = '.print_r($graph, true)
               .'$probabilities = '.print_r($probabilities, true)
               .'$imperfect_nodes = '.print_r($imperfect_nodes, true
@@ -459,6 +460,11 @@ class AppUserPkb extends App
             $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
           }
           $this->db->execute($query);
+          // if user changed type of node, drop nodes conditional probabilities
+          if($r['nodeAttribute']['name'] == 'type'){
+            $query = "UPDATE node_content SET `p` = '[]' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+            $this->db->execute($query);
+          }
 
         }else if($r['type'] == 'updateEdgeAttribute'){
           $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
@@ -486,16 +492,24 @@ class AppUserPkb extends App
             $rows = $this->db->execute($query);
             $local_content_id = $rows[0]['max_id'] + 1;
             foreach($r['node']['alternatives'] as $alternative_id => $alternative){
+
+              // mysql_real_escape(0) gives '' so check this numeric fields here
+              if(!is_numeric($alternative_id)) $this->error('Error: alternative_id '.var_export($alternative_id, true).' is not numeric');
+              if(!is_numeric($local_content_id)) $this->error('Error: local_content_id '.var_export($local_content_id, true).' is not numeric');
+              if(!is_numeric($r['node']['active_alternative_id'])) $this->error('Error: active_alternative_id '.var_export($r['node']['active_alternative_id'], true).' is not numeric');
+
               $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)
-              ."', `local_content_id` = '".$this->db->escape($local_content_id)
-              ."', `alternative_id` = '".$this->db->escape($alternative_id)  
+              ."', `local_content_id` = '".$local_content_id
+              ."', `alternative_id` = '".$alternative_id
               ."', `p` = '".$this->db->escape(json_encode($alternative['p'])) 
-              ."', `active_alternative_id` = '".$this->db->escape($r['node']['active_alternative_id'])          
+              ."', `active_alternative_id` = '".$r['node']['active_alternative_id']
               ."', `type` = '".$this->db->escape($r['node']['type'])
               ."', `label` = '".$this->db->escape($alternative['label'])
               ."', `text` = '".$this->db->escape($alternative['text'])
               ."', `reliability` = ".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
               .", `importance` = ".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0).", created_at = NOW()";
+              $this->log($query);
+
               $this->db->execute($query);
             }
           }catch (Exception $e) {
