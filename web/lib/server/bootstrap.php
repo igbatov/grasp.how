@@ -27,7 +27,7 @@ $c = new Config();
 // set default log file
 ini_set('error_log', $c->getDefaultPath('log')."/error_log.log");
 
-error_reporting(E_ALL ^ E_DEPRECATED);
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 
 //set cookies for all subdomains
 $t = explode(".", $c->getWebDomainName());
