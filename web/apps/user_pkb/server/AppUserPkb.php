@@ -1055,8 +1055,14 @@ class AppUserPkb extends App
     $new_user_id = $rows[0]['id'];
 
     // create directory for the user
-    $new_user_dir = $this->getAppDir('uploads/'.$new_user_id);
-    if(!file_exists($new_user_dir)) mkdir($new_user_dir, 0777, true);
+    $new_user_dir = $this->getAppDir('uploads', false).'/'.$new_user_id;
+    if(!file_exists($new_user_dir)){
+      $success = mkdir($new_user_dir, 0777, true);
+      if(!$success){
+       $this->log('Cannot create directory '.$new_user_dir);
+       return false;
+      }
+    }
 
     return $this->createNewGraph($new_user_id, 'newGraph');
   }
