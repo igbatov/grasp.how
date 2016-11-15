@@ -211,6 +211,9 @@ YOVALUE.GraphMenu.prototype = {
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'CalculateBayes', label:'Bayes|>', callback:function(){calculateBayes('leftGraphView')}}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Edit', label:'Edit', callback:function(){onEdit('rightGraphView')}}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
+
+      // create logout link
+      document.getElementById(c.id).appendChild(YOVALUE.createElement('a',{href:'/logout',class:'logout'},'logout'));
     });
   }
 };

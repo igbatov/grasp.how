@@ -50,8 +50,12 @@
 }
 
 .GraphMenu{
-    width:40%;
+    width: 40%;
     display: inline-block;
+}
+
+#rightSelectContainer{
+    width: 35%;
 }
 
 .GeneralButtons{
