@@ -742,8 +742,9 @@ YOVALUE.GraphElementEditor.prototype = {
     var modalWindow = that.UI.createModal();
     var form = {};
     var formFields = {};
-    var MANUAL_RELIABILITY_SOURCE_TYPES = ['personal experience'];
+    var MANUAL_RELIABILITY_SOURCE_TYPES = ['personal experience'];  // which source types permit manual reliability enter
 
+    // define which source type has which fields visible
     var itemTypeVisible = {
       'all':{
         'name':'search','url':'text','author':'text','editor':'text',
@@ -798,21 +799,17 @@ YOVALUE.GraphElementEditor.prototype = {
           },
           selectCallback:function(name, value){
             // if value didn't come just return
-            if(typeof(value.id) == 'undefined') return;
+            if(typeof(value.source_id) == 'undefined') return;
 
             YOVALUE.getObjectKeys(formFields).forEach(function(v){
               if(typeof(value[v]) != 'undefined'){
                 that.UI.updateForm(form,v,{value:value[v]});
               }
             });
-            that.UI.updateForm(form,'source_id',{value:value.id});
           },
           typeCallback:function(name, value){
             // reset default values
-            YOVALUE.getObjectKeys(formFields).forEach(function(v){
-              if(typeof(value[v]) != 'undefined') that.UI.updateForm(form,v,null);
-            });
-            //that.UI.updateForm(form, 'source_type', {value:'article'});
+            that.UI.updateForm(form,'source_id',{value:''});
           }
         },
         'url':{'type':'text', label:'URL'},
@@ -844,6 +841,7 @@ YOVALUE.GraphElementEditor.prototype = {
         'pages':{type:'text', label:'Том, страницы'},
         'comment':{type:'textarea', label:'Комментарий'},
         'source_id':{type:'hidden'},
+        'id':{type:'hidden'},
         'button':{type:'button', label:'Сохранить'}
       };
 

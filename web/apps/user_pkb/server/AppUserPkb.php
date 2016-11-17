@@ -230,16 +230,20 @@ class AppUserPkb extends App
             // get alternative lists
             $list_items = array();
             if($node['type'] == $this->node_basic_types['fact']){
-              $q = "SELECT source_id, comment, pages FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
+              $q = "SELECT id, source_id, comment, pages FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
               $this->log($q);
               $rows = $this->db->execute($q);
               foreach($rows as $row){
                 $q = "SELECT * FROM source WHERE id='".$row['source_id']."' AND auth_id='".$this->getAuthId()."'";
                 $this->log($q);
                 $sources = $this->db->execute($q);
-                $list_items[$row['id']] = $sources[0];
-                $list_items[$row['id']]['pages'] = $row['pages'];
-                $list_items[$row['id']]['comment'] = $row['comment'];
+                if($sources&&count($sources)){
+                  $list_items[$row['id']] = $sources[0];
+                  $list_items[$row['id']]['id'] = $row['id'];
+                  $list_items[$row['id']]['source_id'] = $row['source_id'];
+                  $list_items[$row['id']]['pages'] = $row['pages'];
+                  $list_items[$row['id']]['comment'] = $row['comment'];
+                }
               }
             }else{
               $q = "SELECT * FROM 'node_content_falsification'".
@@ -617,7 +621,7 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         if(strlen($r['substring']) == 0) break;
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
-        $q = "SELECT * FROM source WHERE name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
+        $q = "SELECT * FROM source WHERE auth_id = '".$this->getAuthId()."' AND name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
         $this->log($q);
         $rows = $this->db->execute($q);
         $items = array();
@@ -625,6 +629,8 @@ class AppUserPkb extends App
         foreach($rows as $k=>$row){
           $row['order'] = levenshtein($row['name'], $r['substring']);
           $row['title'] = $row['name'];
+          $row['source_id'] = $row['id'];
+          unset($row['id']);
           $items[] = $row;
         }
         function sortByOrder($a, $b) {
@@ -725,13 +731,16 @@ class AppUserPkb extends App
     $graph_id = $r['graphId'];
     $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
     if($r['nodeType'] == $this->node_basic_types['fact']) {
-      $q = "SELECT source_id FROM node_content_source WHERE  id = '" . $this->db->escape($item_id) . "'";
-      $source_id = $this->db->execute($q)[0];
-      if(!$this->itemEqualsSource($r['item'], $source_id)){
+      // Client sets $r['item']['source_id'] as empty if user modified fields of source
+      // We treat it here as signal for new source creation
+      if(empty($r['item']['source_id'])){
         $source_id = $this->addSource($this->getAuthId(), $r['item']);
+      }else{
+        // TODO: check that this source_id is ours
+        $source_id = $r['item']['source_id'];
       }
       $q = "UPDATE node_content_source SET "
-          . "', source_id='" . $this->db->escape($source_id)
+          . " source_id='" . $this->db->escape($source_id)
           . "', comment='" . $this->db->escape($r['item']['comment'])
           . "', `pages`='" . $this->db->escape($r['item']['pages'])
           . "' WHERE id = '" . $this->db->escape($r['item']['id']) . "'";
