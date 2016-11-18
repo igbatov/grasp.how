@@ -228,13 +228,31 @@ class AppUserPkb extends App
             }
 
             // get alternative lists
-            $q = "SELECT * FROM ".($node['type'] == $this->node_basic_types['fact'] ? 'node_content_source' : 'node_content_falsification').
-                " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
-            $this->log($q);
-            $rows = $this->db->execute($q);
             $list_items = array();
-            foreach($rows as $row){
-              $list_items[$row['id']] = $row;
+            if($node['type'] == $this->node_basic_types['fact']){
+              $q = "SELECT id, source_id, comment, pages FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
+              $this->log($q);
+              $rows = $this->db->execute($q);
+              foreach($rows as $row){
+                $q = "SELECT * FROM source WHERE id='".$row['source_id']."' AND auth_id='".$this->getAuthId()."'";
+                $this->log($q);
+                $sources = $this->db->execute($q);
+                if($sources&&count($sources)){
+                  $list_items[$row['id']] = $sources[0];
+                  $list_items[$row['id']]['id'] = $row['id'];
+                  $list_items[$row['id']]['source_id'] = $row['source_id'];
+                  $list_items[$row['id']]['pages'] = $row['pages'];
+                  $list_items[$row['id']]['comment'] = $row['comment'];
+                }
+              }
+            }else{
+              $q = "SELECT * FROM 'node_content_falsification'".
+                  " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
+              $this->log($q);
+              $rows = $this->db->execute($q);
+              foreach($rows as $row){
+                $list_items[$row['id']] = $row;
+              }
             }
             $nodes[$content_id]['alternatives'][$node_row['alternative_id']]['list'] = $list_items;
           }
@@ -603,7 +621,7 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         if(strlen($r['substring']) == 0) break;
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
-        $q = "SELECT * FROM source WHERE name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
+        $q = "SELECT * FROM source WHERE auth_id = '".$this->getAuthId()."' AND name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
         $this->log($q);
         $rows = $this->db->execute($q);
         $items = array();
@@ -611,6 +629,8 @@ class AppUserPkb extends App
         foreach($rows as $k=>$row){
           $row['order'] = levenshtein($row['name'], $r['substring']);
           $row['title'] = $row['name'];
+          $row['source_id'] = $row['id'];
+          unset($row['id']);
           $items[] = $row;
         }
         function sortByOrder($a, $b) {
@@ -636,42 +656,52 @@ class AppUserPkb extends App
     }
   }
 
+  private function addSource($auth_id, $item){
+    $q = "INSERT INTO source SET "
+        ."source_type='".$item['source_type']
+        ."', `auth_id`='".$auth_id
+        ."', `name`='".$this->db->escape($item['name'])
+        ."', url='".$this->db->escape($item['url'])
+        ."', author='".$this->db->escape($item['author'])
+        ."', editor='".$this->db->escape($item['editor'])
+        ."', publisher='".$this->db->escape($item['publisher'])
+        ."', publisher_reliability=".doubleval($item['publisher_reliability'])
+        .",  scopus_title_list_id=".(strlen($item['scopus_title_list_id']) ? (int)($item['scopus_title_list_id']) : "NULL")
+        .",  publish_date='".$this->db->escape($item['publish_date'])
+        ."', `comment`='".$this->db->escape($item['comment'])."' ";
+    $this->log($q);
+    return $this->db->execute($q);
+  }
+
+  private function itemEqualsSource($item, $source_id){
+    $q = "SELECT * FROM source WHERE id = ".$source_id;
+    $this->log($q);
+    $rows = $this->db->execute($q);
+    $row = $rows[0];
+    if($row['source_type'] != $item['source_type']) return false;
+    if($row['name'] != $item['name']) return false;
+    if($row['url'] != $item['url']) return false;
+    if($row['author'] != $item['author']) return false;
+    if($row['publisher'] != $item['publisher']) return false;
+    if($row['scopus_title_list_id'] != $item['scopus_title_list_id']) return false;
+    if($row['publish_date'] != $item['publish_date']) return false;
+    return true;
+  }
+
   private function addNodeContentList($r){
     if($r['nodeType'] == $this->node_basic_types['fact']){
         // if it is a new source - add it to the main list
       if(empty($r['item']['source_id'])){
-         // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
-
-        $q = "INSERT INTO source SET "
-        ."source_type='".$r['item']['source_type']
-        ."', `name`='".$this->db->escape($r['item']['name'])
-        ."', url='".$this->db->escape($r['item']['url'])
-        ."', author='".$this->db->escape($r['item']['author'])
-        ."', editor='".$this->db->escape($r['item']['editor'])
-        ."', publisher='".$this->db->escape($r['item']['publisher'])
-        ."', publisher_reliability=".doubleval($r['item']['publisher_reliability'])
-        .",  scopus_title_list_id=".(strlen($r['item']['scopus_title_list_id']) ? (int)($r['item']['scopus_title_list_id']) : "NULL")
-        .",  publish_date='".$this->db->escape($r['item']['publish_date'])
-        ."', comment='".$this->db->escape($r['item']['comment'])
-        ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
-        $this->log($q);
-        $r['item']['source_id'] = $this->db->execute($q);
+        // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
+        $r['item']['source_id'] = $this->addSource($this->getAuthId(), $r['item']);
       }
 
       $graph_id = $r['graphId'];
       $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
       $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
+          ."', `auth_id`='".$this->getAuthId()
           ."', local_content_id='".$local_content_id
           ."', alternative_id='".$r['node_alternative_id']
-          ."', source_type='".$r['item']['source_type']
-          ."', `name`='".$this->db->escape($r['item']['name'])
-          ."', url='".$this->db->escape($r['item']['url'])
-          ."', author='".$this->db->escape($r['item']['author'])
-          ."', editor='".$this->db->escape($r['item']['editor'])
-          ."', publisher='".$this->db->escape($r['item']['publisher'])
-          ."', publisher_reliability=".doubleval($r['item']['publisher_reliability'])
-          .",  scopus_title_list_id=".(strlen($r['item']['scopus_title_list_id']) ? (int)($r['item']['scopus_title_list_id']) : "NULL")
-          .",  publish_date='".$this->db->escape($r['item']['publish_date'])
           ."', comment='".$this->db->escape($r['item']['comment'])
           ."', source_id='".$this->db->escape($r['item']['source_id'])
           ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
@@ -701,18 +731,16 @@ class AppUserPkb extends App
     $graph_id = $r['graphId'];
     $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
     if($r['nodeType'] == $this->node_basic_types['fact']) {
+      // Client sets $r['item']['source_id'] as empty if user modified fields of source
+      // We treat it here as signal for new source creation
+      if(empty($r['item']['source_id'])){
+        $source_id = $this->addSource($this->getAuthId(), $r['item']);
+      }else{
+        // TODO: check that this source_id is ours
+        $source_id = $r['item']['source_id'];
+      }
       $q = "UPDATE node_content_source SET "
-          . "local_content_id='" . $local_content_id
-          . "', alternative_id='".$r['node_alternative_id']
-          . "', source_type='" . $r['item']['source_type']
-          . "', `name`='" . $this->db->escape($r['item']['name'])
-          . "', url='" . $this->db->escape($r['item']['url'])
-          . "', author='" . $this->db->escape($r['item']['author'])
-          . "', editor='" . $this->db->escape($r['item']['editor'])
-          . "', publisher='" . $this->db->escape($r['item']['publisher'])
-          . "', publisher_reliability='" . $this->db->escape($r['item']['publisher_reliability'])
-          . "', scopus_title_list_id=" . (strlen($r['item']['scopus_title_list_id']) ? (int)($r['item']['scopus_title_list_id']) : "NULL")
-          . ", publish_date='" . $this->db->escape($r['item']['publish_date'])
+          . " source_id='" . $this->db->escape($source_id)
           . "', comment='" . $this->db->escape($r['item']['comment'])
           . "', `pages`='" . $this->db->escape($r['item']['pages'])
           . "' WHERE id = '" . $this->db->escape($r['item']['id']) . "'";
@@ -757,13 +785,18 @@ class AppUserPkb extends App
   }
 
   protected function getFactReliability($graph_id,$local_content_id){
-    $q = "SELECT publisher_reliability FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
+    $q = "SELECT source_id FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
     $this->log($q);
     $rows = $this->db->execute($q);
+
     $reliability_array = array();
     foreach($rows as $row){
-      $reliability_array[] = $row['publisher_reliability'];
+      $q = "SELECT publisher_reliability FROM source WHERE id='".$row['source_id']."'";
+      $this->log($q);
+      $rs = $this->db->execute($q);
+      $reliability_array[] = $rs[0]['publisher_reliability'];
     }
+
     return min(array_sum($reliability_array)*10,100);
   }
 
