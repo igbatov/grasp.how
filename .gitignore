@@ -6,3 +6,4 @@
 /.idea
 /web/.htaccess
 /yovalue.sql
+/scripts/client_secret.json
