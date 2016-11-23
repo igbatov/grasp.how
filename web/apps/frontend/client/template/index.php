@@ -29,7 +29,7 @@
     </ul>
   </div>
 
-  <iframe class='highcharts-iframe' src='/embed/[12,15]' style='border: 0; width: 100%; height: 600px'></iframe>
+  <iframe class='grasphow-iframe' src='/embed/[12,15]' style='border: 0; width: 100%; height: 600px'></iframe>
 
   <div id="quote" class="description">
     <blockquote>
