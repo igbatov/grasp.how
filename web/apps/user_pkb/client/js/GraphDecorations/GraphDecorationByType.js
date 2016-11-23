@@ -15,12 +15,12 @@
  *
  * @constructor
  */
-YOVALUE.GraphDecorationByType = function(){
+GRASP.GraphDecorationByType = function(){
 
 };
 
 
-YOVALUE.GraphDecorationByType.prototype = {
+GRASP.GraphDecorationByType.prototype = {
   /**
    *
    * @param graphModel - {nodes:{}, edges:{}}
@@ -40,7 +40,7 @@ YOVALUE.GraphDecorationByType.prototype = {
       decoration = {scale: scale, nodes:{}, edges:{}, nodeLabels:{}},
       nodes = graphModel.nodes,
       edges = graphModel.edges,
-      size = Math.min(scale/(YOVALUE.getObjectLength(nodes)), 5),//we do not want huge node size, set upper limit to 5 pixels
+      size = Math.min(scale/(GRASP.getObjectLength(nodes)), 5),//we do not want huge node size, set upper limit to 5 pixels
       labelSize = 3*size;
 
     for(i in nodes){

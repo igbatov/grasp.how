@@ -1,9 +1,9 @@
-YOVALUE.GraphViewFactory = function(){
+GRASP.GraphViewFactory = function(){
 
 };
 
-YOVALUE.GraphViewFactory.prototype = {
+GRASP.GraphViewFactory.prototype = {
   create: function(graphId, drawer){
-    return new YOVALUE.GraphView(graphId, drawer);
+    return new GRASP.GraphView(graphId, drawer);
   }
 };

@@ -1,8 +1,8 @@
-YOVALUE.SVGDrawerFactory = function(){
+GRASP.SVGDrawerFactory = function(){
 };
 
-YOVALUE.SVGDrawerFactory.prototype = {
+GRASP.SVGDrawerFactory.prototype = {
   create: function(stageContainerId, stageContainerWidth, stageContainerHeight){
-    return new YOVALUE.SVGDrawer(stageContainerId, stageContainerWidth, stageContainerHeight);
+    return new GRASP.SVGDrawer(stageContainerId, stageContainerWidth, stageContainerHeight);
   }
 };

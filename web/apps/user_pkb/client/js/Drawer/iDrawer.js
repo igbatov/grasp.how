@@ -2,7 +2,7 @@
  * Interface for Drawer and SVGDrawer
  * @type {Object}
  */
-YOVALUE.iDrawer = {
+GRASP.iDrawer = {
   /**
    * Adds layer
    * All shapes lie in a layer
@@ -71,7 +71,7 @@ YOVALUE.iDrawer = {
  * Rectangle
  * @constructor
  */
-YOVALUE.iDrawer.Rect = {
+GRASP.iDrawer.Rect = {
   getId: function(){},
 
   setX: function(v){},
@@ -107,7 +107,7 @@ YOVALUE.iDrawer.Rect = {
  * @param args
  * @constructor
  */
-YOVALUE.iDrawer.Path = {
+GRASP.iDrawer.Path = {
   getId: function(){},
 
   setData: function(v){},
@@ -131,7 +131,7 @@ YOVALUE.iDrawer.Path = {
  * @param args
  * @constructor
  */
-YOVALUE.iDrawer.Circle = {
+GRASP.iDrawer.Circle = {
   getId: function(){},
 
   setX: function(v){},
@@ -160,7 +160,7 @@ YOVALUE.iDrawer.Circle = {
  * @param args
  * @constructor
  */
-YOVALUE.iDrawer.Text = {
+GRASP.iDrawer.Text = {
   getId: function(){},
 
   setX: function(v){},

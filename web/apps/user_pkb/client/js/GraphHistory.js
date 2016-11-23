@@ -1,4 +1,4 @@
-YOVALUE.GraphHistory = function(publisher){
+GRASP.GraphHistory = function(publisher){
   this.publisher = publisher;
 
   this.historyTimeline = {}; // {graphId1: {1: timestamp1, 2: timestamp2, ...}, ... }
@@ -8,10 +8,10 @@ YOVALUE.GraphHistory = function(publisher){
   this.lastStep = {};        // {int graphId1: int step1, int graphId2: int step2, ...}
 
   // storage of history
-  this.history = new YOVALUE.Table(['graphId', 'step', 'timestamp', 'elements', 'node_mapping']);
+  this.history = new GRASP.Table(['graphId', 'step', 'timestamp', 'elements', 'node_mapping']);
 };
 
-YOVALUE.GraphHistory.prototype = {
+GRASP.GraphHistory.prototype = {
   eventListener: function(event){
     var that = this, eventName = event.getName();
 
@@ -22,7 +22,7 @@ YOVALUE.GraphHistory.prototype = {
       graphsModelElements = this._getElementsFromHistory(historyRequest);
 
       // get graphIds from historyRequest that are not in this.history
-      var emptyIds = YOVALUE.arrayHelper.difference(YOVALUE.getObjectKeys(historyRequest), YOVALUE.getObjectKeys(graphsModelElements));
+      var emptyIds = GRASP.arrayHelper.difference(GRASP.getObjectKeys(historyRequest), GRASP.getObjectKeys(graphsModelElements));
 
       // retrieve it from repository
       if(emptyIds.length > 0){
@@ -41,18 +41,18 @@ YOVALUE.GraphHistory.prototype = {
 
     }else if(eventName === 'graph_history_get_node_mapping'){
       var graphId = event.getData()['graphId'];
-      if(typeof(this.currentStep[graphId]) == 'undefined') YOVALUE.errorHandler.throwError('currentStep for graphId '+graphId+' is not defined');
+      if(typeof(this.currentStep[graphId]) == 'undefined') GRASP.errorHandler.throwError('currentStep for graphId '+graphId+' is not defined');
       var step = this.currentStep[graphId];
       event.setResponse(this.history.getRows({graphId: graphId, step: step})[0]['node_mapping']);
 
     }else if(eventName === 'node_mapping_changed'){
       var graphId = event.getData()['graphId'];
-      if(typeof(this.currentStep[graphId]) == 'undefined') YOVALUE.errorHandler.throwError('currentStep for graphId '+graphId+' is not defined');
+      if(typeof(this.currentStep[graphId]) == 'undefined') GRASP.errorHandler.throwError('currentStep for graphId '+graphId+' is not defined');
       var step = this.currentStep[graphId];
 
       // update cache
       var cnt = this.history.updateRows({graphId: graphId, step: step}, {node_mapping: event.getData()['node_mapping']});
-      if(cnt == 0) YOVALUE.errorHandler.throwError('cache has no items for graphId '+graphId+', step '+step);
+      if(cnt == 0) GRASP.errorHandler.throwError('cache has no items for graphId '+graphId+', step '+step);
 
       // save in repository
       this.publisher.publish(['repository_update_node_mapping', {graphId: graphId, step: step, node_mapping: event.getData()['node_mapping']}]);
@@ -92,7 +92,7 @@ YOVALUE.GraphHistory.prototype = {
       var i, graphIds = event.getData(), previousStep = {};
 
       // check that we have current step for all graphIds
-      for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_previous_graph_step requested but no current step for graphId='+graphIds[i]);
+      for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') GRASP.errorHandler.throwError('get_previous_graph_step requested but no current step for graphId='+graphIds[i]);
 
       that.publisher.publish(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
         for(i in graphIds) previousStep[graphIds[i]] =  that._getPreviousStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
@@ -103,7 +103,7 @@ YOVALUE.GraphHistory.prototype = {
       var i, graphIds = event.getData(), nextStep = {};
 
       // check that we have current step for all graphIds
-      for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') YOVALUE.errorHandler.throwError('get_next_graph_step requested but no current step for graphId='+graphIds[i]);
+      for(i in graphIds) if(typeof(that.currentStep[graphIds[i]]) == 'undefined') GRASP.errorHandler.throwError('get_next_graph_step requested but no current step for graphId='+graphIds[i]);
 
       that.publisher.publish(["get_graphs_history_timeline", {ids:graphIds}]).then(function(timeline){
         for(i in graphIds) nextStep[graphIds[i]] =  that._getNextStep(graphIds[i], that.currentStep[graphIds[i]], timeline);
@@ -113,14 +113,14 @@ YOVALUE.GraphHistory.prototype = {
     }else if(eventName === 'get_current_graph_step'){
 
       // get graphIds that are not yet in that.currentStep
-      var emptyIds = YOVALUE.arrayHelper.difference(event.getData(), YOVALUE.getObjectKeys(that.currentStep));
+      var emptyIds = GRASP.arrayHelper.difference(event.getData(), GRASP.getObjectKeys(that.currentStep));
 
       // for all such graphIds init currentStep to the last step in the timeline
       if(emptyIds.length > 0){
         that.publisher.publish(["get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
           var graphId;
           for(graphId in timeline){
-            if(emptyIds.indexOf(graphId) !== -1) that.currentStep[graphId] = Math.max.apply(null, YOVALUE.getObjectKeys(that.historyTimeline[graphId]));
+            if(emptyIds.indexOf(graphId) !== -1) that.currentStep[graphId] = Math.max.apply(null, GRASP.getObjectKeys(that.historyTimeline[graphId]));
           }
           event.setResponse(that.currentStep);
         });
@@ -137,7 +137,7 @@ YOVALUE.GraphHistory.prototype = {
 
     }else if(eventName === 'get_graphs_history_timeline'){
       // get graphIds that are not yet in this.historyTimeline
-      var emptyIds = YOVALUE.arrayHelper.difference(event.getData()['ids'], YOVALUE.getObjectKeys(that.historyTimeline));
+      var emptyIds = GRASP.arrayHelper.difference(event.getData()['ids'], GRASP.getObjectKeys(that.historyTimeline));
       if(emptyIds.length > 0){
         that.publisher.publish(["repository_get_graphs_history_timeline", {ids:emptyIds}]).then(function(timeline){
           for(var id in timeline){
@@ -186,7 +186,7 @@ YOVALUE.GraphHistory.prototype = {
 
   _getPreviousStep: function(graphId, step, timeline){
     var s,
-      minStep = Math.min.apply(null, YOVALUE.strToInt(YOVALUE.getObjectKeys(timeline[graphId]))),
+      minStep = Math.min.apply(null, GRASP.strToInt(GRASP.getObjectKeys(timeline[graphId]))),
       previousStep = minStep;
 
     if(step == minStep) return minStep;
@@ -200,7 +200,7 @@ YOVALUE.GraphHistory.prototype = {
 
   _getNextStep: function(graphId, step, timeline){
     var s,
-      maxStep = Math.max.apply(null, YOVALUE.strToInt(YOVALUE.getObjectKeys(timeline[graphId]))),
+      maxStep = Math.max.apply(null, GRASP.strToInt(GRASP.getObjectKeys(timeline[graphId]))),
       nextStep = maxStep;
 
     if(step == maxStep) return maxStep;

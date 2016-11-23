@@ -15,9 +15,9 @@ describe("GraphView", function(){
     canvasContainer.width = 200;
     canvasContainer.height = 200;
     document.getElementsByTagName("body")[0].appendChild(canvasContainer);
-    this.canvasDrawer = new YOVALUE.CanvasDrawer(Kinetic, canvasContainer.id, canvasContainer.width, canvasContainer.height, jQuery);
+    this.canvasDrawer = new GRASP.CanvasDrawer(Kinetic, canvasContainer.id, canvasContainer.width, canvasContainer.height, jQuery);
 
-    this.graphView = new YOVALUE.GraphView(graphId, this.canvasDrawer, new YOVALUE.GraphViewNodeFactory(), new YOVALUE.GraphViewEdgeFactory(), new YOVALUE.GraphViewNodeLabelFactory());
+    this.graphView = new GRASP.GraphView(graphId, this.canvasDrawer, new GRASP.GraphViewNodeFactory(), new GRASP.GraphViewEdgeFactory(), new GRASP.GraphViewNodeLabelFactory());
 
     //init graphView with model and mapping
     var graphArea = {centerX:100, centerY:100, width:200, height:200};
@@ -41,15 +41,15 @@ describe("GraphView", function(){
      skinName: 'testSkin',
      skin: {
       node:{
-        constructor: YOVALUE.GraphViewNodeImage,
+        constructor: GRASP.GraphViewNodeImage,
         attr: {}
       },
       edge:{
-        constructor: YOVALUE.GraphViewEdge,
+        constructor: GRASP.GraphViewEdge,
         attr: {}
       },
       nodeLabel:{
-        constructor: YOVALUE.GraphViewNodeLabel,
+        constructor: GRASP.GraphViewNodeLabel,
         attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
       }}
     };
@@ -83,7 +83,7 @@ describe("GraphView", function(){
 
   it('drawGraph should draw graph', function () {
     this.graphView.drawGraph();
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.GraphView[0]);
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, GRASP.TestFixtures.GraphView[0]);
   });
 
   it('drawGraph should correctly redraw graph if model was changed', function () {
@@ -121,12 +121,12 @@ describe("GraphView", function(){
     });
 
     this.graphView.drawGraph();
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.GraphView[1]);
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, GRASP.TestFixtures.GraphView[1]);
   });
 
   it('node should resize on hover', function () {
     var im = new Image();
-    im.src = YOVALUE.TestFixtures.CanvasDrawer[4];
+    im.src = GRASP.TestFixtures.CanvasDrawer[4];
     waitsFor(function () {
       return im.complete;
     });

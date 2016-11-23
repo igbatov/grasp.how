@@ -3,14 +3,14 @@
  * @param ajax
  * @constructor
  */
-YOVALUE.UIElements = function(){
+GRASP.UIElements = function(){
   this.uniqueId = 0;
   this.SELECT_ITEM_MAX_LENGTH = 255;
   // list of all elements created
-  this.elements = new YOVALUE.Table(['id', 'type', 'formname', 'name', 'definition', 'dom']);
+  this.elements = new GRASP.Table(['id', 'type', 'formname', 'name', 'definition', 'dom']);
 };
 
-YOVALUE.UIElements.prototype = {
+GRASP.UIElements.prototype = {
   /**
    * Creating input that drops list of options based on input value
    * {function} findCallback - must return promise that will produce array of items in a form [{id:<string>,title:<string>}, ...}
@@ -22,10 +22,10 @@ YOVALUE.UIElements.prototype = {
   createSearch: function(attrs){
     var that = this,
         uniqId = this.generateId(),
-        search = YOVALUE.createElement('input',{name:attrs.name,type:'text',value:attrs.value, placeholder:attrs.label, disabled:attrs.disabled});
+        search = GRASP.createElement('input',{name:attrs.name,type:'text',value:attrs.value, placeholder:attrs.label, disabled:attrs.disabled});
 
-    var selectBox = YOVALUE.createElement('div',{class:'ui_search',id:uniqId,value:'none'},'');
-    var ul = YOVALUE.createElement('ul',{},'');
+    var selectBox = GRASP.createElement('div',{class:'ui_search',id:uniqId,value:'none'},'');
+    var ul = GRASP.createElement('ul',{},'');
     selectBox.appendChild(search);
     selectBox.appendChild(ul);
 
@@ -42,25 +42,25 @@ YOVALUE.UIElements.prototype = {
         var lis = Object.keys(items).map(function(key){
           var item = items[key];
           if(typeof(item.title) == 'undefined') throw 'UISearch: items given to droplist must have title field!';
-          return YOVALUE.createElement('li',{value:key},(item.title.length > that.SELECT_ITEM_MAX_LENGTH ? item.title.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item.title));
+          return GRASP.createElement('li',{value:key},(item.title.length > that.SELECT_ITEM_MAX_LENGTH ? item.title.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item.title));
         });
 
         lis.forEach(function(li){ ul.appendChild(li); });
-        YOVALUE.setDisplay(ul,'block');
+        GRASP.setDisplay(ul,'block');
       });
     });
 
 
     document.body.addEventListener('click', function(evt){
       // click on item - select new one
-      if(YOVALUE.objectToArray(ul.children).indexOf(evt.target) != -1 ){
+      if(GRASP.objectToArray(ul.children).indexOf(evt.target) != -1 ){
         var value = evt.target.getAttribute('value');
         var label = evt.target.innerText;
-        YOVALUE.updateElement(search, {value:label});
+        GRASP.updateElement(search, {value:label});
         if(typeof(attrs.selectCallback) != 'undefined') attrs.selectCallback(attrs.name, items[value]);
-        YOVALUE.setDisplay(ul,'none');
+        GRASP.setDisplay(ul,'none');
       }else{
-        YOVALUE.setDisplay(ul,'none');
+        GRASP.setDisplay(ul,'none');
       }
     });
 
@@ -82,9 +82,9 @@ YOVALUE.UIElements.prototype = {
   createSelectBox: function(attrs){
     var that = this,
         uniqId = this.generateId(),
-        selectedItem = YOVALUE.createElement('div',{class:'selected',value:'none',style:'display:inline;'},'none'),
-        inputHidden = YOVALUE.createElement('input',{name:attrs.name,type:'hidden',value:null}),
-        selectBox = YOVALUE.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
+        selectedItem = GRASP.createElement('div',{class:'selected',value:'none',style:'display:inline;'},'none'),
+        inputHidden = GRASP.createElement('input',{name:attrs.name,type:'hidden',value:null}),
+        selectBox = GRASP.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
 
@@ -94,23 +94,23 @@ YOVALUE.UIElements.prototype = {
      * @returns {HTMLElement}
      */
     function createDOMElement(item){
-      if(YOVALUE.isDOMElement(item)){
-        return YOVALUE.clone(item);
-      }else if(YOVALUE.typeof(item) == 'string'){
+      if(GRASP.isDOMElement(item)){
+        return GRASP.clone(item);
+      }else if(GRASP.typeof(item) == 'string'){
         var text = (item.length > that.SELECT_ITEM_MAX_LENGTH ? item.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item);
-        return YOVALUE.createElement('text',{},text);
+        return GRASP.createElement('text',{},text);
       }else{
-        return YOVALUE.createElement('span',{},'');
+        return GRASP.createElement('span',{},'');
       }
     }
 
     // create list of items
     var lis = Object.keys(attrs.items).map(function(key){
-      var li = YOVALUE.createElement('li',{value:key});
+      var li = GRASP.createElement('li',{value:key});
       li.appendChild(createDOMElement(attrs.items[key]));
       return li;
     });
-    var ul = YOVALUE.createElement('ul',{'class': attrs.nodrop ? 'nodrop' : ''},'');
+    var ul = GRASP.createElement('ul',{'class': attrs.nodrop ? 'nodrop' : ''},'');
     lis.forEach(function(li){ ul.appendChild(li); });
 
     if(!attrs.nodrop) selectBox.appendChild(selectedItem);
@@ -118,23 +118,23 @@ YOVALUE.UIElements.prototype = {
     selectBox.appendChild(ul);
 
     // set selected item
-    if(typeof(attrs.defaultValue) != 'undefined' && YOVALUE.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
+    if(typeof(attrs.defaultValue) != 'undefined' && GRASP.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
       if(attrs.nodrop){
         lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('nodrop_selected'); });
       }else{
-        YOVALUE.removeChilds(selectedItem);
+        GRASP.removeChilds(selectedItem);
         selectedItem.appendChild(createDOMElement(attrs.items[attrs.defaultValue]));
       }
-      YOVALUE.updateElement(inputHidden, {value:attrs.defaultValue});
+      GRASP.updateElement(inputHidden, {value:attrs.defaultValue});
     }
 
     // behaviour: toggle show/hide of menu
     selectedItem.addEventListener('click', function(evt){
       if(attrs.disabled || attrs.nodrop) return;
-      if(YOVALUE.getDisplay(ul) == 'none'){
-        YOVALUE.setDisplay(ul,'block');
+      if(GRASP.getDisplay(ul) == 'none'){
+        GRASP.setDisplay(ul,'block');
       }else{
-        YOVALUE.setDisplay(ul,'none');
+        GRASP.setDisplay(ul,'none');
       }
     });
 
@@ -142,15 +142,15 @@ YOVALUE.UIElements.prototype = {
     lis.forEach(function(li){
       li.addEventListener('click', function(evt){
         var value = li.getAttribute('value');
-        YOVALUE.updateElement(inputHidden, {value:value});
+        GRASP.updateElement(inputHidden, {value:value});
         if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
         if(attrs.nodrop){
           lis.forEach(function(li){ li.classList.remove('nodrop_selected') });
           li.classList.add('nodrop_selected');
         } else {
-          YOVALUE.removeChilds(selectedItem);
+          GRASP.removeChilds(selectedItem);
           selectedItem.appendChild(createDOMElement(attrs.items[value]));
-          YOVALUE.setDisplay(ul,'none');
+          GRASP.setDisplay(ul,'none');
         }
       });
     });
@@ -158,8 +158,8 @@ YOVALUE.UIElements.prototype = {
     // behaviour: hide menu when clicked outside menu
     document.body.addEventListener('click', function(evt){
       if(attrs.nodrop) return;
-      if(!YOVALUE.isChildOf(evt.target, selectBox)){
-        YOVALUE.setDisplay(ul,'none');
+      if(!GRASP.isChildOf(evt.target, selectBox)){
+        GRASP.setDisplay(ul,'none');
       }
     });
 
@@ -177,8 +177,8 @@ YOVALUE.UIElements.prototype = {
    */
   createFileBox: function(attrs){
     var uniqId = this.generateId();
-    var container = YOVALUE.createElement('div',{class:'ui_file',id:uniqId});
-    var file = YOVALUE.createElement('input',{type:'file',name:attrs.name,disabled:attrs.disabled});
+    var container = GRASP.createElement('div',{class:'ui_file',id:uniqId});
+    var file = GRASP.createElement('input',{type:'file',name:attrs.name,disabled:attrs.disabled});
     var list = this.createList(attrs.items,{remove:attrs.removeCallback});
     container.appendChild(file);
     container.appendChild(list);
@@ -199,11 +199,11 @@ YOVALUE.UIElements.prototype = {
   createRange: function(attrs){
     var uniqId = this.generateId();
 
-    var range = YOVALUE.createElement('div',{class:'ui_range'});
-    var label = YOVALUE.createElement('label',{},attrs.name+' ');
-    var input = YOVALUE.createElement('input',{type:'range', name:attrs.name, value:attrs.value, min:attrs.min, max:attrs.max, step:attrs.step, disabled:attrs.disabled},'');
-    if(attrs.disabled == true) YOVALUE.setDisplay(input,'none');
-    var output = YOVALUE.createElement('span',{},attrs.value);
+    var range = GRASP.createElement('div',{class:'ui_range'});
+    var label = GRASP.createElement('label',{},attrs.name+' ');
+    var input = GRASP.createElement('input',{type:'range', name:attrs.name, value:attrs.value, min:attrs.min, max:attrs.max, step:attrs.step, disabled:attrs.disabled},'');
+    if(attrs.disabled == true) GRASP.setDisplay(input,'none');
+    var output = GRASP.createElement('span',{},attrs.value);
     range.appendChild(label);
     range.appendChild(input);
     range.appendChild(output);
@@ -228,7 +228,7 @@ YOVALUE.UIElements.prototype = {
    */
   createButton: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('button',{id:uniqId, name:attrs.name, class:'ui_button',disabled:attrs.disabled},attrs.label);
+    var el = GRASP.createElement('button',{id:uniqId, name:attrs.name, class:'ui_button',disabled:attrs.disabled},attrs.label);
     if(typeof(attrs.callback) != 'undefined'){
       el.addEventListener('click', function(evt){
         attrs.callback(evt);
@@ -247,7 +247,7 @@ YOVALUE.UIElements.prototype = {
    */
   createTextBox: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('input',{id:uniqId, type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.placeholder ? attrs.placeholder : attrs.label, disabled:attrs.disabled},'',attrs.callback);
+    var el = GRASP.createElement('input',{id:uniqId, type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.placeholder ? attrs.placeholder : attrs.label, disabled:attrs.disabled},'',attrs.callback);
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'text', definition:attrs, dom:el});
 
@@ -261,7 +261,7 @@ YOVALUE.UIElements.prototype = {
    */
   createTextareaBox: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('textarea',{id:uniqId,name:attrs.name, placeholder:attrs.label, disabled:attrs.disabled}, attrs.value, attrs.callback);
+    var el = GRASP.createElement('textarea',{id:uniqId,name:attrs.name, placeholder:attrs.label, disabled:attrs.disabled}, attrs.value, attrs.callback);
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'textarea', definition:attrs, dom:el});
 
@@ -275,7 +275,7 @@ YOVALUE.UIElements.prototype = {
    */
   createDate: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('input',{type:'date',id:uniqId,name:attrs.name, value:attrs.value, disabled:attrs.disabled},'',attrs.callback);
+    var el = GRASP.createElement('input',{type:'date',id:uniqId,name:attrs.name, value:attrs.value, disabled:attrs.disabled},'',attrs.callback);
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'date', definition:attrs, dom:el});
 
@@ -289,7 +289,7 @@ YOVALUE.UIElements.prototype = {
    */
   createHidden: function(attrs){
     var uniqId = this.generateId();
-    var el = YOVALUE.createElement('input',{type:'hidden',id:uniqId, name:attrs.name, value:attrs.value, disabled:attrs.disabled},'');
+    var el = GRASP.createElement('input',{type:'hidden',id:uniqId, name:attrs.name, value:attrs.value, disabled:attrs.disabled},'');
 
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'hidden', definition:attrs, dom:el});
 
@@ -305,7 +305,7 @@ YOVALUE.UIElements.prototype = {
     var uniqId = this.generateId();
 
     // create DOM
-    var el = YOVALUE.createElement('h1',{id:uniqId},attrs.value);
+    var el = GRASP.createElement('h1',{id:uniqId},attrs.value);
 
     // update internal list of all UI elements
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:null, type:'title', definition:attrs, dom:el});
@@ -323,9 +323,9 @@ YOVALUE.UIElements.prototype = {
    */
   createListBox: function(attrs){
     var uniqId = this.generateId();
-    var div = YOVALUE.createElement('div',{id:uniqId},'');
+    var div = GRASP.createElement('div',{id:uniqId},'');
     if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback, disabled: attrs.disabled}));
-    if(typeof(attrs.items)!='undefined' && YOVALUE.getObjectKeys(attrs.items).length > 0){
+    if(typeof(attrs.items)!='undefined' && GRASP.getObjectKeys(attrs.items).length > 0){
        var HTMLList = this.createList(attrs.items, attrs.itemActions, attrs.disabled);
        div.appendChild(HTMLList);
     }
@@ -343,7 +343,7 @@ YOVALUE.UIElements.prototype = {
   createForm: function(fields, callback){
     var name,
       uniqId = this.generateId(),
-      form = YOVALUE.createElement('div',{id:uniqId, class:'ui_form'},'');
+      form = GRASP.createElement('div',{id:uniqId, class:'ui_form'},'');
 
 
     for(name in fields){
@@ -451,26 +451,26 @@ YOVALUE.UIElements.prototype = {
   createModal: function(){
     var that = this,
       uniqId = this.generateId(),
-      modalWindow = YOVALUE.createElement('div',{id:uniqId, class:'ui_modal'},''),
-      overlay = YOVALUE.createElement('div',{id:'overlay'+uniqId, class:'ui_modal_overlay'},'');
+      modalWindow = GRASP.createElement('div',{id:uniqId, class:'ui_modal'},''),
+      overlay = GRASP.createElement('div',{id:'overlay'+uniqId, class:'ui_modal_overlay'},'');
     document.body.appendChild(overlay);
     document.body.appendChild(modalWindow);
 
-    var closeButton = YOVALUE.createElement('div',{class:'close_button'},'X');
+    var closeButton = GRASP.createElement('div',{class:'close_button'},'X');
     modalWindow.appendChild(closeButton);
     closeButton.addEventListener('click', function(evt){
       that.closeModal(modalWindow);
     });
 
-    modalWindow.appendChild(YOVALUE.createElement('div',{class:'ui_modal_wrapper'}));
+    modalWindow.appendChild(GRASP.createElement('div',{class:'ui_modal_wrapper'}));
 
-    YOVALUE.setDisplay(modalWindow, 'none');
+    GRASP.setDisplay(modalWindow, 'none');
 
     return modalWindow;
   },
 
   closeModal: function(modalWindow){
-    if(modalWindow.getAttribute('class') != 'ui_modal') YOVALUE.throwError('This is not a modal window HTMLElement');
+    if(modalWindow.getAttribute('class') != 'ui_modal') GRASP.throwError('This is not a modal window HTMLElement');
 
     var overlay = document.getElementById('overlay'+modalWindow.getAttribute('id'));
     overlay.parentNode.removeChild(overlay);
@@ -478,9 +478,9 @@ YOVALUE.UIElements.prototype = {
   },
 
   setModalContent: function(modalWindow, content){
-    YOVALUE.setDisplay(modalWindow, 'block');
-    YOVALUE.setDisplay(modalWindow, 'none');
-    YOVALUE.setDisplay(modalWindow, 'block');
+    GRASP.setDisplay(modalWindow, 'block');
+    GRASP.setDisplay(modalWindow, 'none');
+    GRASP.setDisplay(modalWindow, 'block');
 
     var wrapper = modalWindow.childNodes[1];
     // remove all from wrapper
@@ -497,7 +497,7 @@ YOVALUE.UIElements.prototype = {
    * @param callback - callback will get 'yes' or 'no'
    */
   showConfirm: function(text, callback){
-    var that = this, m = this.createModal(), modalContent = YOVALUE.createElement('div', {class:'ui_confirm'});
+    var that = this, m = this.createModal(), modalContent = GRASP.createElement('div', {class:'ui_confirm'});
     modalContent.appendChild(this.createForm(
         {title:{type:'title', value:text}, yes:{type:'button',value:'Yes'}, no:{type:'button', value:'No'}},
         function(v){
@@ -527,7 +527,7 @@ YOVALUE.UIElements.prototype = {
   createList: function(items, actions, disabled){
     var disabled = disabled || false;
     var uniqId = this.generateId();
-    var ul = YOVALUE.createElement('ul', {id:uniqId, class:'ui_list'});
+    var ul = GRASP.createElement('ul', {id:uniqId, class:'ui_list'});
     for(var id in items){
       ul.appendChild(this.createListItem(id,items[id],actions,disabled));
     }
@@ -543,14 +543,14 @@ YOVALUE.UIElements.prototype = {
    */
   createListItem: function(id,label,actions,disabled){
     var disabled = disabled || false;
-    var li = YOVALUE.createElement('li',{});
+    var li = GRASP.createElement('li',{});
     if(typeof(label) == 'string'){
       li.appendChild(document.createTextNode(label));
     }else{
       li.appendChild(label);
     }
 
-    var buttons = YOVALUE.createElement('div',{class:'buttons'});
+    var buttons = GRASP.createElement('div',{class:'buttons'});
     li.appendChild(buttons);
 
     for(var name in actions){

@@ -2,8 +2,8 @@
  *
  * @type {Object}
  */
-YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainerHeight){
-  this.id = YOVALUE.getUniqId();
+GRASP.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainerHeight){
+  this.id = GRASP.getUniqId();
   this.stageContainerId = stageContainerId;
   this.svgns = "http://www.w3.org/2000/svg";
   this.svgroot = document.createElementNS(this.svgns, "svg");
@@ -20,7 +20,7 @@ YOVALUE.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContain
   this._makeShapesDraggable();
 };
 
-YOVALUE.SVGDrawer.prototype = {
+GRASP.SVGDrawer.prototype = {
   getId: function(){
     return this.id;
   },
@@ -120,7 +120,7 @@ YOVALUE.SVGDrawer.prototype = {
    * @return callbackId - id of callback that can be used later in unbindStage to unbind this callback
    */
   bindStageMove: function(callback, area){
-    var that = this, uniqId = YOVALUE.getUniqId(),
+    var that = this, uniqId = GRASP.getUniqId(),
       x1 = area.centerX - area.width/2,
       x2 = area.centerX + area.width/2,
       y1 = area.centerY - area.height/2,
@@ -154,7 +154,7 @@ YOVALUE.SVGDrawer.prototype = {
    */
   getIntersections: function(x,y){
     var shapesUnderPoint = [], el, i;
-    if(false && this.svgroot.getIntersectionList && YOVALUE.getBrowserInfo().type != "Safari") {
+    if(false && this.svgroot.getIntersectionList && GRASP.getBrowserInfo().type != "Safari") {
       var hitRect = this.svgroot.createSVGRect();
       hitRect.height = 1;
       hitRect.width = 1;
@@ -178,7 +178,7 @@ YOVALUE.SVGDrawer.prototype = {
         id = this._getShapeIdByEventTargetId(el.getAttribute('id'));
 
         if(typeof(this.shapes[id]) != 'undefined'){
-          if(!YOVALUE.isObjectInArray(shapesUnderPoint, this.shapes[id])) shapesUnderPoint.push(this.shapes[id]);
+          if(!GRASP.isObjectInArray(shapesUnderPoint, this.shapes[id])) shapesUnderPoint.push(this.shapes[id]);
           shapePointerEvents[id] = this.shapes[id].getShape().getAttribute('pointer-events');
           this.shapes[id].getShape().setAttribute('pointer-events', 'none');
         }
@@ -195,7 +195,7 @@ YOVALUE.SVGDrawer.prototype = {
         for(i in this.shapes) this.shapes[i].getShape().setAttribute('pointer-events', 'none');
         this.shapes[id].getShape().setAttributeNS(null, 'pointer-events', 'visiblePainted');
         el = document.elementFromPoint(x, y);
-        if(!YOVALUE.isObjectInArray(shapesUnderPoint, el) && typeof(this.shapes[el.getAttribute('id')]) != 'undefined') shapesUnderPoint.push(this.shapes[el.getAttribute('id')]);
+        if(!GRASP.isObjectInArray(shapesUnderPoint, el) && typeof(this.shapes[el.getAttribute('id')]) != 'undefined') shapesUnderPoint.push(this.shapes[el.getAttribute('id')]);
       }
       // restore original pointer-events attribute
       for(id in this.shapes) shapePointerEvents[id] = this.shapes[id].getShape().setAttribute('pointer-events', shapePointerEvents[id]);
@@ -206,20 +206,20 @@ YOVALUE.SVGDrawer.prototype = {
   },
 
   createGroup: function(args){
-    return new YOVALUE.SVGDrawer.Group(new YOVALUE.SVGDrawer.BaseShape(args));
+    return new GRASP.SVGDrawer.Group(new GRASP.SVGDrawer.BaseShape(args));
   },
 
   createShape: function(type, args){
     if(type == 'circle'){
-      return new YOVALUE.SVGDrawer.Circle(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      return new GRASP.SVGDrawer.Circle(new GRASP.SVGDrawer.BaseShape(args), args);
     }else if(type == 'rectangle'){
-      return new YOVALUE.SVGDrawer.Rect(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      return new GRASP.SVGDrawer.Rect(new GRASP.SVGDrawer.BaseShape(args), args);
     }else if(type == 'path'){
-      return new YOVALUE.SVGDrawer.Path(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      return new GRASP.SVGDrawer.Path(new GRASP.SVGDrawer.BaseShape(args), args);
     }else if(type == 'text'){
-      return new YOVALUE.SVGDrawer.Text(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      return new GRASP.SVGDrawer.Text(new GRASP.SVGDrawer.BaseShape(args), args);
     }else if(type == 'svg'){
-      return new YOVALUE.SVGDrawer.SVG(new YOVALUE.SVGDrawer.BaseShape(args), args);
+      return new GRASP.SVGDrawer.SVG(new GRASP.SVGDrawer.BaseShape(args), args);
     }
   },
 
@@ -229,7 +229,7 @@ YOVALUE.SVGDrawer.prototype = {
   _initEventHandler: function(){
     var i, event;
     this.documentEventNames = ['dblclick', 'dbltap', 'click', 'dragstart', 'dragging', 'dragend'];
-    this.shapeCallbacks = new YOVALUE.Table(['id', 'eventName', 'shapeId', 'shapeClass', 'callback', 'isMuted']);
+    this.shapeCallbacks = new GRASP.Table(['id', 'eventName', 'shapeId', 'shapeClass', 'callback', 'isMuted']);
     var that = this;
 
     for(i in this.documentEventNames){
@@ -278,7 +278,7 @@ YOVALUE.SVGDrawer.prototype = {
     }
     */
     if(DEBUG_MODE){
-      //YOVALUE.logger.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, YOVALUE.clone(that.shapes[targetId].getXY()), YOVALUE.clone(that.shapes[targetId]));
+      //GRASP.logger.log('SVGDrawer received event '+e.type+' shapeId = ', targetId, GRASP.clone(that.shapes[targetId].getXY()), GRASP.clone(that.shapes[targetId]));
     }
 
     if(typeof shape == 'undefined') return;
@@ -293,9 +293,9 @@ YOVALUE.SVGDrawer.prototype = {
     var event = {type:eventType, targetNode:shape, x:xy.x, y:xy.y};
 
     if(DEBUG_MODE){
-      YOVALUE.debug.printEvent(undefined,'SVGDrawer', '295:5', 'fire', event.type, event, YOVALUE.getObjectId(event));
+      GRASP.debug.printEvent(undefined,'SVGDrawer', '295:5', 'fire', event.type, event, GRASP.getObjectId(event));
 
-      //YOVALUE.logger.log('SVGDrawer is going to fire event ',YOVALUE.clone(event));
+      //GRASP.logger.log('SVGDrawer is going to fire event ',GRASP.clone(event));
     }
 
     for(j in generalCallbacks) generalCallbacks[j]['callback'](event, shape);
@@ -307,7 +307,7 @@ YOVALUE.SVGDrawer.prototype = {
    * Register user callback for events SVGDrawer.eventNames
    */
   addEventListener: function(eventName, callback, className, shapeId){
-    var uniqId = YOVALUE.getUniqId();
+    var uniqId = GRASP.getUniqId();
     this.shapeCallbacks.insertRow({
       id:uniqId,
       eventName:eventName,
@@ -484,8 +484,8 @@ YOVALUE.SVGDrawer.prototype = {
  * @param args
  * @constructor
  */
-YOVALUE.SVGDrawer.BaseShape = function(args){
-  this.id = typeof args.id == 'undefined' ? YOVALUE.getUniqId() : args.id;
+GRASP.SVGDrawer.BaseShape = function(args){
+  this.id = typeof args.id == 'undefined' ? GRASP.getUniqId() : args.id;
   this.x = typeof args.x == 'undefined' ? 0 : args.x;
   this.y = typeof args.y == 'undefined' ? 0 : args.y;
   this.matrix = [1, 0, 0, 1, this.x, this.y];
@@ -498,7 +498,7 @@ YOVALUE.SVGDrawer.BaseShape = function(args){
   this.shape = null; // should be redefined in final shape class
 };
 
-YOVALUE.SVGDrawer.BaseShape.prototype = {
+GRASP.SVGDrawer.BaseShape.prototype = {
   init: function(){
     this.setId(this.id);
     this.setFill(this.fill);
@@ -556,7 +556,7 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
    * @returns {boolean}
    */
   setX: function(v){
-    if(YOVALUE.typeof(v) != 'number') return false;
+    if(GRASP.typeof(v) != 'number') return false;
     this.matrix[4] = v;
     if(this.shape) this.shape.setAttributeNS(null, "transform", "matrix("+ this.matrix.join(' ') +")");
     this.x = v;
@@ -567,7 +567,7 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
   },
 
   setY: function(v){
-    if(YOVALUE.typeof(v) != 'number') return false;
+    if(GRASP.typeof(v) != 'number') return false;
     // circle in svg is positioned by center coordinates, rectangle by its left up corner, text by its left bottom corner
     this.matrix[5] = v;
    // if(this.shape.nodeName == 'text') this.matrix[5] += this.getBBox().height;
@@ -632,7 +632,7 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
 
   getBBox: function(){
     var bbox = this.getShape().getBBox();
-    return {x:YOVALUE.typeof(this.x)=='number'?this.x:(bbox.x+bbox.width/2), y:YOVALUE.typeof(this.y)=='number'?this.y:(bbox.y+bbox.height/2), width:bbox.width, height:bbox.height};
+    return {x:GRASP.typeof(this.x)=='number'?this.x:(bbox.x+bbox.width/2), y:GRASP.typeof(this.y)=='number'?this.y:(bbox.y+bbox.height/2), width:bbox.width, height:bbox.height};
   },
 
   getWidth: function(){
@@ -647,13 +647,13 @@ YOVALUE.SVGDrawer.BaseShape.prototype = {
 /**
  * SVG
  * Create SVG from SVG XML string
- * @param baseShape - YOVALUE.SVGDrawer.BaseShape
+ * @param baseShape - GRASP.SVGDrawer.BaseShape
  * @param args - {svgxml:"<svg xmlns='http://www.w3.org/2000/svg' width='25' height='25'><path d='M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z'/></svg>"}
  * @constructor
  */
-YOVALUE.SVGDrawer.SVG = function(baseShape, args){
-  YOVALUE.mixin(baseShape, this);
-  var doc = YOVALUE.DOMParser.parseFromString(args.svgxml, "image/svg+xml");
+GRASP.SVGDrawer.SVG = function(baseShape, args){
+  GRASP.mixin(baseShape, this);
+  var doc = GRASP.DOMParser.parseFromString(args.svgxml, "image/svg+xml");
   this.shape = doc.documentElement;
   baseShape.setShape(this.shape);
   baseShape.init();
@@ -661,16 +661,16 @@ YOVALUE.SVGDrawer.SVG = function(baseShape, args){
   this.children = {};
 };
 
-YOVALUE.SVGDrawer.SVG.prototype = {
+GRASP.SVGDrawer.SVG.prototype = {
   setX: function(v){
-    if(YOVALUE.typeof(v) != 'number') return false;
+    if(GRASP.typeof(v) != 'number') return false;
     if(this.shape) this.shape.setAttributeNS(null, "x", v);
     this.x = v;
     return true;
   },
 
   setY: function(v){
-    if(YOVALUE.typeof(v) != 'number') return false;
+    if(GRASP.typeof(v) != 'number') return false;
     if(this.shape) this.shape.setAttributeNS(null, "y", v);
     this.y = v;
     return true;
@@ -682,8 +682,8 @@ YOVALUE.SVGDrawer.SVG.prototype = {
  * You can add shapes to group, remove them and set x, y of group.
  * @constructor
  */
-YOVALUE.SVGDrawer.Group = function(baseShape){
-  YOVALUE.mixin(baseShape, this);
+GRASP.SVGDrawer.Group = function(baseShape){
+  GRASP.mixin(baseShape, this);
   this.shape = document.createElementNS("http://www.w3.org/2000/svg", "g");
   baseShape.setShape(this.shape);
   baseShape.init();
@@ -691,10 +691,10 @@ YOVALUE.SVGDrawer.Group = function(baseShape){
   this.children = {};
 };
 
-YOVALUE.SVGDrawer.Group.prototype = {
+GRASP.SVGDrawer.Group.prototype = {
   /**
-   * Add YOVALUE.SVGDrawer.<ShapeName> to YOVALUE.SVGDrawer.Group
-   * @param e - YOVALUE.SVGDrawer.<ShapeName>
+   * Add GRASP.SVGDrawer.<ShapeName> to GRASP.SVGDrawer.Group
+   * @param e - GRASP.SVGDrawer.<ShapeName>
    */
   add: function(e){
     this.children[e.getShape().id] = e;
@@ -702,8 +702,8 @@ YOVALUE.SVGDrawer.Group.prototype = {
   },
 
   /**
-   * Remove YOVALUE.SVGDrawer.<ShapeName> from YOVALUE.SVGDrawer.Group by shape id
-   * @param id - YOVALUE.SVGDrawer.<ShapeName>.getShape().getId()
+   * Remove GRASP.SVGDrawer.<ShapeName> from GRASP.SVGDrawer.Group by shape id
+   * @param id - GRASP.SVGDrawer.<ShapeName>.getShape().getId()
    */
   remove: function(id){
     var el = document.getElementById(id);
@@ -720,8 +720,8 @@ YOVALUE.SVGDrawer.Group.prototype = {
  * Rectangle
  * @constructor
  */
-YOVALUE.SVGDrawer.Rect = function(baseShape, args){
-  YOVALUE.mixin(baseShape, this);
+GRASP.SVGDrawer.Rect = function(baseShape, args){
+  GRASP.mixin(baseShape, this);
   this.shape = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   baseShape.setShape(this.shape);
   baseShape.init();
@@ -729,7 +729,7 @@ YOVALUE.SVGDrawer.Rect = function(baseShape, args){
   this.setHeight(args.height);
 };
 
-YOVALUE.SVGDrawer.Rect.prototype = {
+GRASP.SVGDrawer.Rect.prototype = {
   setWidth: function(v){
     this.width = v;
     this.getShape().setAttributeNS(null, "width",  v);
@@ -754,15 +754,15 @@ YOVALUE.SVGDrawer.Rect.prototype = {
  * @param args
  * @constructor
  */
-YOVALUE.SVGDrawer.Path = function(baseShape, args){
-  YOVALUE.mixin(baseShape, this);
+GRASP.SVGDrawer.Path = function(baseShape, args){
+  GRASP.mixin(baseShape, this);
   this.shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
   baseShape.setShape(this.shape);
   baseShape.init();
   this.setData(args.data);
 };
 
-YOVALUE.SVGDrawer.Path.prototype = {
+GRASP.SVGDrawer.Path.prototype = {
   setData: function(v){
     this.data = v;
     this.getShape().setAttributeNS(null, "d",  v);
@@ -791,15 +791,15 @@ YOVALUE.SVGDrawer.Path.prototype = {
  * @param args
  * @constructor
  */
-YOVALUE.SVGDrawer.Circle = function(baseShape, args){
-  YOVALUE.mixin(baseShape, this);
+GRASP.SVGDrawer.Circle = function(baseShape, args){
+  GRASP.mixin(baseShape, this);
   this.shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   baseShape.setShape(this.shape);
   baseShape.init();
   this.setRadius(args.radius);
 };
 
-YOVALUE.SVGDrawer.Circle.prototype = {
+GRASP.SVGDrawer.Circle.prototype = {
   setRadius: function(v){
     this.radius = v;
     this.getShape().setAttributeNS(null, "r",  this.radius);
@@ -817,8 +817,8 @@ YOVALUE.SVGDrawer.Circle.prototype = {
  * @param args
  * @constructor
  */
-YOVALUE.SVGDrawer.Text = function(baseShape, args){
-  YOVALUE.mixin(baseShape, this);
+GRASP.SVGDrawer.Text = function(baseShape, args){
+  GRASP.mixin(baseShape, this);
   this.shape = document.createElementNS("http://www.w3.org/2000/svg", "text");
   baseShape.setShape(this.shape);
   baseShape.init();
@@ -827,7 +827,7 @@ YOVALUE.SVGDrawer.Text = function(baseShape, args){
   this.setFontSize(args.fontSize);
 };
 
-YOVALUE.SVGDrawer.Text.prototype = {
+GRASP.SVGDrawer.Text.prototype = {
   setText: function(v){
     this.text = v;
     while (this.getShape().firstChild) {

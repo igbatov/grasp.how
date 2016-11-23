@@ -23,7 +23,7 @@ $app = new AppUserPkb($c, $s, $db, $eh, $l);
   <script type="text/javascript" src="../../../lib/client/stacktrace-0.4.js"></script>
   <script type="text/javascript" src="../../../lib/client/xor4096.min.js"></script>
 
-  <!-- YOVALUE source files -->
+  <!-- GRASP source files -->
   <?php foreach($app->getJsIncludeList() as $js_include) : ?>
     <script src="<?php echo "../../../apps/user_pkb/client/js/".$js_include; ?>"></script>
   <?php endforeach ?>

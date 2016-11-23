@@ -8,7 +8,7 @@
  * @param labelFactory
  * @constructor
  */
-YOVALUE.GraphView = function (graphId, drawer) {
+GRASP.GraphView = function (graphId, drawer) {
   this.graphId = graphId;
   this.drawer = drawer;
 
@@ -17,7 +17,7 @@ YOVALUE.GraphView = function (graphId, drawer) {
   // elementType = 'node' or 'edge'
   // elementId = model node or edge id
   // drawerShapeId = id of drawer object
-  this.graphViewElements = new YOVALUE.Table(['element', 'elementType', 'elementId', 'drawerShapeId']);
+  this.graphViewElements = new GRASP.Table(['element', 'elementType', 'elementId', 'drawerShapeId']);
 
   //GraphView settings
   this.graphArea = null;
@@ -59,10 +59,10 @@ YOVALUE.GraphView = function (graphId, drawer) {
   ];
 
   // table of all callbacks bindIds
-  this.callbackBindsTable = new YOVALUE.Table(['eventType','shapeId', 'callback','bindId']);
+  this.callbackBindsTable = new GRASP.Table(['eventType','shapeId', 'callback','bindId']);
 
   // table of all user (i.e. registered with this.bind()) callbacks
-  this.userCallbacksTable = new YOVALUE.Table(['eventType', 'callback']);
+  this.userCallbacksTable = new GRASP.Table(['eventType', 'callback']);
 
   // Modes can by 'connect' and 'move'. While in the latter mode
   // node actually changes its position, in the former
@@ -86,7 +86,7 @@ YOVALUE.GraphView = function (graphId, drawer) {
  * Implements iGraphView
  * @type {Object}
  */
-YOVALUE.GraphView.prototype = {
+GRASP.GraphView.prototype = {
   getId: function(){
     return this.graphId;
   },
@@ -136,14 +136,14 @@ YOVALUE.GraphView.prototype = {
   },
 
   /**
-   * @param mapping must implement YOVALUE.iMapping
+   * @param mapping must implement GRASP.iMapping
    */
   setNodeMapping: function(mapping){
     // sanity check
-    if(!YOVALUE.implements(mapping, YOVALUE.iMapping)){
-      YOVALUE.errorHandler.throwError('mapping does not implement iMapping');
+    if(!GRASP.implements(mapping, GRASP.iMapping)){
+      GRASP.errorHandler.throwError('mapping does not implement iMapping');
     }
-    this.nodeMapping = YOVALUE.MappingHelper.adjustMappingToArea(mapping, this.graphArea);
+    this.nodeMapping = GRASP.MappingHelper.adjustMappingToArea(mapping, this.graphArea);
   },
 
   getNodeMapping: function(){
@@ -151,14 +151,14 @@ YOVALUE.GraphView.prototype = {
   },
 
   /**
-   * @param mapping - must implement YOVALUE.iMapping
+   * @param mapping - must implement GRASP.iMapping
    */
   setNodeLabelMapping: function(mapping){
     //sanity check
-    if(!YOVALUE.implements(mapping, YOVALUE.iMapping)){
-      YOVALUE.errorHandler.throwError('mapping does not implement iMapping');
+    if(!GRASP.implements(mapping, GRASP.iMapping)){
+      GRASP.errorHandler.throwError('mapping does not implement iMapping');
     }
-    this.nodeLabelMapping = YOVALUE.MappingHelper.adjustMappingToArea(mapping, this.graphArea);
+    this.nodeLabelMapping = GRASP.MappingHelper.adjustMappingToArea(mapping, this.graphArea);
   },
 
   getNodeLabelMapping: function(){
@@ -178,15 +178,15 @@ YOVALUE.GraphView.prototype = {
     this.graphArea = area;
 
     try{
-      this.nodeMapping = YOVALUE.MappingHelper.adjustMappingToArea(this.nodeMapping, this.graphArea);
+      this.nodeMapping = GRASP.MappingHelper.adjustMappingToArea(this.nodeMapping, this.graphArea);
     }catch(e){}
 
     try{
-      this.nodeLabelMapping = YOVALUE.MappingHelper.adjustMappingToArea(this.nodeLabelMapping, this.graphArea);
+      this.nodeLabelMapping = GRASP.MappingHelper.adjustMappingToArea(this.nodeLabelMapping, this.graphArea);
     }catch(e){}
 
     try{
-      this.decoration = YOVALUE.decorationHelper.adjustDecorationToArea(this.decoration, this.graphArea);
+      this.decoration = GRASP.decorationHelper.adjustDecorationToArea(this.decoration, this.graphArea);
     }catch(e){}
 
     var startX = parseInt(this.graphArea.centerX - this.graphArea.width/2);
@@ -213,9 +213,9 @@ YOVALUE.GraphView.prototype = {
    * @param model - must implement interface IGraphViewModel
    */
   setModel: function(model){
-    if(!YOVALUE.implements(model, YOVALUE.iGraphViewModel)) {
+    if(!GRASP.implements(model, GRASP.iGraphViewModel)) {
       console.log(model);
-      YOVALUE.errorHandler.throwError("Object do not implement YOVALUE.iGraphViewModel interface");
+      GRASP.errorHandler.throwError("Object do not implement GRASP.iGraphViewModel interface");
     }
     this.model = model;
   },
@@ -230,7 +230,7 @@ YOVALUE.GraphView.prototype = {
    */
   setDecoration: function(decoration){
     this.decoration = decoration;
-    this.decoration = YOVALUE.decorationHelper.adjustDecorationToArea(this.decoration, this.graphArea);
+    this.decoration = GRASP.decorationHelper.adjustDecorationToArea(this.decoration, this.graphArea);
   },
 
   getDecoration: function(){
@@ -249,7 +249,7 @@ YOVALUE.GraphView.prototype = {
    */
   setDragMode: function(mode){
     if(mode != 'connect' && mode != 'move'){
-      YOVALUE.errorHandler.notifyError("drag mode is not 'connect' nor 'move'");
+      GRASP.errorHandler.notifyError("drag mode is not 'connect' nor 'move'");
       return false;
     }
 
@@ -306,7 +306,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //create shapes to all nodes from model that does not yet has shapes and bind default reaction on mouse events
-    var freeNodeIdsArray = YOVALUE.arrayHelper.difference(nodeIds, shapeNodeIds);
+    var freeNodeIdsArray = GRASP.arrayHelper.difference(nodeIds, shapeNodeIds);
     for(i in freeNodeIdsArray){
       doNeedRedraw = true;
 
@@ -344,7 +344,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //adjust shapes that already exists and has correspondent node in model
-    var usedNodeIdsArray = YOVALUE.arrayHelper.intersection(shapeNodeIds, nodeIds);
+    var usedNodeIdsArray = GRASP.arrayHelper.intersection(shapeNodeIds, nodeIds);
 
     for(i in usedNodeIdsArray){
       nodeId = usedNodeIdsArray[i];
@@ -356,7 +356,7 @@ YOVALUE.GraphView.prototype = {
         elNode.getOpacity() != this.decoration.nodes[nodeId].opacity ||
         elNode.getColor() != this.decoration.nodes[nodeId].color ||
         elNode.getNodeType() != nodes[nodeId].type ||
-        !YOVALUE.compare(elNode.getStickers(), this.decoration.nodes[nodeId].stickers)
+        !GRASP.compare(elNode.getStickers(), this.decoration.nodes[nodeId].stickers)
       ){
         elNode.setSize(this.decoration.nodes[nodeId].size);
         elNode.setOpacity(this.decoration.nodes[nodeId].opacity);
@@ -378,7 +378,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //remove node shapes that do not has correspondent model node
-    var obsoleteNodeIdsArray = YOVALUE.arrayHelper.difference(shapeNodeIds, nodeIds);
+    var obsoleteNodeIdsArray = GRASP.arrayHelper.difference(shapeNodeIds, nodeIds);
     for(i in obsoleteNodeIdsArray){
       doNeedRedraw = true;
       nodeId = obsoleteNodeIdsArray[i];
@@ -412,7 +412,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //create shapes to all edges from model that does not yet has shapes
-    var freeEdgeIdsArray = YOVALUE.arrayHelper.difference(edgeIds, shapeEdgeIds);
+    var freeEdgeIdsArray = GRASP.arrayHelper.difference(edgeIds, shapeEdgeIds);
     for(i in freeEdgeIdsArray){
       doNeedRedraw = true;
       edge = edges[freeEdgeIdsArray[i]];
@@ -452,7 +452,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //adjust shapes that already exists and has correspondent edge in model
-    var usedEdgeIdsArray = YOVALUE.arrayHelper.intersection(shapeEdgeIds, edgeIds);
+    var usedEdgeIdsArray = GRASP.arrayHelper.intersection(shapeEdgeIds, edgeIds);
     for(i in usedEdgeIdsArray){
       edgeId = usedEdgeIdsArray[i];
       rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':edgeId});
@@ -492,7 +492,7 @@ YOVALUE.GraphView.prototype = {
 
 
     //remove node shapes that do not has correspondent model node
-    var obsoleteEdgeIdsArray = YOVALUE.arrayHelper.difference(shapeEdgeIds, edgeIds);
+    var obsoleteEdgeIdsArray = GRASP.arrayHelper.difference(shapeEdgeIds, edgeIds);
     for(i in obsoleteEdgeIdsArray){
       doNeedRedraw = true;
       edgeId = obsoleteEdgeIdsArray[i];
@@ -525,7 +525,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //create label shapes to all nodes from model that does not yet has one
-    var freeNodeIdsArray = YOVALUE.arrayHelper.difference(nodeIds, shapeNodeLabelIds);
+    var freeNodeIdsArray = GRASP.arrayHelper.difference(nodeIds, shapeNodeLabelIds);
     for(i in freeNodeIdsArray){
 
       doNeedRedraw = true;
@@ -549,7 +549,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //adjust shapes that already exists and has correspondent node in model
-    var usedNodeIdsArray = YOVALUE.arrayHelper.intersection(shapeNodeLabelIds, nodeIds);
+    var usedNodeIdsArray = GRASP.arrayHelper.intersection(shapeNodeLabelIds, nodeIds);
     for(i in usedNodeIdsArray){
       nodeId = usedNodeIdsArray[i];
       rows = this.graphViewElements.getRows({'elementType':'nodeLabel', 'elementId':nodeId});
@@ -573,7 +573,7 @@ YOVALUE.GraphView.prototype = {
     }
 
     //remove node shapes that do not has correspondent model node
-    var obsoleteNodeIdsArray = YOVALUE.arrayHelper.difference(shapeNodeLabelIds, nodeIds);
+    var obsoleteNodeIdsArray = GRASP.arrayHelper.difference(shapeNodeLabelIds, nodeIds);
     for(i in obsoleteNodeIdsArray){
       doNeedRedraw = true;
       nodeId = obsoleteNodeIdsArray[i];
@@ -924,15 +924,15 @@ YOVALUE.GraphView.prototype = {
    *
    * @param skin in form {
       node:{
-        constructor: YOVALUE.GraphViewNode,
+        constructor: GRASP.GraphViewNode,
         attr: {}
       },
       edge:{
-        constructor: YOVALUE.GraphViewEdge,
+        constructor: GRASP.GraphViewEdge,
         attr: {}
       },
       nodeLabel:{
-        constructor: YOVALUE.GraphViewNodeLabel,
+        constructor: GRASP.GraphViewNodeLabel,
         attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
       },
       background:{
@@ -946,8 +946,8 @@ YOVALUE.GraphView.prototype = {
     if(type == 'edge'){
       return new skin.edge.constr(
         this.drawer,
-        new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.edgeId, elementType:'edge'}),
-        YOVALUE.extend(skin.edge.attr, settings)
+        new GRASP.GraphViewElement({graphId:settings.graphId, elementId:settings.edgeId, elementType:'edge'}),
+        GRASP.extend(skin.edge.attr, settings)
       );
     }else if(type == 'node'){
       var constructor;
@@ -957,14 +957,14 @@ YOVALUE.GraphView.prototype = {
 
       return new constructor(
         this.drawer,
-        new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeId, elementType:'node'}),
-        YOVALUE.extend(skin.node.attr, settings)
+        new GRASP.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeId, elementType:'node'}),
+        GRASP.extend(skin.node.attr, settings)
       );
     }else if(type == 'label'){
       return new skin.nodeLabel.constr(
         this.drawer,
-        new YOVALUE.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeLabelId, elementType:'nodeLabel'}),
-        YOVALUE.extend(skin.nodeLabel.attr, settings)
+        new GRASP.GraphViewElement({graphId:settings.graphId, elementId:settings.nodeLabelId, elementType:'nodeLabel'}),
+        GRASP.extend(skin.nodeLabel.attr, settings)
       );
     }
   }

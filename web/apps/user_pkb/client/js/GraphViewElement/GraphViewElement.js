@@ -3,13 +3,13 @@
  * @param args - {elementId, elementType, graphId}
  * @constructor
  */
-YOVALUE.GraphViewElement = function(args){
+GRASP.GraphViewElement = function(args){
   this.graphId = args.graphId;
   this.elementId = args.elementId;
   this.elementType = args.elementType;
 };
 
-YOVALUE.GraphViewElement.prototype = {
+GRASP.GraphViewElement.prototype = {
   setDrawerShape: function(shape){
     this.shape = shape;
   },

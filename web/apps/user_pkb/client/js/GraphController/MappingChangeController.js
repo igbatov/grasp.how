@@ -8,11 +8,11 @@
  * @constructor
  */
 
-YOVALUE.MappingChangeController = function(publisher){
+GRASP.MappingChangeController = function(publisher){
   this.publisher = publisher;
 };
 
-YOVALUE.MappingChangeController.prototype = {
+GRASP.MappingChangeController.prototype = {
   execute: function(event, selectedElement){
 
     if(!event.getData()) return false;
@@ -31,7 +31,7 @@ YOVALUE.MappingChangeController.prototype = {
     if(dragMode != 'move') return;
 
     if(eventName == 'dragstartnode'){
-      m = YOVALUE.clone(this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId}));
+      m = GRASP.clone(this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId}));
       this.nodeStartXY = {
         x: m.mapping[event.getData()['element'].id].x,
         y: m.mapping[event.getData()['element'].id].y

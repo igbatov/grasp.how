@@ -111,7 +111,7 @@ describe("BayesCalculator", function(){
       edges:[['h1','e1'],['h1','e2'],['h2','e2']]
     };
 
-    this.bc = new YOVALUE.BayesCalculator(2, 1000, YOVALUE.randomGeneratorFactory, false);
+    this.bc = new GRASP.BayesCalculator(2, 1000, GRASP.randomGeneratorFactory, false);
   });
 
   it("getGraphLeafs", function () {

@@ -8,7 +8,7 @@
  * @param jQuery
  * @constructor
  */
-YOVALUE.CanvasDrawer = function(kinetic, stageContainerId, stageContainerWidth, stageContainerHeight, jQuery){
+GRASP.CanvasDrawer = function(kinetic, stageContainerId, stageContainerWidth, stageContainerHeight, jQuery){
   this.kinetic = kinetic;
   this.stageContainerId = stageContainerId;
   this.stageContainerWidth = stageContainerWidth;
@@ -33,7 +33,7 @@ YOVALUE.CanvasDrawer = function(kinetic, stageContainerId, stageContainerWidth, 
   this.bindedShapes = [];
 };
 
-YOVALUE.CanvasDrawer.prototype = {
+GRASP.CanvasDrawer.prototype = {
   /**
    *
    * @param layer_name - string
@@ -209,13 +209,13 @@ YOVALUE.CanvasDrawer.prototype = {
   createShape: function(type, args){
     var shape;
     if(type == 'path'){
-      shape = new YOVALUE.CanvasDrawer.Path({
+      shape = new GRASP.CanvasDrawer.Path({
         data: args.data,
         stroke: args.stroke,
         opacity: args.opacity,
 
         drawHitFunc: function(canvas) {
-          var shape = new YOVALUE.CanvasDrawer.Path({
+          var shape = new GRASP.CanvasDrawer.Path({
             data: args.hitData,
             strokeWidth: 1
           });
@@ -225,16 +225,16 @@ YOVALUE.CanvasDrawer.prototype = {
       });
     }
     if(type == 'circle'){
-      shape =  new YOVALUE.CanvasDrawer.Circle(args);
+      shape =  new GRASP.CanvasDrawer.Circle(args);
     }
     if(type == 'text'){
-      shape =  new YOVALUE.CanvasDrawer.Text(args);
+      shape =  new GRASP.CanvasDrawer.Text(args);
     }
     if(type == 'image'){
-      shape =  new YOVALUE.CanvasDrawer.Image(args);
+      shape =  new GRASP.CanvasDrawer.Image(args);
     }
     if(type == 'rectangle'){
-      shape =  new YOVALUE.CanvasDrawer.Rect(args);
+      shape =  new GRASP.CanvasDrawer.Rect(args);
     }
     shape.setId(shape._id);
     return shape;
@@ -244,8 +244,8 @@ YOVALUE.CanvasDrawer.prototype = {
 /*
  * Define some basic shapes
  */
-YOVALUE.CanvasDrawer.Image = Kinetic.Image;
-YOVALUE.CanvasDrawer.Circle = Kinetic.Circle;
-YOVALUE.CanvasDrawer.Text = Kinetic.Text;
-YOVALUE.CanvasDrawer.Path = Kinetic.Path;
-YOVALUE.CanvasDrawer.Rect = Kinetic.Rect;
+GRASP.CanvasDrawer.Image = Kinetic.Image;
+GRASP.CanvasDrawer.Circle = Kinetic.Circle;
+GRASP.CanvasDrawer.Text = Kinetic.Text;
+GRASP.CanvasDrawer.Path = Kinetic.Path;
+GRASP.CanvasDrawer.Rect = Kinetic.Rect;

@@ -45,14 +45,14 @@
  * @param default_skin
  * @constructor
  */
-YOVALUE.SelectGraphSkinModel = function(publisher, constrs, default_skin){
+GRASP.SelectGraphSkinModel = function(publisher, constrs, default_skin){
   this.publisher = publisher;
   this.constrs = constrs;
   this.default_skin = default_skin;
   this.selectedSkins = {}; //key-graph_name, value-layout_name
 };
 
-YOVALUE.SelectGraphSkinModel.prototype = {
+GRASP.SelectGraphSkinModel.prototype = {
   eventListener: function(event){
     var that = this;
     switch (event.getName()){

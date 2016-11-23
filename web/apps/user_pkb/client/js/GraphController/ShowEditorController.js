@@ -1,9 +1,9 @@
-YOVALUE.ShowEditorController = function(publisher){
+GRASP.ShowEditorController = function(publisher){
   this.publisher = publisher;
   this.isElementEditorFocused = false;
 };
 
-YOVALUE.ShowEditorController.prototype = {
+GRASP.ShowEditorController.prototype = {
   execute: function(event, selectedElement){
     var eventName = event.getName();
 

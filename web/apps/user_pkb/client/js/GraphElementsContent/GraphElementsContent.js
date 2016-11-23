@@ -16,13 +16,13 @@
  * @constructor
  */
 
-YOVALUE.GraphElementsContent = function(publisher){
+GRASP.GraphElementsContent = function(publisher){
   this.publisher = publisher;
 
   // This is filled all at once for the whole graph at the very beginning, on get_elements_attributes request
   // elementType is 'node' or 'edge'
   // contentId is edgeContentId or nodeContentUd
-  this.cacheContent = new YOVALUE.Cache(['elementType', 'contentId', 'content'], 5000000);
+  this.cacheContent = new GRASP.Cache(['elementType', 'contentId', 'content'], 5000000);
   this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
   this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
   this.edgeAttributeNames = ['label', 'label'];
@@ -34,7 +34,7 @@ YOVALUE.GraphElementsContent = function(publisher){
 
 };
 
-YOVALUE.GraphElementsContent.prototype = {
+GRASP.GraphElementsContent.prototype = {
 
   eventListener: function(event){
     var that = this, eventName = event.getName();
@@ -54,7 +54,7 @@ YOVALUE.GraphElementsContent.prototype = {
             if(!es.length) continue;
             e = es[0].content;
             if(typeof(e['stickers']) != 'undefined' || e['stickers'] == null) e['stickers'] = [];
-            e['stickers'] = YOVALUE.arrayHelper.union(e['stickers'], event.getData()['stickers'][nodeContentId]);
+            e['stickers'] = GRASP.arrayHelper.union(e['stickers'], event.getData()['stickers'][nodeContentId]);
           }
           er = {};
           ed = event.getData();
@@ -63,7 +63,7 @@ YOVALUE.GraphElementsContent.prototype = {
           for(var nodeContentId in event.getData()['stickers']){
             e = this.cacheContent.get({elementType:'node', contentId: nodeContentId})[0].content;
             if(typeof(e['stickers']) != 'undefined' || e['stickers'] == null) e['stickers'] = [];
-            e['stickers'] = YOVALUE.arrayHelper.difference(e['stickers'], event.getData()['stickers'][nodeContentId]);
+            e['stickers'] = GRASP.arrayHelper.difference(e['stickers'], event.getData()['stickers'][nodeContentId]);
           }
           er = {};
           ed = event.getData();
@@ -113,15 +113,15 @@ YOVALUE.GraphElementsContent.prototype = {
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
           if(typeof( e['alternatives'][event.getData()['node_alternative_id']]) != 'undefined'){
             delete e['alternatives'][event.getData()['node_alternative_id']];
-            e['active_alternative_id'] = YOVALUE.getObjectKeys(e['alternatives'])[0];
+            e['active_alternative_id'] = GRASP.getObjectKeys(e['alternatives'])[0];
             er = {};
             ed = event.getData();
           }
 
         }else if(event.getData()['type'] == 'addAlternative'){
           e = this.cacheContent.get({elementType:'node', contentId: event.getData()['nodeContentId']})[0].content;
-          var newAlternativeId = Math.max.apply(null, YOVALUE.getObjectKeys(e['alternatives']))+1;
-          e['alternatives'][newAlternativeId] = YOVALUE.clone(YOVALUE.iGraphNodeContent.alternatives[0]);
+          var newAlternativeId = Math.max.apply(null, GRASP.getObjectKeys(e['alternatives']))+1;
+          e['alternatives'][newAlternativeId] = GRASP.clone(GRASP.iGraphNodeContent.alternatives[0]);
           e['alternatives'][newAlternativeId]['label'] = event.getData()['label'];
           e['active_alternative_id'] = newAlternativeId;
           er = {};
@@ -171,7 +171,7 @@ YOVALUE.GraphElementsContent.prototype = {
           }else if(event.getData().nodeAttribute.name == 'reliability' && e.type == 'fact'){
             e['alternatives'][0]['reliability'] = event.getData().nodeAttribute.value;
             e['alternatives'][1]['reliability'] = parseFloat(100-parseFloat(event.getData().nodeAttribute.value));
-            var secondAlternativeEvent = YOVALUE.clone(event.getData());
+            var secondAlternativeEvent = GRASP.clone(event.getData());
             secondAlternativeEvent.node_alternative_id = 1;
             secondAlternativeEvent.nodeAttribute.value = e['alternatives'][1]['reliability'];
 
@@ -198,7 +198,7 @@ YOVALUE.GraphElementsContent.prototype = {
 
         }else if(event.getData()['type'] == 'addEdge'){
           
-          var newEdge = YOVALUE.clone(YOVALUE.iGraphEdgeContent);
+          var newEdge = GRASP.clone(GRASP.iGraphEdgeContent);
           newEdge.label = event.getData().elementType;
           newEdge.type = event.getData().elementType;
 
@@ -233,7 +233,7 @@ YOVALUE.GraphElementsContent.prototype = {
                     ["get_graph_node_content", {graphId:event.getData()['graphId'], nodeContentIds:[event.getData().element.nodeContentId]}])
               .then(function(attributes, contents){
                 // create new node and copy all info from old
-                var newNode = YOVALUE.clone(contents[event.getData().element.nodeContentId]);
+                var newNode = GRASP.clone(contents[event.getData().element.nodeContentId]);
                 newNode.nodeContentId = null;
                 saveNewNode(
                     event.getData()['graphId'],
@@ -243,7 +243,7 @@ YOVALUE.GraphElementsContent.prototype = {
           }
           // if it is brand new node just set default values and call saveNewNode
           else{
-            var newNode = YOVALUE.clone(YOVALUE.iGraphNodeContent);
+            var newNode = GRASP.clone(GRASP.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
             newNode.alternatives[0].reliability = 50;
             newNode.alternatives[1].label = that.DEFAULT_ALTERNATIVE_LABEL_PREFIX+event.getData().element.label;
@@ -365,7 +365,7 @@ YOVALUE.GraphElementsContent.prototype = {
                   that.cacheContent.add({elementType:'node',contentId: nodeContentId, content:nodeContents[nodeContentId]});
                 }
               }
-              var response = YOVALUE.deepmerge(cachedContents, nodeContents);
+              var response = GRASP.deepmerge(cachedContents, nodeContents);
               event.setResponse(response);
             });
         }else{

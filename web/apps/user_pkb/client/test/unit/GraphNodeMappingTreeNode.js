@@ -1,6 +1,6 @@
 describe("GraphNodeMappingTreeNode", function(){
   beforeEach(function(){
-    this.node = new YOVALUE.GraphNodeMappingTreeNode({
+    this.node = new GRASP.GraphNodeMappingTreeNode({
       'id':1,
       'x':50,
       'y': 50,

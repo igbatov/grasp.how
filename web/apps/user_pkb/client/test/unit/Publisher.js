@@ -1,22 +1,22 @@
 //We do not want extra logs in console, because jasmine will tell us everything by itself
-YOVALUE.errorHandler.setQuietMode(true);
+GRASP.errorHandler.setQuietMode(true);
 
 describe("Publisher.when", function () {
   beforeEach(function(){
-    this.mediator = new YOVALUE.Mediator();
-    this.event1 = new YOVALUE.Event("event1", {});
-    this.event2 = new YOVALUE.Event("event2", {});
-    this.event3 = new YOVALUE.Event("event3", {});
+    this.mediator = new GRASP.Mediator();
+    this.event1 = new GRASP.Event("event1", {});
+    this.event2 = new GRASP.Event("event2", {});
+    this.event3 = new GRASP.Event("event3", {});
 
-    this.listeners = [Object.create(YOVALUE.iListener), Object.create(YOVALUE.iListener), Object.create(YOVALUE.iListener), Object.create(YOVALUE.iListener)];
+    this.listeners = [Object.create(GRASP.iListener), Object.create(GRASP.iListener), Object.create(GRASP.iListener), Object.create(GRASP.iListener)];
 
     this.mediator.addListener('event1', this.listeners[0]);
     this.mediator.addListener('event2', this.listeners[1]);
     this.mediator.addListener('event3', this.listeners[2]);
     this.mediator.addListener('event1', this.listeners[3]);
 
-    var promise = new YOVALUE.Promise(jQuery);
-    this.publisher = new YOVALUE.Publisher(this.mediator, promise);
+    var promise = new GRASP.Promise(jQuery);
+    this.publisher = new GRASP.Publisher(this.mediator, promise);
   });
 
 

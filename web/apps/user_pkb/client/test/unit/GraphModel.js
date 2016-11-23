@@ -15,7 +15,7 @@ describe("GraphModel", function(){
       4: {id:4, source:4, target: 1, edgeContentId:"4"}
     };
 
-    this.model = new YOVALUE.GraphModel(1);
+    this.model = new GRASP.GraphModel(1);
     this.model.init('testGraph', ['text'], ['link'], 'text', 'link', true);
     this.model.setGraphElements({nodes:nodes, edges:edges});
   });

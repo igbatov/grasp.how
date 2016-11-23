@@ -3,7 +3,7 @@
  * @param args
  * @constructor
  */
-YOVALUE.iGraphViewEdge = {
+GRASP.iGraphViewEdge = {
   getDrawerShape: function(){},
   getElementType: function(){},
   getElementId: function(){},

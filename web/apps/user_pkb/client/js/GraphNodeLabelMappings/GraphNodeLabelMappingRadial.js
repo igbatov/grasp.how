@@ -1,9 +1,9 @@
-YOVALUE.GraphNodeLabelMappingRadial = function(){
+GRASP.GraphNodeLabelMappingRadial = function(){
   this._model_nodes = {};
   this._node_label_area_list = {};
 };
 
-YOVALUE.GraphNodeLabelMappingRadial.prototype = {
+GRASP.GraphNodeLabelMappingRadial.prototype = {
   getMapping: function(model, nodeMapping, nodeLabelAreaList, scale){
     this._model_nodes = model.getNodes();
     this._node_label_area_list = nodeLabelAreaList;

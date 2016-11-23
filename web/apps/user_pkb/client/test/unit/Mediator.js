@@ -1,13 +1,13 @@
 //We do not want extra logs in console, because jasmine will tell us everything by itself
-YOVALUE.errorHandler.setQuietMode(true);
+GRASP.errorHandler.setQuietMode(true);
 
 describe("Mediator.addSubscriber", function () {
   beforeEach(function(){
-    this.mediator = new YOVALUE.Mediator();
+    this.mediator = new GRASP.Mediator();
   });
 
   it("should store listeners", function () {
-    var listeners = [Object.create(YOVALUE.iListener), Object.create(YOVALUE.iListener)];
+    var listeners = [Object.create(GRASP.iListener), Object.create(GRASP.iListener)];
     
     this.mediator.addListener('e', listeners[0]);
     this.mediator.addListener('e', listeners[1]);
@@ -16,20 +16,20 @@ describe("Mediator.addSubscriber", function () {
     expect(this.mediator.hasListener('e', listeners[1])).toBeTruthy();
   });
 
-  it("should throw for listener that does not implement YOVALUE.iListener", function () {
+  it("should throw for listener that does not implement GRASP.iListener", function () {
     var that = this;
 
     expect(function () {
       that.mediator.addListener('e', {});
-    }).toThrow(Error("Object do not implement YOVALUE.iListener interface"));
+    }).toThrow(Error("Object do not implement GRASP.iListener interface"));
   });
 });
 
 describe("Mediator.dispatch", function(){
   beforeEach(function(){
-    this.mediator = new YOVALUE.Mediator();
-    this.event = new YOVALUE.Event("event", {});
-    this.listeners = [Object.create(YOVALUE.iListener), Object.create(YOVALUE.iListener)];
+    this.mediator = new GRASP.Mediator();
+    this.event = new GRASP.Event("event", {});
+    this.listeners = [Object.create(GRASP.iListener), Object.create(GRASP.iListener)];
   });
 
   it("should call all listeners", function () {
@@ -67,7 +67,7 @@ describe("Mediator.dispatch", function(){
     this.mediator.addListener('event', this.listeners[0]);
 
     this.listeners[1].eventListener = function (event) { calls.push("other"); };
-    var event2 = new YOVALUE.Event('other', {});
+    var event2 = new GRASP.Event('other', {});
     this.mediator.addListener('other', this.listeners[1]);
     this.mediator.dispatch(event2);
 
@@ -94,7 +94,7 @@ describe("Mediator.dispatch", function(){
       'B': B
     };
 
-    var mediator = new YOVALUE.Mediator(Modules, {'event':['B', 'A']});
+    var mediator = new GRASP.Mediator(Modules, {'event':['B', 'A']});
     mediator.addListener('event', new A());
     mediator.addListener('event', new B());
     mediator.addListener('event', new A());
@@ -102,7 +102,7 @@ describe("Mediator.dispatch", function(){
     expect(calls).toEqual(["B", "A", "A"]);
 
     calls = [];
-    mediator = new YOVALUE.Mediator(Modules, {'event':['B', 'A']});
+    mediator = new GRASP.Mediator(Modules, {'event':['B', 'A']});
     mediator.addListener('event', new B());
     mediator.addListener('event', new A());
     mediator.dispatch(this.event);

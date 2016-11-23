@@ -1,36 +1,36 @@
 
-describe("YOVALUE.typeof", function(){
+describe("GRASP.typeof", function(){
   it('should return right type for variables', function () {
     var a = "str";
-    expect(YOVALUE.typeof(a)).toEqual('string');
+    expect(GRASP.typeof(a)).toEqual('string');
     a = [];
-    expect(YOVALUE.typeof(a)).toEqual('array');
+    expect(GRASP.typeof(a)).toEqual('array');
     a = {};
-    expect(YOVALUE.typeof(a)).toEqual('object');
+    expect(GRASP.typeof(a)).toEqual('object');
     a = function(){};
-    expect(YOVALUE.typeof(a)).toEqual('function');
+    expect(GRASP.typeof(a)).toEqual('function');
     a = new function(){};
-    expect(YOVALUE.typeof(a)).toEqual('object');
+    expect(GRASP.typeof(a)).toEqual('object');
     a = 1;
-    expect(YOVALUE.typeof(a)).toEqual('number');
+    expect(GRASP.typeof(a)).toEqual('number');
     a = true;
-    expect(YOVALUE.typeof(a)).toEqual('boolean');
+    expect(GRASP.typeof(a)).toEqual('boolean');
     a = Number();
-    expect(YOVALUE.typeof(a)).toEqual('number');
+    expect(GRASP.typeof(a)).toEqual('number');
     a = String();
-    expect(YOVALUE.typeof(a)).toEqual('string');
+    expect(GRASP.typeof(a)).toEqual('string');
     a = Boolean();
-    expect(YOVALUE.typeof(a)).toEqual('boolean');
+    expect(GRASP.typeof(a)).toEqual('boolean');
     a = new Array();
-    expect(YOVALUE.typeof(a)).toEqual('array');
+    expect(GRASP.typeof(a)).toEqual('array');
     a = new Date();
-    expect(YOVALUE.typeof(a)).toEqual('date');
+    expect(GRASP.typeof(a)).toEqual('date');
     a = null;
-    expect(YOVALUE.typeof(a)).toEqual('null');
+    expect(GRASP.typeof(a)).toEqual('null');
   });
 });
 
-describe("YOVALUE.mixin", function(){
+describe("GRASP.mixin", function(){
   it('should extend object A with functions of B', function () {
     var A = {
       funcA: function(){ return "A.funcA" }
@@ -40,7 +40,7 @@ describe("YOVALUE.mixin", function(){
       funcB: function(){ return "B.funcB" }
     };
 
-    YOVALUE.mixin(B, A);
+    GRASP.mixin(B, A);
     expect(A.funcA()).toEqual('A.funcA');
     expect(A.funcB()).toEqual('B.funcB');
   });
@@ -54,12 +54,12 @@ describe("YOVALUE.mixin", function(){
       funcA: function(){ return "B.funcB" }
     };
 
-    YOVALUE.mixin(B, A);
+    GRASP.mixin(B, A);
     expect(A.funcA()).toEqual('A.funcA');
   });
 });
 
-describe("YOVALUE.construct", function(){
+describe("GRASP.construct", function(){
   it('should return new instance of given constructor A  with given array of arguments', function () {
     var A, obj;
     A = function(arg1, arg2){
@@ -70,14 +70,14 @@ describe("YOVALUE.construct", function(){
       getArg1: function(){ return this.arg1; },
       getArg2: function(){ return this.arg2; }
     };
-    obj = YOVALUE.construct(A, ['a','b']);
+    obj = GRASP.construct(A, ['a','b']);
     expect(obj instanceof A).toEqual(true);
     expect(obj.getArg1()).toEqual('a');
     expect(obj.getArg2()).toEqual('b');
   });
 });
 
-describe("YOVALUE.wireModules", function(){
+describe("GRASP.wireModules", function(){
   it('should substitute constructors in Modules array with its instants', function () {
     var A, B, Modules, DI;
     A = function(){};
@@ -90,7 +90,7 @@ describe("YOVALUE.wireModules", function(){
       A: [],
       B: []
     };
-    YOVALUE.wireModules(Modules, DI);
+    GRASP.wireModules(Modules, DI);
     expect(Modules["A"] instanceof A).toEqual(true);
     expect(Modules["B"] instanceof B).toEqual(true);
   });
@@ -107,19 +107,19 @@ describe("YOVALUE.wireModules", function(){
       A: ['value'],
       B: ['A']
     }
-    YOVALUE.wireModules(Modules, DI);
+    GRASP.wireModules(Modules, DI);
     expect(Modules["A"].arg1).toEqual('value');
     expect(Modules["B"].arg1).toEqual(Modules["A"]);
   });
 });
 
-describe("YOVALUE.extend", function(){
+describe("GRASP.extend", function(){
   it('should add parent properties to child', function () {
     var parent = {
       funcA: function(){}
     };
 
-    var child = YOVALUE.extend(parent, {
+    var child = GRASP.extend(parent, {
       funcB: function(){}
     });
 
@@ -128,10 +128,10 @@ describe("YOVALUE.extend", function(){
   });
 });
 
-describe("YOVALUE.Table", function(){
+describe("GRASP.Table", function(){
   it('should add row to its list and return its id', function () {
     var table, row1, row2, id;
-    table = new YOVALUE.Table(['columnA', 'columnB', 'columnC']);
+    table = new GRASP.Table(['columnA', 'columnB', 'columnC']);
     row1 = {'columnA':'A1', 'columnB':'B1', 'columnC':'C1'};
     id = table.insertRow(row1);
     expect(id).toEqual(0);
@@ -147,7 +147,7 @@ describe("YOVALUE.Table", function(){
 
   it('should return all rows with given column values', function () {
     var table, row1, row2, row3, id;
-    table = new YOVALUE.Table(['columnA', 'columnB', 'columnC']);
+    table = new GRASP.Table(['columnA', 'columnB', 'columnC']);
     row1 = {'columnA':'A1', 'columnB':'B1', 'columnC':'C1'};
     row2 = {'columnA':'A2', 'columnB':'B1', 'columnC':'C2'};
     row3 = {'columnA':'A2', 'columnB':'B1', 'columnC':'C3'};
@@ -164,7 +164,7 @@ describe("YOVALUE.Table", function(){
 
   it('should remove row with given id', function () {
     var table, row1, row2, row3, id;
-    table = new YOVALUE.Table(['columnA', 'columnB', 'columnC']);
+    table = new GRASP.Table(['columnA', 'columnB', 'columnC']);
     row1 = {'columnA':'A1', 'columnB':'B1', 'columnC':'C1'};
     row2 = {'columnA':'A2', 'columnB':'B1', 'columnC':'C2'};
     row3 = {'columnA':'A2', 'columnB':'B1', 'columnC':'C3'};
@@ -181,7 +181,7 @@ describe("YOVALUE.Table", function(){
   });
 });
 
-describe("YOVALUE.implements", function(){
+describe("GRASP.implements", function(){
 
   it('should return true if object implements given interface', function () {
     var iFace = {
@@ -204,7 +204,7 @@ describe("YOVALUE.implements", function(){
       g: true
     };
 
-    expect(YOVALUE.implements(objectToCheck, iFace)).toEqual(true);
+    expect(GRASP.implements(objectToCheck, iFace)).toEqual(true);
   });
 
   it('should return false if object does not implement given interface un a full deep', function () {
@@ -216,7 +216,7 @@ describe("YOVALUE.implements", function(){
       a: {aa1: String(), aa2: {}}
     };
 
-    expect(YOVALUE.implements(objectToCheck, iFace)).toEqual(false);
+    expect(GRASP.implements(objectToCheck, iFace)).toEqual(false);
   });
 
   it('should return false if object property name do not equal to that of interface', function () {
@@ -228,7 +228,7 @@ describe("YOVALUE.implements", function(){
       b: String()
     };
 
-    expect(YOVALUE.implements(objectToCheck, iFace)).toEqual(false);
+    expect(GRASP.implements(objectToCheck, iFace)).toEqual(false);
   });
 
   it('should return false if object property type do not equal to that of interface', function () {
@@ -240,13 +240,13 @@ describe("YOVALUE.implements", function(){
       a: Array()
     };
 
-    expect(YOVALUE.implements(objectToCheck, iFace)).toEqual(false);
+    expect(GRASP.implements(objectToCheck, iFace)).toEqual(false);
   });
 
 });
 
 
-describe("YOVALUE.clone", function(){
+describe("GRASP.clone", function(){
   it('should clone object', function(){
     var o = {
       a: 'a',
@@ -255,7 +255,7 @@ describe("YOVALUE.clone", function(){
     };
 
     //cloned object should be equal to original
-    var clone = YOVALUE.clone(o);
+    var clone = GRASP.clone(o);
     expect(clone).toBeJsonEqual(o);
 
     //cloned object should not be modified if original was changed
@@ -274,18 +274,18 @@ describe("YOVALUE.clone", function(){
     var o = new O;
 
     //cloned object should be equal to original
-    var clone = YOVALUE.clone(o);
+    var clone = GRASP.clone(o);
     expect(clone).toBeJsonEqual(o);
     expect(clone.setA).toEqual(undefined);
   })
 });
 
-describe("YOVALUE.deepmerge", function(){
+describe("GRASP.deepmerge", function(){
   it('should merge arbitrarily deep objects', function(){
     var po = {"a": "poui", "c": {"q": 444, "w": function () {return 1123;}}, "o": {"b": {"t": "cats"}, "q": 7}, "p": 764}
     var as = {"a": "asdf", "b": 4, "c": {"q": 1, "w": function () {return 5;}}}
 
-    expect(YOVALUE.deepmerge(as, po)).toBeJsonEqual({ a : [ 'asdf', 'poui' ], c : { q : [ 1, 444 ], w : [ function () {return 5;}, function () {return 1123;} ] }, o : { b : { t : 'cats' }, q : 7 }, p : 764, b : 4 });
+    expect(GRASP.deepmerge(as, po)).toBeJsonEqual({ a : [ 'asdf', 'poui' ], c : { q : [ 1, 444 ], w : [ function () {return 5;}, function () {return 1123;} ] }, o : { b : { t : 'cats' }, q : 7 }, p : 764, b : 4 });
   })
 });
 

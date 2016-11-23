@@ -10,20 +10,20 @@
  *
  * @constructor
  */
-YOVALUE.Publisher = function(mediator, promise){
+GRASP.Publisher = function(mediator, promise){
   this._mediator = mediator;
   this._promise = promise;
 };
 
-YOVALUE.Publisher.prototype = {
+GRASP.Publisher.prototype = {
   /**
    *
    * @param name
    * @param {Object=} data
-   * @returns {YOVALUE.Event}
+   * @returns {GRASP.Event}
    */
   createEvent: function(name,data){
-    return new YOVALUE.Event(name, data, this._promise.getDefer())
+    return new GRASP.Event(name, data, this._promise.getDefer())
   },
 
   /**
@@ -53,12 +53,12 @@ YOVALUE.Publisher.prototype = {
 
   /**
    * Publish events
-   * @param events - every argument can be an array [name, data], string 'name' or YOVALUE.Event(name, data)
+   * @param events - every argument can be an array [name, data], string 'name' or GRASP.Event(name, data)
    */
   publish: function(events){
     for(var i in arguments){
-      if(YOVALUE.typeof(arguments[i]) == 'array') arguments[i] = this.createEvent(arguments[i][0], arguments[i][1]);
-      else if(YOVALUE.typeof(arguments[i]) == 'string') arguments[i] = this.createEvent(arguments[i]);
+      if(GRASP.typeof(arguments[i]) == 'array') arguments[i] = this.createEvent(arguments[i][0], arguments[i][1]);
+      else if(GRASP.typeof(arguments[i]) == 'string') arguments[i] = this.createEvent(arguments[i]);
     }
     var promise = this._promise.when.apply(this._promise, arguments);
     this.publishEvent.apply(this, arguments);

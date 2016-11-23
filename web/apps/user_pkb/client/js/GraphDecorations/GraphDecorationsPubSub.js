@@ -1,8 +1,8 @@
-YOVALUE.GraphDecorationsPubSub = function(graphDecoration){
+GRASP.GraphDecorationsPubSub = function(graphDecoration){
   this.graphDecoration = graphDecoration;
 };
 
-YOVALUE.GraphDecorationsPubSub.prototype = {
+GRASP.GraphDecorationsPubSub.prototype = {
   eventListener: function(event){
     var eventName = event.getName(),
       graphModel = event.getData()['graphModel'],

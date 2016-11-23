@@ -1,8 +1,8 @@
 /**
- * Module that monitor keyboard events and publish appropriate YOVALUE.Events if necessary
+ * Module that monitor keyboard events and publish appropriate GRASP.Events if necessary
  * @constructor
  */
-YOVALUE.KeyManager = function(publisher){
+GRASP.KeyManager = function(publisher){
   this.publisher = publisher;
   this.ctrlPushed = false;
   this.altPushed = false;

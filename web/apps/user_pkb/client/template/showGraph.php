@@ -17,7 +17,7 @@
   <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
 
-  <!-- YOVALUE source -->
+  <!-- GRASP source -->
   <?php foreach($this->getJsIncludeList() as $js_include) : ?>
       <script src="<?php echo $this->getAppDir('js')."/".$js_include; ?>"></script>
   <?php endforeach ?>

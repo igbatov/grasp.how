@@ -5,13 +5,13 @@
  * @param viewManager
  * @constructor
  */
-YOVALUE.ModelChangeController = function(publisher, viewManager){
+GRASP.ModelChangeController = function(publisher, viewManager){
   this.publisher = publisher;
   this.viewManager = viewManager;
   this.timer = null;
 };
 
-YOVALUE.ModelChangeController.prototype = {
+GRASP.ModelChangeController.prototype = {
   execute: function(event, selectedElement){
     var that = this;
     var eventName = event.getName();
@@ -123,7 +123,7 @@ YOVALUE.ModelChangeController.prototype = {
 
           // c['nodes'] gives us attributes for alternatives, but we need only for active alternative
           // - so cut off all others here
-          graphNodeAttributes = YOVALUE.clone(c['nodes']);
+          graphNodeAttributes = GRASP.clone(c['nodes']);
           for(var i in graphNodeAttributes){
             var nodeAttributes = graphNodeAttributes[i];
             for(var j in nodeAttributes['alternatives'][nodeAttributes['active_alternative_id']]){
@@ -131,7 +131,7 @@ YOVALUE.ModelChangeController.prototype = {
             }
             delete graphNodeAttributes[i]['alternatives'];
           }
-        //  console.log(YOVALUE.clone(graphNodeAttributes));
+        //  console.log(GRASP.clone(graphNodeAttributes));
           graphEdgeAttributes = c['edges'];
 
           // Decorate nodes and edges with size and color
@@ -172,9 +172,9 @@ YOVALUE.ModelChangeController.prototype = {
 
           // If node mapping module actually changed nodeMappingHint, then save it in repository
           // (so next time we will not make node mapping module working again)
-          if(!YOVALUE.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping}]);
+          if(!GRASP.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping}]);
 
-          // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of YOVALUE.iGraphViewModel
+          // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of GRASP.iGraphViewModel
           var graphViewSettings = {
               graphId:graphModel.getGraphId(),
               graphModel:{nodes:graphModel.getNodes(), edges:graphModel.getEdges()},

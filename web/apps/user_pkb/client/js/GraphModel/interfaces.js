@@ -2,17 +2,17 @@
  *
  * @typedef {{
  *  nodes: {
- *    add: Object.<number,YOVALUE.iGraphModelNode>,
+ *    add: Object.<number,GRASP.iGraphModelNode>,
  *    remove: Array.<number>,
  *  },
  *  edges: {
- *    add: Object.<number,YOVALUE.iGraphModelEdge>,
+ *    add: Object.<number,GRASP.iGraphModelEdge>,
  *    remove: Array.<number>,
  *    update: Object.<number,Object.<string,string>>,
  *  }
  *    }}
  */
-YOVALUE.iGraphModelChanges = {
+GRASP.iGraphModelChanges = {
   nodes:{
     add:{},
     remove:[]
@@ -28,7 +28,7 @@ YOVALUE.iGraphModelChanges = {
  * GraphModel edge interface
  * @type {{id: number, source: number, target: number, edgeContentId: number}}
  */
-YOVALUE.iGraphModelEdge = {
+GRASP.iGraphModelEdge = {
   id: Number(),
   source: Number(),
   target: Number(),
@@ -39,7 +39,7 @@ YOVALUE.iGraphModelEdge = {
  * GraphModel node interface
  * @typedef {{id: number, nodeContentId: number}}
  */
-YOVALUE.iGraphModelNode = {
+GRASP.iGraphModelNode = {
   id: Number(),
   nodeContentId: String()
 };
@@ -48,7 +48,7 @@ YOVALUE.iGraphModelNode = {
 /**
  * @interface of GraphModel
  */
-YOVALUE.iGraphModel = {
+GRASP.iGraphModel = {
   /**
    *
    * @param nodes - {id:iGraphModelNode, ...}

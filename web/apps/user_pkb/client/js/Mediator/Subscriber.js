@@ -1,12 +1,12 @@
-YOVALUE.Subscriber = function(mediator){
+GRASP.Subscriber = function(mediator){
   this._mediator = mediator;
 };
 
-YOVALUE.Subscriber.prototype = {
+GRASP.Subscriber.prototype = {
   subscribe: function(listener, eventNames){
     //sanity check
-    if (!(YOVALUE.implements(listener, YOVALUE.iListener))) {
-      YOVALUE.errorHandler.throwError("listener do not has YOVALUE.iListener interface");
+    if (!(GRASP.implements(listener, GRASP.iListener))) {
+      GRASP.errorHandler.throwError("listener do not has GRASP.iListener interface");
     }
 
     var i;

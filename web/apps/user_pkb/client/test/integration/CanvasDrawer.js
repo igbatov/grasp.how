@@ -8,7 +8,7 @@ canvasDrawerTest.beforeEach = function(){
   canvasContainer.height = 200;
   document.getElementsByTagName("body")[0].appendChild(canvasContainer);
 
-  this.canvasDrawer = new YOVALUE.CanvasDrawer(Kinetic, canvasContainer.id, canvasContainer.width, canvasContainer.height, jQuery);
+  this.canvasDrawer = new GRASP.CanvasDrawer(Kinetic, canvasContainer.id, canvasContainer.width, canvasContainer.height, jQuery);
 
   this.layerId = this.canvasDrawer.addLayer('test');
 
@@ -25,7 +25,7 @@ describe("CanvasDrawer.addShape", function () {
   });
 
   it("should draw circle", function () {
-    var circle = new YOVALUE.CanvasDrawer.Circle({
+    var circle = new GRASP.CanvasDrawer.Circle({
       id: 1,
       x: 100,
       y: 100,
@@ -35,11 +35,11 @@ describe("CanvasDrawer.addShape", function () {
     this.canvasDrawer.addShape(this.layerId, circle);
     this.canvasDrawer.drawLayer(this.layerId);
 
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[0]);
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, GRASP.TestFixtures.CanvasDrawer[0]);
   });
 
   it("shape should be draggable if attr 'draggable' is true", function () {
-    var circle = new YOVALUE.CanvasDrawer.Circle({
+    var circle = new GRASP.CanvasDrawer.Circle({
       id: 1,
       x: 100,
       y: 100,
@@ -52,11 +52,11 @@ describe("CanvasDrawer.addShape", function () {
 
     var el = this.canvasDrawer.getStage().getContent();
     jasmineCanvasDrawerEventSimulation.drag(el, {x:100, y:100}, {x:100, y:1});
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[3]);
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, GRASP.TestFixtures.CanvasDrawer[3]);
   });
 
   it("should draw text", function () {
-    var text = new YOVALUE.CanvasDrawer.Text({
+    var text = new GRASP.CanvasDrawer.Text({
       id: 1,
       graphId: 'graphId',
       x: 50,
@@ -69,11 +69,11 @@ describe("CanvasDrawer.addShape", function () {
     this.canvasDrawer.addShape(this.layerId, text);
     this.canvasDrawer.drawLayer(this.layerId);
 
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[1]);
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, GRASP.TestFixtures.CanvasDrawer[1]);
   });
 
   it("should draw path", function () {
-    var path = new YOVALUE.CanvasDrawer.Path({
+    var path = new GRASP.CanvasDrawer.Path({
       id: 1,
       data: 'M10,100Q100,50,190,100',
       stroke: 'blue'
@@ -81,13 +81,13 @@ describe("CanvasDrawer.addShape", function () {
     this.canvasDrawer.addShape(this.layerId, path);
     this.canvasDrawer.drawLayer(this.layerId);
 
-    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[2]);
+    jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, GRASP.TestFixtures.CanvasDrawer[2]);
   });
 
   it("should draw image", function () {
     var imageObj = new Image();
-    imageObj.src = YOVALUE.TestFixtures.CanvasDrawer[4];
-    var img = new YOVALUE.CanvasDrawer.Image({
+    imageObj.src = GRASP.TestFixtures.CanvasDrawer[4];
+    var img = new GRASP.CanvasDrawer.Image({
       x: 0,
       y: 0,
       image: imageObj,
@@ -108,7 +108,7 @@ describe("CanvasDrawer.addShape", function () {
       img.setSize({width:200, height:200});
       this.canvasDrawer.drawLayer(this.layerId);
 
-      jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, YOVALUE.TestFixtures.CanvasDrawer[4]);
+      jasmineCanvasDrawerExt.isCanvasEqualToImage(this.canvasDrawer, GRASP.TestFixtures.CanvasDrawer[4]);
     });
   });
 
@@ -152,7 +152,7 @@ describe("CanvasDrawer.bindShape", function () {
   beforeEach(function(){
     canvasDrawerTest.beforeEach.apply(this);
 
-    this.circle = new YOVALUE.CanvasDrawer.Circle({
+    this.circle = new GRASP.CanvasDrawer.Circle({
       id: 1,
       x: 100,
       y: 100,
@@ -210,7 +210,7 @@ describe("CanvasDrawer.getIntersection", function () {
   beforeEach(function(){
     canvasDrawerTest.beforeEach.apply(this);
 
-    this.circle1 = new YOVALUE.CanvasDrawer.Circle({
+    this.circle1 = new GRASP.CanvasDrawer.Circle({
       id: 1,
       x: 100,
       y: 100,
@@ -218,7 +218,7 @@ describe("CanvasDrawer.getIntersection", function () {
       fill: 'blue'
     });
 
-    this.text1 = new YOVALUE.CanvasDrawer.Text({
+    this.text1 = new GRASP.CanvasDrawer.Text({
       text: '1',
       x: 92,
       y: 85 ,

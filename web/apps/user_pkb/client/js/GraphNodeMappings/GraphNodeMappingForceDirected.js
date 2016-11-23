@@ -4,13 +4,13 @@
  * Algorithm was adopted from http://dhotson.github.io/springy.html
  * NB: the area of the mapping is always the {centerX: 0, centerY:0, width: this.SCALE_FACTOR, height: this.SCALE_FACTOR}
  */
-YOVALUE.GraphNodeMappingForceDirected = function(){
+GRASP.GraphNodeMappingForceDirected = function(){
   this.area = {centerX:0, centerY:0, width:0, height:0};
   this.points = {};
   this.springs = [];
 };
 
-YOVALUE.GraphNodeMappingForceDirected.prototype = {
+GRASP.GraphNodeMappingForceDirected.prototype = {
   /**
    *
    * @param nodes
@@ -27,12 +27,12 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
     var hintMapping;
 
     if(hint){
-      hint.mapping = YOVALUE.arrayToObject(hint.mapping);
-      hintMapping = YOVALUE.clone(hint);
+      hint.mapping = GRASP.arrayToObject(hint.mapping);
+      hintMapping = GRASP.clone(hint);
     }
 
     // adjust hint to area we need to map to
-    if(hintMapping && !YOVALUE.deepCompare(hintMapping.area, area)) hintMapping = YOVALUE.MappingHelper.adjustMappingToArea(hintMapping, area);
+    if(hintMapping && !GRASP.deepCompare(hintMapping.area, area)) hintMapping = GRASP.MappingHelper.adjustMappingToArea(hintMapping, area);
 
     // If for some nodes we already have fixed coordinates that should not be changed (hint mapping)
     // then place all the rest unmapped node in random place around its random adjacent node
@@ -71,14 +71,14 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
       return hintMapping;
     }
 
-    if(YOVALUE.getObjectLength(nodes) == 0){
+    if(GRASP.getObjectLength(nodes) == 0){
       var mapping = {area:this.area, mapping:{}};
       return mapping;
     }
 
     // In a special case when hint is null and there is only one node in graph, place it in the center of area
-    if(YOVALUE.getObjectLength(nodes) == 1){
-      var nodeIds = YOVALUE.getObjectKeys(nodes);
+    if(GRASP.getObjectLength(nodes) == 1){
+      var nodeIds = GRASP.getObjectKeys(nodes);
       var mapping = {area:{}, mapping:{}};
       mapping['area'] = this.area;
       mapping['mapping'][nodeIds[0]] = {id:nodeIds[0], x:this.area.centerX, y:this.area.centerY};
@@ -87,7 +87,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
 
     // Case when we have no hint mapping and there are more than on node - use force directed layout to place nodes
     // create point from nodes
-    var x, y, i, sector = Math.PI/YOVALUE.getObjectLength(nodes), count = 0;
+    var x, y, i, sector = Math.PI/GRASP.getObjectLength(nodes), count = 0;
     var hasUnmappedNodesInHint = false;
     var isFixedPosition;
     for(i in nodes){
@@ -101,7 +101,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
         y = Math.sin(sector*count);
         isFixedPosition = false;
       }
-      this.points[nodes[i].id] = new YOVALUE.GraphNodeMappingForceDirected.Point(new YOVALUE.Vector(x,y), 1.0, isFixedPosition);
+      this.points[nodes[i].id] = new GRASP.GraphNodeMappingForceDirected.Point(new GRASP.Vector(x,y), 1.0, isFixedPosition);
       count++;
     }
 
@@ -113,7 +113,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
       var edge = edges[i];
       var p1 = this.points[edge.source];
       var p2 = this.points[edge.target];
-      this.springs.push(new YOVALUE.GraphNodeMappingForceDirected.Spring(p1, p2, 1.0, 100.0));
+      this.springs.push(new GRASP.GraphNodeMappingForceDirected.Spring(p1, p2, 1.0, 100.0));
     }
 
     // main loop
@@ -157,7 +157,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
 
           var r1 = {x:_node_mapping[i].x, y:_node_mapping[i].y, width:nodeLabelAreaList[_node_mapping[i].id].width, height:nodeLabelAreaList[_node_mapping[i].id].height};
           var r2 = {x:_node_mapping[j].x, y:_node_mapping[j].y, width:nodeLabelAreaList[_node_mapping[j].id].width, height:nodeLabelAreaList[_node_mapping[j].id].height};
-          var intersect = YOVALUE.calcRectIntersection(r1, r2);
+          var intersect = GRASP.calcRectIntersection(r1, r2);
 
           all_intersect_track[c] += intersect.y;
 
@@ -230,7 +230,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
     for(i in this.points){
       p = this.points[i];
       p.v = p.v.add(p.f.multiply(timestep)).multiply(damping);
-      p.f = new YOVALUE.Vector(0,0);
+      p.f = new GRASP.Vector(0,0);
     }
   },
 
@@ -255,7 +255,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
   },
 
   adjustToArea: function(points, nodeLabelAreaList, targetArea){
-    var i, x, y, area, ta = YOVALUE.clone(targetArea);
+    var i, x, y, area, ta = GRASP.clone(targetArea);
     // calc max label height
     var maxLabelHeight = 0;
     for(i in nodeLabelAreaList){
@@ -281,7 +281,7 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
     area = {centerX:(minX+(maxX-minX)/2), centerY:(minY+(maxY-minY)/2), width:(maxX-minX), height:(maxY-minY)};
     ta.height -= 2*maxLabelHeight;
     ta.width -= 2*maxLabelHeight;
-    var m = YOVALUE.MappingHelper.adjustMappingToArea({mapping:points, area:area}, ta);
+    var m = GRASP.MappingHelper.adjustMappingToArea({mapping:points, area:area}, ta);
 
     var _node_mapping = {};
     for(i in points){
@@ -293,21 +293,21 @@ YOVALUE.GraphNodeMappingForceDirected.prototype = {
 
 };
 
-YOVALUE.GraphNodeMappingForceDirected.Point = function(position, mass, isFixedPosition){
+GRASP.GraphNodeMappingForceDirected.Point = function(position, mass, isFixedPosition){
   this.p = position; // position
   this.m = mass;     // mass
-  this.v = new YOVALUE.Vector(0, 0); // velocity
-  this.f = new YOVALUE.Vector(0, 0); // force
+  this.v = new GRASP.Vector(0, 0); // velocity
+  this.f = new GRASP.Vector(0, 0); // force
   this.isFixedPosition = isFixedPosition;
 };
 
-YOVALUE.GraphNodeMappingForceDirected.Point.prototype = {
+GRASP.GraphNodeMappingForceDirected.Point.prototype = {
   applyForce: function(force){
     if(!this.isFixedPosition) this.f = this.f.add(force.divide(this.m));
   }
 };
 
-YOVALUE.GraphNodeMappingForceDirected.Spring = function(point1, point2, length, k){
+GRASP.GraphNodeMappingForceDirected.Spring = function(point1, point2, length, k){
   this.point1 = point1;
   this.point2 = point2;
   this.length = length; // spring length at rest

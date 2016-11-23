@@ -2,7 +2,7 @@
  * Structure of iGraphViewSettingsStructOne
  * @type {Object}
  */
-YOVALUE.iGraphViewSettingsStructOne = {
+GRASP.iGraphViewSettingsStructOne = {
   graphId: '',
   graphModel: {nodes:{},edges:{}},
   graphArea: {},

@@ -246,7 +246,7 @@ class AppUserPkb extends App
                 }
               }
             }else{
-              $q = "SELECT * FROM 'node_content_falsification'".
+              $q = "SELECT * FROM node_content_falsification".
                   " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
               $this->log($q);
               $rows = $this->db->execute($q);

@@ -10,7 +10,7 @@
  * @param ajaxIndicator
  * @constructor
  */
-YOVALUE.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIndicator){
+GRASP.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIndicator){
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
@@ -36,7 +36,7 @@ YOVALUE.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIn
   });
 };
 
-YOVALUE.GraphElementEditor.prototype = {
+GRASP.GraphElementEditor.prototype = {
   NODE_TYPE_FACT: 'fact',
   NODE_TYPE_PROPOSITION: 'proposition',
   DEFAULT_ALTERNATIVE_LABEL_PREFIX: 'НЕ ВЕРНО, ЧТО: ',
@@ -226,7 +226,7 @@ YOVALUE.GraphElementEditor.prototype = {
       // nodes - text, list - sources or falsifications
         .then(function(contents){
 
-         console.info('contents',YOVALUE.clone(contents));
+         console.info('contents',GRASP.clone(contents));
 
           var node = contents[nodeContentId];
           var activeAlternative = node.alternatives[node.active_alternative_id];
@@ -256,7 +256,7 @@ YOVALUE.GraphElementEditor.prototype = {
 
           var removeAlternative = function(){
 
-            if(YOVALUE.getObjectKeys(node.alternatives).length == 2){
+            if(GRASP.getObjectKeys(node.alternatives).length == 2){
               alert('Извините, но должно быть минимум 2 альтернативы!');
               return;
             }
@@ -298,7 +298,7 @@ YOVALUE.GraphElementEditor.prototype = {
                   function addAlternativeColumn(formKeys, parentContentId, parentContent){
                     for(var i in formKeys){
                       for(var parentAlternativeId in parentContent.alternatives){
-                        var row = YOVALUE.clone(formKeys[i]);
+                        var row = GRASP.clone(formKeys[i]);
                         row[parentContentId] = parentAlternativeId;
                         formKeys.push(row);
                       }
@@ -330,7 +330,7 @@ YOVALUE.GraphElementEditor.prototype = {
                      */
                     function findPByFormKey(p, formKey){
                       for(var i in p){
-                        if(YOVALUE.compare(JSON.parse(i), formKey)) return p[i];
+                        if(GRASP.compare(JSON.parse(i), formKey)) return p[i];
                       }
                       return false;
                     }
@@ -343,8 +343,8 @@ YOVALUE.GraphElementEditor.prototype = {
                       if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- ВЕРОЯТНОСТЬ: "'+node.alternatives[j].label+'"'};
                       fields[formKeyStr+'__'+j] = {
                         type: isFactDenial ? 'hidden' : 'text',
-                        value: YOVALUE.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
-                        placeholder: 1/YOVALUE.getObjectLength(node.alternatives),
+                        value: GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
+                        placeholder: 1/GRASP.getObjectLength(node.alternatives),
                         disabled:!isEditable
                       };
                     }
@@ -363,7 +363,7 @@ YOVALUE.GraphElementEditor.prototype = {
                         probabilities[j] = {};
                         for(var i in formKeys){
                           var formKeyStr = JSON.stringify(formKeys[i]);
-                          probabilities[j][formKeyStr] = form[formKeyStr+'__'+j] != '' ? form[formKeyStr+'__'+j] : 1/YOVALUE.getObjectLength(node.alternatives);
+                          probabilities[j][formKeyStr] = form[formKeyStr+'__'+j] != '' ? form[formKeyStr+'__'+j] : 1/GRASP.getObjectLength(node.alternatives);
                         }
                       }  
 
@@ -407,10 +407,10 @@ YOVALUE.GraphElementEditor.prototype = {
                   );
 
                   // add auto-change of field values so that sum by row equals 1 (only for case of 2 alternatives)
-                  if(YOVALUE.getObjectLength(node.alternatives) == 2){
+                  if(GRASP.getObjectLength(node.alternatives) == 2){
                     for(var i in formKeys){
                       var formKeyStr = JSON.stringify(formKeys[i]);
-                      var alternativeIds = YOVALUE.getObjectKeys(node.alternatives);
+                      var alternativeIds = GRASP.getObjectKeys(node.alternatives);
                       for(var j in alternativeIds){
                         (function(formKeyStr, j, alternativeIds){
                           that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[j], {callback: function(name,value){
@@ -528,7 +528,7 @@ YOVALUE.GraphElementEditor.prototype = {
       // create list of alternative labels
       var alternativeLabels = {};
       for(var i in alternatives){
-        alternativeLabels[i] = YOVALUE.createElement('div',
+        alternativeLabels[i] = GRASP.createElement('div',
           {style:'position:relative; display: inline-block; width:100%; '+that._getPartialGradientStyle(alternatives[i].reliability)},
           alternatives[i].label + ' ' +alternatives[i].reliability+'%');
       }
@@ -673,7 +673,7 @@ YOVALUE.GraphElementEditor.prototype = {
     var el = null;
     if(nodeType == this.NODE_TYPE_FACT){
       if(typeof(item.url) != 'undefined' && item.url.length > 0){
-        el = YOVALUE.createElement('a',{href:item.url, target:'_blank', title:this._lineBreaksForTooltips(item.comment)}, item.author+' / '+item.name+' / '+item.publisher);
+        el = GRASP.createElement('a',{href:item.url, target:'_blank', title:this._lineBreaksForTooltips(item.comment)}, item.author+' / '+item.name+' / '+item.publisher);
       }else{
         el = document.createTextNode(item.author+' / '+item.name+' / '+item.publisher);
       }
@@ -764,7 +764,7 @@ YOVALUE.GraphElementEditor.prototype = {
       // show only fields that is valid for 'personal experience'
       if(value == 'personal experience'){
         for(var fieldname in itemTypeVisible['all']){
-          if(YOVALUE.getObjectKeys(itemTypeVisible['personal experience']).indexOf(fieldname) == -1){
+          if(GRASP.getObjectKeys(itemTypeVisible['personal experience']).indexOf(fieldname) == -1){
             that.UI.updateForm(form,fieldname,{type:'hidden'});
           }
         }
@@ -801,7 +801,7 @@ YOVALUE.GraphElementEditor.prototype = {
             // if value didn't come just return
             if(typeof(value.source_id) == 'undefined') return;
 
-            YOVALUE.getObjectKeys(formFields).forEach(function(v){
+            GRASP.getObjectKeys(formFields).forEach(function(v){
               if(typeof(value[v]) != 'undefined'){
                 that.UI.updateForm(form,v,{value:value[v]});
               }
@@ -864,8 +864,8 @@ YOVALUE.GraphElementEditor.prototype = {
     }
 
     // fill in form fields
-    if(YOVALUE.getObjectKeys(item).length){
-      YOVALUE.getObjectKeys(formFields).forEach(function(v,k){
+    if(GRASP.getObjectKeys(item).length){
+      GRASP.getObjectKeys(formFields).forEach(function(v,k){
         if(typeof(item[v]) != 'undefined') formFields[v].value = item[v];
         formFields['button'].value = 'Сохранить';
       });
@@ -875,7 +875,7 @@ YOVALUE.GraphElementEditor.prototype = {
       // form submit callback
       function (form) {
         // set form fields to item
-        YOVALUE.getObjectKeys(form).forEach(function (v) {
+        GRASP.getObjectKeys(form).forEach(function (v) {
           if (typeof(form[v]) != 'undefined') item[v] = form[v];
         });
         if(callback(graphId, nodeContentId, node_alternative_id, item)){

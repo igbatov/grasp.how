@@ -3,11 +3,11 @@
   * @param publisher
  * @constructor
  */
-YOVALUE.HistoryController = function(publisher){
+GRASP.HistoryController = function(publisher){
   this.publisher = publisher;
 };
 
-YOVALUE.HistoryController.prototype = {
+GRASP.HistoryController.prototype = {
   /**
    *
    * @param event
