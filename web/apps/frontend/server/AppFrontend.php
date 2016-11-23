@@ -1,9 +1,37 @@
 <?php
 class AppFrontend extends App{
   public function showView(){
-    // select graphs data from db
-    $graph_ids = array("12", "15");
+    $vars = $this->getRoute();
+    $action = $vars[0];
 
+    // process action defined by url
+    switch($action){
+      case 'embed';
+        // sanity check
+        if(strlen($vars[1])>255) exit('Too many graph_ids');
+
+        $graph_ids = json_decode($vars[1],true);
+        if(!is_array($graph_ids)) exit('Bad JSON');
+
+        foreach($graph_ids as $graph_id) if(!is_numeric($graph_id)) exit('Bad graph_id '.$graph_id);
+
+        $graph = $this->getGraphsData($graph_ids);
+        include($this->getAppDir("template", false)."/embed.php");
+      break;
+
+      default:
+        $graph = $this->getGraphsData(array("12", "15"));
+        include($this->getAppDir("template", false)."/index.php");
+      break;
+    }
+  }
+
+  /**
+   * Select graphs data from db
+   * @param $graph_ids
+   * @return array
+   */
+  private function getGraphsData($graph_ids){
     $decoration = array("fact"=>"#00BFFF","research"=>"#87CEFA","theory"=>"#3CB371","hypothesis"=>"#8FBC8F","illustration"=>"#FF69B4","theory_problem"=>"#FF0000", "question"=>"#FFFFE0", "to_read"=>"#FFFF00", "best_known_practice"=>"#FFA500");
     $nodeTypes = array("fact"=>"Факт","research"=>"Исследование","theory"=>"Теория","hypothesis"=>"Гипотеза","illustration"=>"Иллюстрация","theory_problem"=>"Проблема теории", "question"=>"Вопрос", "to_read"=>"Дальнешее чтение", "best_known_practice"=>"Лучшие практики");
     //$graph_ids = array("15");
@@ -57,10 +85,8 @@ class AppFrontend extends App{
           }
         }
       }
-
     }
-
-    include($this->getAppDir("template", false)."/index.php");
+    return $graph;
   }
 
   private function convertNodeTypes($graph_node_types, $base_node_types, $decoration){
