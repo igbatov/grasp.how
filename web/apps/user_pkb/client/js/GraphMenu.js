@@ -213,6 +213,16 @@ GRASP.GraphMenu.prototype = {
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
 
       // create logout link
+      document.getElementById(c.id).appendChild(that.UI.createButton({name:'Share',label:'Share', callback:function(){
+        var m = that.UI.createModal();
+        that.UI.setModalContent(
+            m,
+            that.UI.createForm({
+              'title':{type:'title', value:'To place the "'+graphs[leftGraphId].getGraphName()+'" in a web page, copy snippet below'},
+              'name':{type:'textarea', label:'', value:"<iframe class='grasphow-iframe' src='http://www.grasp.how/embed/["+leftGraphId+"]' style='border: 0; width: 100%; height: 600px'></iframe>"}
+            })
+        );
+      }}));
       document.getElementById(c.id).appendChild(GRASP.createElement('a',{href:'/logout',class:'logout'},'logout'));
     });
   }
