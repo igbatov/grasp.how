@@ -99,6 +99,9 @@ $( document ).ready(function(){
       if(e.target.id == 'leftTextBox' || e.target.id == 'rightTextBox') return;
       selectedNodeId = null;
       restoreOpacity(nodes);
+
+      // hide all textBoxes
+      $('.textBox').hide();
     });
 
     // adjust data to our svg container area
@@ -195,6 +198,9 @@ $( document ).ready(function(){
         .on("mouseout", function(){
           if(selectedNodeId !== null) return;
           restoreOpacity(nodes);
+
+          // hide all textBoxes
+          $('.textBox').hide();
         })
         .on("click", function() {
           if(selectedNodeId != null) return;
@@ -268,9 +274,6 @@ $( document ).ready(function(){
 
     // labels
     d3.selectAll('text').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 1);
-
-    // hide all textBoxes
-    $('.textBox').hide();
   }
 
   /**

@@ -4,13 +4,13 @@
  * @param layouts
  * @constructor
  */
-YOVALUE.SelectGraphLayoutModel = function(publisher, layouts){
+GRASP.SelectGraphLayoutModel = function(publisher, layouts){
   this.publisher = publisher;
   this.layouts = layouts;
   this.selectedLayouts = {}; //key-graph_name, value-layout_name
 };
 
-YOVALUE.SelectGraphLayoutModel.prototype = {
+GRASP.SelectGraphLayoutModel.prototype = {
   eventListener: function(event){
     var that = this;
 

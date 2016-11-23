@@ -2,7 +2,7 @@
  * Structure of iGraphViewSettingsStructTwo
  * @type {Object}
  */
-YOVALUE.iGraphViewSettingsStructTwo = {
+GRASP.iGraphViewSettingsStructTwo = {
   decoration:{},
   graphEdgeAttributes:{},
   graphId:'',

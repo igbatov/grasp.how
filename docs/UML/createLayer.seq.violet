@@ -222,7 +222,7 @@ Presenter</string>
    <object class="com.horstmann.violet.NoteNode">
     <void property="text">
      <void property="text">
-      <string>Action: create new layer of YOVALUE graph
+      <string>Action: create new layer of GRASP graph
 E0: request_to_create_graph
 E1: new_graph_model_created
 E2: select_graph_panel_model_changed

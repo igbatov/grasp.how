@@ -17,7 +17,7 @@
  * @param drawerFactory
  * @constructor
  */
-YOVALUE.GraphViewsPubSub = function (publisher, graphViewFactory, viewManager, drawerFactory) {
+GRASP.GraphViewsPubSub = function (publisher, graphViewFactory, viewManager, drawerFactory) {
   this.publisher = publisher;
   this.graphViewFactory = graphViewFactory;
   var container = viewManager.getViewContainer('graphViews');
@@ -30,7 +30,7 @@ YOVALUE.GraphViewsPubSub = function (publisher, graphViewFactory, viewManager, d
   this.dummyGraphView = this.graphViewFactory.create('dummyGraphView', this.drawer);
 };
 
-YOVALUE.GraphViewsPubSub.prototype = {
+GRASP.GraphViewsPubSub.prototype = {
   eventListener: function(event){
 
     var eventName = event.getName(), graphId = event.getData() ? event.getData()['graphId'] : null;
@@ -48,16 +48,16 @@ YOVALUE.GraphViewsPubSub.prototype = {
         // GraphViewSettings can be in two forms - iGraphViewSettingsStructOne or iGraphViewSettingsStructTwo
         // If it is in iGraphViewSettingsStructTwo convert it to iGraphViewSettingsStructOne
         var graphViewSettings = {};
-        if(YOVALUE.implements(event.getData(), YOVALUE.iGraphViewSettingsStructTwo)){
+        if(GRASP.implements(event.getData(), GRASP.iGraphViewSettingsStructTwo)){
           graphViewSettings = this._convertGraphViewSettings(event.getData());
         }else{
           graphViewSettings = event.getData();
         }
 
         if(typeof(this.graphViewList[graphId]) == 'undefined'){
-          if(!YOVALUE.implements(graphViewSettings, YOVALUE.iGraphViewSettingsStructOne)){
-            console.log('Error: cannot draw graph - ',graphViewSettings, 'do not implement', YOVALUE.iGraphViewSettingsStructOne);
-            YOVALUE.errorHandler.throwError('Error: cannot draw graph');
+          if(!GRASP.implements(graphViewSettings, GRASP.iGraphViewSettingsStructOne)){
+            console.log('Error: cannot draw graph - ',graphViewSettings, 'do not implement', GRASP.iGraphViewSettingsStructOne);
+            GRASP.errorHandler.throwError('Error: cannot draw graph');
             return false;
           }
 
@@ -182,7 +182,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
     }
 
     // Create from graphEdge and graphEdgeAttributes nodes that GraphView is waiting from us
-    // - see implementation of YOVALUE.iGraphViewModel
+    // - see implementation of GRASP.iGraphViewModel
     var edges = {};
     var graphEdge;
 
@@ -236,7 +236,7 @@ YOVALUE.GraphViewsPubSub.prototype = {
 
     // Sanity check
     if(typeof(this.graphViewList[graphId]) == 'undefined'){
-      YOVALUE.errorHandler.notifyError("Cannot find graph '" + graphId +"'");
+      GRASP.errorHandler.notifyError("Cannot find graph '" + graphId +"'");
     }
 
     for(var i in eventNames){

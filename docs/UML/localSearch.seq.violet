@@ -156,7 +156,7 @@ Presenter</string>
    <object class="com.horstmann.violet.NoteNode">
     <void property="text">
      <void property="text">
-      <string>Action: search on YOVALUE graph
+      <string>Action: search on GRASP graph
 E0: search_query
 E1: search_query_results
 E2: select_graph_nodes

@@ -2,8 +2,8 @@
  * Some universally used utility functions
  */
 
-//This is just creation of general YOVALUE object - namespace for all other modules
-var YOVALUE = YOVALUE || {};
+//This is just creation of general GRASP object - namespace for all other modules
+var GRASP = GRASP || {};
 
 /**
  * this is replace for native javascript typeof
@@ -12,7 +12,7 @@ var YOVALUE = YOVALUE || {};
  * @param obj
  * @returns {string}
  */
-YOVALUE.typeof = function(obj) {
+GRASP.typeof = function(obj) {
   return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
 };
 
@@ -21,7 +21,7 @@ YOVALUE.typeof = function(obj) {
  * @param o
  * @returns {boolean}
  */
-YOVALUE.isDOMNode = function(o) {
+GRASP.isDOMNode = function(o) {
   return (
       typeof Node === "object" ? o instanceof Node :
           o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
@@ -33,7 +33,7 @@ YOVALUE.isDOMNode = function(o) {
  * @param o
  * @returns {boolean}
  */
-YOVALUE.isDOMElement = function(o) {
+GRASP.isDOMElement = function(o) {
   return (
       typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
           o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
@@ -56,17 +56,17 @@ YOVALUE.isDOMElement = function(o) {
  * @param iFaces
  * @return {Boolean} - true if objToCheck implements interface(s) and false otherwise
  */
-YOVALUE.implements = function(objToCheck, iFaces){
+GRASP.implements = function(objToCheck, iFaces){
   for(var i = 1, l = arguments.length; i < l; i++){
     var iFace = arguments[i];
     for(var m in iFace){
-      if(m && YOVALUE.typeof(iFace[m]) != YOVALUE.typeof(objToCheck[m])){
+      if(m && GRASP.typeof(iFace[m]) != GRASP.typeof(objToCheck[m])){
         return false;
       }
-      if(YOVALUE.typeof(iFace[m])  === 'object' && YOVALUE.getObjectLength(iFace[m])){
-        if(YOVALUE.implements(objToCheck[m], iFace[m]) === false) return false;
+      if(GRASP.typeof(iFace[m])  === 'object' && GRASP.getObjectLength(iFace[m])){
+        if(GRASP.implements(objToCheck[m], iFace[m]) === false) return false;
       }
-      if(YOVALUE.typeof(iFace[m]) === "function" && iFace[m].length !== objToCheck[m].length){
+      if(GRASP.typeof(iFace[m]) === "function" && iFace[m].length !== objToCheck[m].length){
         //console.log(m);
         return false;
       }
@@ -82,7 +82,7 @@ YOVALUE.implements = function(objToCheck, iFaces){
  * @param base - object that donate its functions
  * @param extendme - object that is extended
  */
-YOVALUE.mixin = function(base, extendme){
+GRASP.mixin = function(base, extendme){
   var prop;
   for(prop in base){
     if(typeof base[prop] === 'function'
@@ -93,14 +93,14 @@ YOVALUE.mixin = function(base, extendme){
 };
 
 /**
- * An object that is created by calling YOVALUE.construct(Class, [1, 2, 3])
+ * An object that is created by calling GRASP.construct(Class, [1, 2, 3])
  * would be identical to an object created with new Class(1, 2, 3).
  *
  * @param constructor - constructor to be instantiated
  * @param args - array of arguments for the given constructor
  * @return instance of the constructor
  */
-YOVALUE.construct = function(constructor, args) {
+GRASP.construct = function(constructor, args) {
   var instance = Object.create(constructor.prototype);
   var result = constructor.apply(instance, args);
   return result !== undefined ? result : instance;
@@ -109,8 +109,8 @@ YOVALUE.construct = function(constructor, args) {
 /**
  Instantiating modules according to array of module constructors:
  var Modules = {
-  'Mediator': YOVALUE.Mediator,
-  'Publisher': YOVALUE.Publisher,
+  'Mediator': GRASP.Mediator,
+  'Publisher': GRASP.Publisher,
    ...
  }
  and array of module constructors arguments (dependency injection array):
@@ -123,7 +123,7 @@ YOVALUE.construct = function(constructor, args) {
  * @param Modules
  * @param DI
  */
-YOVALUE.wireModules = function(Modules, DI) {
+GRASP.wireModules = function(Modules, DI) {
   for(var m in DI){
     //If Modules[m] is not a constructor, skip it
     if(typeof(Modules[m]) !== 'function') continue;
@@ -141,7 +141,7 @@ YOVALUE.wireModules = function(Modules, DI) {
       }
     }
 
-    Modules[m] = YOVALUE.construct(Modules[m], deps);
+    Modules[m] = GRASP.construct(Modules[m], deps);
     Modules[m].moduleName = m;
   }
 };
@@ -151,11 +151,11 @@ YOVALUE.wireModules = function(Modules, DI) {
  * @param columns
  * @constructor
  */
-YOVALUE.Table = function(columnNames){
+GRASP.Table = function(columnNames){
   this.columnNames = columnNames;
   this.rows = [];
 };
-YOVALUE.Table.prototype = {
+GRASP.Table.prototype = {
   /**
    * add row to table
    * @param data - row in a form {columnName1: columnValue1, columnName2: columnValue2, ...}
@@ -253,13 +253,13 @@ YOVALUE.Table.prototype = {
  * @param sizeLimit in bytes
  * @constructor
  */
-YOVALUE.Cache = function(columnNames, sizeLimit){
+GRASP.Cache = function(columnNames, sizeLimit){
   columnNames.push('hitCount');
   columnNames.push('lastHitTimestamp');
-  this.table = new YOVALUE.Table(columnNames);
+  this.table = new GRASP.Table(columnNames);
   this.sizeLimit = sizeLimit;
 };
-YOVALUE.Cache.prototype = {
+GRASP.Cache.prototype = {
   getSize: function(){
     return this.sizeLimit;
   },
@@ -291,7 +291,7 @@ YOVALUE.Cache.prototype = {
  *
  * Object to log and throw errors from elsewhere
  */
-YOVALUE.errorHandler = {
+GRASP.errorHandler = {
   setQuietMode: function(v) {
     this._is_quiet = v;
   },
@@ -315,7 +315,7 @@ YOVALUE.errorHandler = {
 /**
  * Module used in DEBUG mode to print and log event flow
  */
-YOVALUE.debug = (function(Table){
+GRASP.debug = (function(Table){
   var logger = {};
   logger.printCounter = 0;
   logger.logCounter = 0;
@@ -334,7 +334,7 @@ YOVALUE.debug = (function(Table){
   logger.printEvent = function(currentEvent,moduleName,codeLine,direction,eventName,eventData,eventId){
     if(typeof(currentEvent) == 'undefined') currentEvent = '';
     logger.printCounter++;
-    var data = YOVALUE.clone(eventData);
+    var data = GRASP.clone(eventData);
     var hhmmss = (new Date()).toLocaleTimeString();
     var moduleCSS = 'color:hsl(0, 0%, 80%);background-color:hsl(0, 0%, 0%);';
     var eventCSS = 'color:hsl(60, 2%, 22%);background-color:hsl(56, 100%, 91%);';
@@ -351,7 +351,7 @@ YOVALUE.debug = (function(Table){
   };
   logger.log = function(moduleName,codeLine,direction,eventName,eventData,eventId){
     logger.logCounter++;
-    var data = YOVALUE.clone(eventData);
+    var data = GRASP.clone(eventData);
     var time = (new Date()).getTime();
     var row = {'id':logger.logCounter,'time':time,'moduleName':moduleName,'codeLine':codeLine,'direction':direction,'eventName':eventName,'eventData':data,'eventId':eventId};
     eventTable.insertRow(row);
@@ -363,7 +363,7 @@ YOVALUE.debug = (function(Table){
 
   };
   return logger;
-})(YOVALUE.Table);
+})(GRASP.Table);
 
 /**
  * This will create clone from Object o (thanks to Rick Waldron)
@@ -371,9 +371,9 @@ YOVALUE.debug = (function(Table){
  * @param forceDescriptor - force every cloned property to have new descriptor - forceDescriptor (so it is possible to unfreeze objects)
  * @return {*} - clone of o
  */
-YOVALUE.clone = function clone( obj, forceDescriptor ) {
-  if(YOVALUE.isDOMNode(obj)) return obj.cloneNode(true);
-  if(YOVALUE.typeof(obj) != 'object' && YOVALUE.typeof(obj) != 'array') return obj;
+GRASP.clone = function clone( obj, forceDescriptor ) {
+  if(GRASP.isDOMNode(obj)) return obj.cloneNode(true);
+  if(GRASP.typeof(obj) != 'object' && GRASP.typeof(obj) != 'array') return obj;
 
   var val, length, i,
     temp = [];
@@ -416,7 +416,7 @@ YOVALUE.clone = function clone( obj, forceDescriptor ) {
  * @param parent - object from which properties are copied
  * @param child - object which should be extended
  */
-YOVALUE.extend = (function () {
+GRASP.extend = (function () {
   function extendDeep(parent, child) {
     var i,
         toStr = Object.prototype.toString,
@@ -428,7 +428,7 @@ YOVALUE.extend = (function () {
                 if(typeof child[i] == 'undefined'){
                   child[i] = (toStr.call(parent[i]) === astr) ? [] : {};
                   extendDeep(parent[i], child[i]);
-                }else if(YOVALUE.typeof(child[i]) === YOVALUE.typeof(parent[i])){
+                }else if(GRASP.typeof(child[i]) === GRASP.typeof(parent[i])){
                   extendDeep(parent[i], child[i]);
                 }else{
                   // do nothing - child has precedence and can redefine parents property
@@ -454,12 +454,12 @@ YOVALUE.extend = (function () {
  * @param bar
  * @returns {{}}
  */
-YOVALUE.deepmerge = function (foo, bar) {
+GRASP.deepmerge = function (foo, bar) {
   var merged = {};
   for (var each in bar) {
     if (foo.hasOwnProperty(each) && bar.hasOwnProperty(each)) {
       if (Object.prototype.toString.call(foo[each]) == "[object Object]" && Object.prototype.toString.call(bar[each]) == "[object Object]") {
-        merged[each] = YOVALUE.deepmerge(foo[each], bar[each]);
+        merged[each] = GRASP.deepmerge(foo[each], bar[each]);
       } else if (Object.prototype.toString.call(foo[each]) == "[object Array]" && Object.prototype.toString.call(bar[each]) == "[object Array]") {
         merged[each] = foo[each].concat(bar[each]);
       }
@@ -483,7 +483,7 @@ YOVALUE.deepmerge = function (foo, bar) {
  * @param keys - array of keys
  * @param hash - associative array
  */
-YOVALUE.extractKeyValues = function(keys, hash){
+GRASP.extractKeyValues = function(keys, hash){
   var e = {};
   for(var i in keys){
     e[keys[i]] = hash[keys[i]];
@@ -496,7 +496,7 @@ YOVALUE.extractKeyValues = function(keys, hash){
  * @param obj
  * @return {Number}
  */
-YOVALUE.getObjectLength = function(obj) {
+GRASP.getObjectLength = function(obj) {
   var size = 0, key;
   for (key in obj) {
     if (obj.hasOwnProperty(key)) size++;
@@ -509,7 +509,7 @@ YOVALUE.getObjectLength = function(obj) {
  * @param s
  * @return {String}
  */
-YOVALUE.reverseString = function(s){
+GRASP.reverseString = function(s){
   return s.split("").reverse().join("");
 };
 
@@ -518,7 +518,7 @@ YOVALUE.reverseString = function(s){
  * @param obj
  * @return {Array} - array of own property keys
  */
-YOVALUE.getObjectKeys = function(obj) {
+GRASP.getObjectKeys = function(obj) {
   var keys = [], key;
   for (key in obj) {
     if (obj.hasOwnProperty(key)) keys.push(key);
@@ -531,7 +531,7 @@ YOVALUE.getObjectKeys = function(obj) {
  * @param obj
  * @return {Array} - array of object values
  */
-YOVALUE.getObjectValues = function(obj) {
+GRASP.getObjectValues = function(obj) {
   var values = [], key;
   for (key in obj) {
     if (obj.hasOwnProperty(key)) values.push(obj[key]);
@@ -542,14 +542,14 @@ YOVALUE.getObjectValues = function(obj) {
 /**
  * Object that contains RGB <-> Hex converters
  */
-YOVALUE.ColorHelper = {};
+GRASP.ColorHelper = {};
 /**
  * Converts color code in #[0-255] or #hex to RGB
  * @param s - Number from 0 to 255
  * @param {=false} asArray  - true if you want to get array [r, g, b], false or undefined if object  {'r':r , 'g':g , 'b':b}
  * @return {Object} - RGB coded color in array or object
  */
-YOVALUE.ColorHelper.getRGB = function(s, asArray) {
+GRASP.ColorHelper.getRGB = function(s, asArray) {
   s = s.toString();
   var res = {
     'r': 0,
@@ -587,7 +587,7 @@ YOVALUE.ColorHelper.getRGB = function(s, asArray) {
   return res;
 };
 
-YOVALUE.arrayToObject = function (arr) {
+GRASP.arrayToObject = function (arr) {
   if(Object.prototype.toString.call(arr) != '[object Array]') return arr;
   var rv = {};
   for (var i = 0; i < arr.length; ++i)
@@ -595,7 +595,7 @@ YOVALUE.arrayToObject = function (arr) {
   return rv;
 };
 
-YOVALUE.objectToArray = function(obj){
+GRASP.objectToArray = function(obj){
   var array = [];
   // iterate backwards ensuring that length is an UInt32
   for (var i = obj.length >>> 0; i--;) {
@@ -611,17 +611,17 @@ YOVALUE.objectToArray = function(obj){
  * @param B
  * @return {String}
  */
-YOVALUE.ColorHelper.rgbToHex = function(R, G, B) {
-  return YOVALUE.NumberHelper.toHex(R) + YOVALUE.NumberHelper.toHex(G) + YOVALUE.NumberHelper.toHex(B);
+GRASP.ColorHelper.rgbToHex = function(R, G, B) {
+  return GRASP.NumberHelper.toHex(R) + GRASP.NumberHelper.toHex(G) + GRASP.NumberHelper.toHex(B);
 };
 
-YOVALUE.NumberHelper = {};
+GRASP.NumberHelper = {};
 /**
  * Convert decimal to hex
  * @param n
  * @return {String}
  */
-YOVALUE.NumberHelper.toHex = function(n) {
+GRASP.NumberHelper.toHex = function(n) {
   n = parseInt(n, 10);
 
   if (isNaN(n)) {
@@ -632,12 +632,12 @@ YOVALUE.NumberHelper.toHex = function(n) {
     '0123456789ABCDEF'.charAt(n % 16);
 };
 
-YOVALUE.MappingHelper = {};
-YOVALUE.MappingHelper.adjustMappingToArea = function(mapping, area){
+GRASP.MappingHelper = {};
+GRASP.MappingHelper.adjustMappingToArea = function(mapping, area){
   if(typeof(area) == 'undefined') return mapping;
 
-  if(!YOVALUE.implements(mapping, YOVALUE.iMapping)){
-    YOVALUE.errorHandler.throwError('mapping does not implement YOVALUE.iMapping');
+  if(!GRASP.implements(mapping, GRASP.iMapping)){
+    GRASP.errorHandler.throwError('mapping does not implement GRASP.iMapping');
   }
 
   if(
@@ -646,11 +646,11 @@ YOVALUE.MappingHelper.adjustMappingToArea = function(mapping, area){
           mapping.area.height == area.height &&
           mapping.area.width == area.width
       ){
-    return YOVALUE.clone(mapping);
+    return GRASP.clone(mapping);
   }
 
   var n, i,
-    adjustedMappingCoordinates = YOVALUE.clone(mapping.mapping),
+    adjustedMappingCoordinates = GRASP.clone(mapping.mapping),
     mappingArea = mapping.area,
     xStretchRatio = area.width/mappingArea.width,
     yStretchRatio = area.height/mappingArea.height;
@@ -664,18 +664,18 @@ YOVALUE.MappingHelper.adjustMappingToArea = function(mapping, area){
   }
 
   var adjustedMapping = {
-    area: YOVALUE.clone(area),
+    area: GRASP.clone(area),
     mapping: adjustedMappingCoordinates
   };
 
   return adjustedMapping;
 };
 
-YOVALUE.decorationHelper = {};
-YOVALUE.decorationHelper.adjustDecorationToArea = function(decoration, area){
+GRASP.decorationHelper = {};
+GRASP.decorationHelper.adjustDecorationToArea = function(decoration, area){
   if(typeof(area) == 'undefined') return decoration;
-  if(!YOVALUE.implements(decoration, YOVALUE.iDecoration)){
-    YOVALUE.errorHandler.throwError('decoration does not implement YOVALUE.iDecoration');
+  if(!GRASP.implements(decoration, GRASP.iDecoration)){
+    GRASP.errorHandler.throwError('decoration does not implement GRASP.iDecoration');
   }
 
   var n, i,
@@ -688,19 +688,19 @@ YOVALUE.decorationHelper.adjustDecorationToArea = function(decoration, area){
 
   for(i in decoration.nodes){
     n = decoration.nodes[i];
-    adjustedNodes[i] = YOVALUE.clone(n);
+    adjustedNodes[i] = GRASP.clone(n);
     adjustedNodes[i].size = Math.max(1, Math.round(n.size*adjustedScale));
   }
 
   for(i in decoration.nodeLabels){
     n = decoration.nodeLabels[i];
-    adjustedNodeLabels[i] = YOVALUE.clone(n);
+    adjustedNodeLabels[i] = GRASP.clone(n);
     adjustedNodeLabels[i].size = Math.max(Math.round(n.size*adjustedScale), 1);
   }
 
   for(i in decoration.edges){
     n = decoration.edges[i];
-    adjustedEdges[i] = YOVALUE.clone(n);
+    adjustedEdges[i] = GRASP.clone(n);
     adjustedEdges[i].width = Math.max(1, Math.round(n.width*adjustedScale));
   }
 
@@ -716,7 +716,7 @@ YOVALUE.decorationHelper.adjustDecorationToArea = function(decoration, area){
  * Some set functions for arrays: union(arr1, arr2), intersection(arr1, arr2), difference(arr1, arr2),
  * @type {Object}
  */
-YOVALUE.arrayHelper = {
+GRASP.arrayHelper = {
   /**
    * Merging two arrays
    * @param arr1
@@ -818,7 +818,7 @@ YOVALUE.arrayHelper = {
  * @param object
  * @returns {number}
  */
-YOVALUE.roughSizeOfObject = function( object ) {
+GRASP.roughSizeOfObject = function( object ) {
   var objectList = [];
   var stack = [ object ];
   var bytes = 0;
@@ -852,11 +852,11 @@ YOVALUE.roughSizeOfObject = function( object ) {
   return bytes;
 };
 
-YOVALUE.Promise = function(jQuery){
+GRASP.Promise = function(jQuery){
   this._jQuery = jQuery;
 };
 
-YOVALUE.Promise.prototype = {
+GRASP.Promise.prototype = {
   getDefer: function(){
     return this._jQuery.Deferred();
   },
@@ -874,7 +874,7 @@ YOVALUE.Promise.prototype = {
  * From https://github.com/stutrek/node-deep-equal/blob/master/index.js
  * Compare two objects on equality
  */
-YOVALUE.compare = (function() {
+GRASP.compare = (function() {
   var pSlice = Array.prototype.slice;
   var Object_keys = typeof Object.keys === 'function'
           ? Object.keys
@@ -963,7 +963,7 @@ YOVALUE.compare = (function() {
   return deepEqual;
 })();
 
-YOVALUE.isJson = function(str) {
+GRASP.isJson = function(str) {
   if(typeof str !== "string") return false;
 
   try {
@@ -986,7 +986,7 @@ YOVALUE.isJson = function(str) {
  */
 
 /*
-YOVALUE.Promise = function(fn){
+GRASP.Promise = function(fn){
    var that = this;
    this.thenFns = [];
 
@@ -1012,9 +1012,9 @@ YOVALUE.Promise = function(fn){
    fn(this.resolve);
 };
 
-YOVALUE.Promise.all = function(promises) {
+GRASP.Promise.all = function(promises) {
   var accumulator = [];
-  return new YOVALUE.Promise(function(resolve){
+  return new GRASP.Promise(function(resolve){
     if(typeof(resolve) != 'function') return;
     promises.forEach(function (promise) {
       promise.then(function (value) {
@@ -1030,7 +1030,7 @@ YOVALUE.Promise.all = function(promises) {
  * @param myArray
  * @returns {*}
  */
-YOVALUE.strToInt = function(myArray){
+GRASP.strToInt = function(myArray){
   for(var i=0; i<myArray.length; i++) { myArray[i] = +myArray[i]; }
   return myArray;
 };
@@ -1040,11 +1040,11 @@ YOVALUE.strToInt = function(myArray){
  * @param srcs
  * @returns {*}
  */
-YOVALUE.imageLoader = function(promise){
+GRASP.imageLoader = function(promise){
   this._promise = promise;
 };
 
-YOVALUE.imageLoader.prototype = {
+GRASP.imageLoader.prototype = {
   load: function(sources, callback){
     var i, loaders = [];
     for(i in sources){
@@ -1071,7 +1071,7 @@ YOVALUE.imageLoader.prototype = {
  * @param colto - color that will update colfrom (in hex)
  * @returns {*}
  */
-YOVALUE.changeColorInImage = function(data, colfrom, colto) {
+GRASP.changeColorInImage = function(data, colfrom, colto) {
   // create fake image to calculate height / width
   var img = document.createElement("img");
   img.src = data;
@@ -1092,8 +1092,8 @@ YOVALUE.changeColorInImage = function(data, colfrom, colto) {
   var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
   var data = imageData.data;
 
-  var rgbfrom = YOVALUE.ColorHelper.getRGB(colfrom);
-  var rgbto = YOVALUE.ColorHelper.getRGB(colto);
+  var rgbfrom = GRASP.ColorHelper.getRGB(colfrom);
+  var rgbto = GRASP.ColorHelper.getRGB(colto);
 
   var r,g,b;
   for(var x = 0, len = data.length; x < len; x+=4) {
@@ -1125,26 +1125,26 @@ YOVALUE.changeColorInImage = function(data, colfrom, colto) {
  * @param y
  * @constructor
  */
-YOVALUE.Vector = function(x, y){
+GRASP.Vector = function(x, y){
   this.x = x;
   this.y = y;
 };
 
-YOVALUE.Vector.prototype = {
+GRASP.Vector.prototype = {
   add: function(v2){
-    return new YOVALUE.Vector(this.x + v2.x, this.y + v2.y);
+    return new GRASP.Vector(this.x + v2.x, this.y + v2.y);
   },
 
   subtract: function(v2){
-    return new YOVALUE.Vector(this.x - v2.x, this.y - v2.y);
+    return new GRASP.Vector(this.x - v2.x, this.y - v2.y);
   },
 
   multiply: function(n){
-    return new YOVALUE.Vector(this.x * n, this.y * n);
+    return new GRASP.Vector(this.x * n, this.y * n);
   },
 
   divide: function(n){
-    return new YOVALUE.Vector(this.x / n, this.y / n);
+    return new GRASP.Vector(this.x / n, this.y / n);
   },
 
   magnitude: function(){
@@ -1160,7 +1160,7 @@ YOVALUE.Vector.prototype = {
  * calculate intersection rectangle of r1, r2 = {x, y, width, height}
  * returns {x:xIntersection, y:yIntersection}
  */
-YOVALUE.calcRectIntersection = function(r1, r2){
+GRASP.calcRectIntersection = function(r1, r2){
   // helper function that calculates intersection of two 1-dim intervals
   // args: i1={start, stop}, i2={start, stop}
   function calcOneDimIntersection(i1, i2){
@@ -1189,7 +1189,7 @@ YOVALUE.calcRectIntersection = function(r1, r2){
  * TODO: write tests for it
  * @returns {boolean}
  */
-YOVALUE.deepCompare = function () {
+GRASP.deepCompare = function () {
   var i, l, leftChain, rightChain;
 
   function compare2Objects (x, y) {
@@ -1309,9 +1309,9 @@ YOVALUE.deepCompare = function () {
  * @type {number}
  * @private
  */
-YOVALUE.__UNIQID = 0;
-YOVALUE.getUniqId = function(){
-  return ++YOVALUE.__UNIQID;
+GRASP.__UNIQID = 0;
+GRASP.getUniqId = function(){
+  return ++GRASP.__UNIQID;
 };
 
 /**
@@ -1319,10 +1319,10 @@ YOVALUE.getUniqId = function(){
  * @param o
  * @returns {*}
  */
-YOVALUE.getObjectId = function(o) {
+GRASP.getObjectId = function(o) {
   if ( typeof o.__grasphowUniqueId == "undefined" ) {
     Object.defineProperty(o, "__grasphowUniqueId", {
-      value: YOVALUE.getUniqId(),
+      value: GRASP.getUniqId(),
       enumerable: false,
       // This could go either way, depending on your
       // interpretation of what an "id" is
@@ -1333,7 +1333,7 @@ YOVALUE.getObjectId = function(o) {
   return o.__grasphowUniqueId;
 };
 
-YOVALUE.isObjectInArray = function (array, obj) {
+GRASP.isObjectInArray = function (array, obj) {
   var i;
   for (i = 0; i < array.length; i++) {
     if (array[i] === obj) {
@@ -1344,7 +1344,7 @@ YOVALUE.isObjectInArray = function (array, obj) {
   return false;
 };
 
-YOVALUE.getBrowserInfo = function(){
+GRASP.getBrowserInfo = function(){
   var ua= navigator.userAgent, tem,
       M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
   if(/trident/i.test(M[1])){
@@ -1382,7 +1382,7 @@ YOVALUE.getBrowserInfo = function(){
  * @param {function(string,string)=} callback - callback on value change (optional)
  * @returns {HTMLElement}
  */
-YOVALUE.createElement = function(tag, attrs, text, callback){
+GRASP.createElement = function(tag, attrs, text, callback){
   if(tag == 'text') return document.createTextNode(text);
 
   var el = document.createElement(tag);
@@ -1438,13 +1438,13 @@ YOVALUE.createElement = function(tag, attrs, text, callback){
  * @param {String= || HTMLElement=} text - text inside element
  * @returns {HTMLElement}
  */
-YOVALUE.updateElement = function(el, attrs, text){
+GRASP.updateElement = function(el, attrs, text){
   for(var i in attrs){
     if(i == 'disabled' && attrs[i] == false) el.removeAttribute("disabled");
     else el[i] = attrs[i];
   }
   if(typeof(text) != 'undefined'){
-    if(YOVALUE.isDOMNode(text)){
+    if(GRASP.isDOMNode(text)){
       el.appendChild(text);
     }else{
       el.innerText = text;
@@ -1452,10 +1452,10 @@ YOVALUE.updateElement = function(el, attrs, text){
   }
   return el;
 };
-YOVALUE.getDisplay = function(el){
+GRASP.getDisplay = function(el){
   return window.getComputedStyle(el, null)["display"];
 };
-YOVALUE.setDisplay = function(el, v){
+GRASP.setDisplay = function(el, v){
   el.style.display = v;
 };
 /**
@@ -1464,7 +1464,7 @@ YOVALUE.setDisplay = function(el, v){
  * @param parent
  * @returns {boolean}
  */
-YOVALUE.isChildOf = function(child, parent) {
+GRASP.isChildOf = function(child, parent) {
   return parent.contains(child);
   /*
   if (child.parentNode === parent) {
@@ -1472,12 +1472,12 @@ YOVALUE.isChildOf = function(child, parent) {
   } else if (child.parentNode === null) {
     return false;
   } else {
-    return YOVALUE.isChildOf(child.parentNode, parent);
+    return GRASP.isChildOf(child.parentNode, parent);
   }
   */
 };
 
-YOVALUE.removeChilds = function(parent){
+GRASP.removeChilds = function(parent){
   while (parent.firstChild) {
     parent.removeChild(parent.firstChild);
   }
@@ -1487,13 +1487,13 @@ YOVALUE.removeChilds = function(parent){
  * https://github.com/davidbau/xsrand/blob/master/xor4096.js
  * @type {xor4096}
  */
-YOVALUE.randomGeneratorFactory = xor4096;
+GRASP.randomGeneratorFactory = xor4096;
 
 /**
- * With YOVALUE.watch you can trace any change of oObj property sProp
+ * With GRASP.watch you can trace any change of oObj property sProp
  * @type {{}|*}
  */
-YOVALUE.watch = function(oObj, sProp) {
+GRASP.watch = function(oObj, sProp) {
   var sPrivateProp = "$_"+sProp+"_$"; // to minimize the name clash risk
   oObj[sPrivateProp] = oObj[sProp];
 
@@ -1512,4 +1512,4 @@ YOVALUE.watch = function(oObj, sProp) {
 };
 
 
-YOVALUE.DOMParser = new DOMParser();
+GRASP.DOMParser = new DOMParser();

@@ -45,7 +45,7 @@
  * @constructor
  */
 
-YOVALUE.BayesCalculatorTree = function(approx_sampling_num, mloca, randomGeneratorFactory, is_debug_on){
+GRASP.BayesCalculatorTree = function(approx_sampling_num, mloca, randomGeneratorFactory, is_debug_on){
   this.IS_DEBUG_ON = typeof(is_debug_on) == 'undefined' ? false : is_debug_on;
   this.MLOCA = typeof(mloca) == 'undefined' ? 10000 : mloca;  // Maximum Length Of Children Combination Alternatives
   this.APPROX_SAMPLING_NUM = typeof(approx_sampling_num) == 'undefined' ? 10000 : approx_sampling_num;
@@ -67,7 +67,7 @@ YOVALUE.BayesCalculatorTree = function(approx_sampling_num, mloca, randomGenerat
   this.graph = {};
 };
 
-YOVALUE.BayesCalculatorTree.prototype = {
+GRASP.BayesCalculatorTree.prototype = {
   setApproxSamplingNum: function(approx_sampling_num){
     this.APPROX_SAMPLING_NUM = approx_sampling_num;
   },
@@ -86,7 +86,7 @@ YOVALUE.BayesCalculatorTree.prototype = {
 
   getEvidences: function (graph, probabilities){
     // we will change it, so clone
-    this.graph = YOVALUE.clone(graph);
+    this.graph = GRASP.clone(graph);
 
     this.setRandomSeed();
 
@@ -96,7 +96,7 @@ YOVALUE.BayesCalculatorTree.prototype = {
     this.posteriorProbability = {};
 
     var maxCount = 1000, cnt=0; // emergency break
-    while(YOVALUE.getObjectLength(this.graph.nodes)>0){
+    while(GRASP.getObjectLength(this.graph.nodes)>0){
       cnt++;
       var leafs = this.getGraphLeafs(this.graph);
 
@@ -352,7 +352,7 @@ YOVALUE.BayesCalculatorTree.prototype = {
       for(var j in table){
         if(typeof(table[j]) == 'undefined') continue;
         for(var k in varValues[i]){
-          table.push(YOVALUE.clone(table[j]));
+          table.push(GRASP.clone(table[j]));
           table[table.length-1][i] = varValues[i][k];
         }
         delete table[j];
@@ -376,7 +376,7 @@ YOVALUE.BayesCalculatorTree.prototype = {
     for(var j in parent){
       var parentIdAlternative = parent[j];
       // get sum of jointP rows with parentId = parentIdAlternative and childrenIds = evidenceValues
-      var fixedColumns = YOVALUE.clone(evidenceValues);
+      var fixedColumns = GRASP.clone(evidenceValues);
       fixedColumns[parentId] = parentIdAlternative;
       var parentIdAlternativeSUM = this.getRowsNum(jointP, fixedColumns);
 
@@ -420,7 +420,7 @@ YOVALUE.BayesCalculatorTree.prototype = {
     for(var i in graph.edges){
       if(nodeIds.indexOf(graph.edges[i][1]) != -1) parents[graph.edges[i][0]] = 1;
     }
-    return YOVALUE.getObjectKeys(parents);
+    return GRASP.getObjectKeys(parents);
   },
 
   getChildren: function(graph, nodeIds){
@@ -428,12 +428,12 @@ YOVALUE.BayesCalculatorTree.prototype = {
     for(var i in graph.edges){
       if(nodeIds.indexOf(graph.edges[i][0]) != -1) children[graph.edges[i][1]] = 1;
     }
-    return YOVALUE.getObjectKeys(children);
+    return GRASP.getObjectKeys(children);
   },
 
   getGraphLeafs: function(graph){
     var leafs = [];
-    var nodeIds = YOVALUE.getObjectKeys(graph.nodes);
+    var nodeIds = GRASP.getObjectKeys(graph.nodes);
     for(var i in nodeIds){
       var hasOutcomeEdge = false;
       for(var j in graph.edges){

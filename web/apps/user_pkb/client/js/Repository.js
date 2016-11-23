@@ -27,7 +27,7 @@
  * @param imageLoader
  * @constructor
  */
-YOVALUE.Repository = function (publisher, transport, imageLoader) {
+GRASP.Repository = function (publisher, transport, imageLoader) {
   this.publisher = publisher;
   this.transport = transport;
   this.imageLoader = imageLoader;
@@ -38,7 +38,7 @@ YOVALUE.Repository = function (publisher, transport, imageLoader) {
   this.isLastRequestDone = true;
 };
 
-YOVALUE.Repository.prototype = {
+GRASP.Repository.prototype = {
   eventListener: function(e){
     var name = e.getName(), that = this;
     if(name == 'graph_history_item_added'){
@@ -60,7 +60,7 @@ YOVALUE.Repository.prototype = {
     // and only after that fire 'graph_element_content_changed' (see use cases in code)
     else if(name == 'repository_request_for_graph_element_content_change'){
       this.pendingRequests.push({url:'updateGraphElementContent', data:e.getData(), files: e.getData().file,  callback:function(data){
-        if(YOVALUE.isJson(data)) e.setResponse(JSON.parse(data));
+        if(GRASP.isJson(data)) e.setResponse(JSON.parse(data));
         else e.setResponse(data);
       }});
       this.sendPendingRequests();
@@ -201,11 +201,11 @@ YOVALUE.Repository.prototype = {
 
   setEventResponse: function(e, data, dataType){
     if(typeof(dataType) == 'undefined') dataType = 'STRING';
-    if(dataType=='JSON' && YOVALUE.isJson(data)){
+    if(dataType=='JSON' && GRASP.isJson(data)){
       e.setResponse(JSON.parse(data));
     }
 
-    if(dataType=='JSON' && !YOVALUE.isJson(data)){
+    if(dataType=='JSON' && !GRASP.isJson(data)){
       this.publisher.publish(["repository_error", {reason:'Answer is not JSON'}]);
     }
 

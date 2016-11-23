@@ -6,11 +6,11 @@
 И тогда, после 10ти лет работы вы сможете, наконец понять чему стоило посвящать свою жизнь.
 Я предлагаю краудсорсить этот процесс.
 
-- надо описать интерфейс YOVALUE.CanvasDrawer.Circle, YOVALUE.CanvasDrawer.Text, YOVALUE.CanvasDrawer.Path, YOVALUE.CanvasDrawer.Rect
+- надо описать интерфейс GRASP.CanvasDrawer.Circle, GRASP.CanvasDrawer.Text, GRASP.CanvasDrawer.Path, GRASP.CanvasDrawer.Rect
 (иначе он начинает расползаться - this.backgroundShape._id в GraphView.js, shape._id в GraphViewElement.js)
 - если править название а потом мышкой навести на этот же узел, то остается старое название
-- зачем нужна инструкция node.update, если YOVALUE.iGraphModelChanges не предполагает даже nodes.update изменений?
-- зачем вообще в GraphModel есть nodeTypes, edgeTypes, nodeDefautType, edgeDefautType если в YOVALUE.iGraphModelEdge, YOVALUE.iGraphModelNode нет поля type?
+- зачем нужна инструкция node.update, если GRASP.iGraphModelChanges не предполагает даже nodes.update изменений?
+- зачем вообще в GraphModel есть nodeTypes, edgeTypes, nodeDefautType, edgeDefautType если в GRASP.iGraphModelEdge, GRASP.iGraphModelNode нет поля type?
 
 TODO нужные фичи
 - сделать возможность клонировать клон

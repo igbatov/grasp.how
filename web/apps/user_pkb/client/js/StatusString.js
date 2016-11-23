@@ -7,7 +7,7 @@
  * @param jQuery
  * @constructor
  */
-YOVALUE.StatusString = function (publisher, viewManager, jQuery) {
+GRASP.StatusString = function (publisher, viewManager, jQuery) {
   this.publisher = publisher;
   this.container = jQuery("#"+viewManager.getViewContainer('statusString').id);
   this.jQuery = jQuery;
@@ -17,7 +17,7 @@ YOVALUE.StatusString = function (publisher, viewManager, jQuery) {
   this.dragModeStatusContainer = this.container.find('#dragModeStatus');
 };
 
-YOVALUE.StatusString.prototype = {
+GRASP.StatusString.prototype = {
   eventListener: function(e){
     if(e.getName() === 'repository_error'){
       var errorStyle = 'color:red';

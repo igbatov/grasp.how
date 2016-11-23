@@ -1,10 +1,10 @@
-YOVALUE.CanvasDrawerFactory = function(kinetic, jQuery){
+GRASP.CanvasDrawerFactory = function(kinetic, jQuery){
   this.kinetic = kinetic;
   this.jQuery = jQuery;
 };
 
-YOVALUE.CanvasDrawerFactory.prototype = {
+GRASP.CanvasDrawerFactory.prototype = {
   create: function(stageContainerId, stageContainerWidth, stageContainerHeight){
-    return new YOVALUE.CanvasDrawer(this.kinetic, stageContainerId, stageContainerWidth, stageContainerHeight, this.jQuery);
+    return new GRASP.CanvasDrawer(this.kinetic, stageContainerId, stageContainerWidth, stageContainerHeight, this.jQuery);
   }
 };

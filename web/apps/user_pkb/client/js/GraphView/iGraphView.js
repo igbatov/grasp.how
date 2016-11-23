@@ -2,7 +2,7 @@
  * Interface of IGraphView
  * @type {Object}
  */
-YOVALUE.iGraphView = {
+GRASP.iGraphView = {
   setNodeMapping: function(){},
   setNodeLabelMapping: function(){},
   setModel: function(){},

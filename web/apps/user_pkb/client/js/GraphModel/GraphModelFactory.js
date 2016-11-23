@@ -1,9 +1,9 @@
-YOVALUE.GraphModelFactory = function(){
+GRASP.GraphModelFactory = function(){
 
 }
 
-YOVALUE.GraphModelFactory.prototype = {
+GRASP.GraphModelFactory.prototype = {
   create: function(graphId){
-    return new YOVALUE.GraphModel(graphId);
+    return new GRASP.GraphModel(graphId);
   }
 }

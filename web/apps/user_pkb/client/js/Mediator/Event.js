@@ -1,4 +1,4 @@
-YOVALUE.iEvent = {
+GRASP.iEvent = {
   getName: function(){},
   getData: function(){},
   setResponse: function(v){},
@@ -12,15 +12,15 @@ YOVALUE.iEvent = {
  * @param {Object=} deferred (must implement method resolve)
  * @constructor
  */
-YOVALUE.Event = function (name, data, deferred) {
+GRASP.Event = function (name, data, deferred) {
   this._name = name;
   this._data = data;
   this._response = null;
   this._isResolved = false;
-  YOVALUE.mixin(deferred, this);
+  GRASP.mixin(deferred, this);
 };
 
-YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
+GRASP.Event.prototype = GRASP.extend(GRASP.iEvent, {
   getName: function(){
     return this._name;
   },
@@ -43,7 +43,7 @@ YOVALUE.Event.prototype = YOVALUE.extend(YOVALUE.iEvent, {
       var codeLine = src.substr(src.indexOf(":")+1);
       if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
       // log it
-      YOVALUE.debug.printEvent(undefined,fileName,codeLine,'response',this.getName(), v, YOVALUE.getObjectId(this));
+      GRASP.debug.printEvent(undefined,fileName,codeLine,'response',this.getName(), v, GRASP.getObjectId(this));
     }
     // endof debugging
 

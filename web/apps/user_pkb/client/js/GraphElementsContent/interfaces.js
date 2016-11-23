@@ -1,10 +1,10 @@
-YOVALUE.iGraphEdgeContent = {
+GRASP.iGraphEdgeContent = {
   edgeContentId: String(),
   label: String(),
   type: String()
 };
 
-YOVALUE.iGraphNodeContent = {
+GRASP.iGraphNodeContent = {
   nodeContentId: '',
   active_alternative_id: 0,
   alternatives: {

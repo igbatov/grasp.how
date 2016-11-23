@@ -7,7 +7,7 @@
  * @param jQuery
  * @constructor
  */
-YOVALUE.GraphMenu = function(publisher, viewManager, UI, jQuery){
+GRASP.GraphMenu = function(publisher, viewManager, UI, jQuery){
   this.publisher = publisher;
   this.selectedPosition = {};  // {graphId:<'leftGraphView', 'rightGraphView', 'not to be shown'>, ...}
   this.viewManager = viewManager;
@@ -17,7 +17,7 @@ YOVALUE.GraphMenu = function(publisher, viewManager, UI, jQuery){
   this.container = this.viewManager.getViewContainer('horizontalMenu');
 };
 
-YOVALUE.GraphMenu.prototype = {
+GRASP.GraphMenu.prototype = {
   eventListener: function(event){
     var that = this;
     switch (event.getName()){
@@ -35,10 +35,10 @@ YOVALUE.GraphMenu.prototype = {
           this.publisher.publish(["repository_get_selected_positions", unknownGraphIds]).then(function(data){
             for(var i in data) that.selectedPosition[i] = data[i];
             that._createView();
-            event.setResponse(YOVALUE.extractKeyValues(graphIds, that.selectedPosition));
+            event.setResponse(GRASP.extractKeyValues(graphIds, that.selectedPosition));
           });
         }else{
-          event.setResponse(YOVALUE.extractKeyValues(graphIds, this.selectedPosition));
+          event.setResponse(GRASP.extractKeyValues(graphIds, this.selectedPosition));
         }
 
         break;
@@ -191,7 +191,7 @@ YOVALUE.GraphMenu.prototype = {
       $('#'+c.id).html('');
 
       // create New and Trash Buttons
-      var generalButtonsContainer = YOVALUE.createElement('div',{class:'GeneralButtons'});
+      var generalButtonsContainer = GRASP.createElement('div',{class:'GeneralButtons'});
       document.getElementById(c.id).appendChild(generalButtonsContainer);
       generalButtonsContainer.appendChild(that.UI.createButton({name:'New',label:'New', callback:showNew}));
       generalButtonsContainer.appendChild(that.UI.createButton({name:'Trash',label:'Trash', callback:showTrash}));
@@ -213,7 +213,7 @@ YOVALUE.GraphMenu.prototype = {
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
 
       // create logout link
-      document.getElementById(c.id).appendChild(YOVALUE.createElement('a',{href:'/logout',class:'logout'},'logout'));
+      document.getElementById(c.id).appendChild(GRASP.createElement('a',{href:'/logout',class:'logout'},'logout'));
     });
   }
 };

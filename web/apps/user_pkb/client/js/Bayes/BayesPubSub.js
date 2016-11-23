@@ -1,10 +1,10 @@
-YOVALUE.BayesPubSub = function(publisher, bayesCalculator){
+GRASP.BayesPubSub = function(publisher, bayesCalculator){
   this.publisher = publisher;
   // Engine that calculates bayes probabilities
   this.bayesCalculator = bayesCalculator;
 };
 
-YOVALUE.BayesPubSub.prototype = {
+GRASP.BayesPubSub.prototype = {
   eventListener: function(event){
     var eventName = event.getName(),
         graphId = event.getData()['graphId'];
@@ -20,7 +20,7 @@ YOVALUE.BayesPubSub.prototype = {
 */
       case "calculate_bayes_probabilities":
         this.bayesCalculator.calculateNodeAlternativeProbabilities(graphId, function(d){
-          console.log('BayesPubSub got response',YOVALUE.clone(d));
+          console.log('BayesPubSub got response',GRASP.clone(d));
           if(d.result == 'error'){
             // collect all nodes that have errors
             var stickers = {};

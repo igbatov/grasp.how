@@ -4,7 +4,7 @@
  * @param publisher
  * @constructor
  */
-YOVALUE.SelectElementController = function(publisher){
+GRASP.SelectElementController = function(publisher){
   this.publisher = publisher;
   this.initialDecoration = {};   // decoration before node or edge selection
   this.selectedDecoration = {};  // decoration after selection
@@ -14,7 +14,7 @@ YOVALUE.SelectElementController = function(publisher){
   this.lowOpacityValue = 0.2;
 };
 
-YOVALUE.SelectElementController.prototype = {
+GRASP.SelectElementController.prototype = {
   execute: function(event, selectedElement){
     var i, that = this,
     eventName = event.getName(),
@@ -129,7 +129,7 @@ YOVALUE.SelectElementController.prototype = {
   },
 
   enlargeEdges: function(d, edgeIds){
-    var i, id, decoration = YOVALUE.clone(d);
+    var i, id, decoration = GRASP.clone(d);
     for(i in edgeIds){
       id = edgeIds[i];
       decoration.edges[id].width = this.edgeScale*Math.max(1, d.edges[id].width);
@@ -138,7 +138,7 @@ YOVALUE.SelectElementController.prototype = {
   },
 
   enlargeNodes: function(d, nodeIds){
-    var i, id, decoration = YOVALUE.clone(d);
+    var i, id, decoration = GRASP.clone(d);
     for(i in nodeIds){
       id = nodeIds[i];
       decoration.nodes[id].size = this.nodeScale*d.nodes[id].size;
@@ -148,7 +148,7 @@ YOVALUE.SelectElementController.prototype = {
   },
 
   lowerOpacity: function(d, nodeIds, edgeIds, do_reverse){
-    var newNodeOpacity, newLabelOpacity, newEdgeOpacity, id, decoration = YOVALUE.clone(d);
+    var newNodeOpacity, newLabelOpacity, newEdgeOpacity, id, decoration = GRASP.clone(d);
 
     for(id in d.nodes){
       id = parseInt(id);

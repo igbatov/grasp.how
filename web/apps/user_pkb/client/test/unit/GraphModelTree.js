@@ -17,7 +17,7 @@ describe("GraphModelTree", function(){
       5: {id:5, source:4, target: 5, isSkeleton:true,  edgeContentId:"5"}
     };
 
-    this.model = new YOVALUE.GraphModelTree(new YOVALUE.GraphModel(1));
+    this.model = new GRASP.GraphModelTree(new GRASP.GraphModel(1));
     this.model.init('testGraph', ['text'], ['link'], 'text', 'link', true);
     this.model.setGraphElements({nodes:nodes, edges:edges});
   });

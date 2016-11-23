@@ -3,12 +3,12 @@
  * @param publisher
  * @constructor
  */
-YOVALUE.DragModeChangeController = function(publisher){
+GRASP.DragModeChangeController = function(publisher){
   this.publisher = publisher;
   this.currentDragMode = 'move';
 };
 
-YOVALUE.DragModeChangeController.prototype = {
+GRASP.DragModeChangeController.prototype = {
   /**
    *
    * @param event

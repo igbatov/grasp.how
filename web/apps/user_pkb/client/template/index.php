@@ -20,7 +20,7 @@
   <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
 
-  <!-- YOVALUE source -->
+  <!-- GRASP source -->
   <?php foreach($this->getJsIncludeList() as $js_include) : ?>
       <script src="<?php echo $this->getAppDir('js')."/".$js_include; ?>"></script>
   <?php endforeach ?>

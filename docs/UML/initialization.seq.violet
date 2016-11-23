@@ -122,8 +122,8 @@ Presenter</string>
 E0: received_select_graph_panel_data | data=xml
 E1 select_graph_panel_model_initialized | data=object
 E2: received_graph_history_data | data=xml
-E3: received_graph_data | graph_name=&quot;YOVALUE&quot;, data=xml
-E4: graph_model_initialized | graph_name=&quot;YOVALUE&quot;
+E3: received_graph_data | graph_name=&quot;GRASP&quot;, data=xml
+E4: graph_model_initialized | graph_name=&quot;GRASP&quot;
 E5: get_graph_position
 E6: get_graph_layout_name
 E7: get_graph_skin_name

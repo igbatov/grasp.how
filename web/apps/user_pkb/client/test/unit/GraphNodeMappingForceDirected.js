@@ -12,11 +12,11 @@ describe("GraphNodeMappingForceDirected.getMapping", function(){
       2:{id:2, source:1, target:3, isSkeleton:true, edgeContentId:"2"}
     };
 
-    this.model = new YOVALUE.GraphModelTree(new YOVALUE.GraphModel('testGraph'));
+    this.model = new GRASP.GraphModelTree(new GRASP.GraphModel('testGraph'));
     this.model.init('testGraph', ['text'], ['link'], 'text', 'link', true);
     this.model.setGraphElements({nodes:nodes, edges:edges});
 
-    this.nodeMapper = new YOVALUE.GraphNodeMappingForceDirected();
+    this.nodeMapper = new GRASP.GraphNodeMappingForceDirected();
   });
 
   it("should set coordinates for graph nodes according to force-layout", function () {

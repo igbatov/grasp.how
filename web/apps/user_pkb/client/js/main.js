@@ -5,67 +5,67 @@ var DEBUG_MODE = true;
  * @type {Object}
  */
 var Modules = {
-  Mediator: YOVALUE.Mediator,
-  Publisher: YOVALUE.Publisher,
+  Mediator: GRASP.Mediator,
+  Publisher: GRASP.Publisher,
 
-  GraphModelFactory: YOVALUE.GraphModelFactory,
-  GraphElementsContent: YOVALUE.GraphElementsContent,
-  GraphModelsPubSub: YOVALUE.GraphModelsPubSub,
+  GraphModelFactory: GRASP.GraphModelFactory,
+  GraphElementsContent: GRASP.GraphElementsContent,
+  GraphModelsPubSub: GRASP.GraphModelsPubSub,
 
-  GraphHistory: YOVALUE.GraphHistory,
+  GraphHistory: GRASP.GraphHistory,
 
   kinetic:Kinetic,
-  CanvasDrawer: YOVALUE.CanvasDrawer,
-  CanvasDrawerFactory: YOVALUE.CanvasDrawerFactory,
+  CanvasDrawer: GRASP.CanvasDrawer,
+  CanvasDrawerFactory: GRASP.CanvasDrawerFactory,
 
-  SVGDrawer: YOVALUE.SVGDrawer,
-  SVGDrawerFactory: YOVALUE.SVGDrawerFactory,
+  SVGDrawer: GRASP.SVGDrawer,
+  SVGDrawerFactory: GRASP.SVGDrawerFactory,
 
-  GraphViewFactory: YOVALUE.GraphViewFactory,
-  GraphViewsPubSub: YOVALUE.GraphViewsPubSub,
+  GraphViewFactory: GRASP.GraphViewFactory,
+  GraphViewsPubSub: GRASP.GraphViewsPubSub,
 
-  HistoryController: YOVALUE.HistoryController,
-  AddRemoveElementController: YOVALUE.AddRemoveElementController,
-  ModelChangeController: YOVALUE.ModelChangeController,
-  MappingChangeController: YOVALUE.MappingChangeController,
-  SelectElementController: YOVALUE.SelectElementController,
-  ShowEditorController: YOVALUE.ShowEditorController,
-  DragModeChangeController: YOVALUE.DragModeChangeController,
-  GraphControllerPubSub: YOVALUE.GraphControllerPubSub,
+  HistoryController: GRASP.HistoryController,
+  AddRemoveElementController: GRASP.AddRemoveElementController,
+  ModelChangeController: GRASP.ModelChangeController,
+  MappingChangeController: GRASP.MappingChangeController,
+  SelectElementController: GRASP.SelectElementController,
+  ShowEditorController: GRASP.ShowEditorController,
+  DragModeChangeController: GRASP.DragModeChangeController,
+  GraphControllerPubSub: GRASP.GraphControllerPubSub,
   GraphControllerModules: Array,
 
-  Repository: YOVALUE.Repository,
+  Repository: GRASP.Repository,
 
-  KeyManager: YOVALUE.KeyManager,
-  StatusString: YOVALUE.StatusString,
+  KeyManager: GRASP.KeyManager,
+  StatusString: GRASP.StatusString,
 
-  GraphLayoutNamesConfig: YOVALUE.GraphLayoutNamesConfig,
-  GraphSkinNamesConfig: YOVALUE.GraphSkinNamesConfig,
+  GraphLayoutNamesConfig: GRASP.GraphLayoutNamesConfig,
+  GraphSkinNamesConfig: GRASP.GraphSkinNamesConfig,
 
-  GraphMenu: YOVALUE.GraphMenu,
-  SelectGraphLayoutModel: YOVALUE.SelectGraphLayoutModel,
-  SelectGraphSkinModel: YOVALUE.SelectGraphSkinModel,
+  GraphMenu: GRASP.GraphMenu,
+  SelectGraphLayoutModel: GRASP.SelectGraphLayoutModel,
+  SelectGraphSkinModel: GRASP.SelectGraphSkinModel,
 
-  GraphNodeMappingsPubSub: YOVALUE.GraphNodeMappingsPubSub,
-  GraphNodeLabelMappingsPubSub: YOVALUE.GraphNodeLabelMappingsPubSub,
+  GraphNodeMappingsPubSub: GRASP.GraphNodeMappingsPubSub,
+  GraphNodeLabelMappingsPubSub: GRASP.GraphNodeLabelMappingsPubSub,
 
-  GraphDecoration: YOVALUE.GraphDecorationByType,
-  GraphDecorationsPubSub: YOVALUE.GraphDecorationsPubSub,
+  GraphDecoration: GRASP.GraphDecorationByType,
+  GraphDecorationsPubSub: GRASP.GraphDecorationsPubSub,
 
-  ViewManager: YOVALUE.ViewManager,
-  UIElements: YOVALUE.UIElements,
-  GraphElementEditor: YOVALUE.GraphElementEditor,
+  ViewManager: GRASP.ViewManager,
+  UIElements: GRASP.UIElements,
+  GraphElementEditor: GRASP.GraphElementEditor,
 
   jQuery: jQuery,
-  Ajax: YOVALUE.Ajax,
-  Promise: YOVALUE.Promise,
+  Ajax: GRASP.Ajax,
+  Promise: GRASP.Promise,
 
-  imageLoader: YOVALUE.imageLoader,
+  imageLoader: GRASP.imageLoader,
 
-  NodeListCache: YOVALUE.NodeListCache,
+  NodeListCache: GRASP.NodeListCache,
 
-  BayesPubSub: YOVALUE.BayesPubSub,
-  BayesCalculator: YOVALUE.BayesCalculatorGRain
+  BayesPubSub: GRASP.BayesPubSub,
+  BayesCalculator: GRASP.BayesCalculatorGRain
 };
 
 /**
@@ -131,11 +131,11 @@ var DI = {
   SelectGraphLayoutModel: ['Publisher',{
     basicLayout: {
       node:{
-        constructor: YOVALUE.GraphNodeMappingForceDirected,
+        constructor: GRASP.GraphNodeMappingForceDirected,
         attr: {}
       },
       nodeLabel:{
-        constructor: YOVALUE.GraphNodeLabelMappingHorizontal,
+        constructor: GRASP.GraphNodeLabelMappingHorizontal,
         attr: {}
       }
     }
@@ -143,10 +143,10 @@ var DI = {
 
   SelectGraphSkinModel: ['Publisher',
     {
-      'GraphViewNode':YOVALUE.GraphViewNode,
-      'GraphViewNodeImage':YOVALUE.GraphViewNodeImage,
-      'GraphViewEdge':YOVALUE.GraphViewEdge,
-      'GraphViewNodeLabel':YOVALUE.GraphViewNodeLabel
+      'GraphViewNode':GRASP.GraphViewNode,
+      'GraphViewNodeImage':GRASP.GraphViewNodeImage,
+      'GraphViewEdge':GRASP.GraphViewEdge,
+      'GraphViewNodeLabel':GRASP.GraphViewNodeLabel
     },
     {
       "node":{
@@ -173,7 +173,7 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['GraphDecoration'],
 
-  GraphElementEditor: ['Publisher', 'ViewManager', 'UIElements', 'jQuery', YOVALUE.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
+  GraphElementEditor: ['Publisher', 'ViewManager', 'UIElements', 'jQuery', GRASP.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
 
   NodeListCache: ['Publisher'],
 
@@ -183,7 +183,7 @@ var DI = {
 
 // Creating and wiring modules according to DI array.
 // After wireModules call Modules['moduleName'] = module (i.e. object instantiated from constructor)
-YOVALUE.wireModules(Modules, DI);
+GRASP.wireModules(Modules, DI);
 
 // Link modules with event subscriptions
 Modules['Mediator'].setSubscriptions(

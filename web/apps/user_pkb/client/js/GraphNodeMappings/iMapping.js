@@ -5,7 +5,7 @@
  *  mapping: Object.<number,{x:number, y:number, angle:number}>
  * }}
  */
-YOVALUE.iMapping = {
+GRASP.iMapping = {
   area: Object(),
   mapping: Object()
 };

@@ -4,11 +4,11 @@
  * @param args - {nodeId, nodeType, graphId, x, y, size, color, opacity, stickers} merged with skin.node.attr definitions
  * @constructor
  */
-YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
+GRASP.GraphViewNode = function(drawer, graphViewElement, args){
   this.stickers = args.stickers; // definition of stickers pictures in a form {'stickerName':<svg xml>, ...}
   this.drawer = drawer;
   this.graphViewElement = graphViewElement;
-  YOVALUE.mixin(graphViewElement, this);
+  GRASP.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createGroup({
     x: args.x,
@@ -32,7 +32,7 @@ YOVALUE.GraphViewNode = function(drawer, graphViewElement, args){
   graphViewElement.setDrawerShape(this.shape);
 };
 
-YOVALUE.GraphViewNode.prototype = {
+GRASP.GraphViewNode.prototype = {
   remove: function(){
     this.graphViewElement.remove();
     delete this;
@@ -68,9 +68,9 @@ YOVALUE.GraphViewNode.prototype = {
   },
 
   setStickers: function(v){
-    if(YOVALUE.typeof(v) != 'object') return;
+    if(GRASP.typeof(v) != 'object') return;
     // remove all old stickers
-    var chs = YOVALUE.getObjectKeys(this.shape.getChildren());
+    var chs = GRASP.getObjectKeys(this.shape.getChildren());
     for(var i in chs) if(chs[i] != this.circle.getShape().id) this.shape.remove(chs[i]);
     // add new stickers
     var nodeSize = 2*this.getSize();
@@ -114,9 +114,9 @@ YOVALUE.GraphViewNode.prototype = {
   },
 
   clone: function (){
-    return new YOVALUE.GraphViewNode(
+    return new GRASP.GraphViewNode(
       this.drawer,
-      new YOVALUE.GraphViewElement({graphId:this.getGraphId(), elementId:this.getElementId(), elementType:'node'}),
+      new GRASP.GraphViewElement({graphId:this.getGraphId(), elementId:this.getElementId(), elementType:'node'}),
       {
         nodeId: this.getElementId(),
         nodeType: this.getNodeType(),

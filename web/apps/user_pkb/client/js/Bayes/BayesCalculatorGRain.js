@@ -3,11 +3,11 @@
  * @param type - package that is used on server, now only "gRain" (= gRain for R)
  * @constructor
  */
-YOVALUE.BayesCalculatorGRain = function(publisher){
+GRASP.BayesCalculatorGRain = function(publisher){
   this.publisher = publisher;
 };
 
-YOVALUE.BayesCalculatorGRain.prototype = {
+GRASP.BayesCalculatorGRain.prototype = {
   /**
    * @param graphId
    * @param callback - function that will be called when result is calculated

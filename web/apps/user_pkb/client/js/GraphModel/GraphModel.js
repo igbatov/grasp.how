@@ -1,8 +1,8 @@
 /**
  * Base graph model  - implement base create, update, delete methods to work with graph
- * @implements {YOVALUE.iGraphModel}
+ * @implements {GRASP.iGraphModel}
  */
-YOVALUE.GraphModel = function (graphId) {
+GRASP.GraphModel = function (graphId) {
   this.nodes = {};
   this.edges = {};
   this.nodeTypes = {};
@@ -21,7 +21,7 @@ YOVALUE.GraphModel = function (graphId) {
   this.readOnlyEdges = {};
 };
 
-YOVALUE.GraphModel.prototype = {
+GRASP.GraphModel.prototype = {
   /**
    *
    * @param name
@@ -37,35 +37,35 @@ YOVALUE.GraphModel.prototype = {
     var i;
 
     //sanity check - nodeTypes and edgeTypes must be of type {Array.<string>}
-    if(YOVALUE.typeof(nodeTypes) !== 'array'){
-      YOVALUE.errorHandler.throwError('nodeTypes must be of type {Array.<string>}');
+    if(GRASP.typeof(nodeTypes) !== 'array'){
+      GRASP.errorHandler.throwError('nodeTypes must be of type {Array.<string>}');
     }
     for(i in nodeTypes){
-      if(YOVALUE.typeof(nodeTypes[i]) !== 'string'){
-        YOVALUE.errorHandler.throwError('nodeTypes must be of type {Array.<string>}');
+      if(GRASP.typeof(nodeTypes[i]) !== 'string'){
+        GRASP.errorHandler.throwError('nodeTypes must be of type {Array.<string>}');
       }
     }
-    if(YOVALUE.typeof(edgeTypes) !== 'array'){
-      YOVALUE.errorHandler.throwError('edgeTypes must be of type {Array.<string>}');
+    if(GRASP.typeof(edgeTypes) !== 'array'){
+      GRASP.errorHandler.throwError('edgeTypes must be of type {Array.<string>}');
     }
     for(i in edgeTypes){
-      if(YOVALUE.typeof(edgeTypes[i]) !== 'string'){
-        YOVALUE.errorHandler.throwError('edgeTypes must be of type {Array.<string>}');
+      if(GRASP.typeof(edgeTypes[i]) !== 'string'){
+        GRASP.errorHandler.throwError('edgeTypes must be of type {Array.<string>}');
       }
     }
 
     //sanity check - nodeDefaultType and edgeDefaultType must be of type String
-    if(YOVALUE.typeof(nodeDefaultType) !== 'string'){
-      YOVALUE.errorHandler.throwError('nodeDefaultType must be of type string, for now it is '+YOVALUE.typeof(nodeDefaultType));
+    if(GRASP.typeof(nodeDefaultType) !== 'string'){
+      GRASP.errorHandler.throwError('nodeDefaultType must be of type string, for now it is '+GRASP.typeof(nodeDefaultType));
     }
-    if(YOVALUE.typeof(edgeDefaultType) !== 'string'){
-      YOVALUE.errorHandler.throwError('edgeDefaultType must be of type string, for now it is '+YOVALUE.typeof(edgeDefaultType));
+    if(GRASP.typeof(edgeDefaultType) !== 'string'){
+      GRASP.errorHandler.throwError('edgeDefaultType must be of type string, for now it is '+GRASP.typeof(edgeDefaultType));
     }
 
     // clone to inner model
     this.graphName = name;
-    this.nodeTypes = YOVALUE.clone(nodeTypes, {configurable: true, enumerable: true, writable: true});
-    this.edgeTypes = YOVALUE.clone(edgeTypes, {configurable: true, enumerable: true, writable: true});
+    this.nodeTypes = GRASP.clone(nodeTypes, {configurable: true, enumerable: true, writable: true});
+    this.edgeTypes = GRASP.clone(edgeTypes, {configurable: true, enumerable: true, writable: true});
     this.nodeDefaultType = nodeDefaultType;
     this.edgeDefaultType = edgeDefaultType;
     this.isEditable = isEditable;
@@ -89,24 +89,24 @@ YOVALUE.GraphModel.prototype = {
     var i, nodes = elements['nodes'], edges = elements['edges'];
 
     for(i in nodes){
-      if(YOVALUE.implements(nodes[i], YOVALUE.iGraphModelNode) !== true){
-        YOVALUE.errorHandler.throwError('node does not implement iGraphModelNode interface');
+      if(GRASP.implements(nodes[i], GRASP.iGraphModelNode) !== true){
+        GRASP.errorHandler.throwError('node does not implement iGraphModelNode interface');
       }
       if(i != nodes[i].id){
-        YOVALUE.errorHandler.throwError('nodes key != node.id ('+i+' != '+nodes[i].id+')');
+        GRASP.errorHandler.throwError('nodes key != node.id ('+i+' != '+nodes[i].id+')');
       }
     }
     for(i in edges){
-      if(YOVALUE.implements(edges[i], YOVALUE.iGraphModelEdge) !== true){
-        YOVALUE.errorHandler.throwError('edge does not implement iGraphModelEdge interface');
+      if(GRASP.implements(edges[i], GRASP.iGraphModelEdge) !== true){
+        GRASP.errorHandler.throwError('edge does not implement iGraphModelEdge interface');
       }
       if(i != edges[i].id){
-        YOVALUE.errorHandler.throwError('edges key != edge.id ('+i+' != '+edges[i].id+')');
+        GRASP.errorHandler.throwError('edges key != edge.id ('+i+' != '+edges[i].id+')');
       }
     }
 
-    this.nodes = YOVALUE.clone(nodes, {configurable: true, enumerable: true, writable: true});
-    this.edges = YOVALUE.clone(edges, {configurable: true, enumerable: true, writable: true});
+    this.nodes = GRASP.clone(nodes, {configurable: true, enumerable: true, writable: true});
+    this.edges = GRASP.clone(edges, {configurable: true, enumerable: true, writable: true});
 
     this._updateReadOnlyModel();
     this._updateTimestamp();
@@ -154,15 +154,15 @@ YOVALUE.GraphModel.prototype = {
   /**
    *
    * @param node - implementation of iGraphModelNode
-   * @return {YOVALUE.iGraphModelChanges}
+   * @return {GRASP.iGraphModelChanges}
    */
   addNode: function(node){
-    // create YOVALUE.iGraphModelChanges implementation
-    var c = YOVALUE.clone(YOVALUE.iGraphModelChanges);
+    // create GRASP.iGraphModelChanges implementation
+    var c = GRASP.clone(GRASP.iGraphModelChanges);
     if(!this.isEditable) return c;
 
     var nodeId = this._getFreeId('nodes');
-    var newNode = YOVALUE.clone(YOVALUE.iGraphModelNode);
+    var newNode = GRASP.clone(GRASP.iGraphModelNode);
     // copy known attributes of new node
     for(var i in node){
       newNode[i] = node[i]
@@ -171,10 +171,10 @@ YOVALUE.GraphModel.prototype = {
     newNode.id = nodeId;
 
     // sanity check
-    if(YOVALUE.implements(newNode, YOVALUE.iGraphModelNode) !== true){
+    if(GRASP.implements(newNode, GRASP.iGraphModelNode) !== true){
       console.log(newNode);
-      console.log(YOVALUE.iGraphModelNode);
-      YOVALUE.errorHandler.throwError('YOVALUE.GraphModel.addNode: node does not implement iGraphModelNode interface');
+      console.log(GRASP.iGraphModelNode);
+      GRASP.errorHandler.throwError('GRASP.GraphModel.addNode: node does not implement iGraphModelNode interface');
     }
 
     this.nodes[nodeId] = newNode;
@@ -188,16 +188,16 @@ YOVALUE.GraphModel.prototype = {
 
   /**
    *
-   * @param edge {YOVALUE.iGraphModelEdge}
-   * @return {YOVALUE.iGraphModelChanges}
+   * @param edge {GRASP.iGraphModelEdge}
+   * @return {GRASP.iGraphModelChanges}
    */
   addEdge: function(edge){
-    // create YOVALUE.iGraphModelChanges implementation
-    var c = YOVALUE.clone(YOVALUE.iGraphModelChanges);
+    // create GRASP.iGraphModelChanges implementation
+    var c = GRASP.clone(GRASP.iGraphModelChanges);
     if(!this.isEditable) return c;
 
     var edgeId = this._getFreeId('edges');
-    var newEdge = YOVALUE.clone(YOVALUE.iGraphModelEdge);
+    var newEdge = GRASP.clone(GRASP.iGraphModelEdge);
 
     // copy or add attributes of new edge
     for(var i in edge){
@@ -207,10 +207,10 @@ YOVALUE.GraphModel.prototype = {
     newEdge.id = edgeId;
 
     // sanity check
-    if(YOVALUE.implements(newEdge, YOVALUE.iGraphModelEdge) !== true){
+    if(GRASP.implements(newEdge, GRASP.iGraphModelEdge) !== true){
       console.log(newEdge);
-      console.log(YOVALUE.iGraphModelEdge);
-      YOVALUE.errorHandler.throwError('YOVALUE.GraphModel.addEdge: edge does not implement iGraphModelEdge interface');
+      console.log(GRASP.iGraphModelEdge);
+      GRASP.errorHandler.throwError('GRASP.GraphModel.addEdge: edge does not implement iGraphModelEdge interface');
     }
 
     this.edges[edgeId] = newEdge;
@@ -224,11 +224,11 @@ YOVALUE.GraphModel.prototype = {
   /**
    * Remove node and all adjacent edges
    * @param id
-   * @returns {YOVALUE.iGraphModelChanges|boolean}
+   * @returns {GRASP.iGraphModelChanges|boolean}
    */
   removeNode: function(id){
-    // create YOVALUE.iGraphModelChanges implementation
-    var c = YOVALUE.clone(YOVALUE.iGraphModelChanges);
+    // create GRASP.iGraphModelChanges implementation
+    var c = GRASP.clone(GRASP.iGraphModelChanges);
     if(!this.isEditable) return c;
 
     var i, edges,
@@ -243,13 +243,13 @@ YOVALUE.GraphModel.prototype = {
     edges = this.getEdgesToChildIds(id);
     for(i in edges) {
       changes = this.removeEdge(edges[i]);
-      c = YOVALUE.deepmerge(c, changes);
+      c = GRASP.deepmerge(c, changes);
     }
 
     edges = this.getEdgesFromParentIds(id);
     for(i in edges) {
       changes = this.removeEdge(edges[i]);
-      c = YOVALUE.deepmerge(c, changes);
+      c = GRASP.deepmerge(c, changes);
     }
 
     // remove node
@@ -263,11 +263,11 @@ YOVALUE.GraphModel.prototype = {
   /**
    *
    * @param edgeId
-   * @returns {YOVALUE.iGraphModelChanges}
+   * @returns {GRASP.iGraphModelChanges}
    */
   removeEdge: function(edgeId){
-    // create YOVALUE.iGraphModelChanges implementation
-    var c = YOVALUE.clone(YOVALUE.iGraphModelChanges);
+    // create GRASP.iGraphModelChanges implementation
+    var c = GRASP.clone(GRASP.iGraphModelChanges);
     if(!this.isEditable) return c;
 
     delete this.edges[edgeId];
@@ -281,16 +281,16 @@ YOVALUE.GraphModel.prototype = {
    *
    * @param nodeId
    * @param nodeAttributes
-   * @return {YOVALUE.iGraphModelChanges}
+   * @return {GRASP.iGraphModelChanges}
    */
   updateNode: function(nodeId, nodeAttributes){
-    // create YOVALUE.iGraphModelChanges implementation
-    var c = YOVALUE.clone(YOVALUE.iGraphModelChanges);
+    // create GRASP.iGraphModelChanges implementation
+    var c = GRASP.clone(GRASP.iGraphModelChanges);
     if(!this.isEditable) return c;
 
     if(typeof(this.nodes[nodeId]) == 'undefined') return c;
     for(var i in nodeAttributes){
-      if(i == 'id' && this.nodes[nodeId][i] !== nodeAttributes[i]) YOVALUE.errorHandler.throwError('Node ids cannot be updated '+this.nodes[nodeId][i]+' !== '+nodeAttributes[i]);
+      if(i == 'id' && this.nodes[nodeId][i] !== nodeAttributes[i]) GRASP.errorHandler.throwError('Node ids cannot be updated '+this.nodes[nodeId][i]+' !== '+nodeAttributes[i]);
       this.nodes[nodeId][i] = nodeAttributes[i];
     }
     this._updateReadOnlyModel();
@@ -303,16 +303,16 @@ YOVALUE.GraphModel.prototype = {
    *
    * @param edgeId
    * @param edgeAttributes
-   * @return {YOVALUE.iGraphModelChanges}
+   * @return {GRASP.iGraphModelChanges}
    */
   updateEdge: function(edgeId, edgeAttributes){
-    // create YOVALUE.iGraphModelChanges implementation
-    var c = YOVALUE.clone(YOVALUE.iGraphModelChanges);
+    // create GRASP.iGraphModelChanges implementation
+    var c = GRASP.clone(GRASP.iGraphModelChanges);
     if(!this.isEditable) return c;
 
     if(typeof(this.edges[edgeId]) == 'undefined') return c;
     for(var i in edgeAttributes){
-      if(i == 'id' && this.edges[edgeId][i] !== edgeAttributes[i]) YOVALUE.errorHandler.throwError('Edge ids cannot be updated');
+      if(i == 'id' && this.edges[edgeId][i] !== edgeAttributes[i]) GRASP.errorHandler.throwError('Edge ids cannot be updated');
       this.edges[edgeId][i] = edgeAttributes[i];
     }
     this._updateReadOnlyModel();
@@ -322,11 +322,11 @@ YOVALUE.GraphModel.prototype = {
   },
 
   getNode: function(id){
-    return YOVALUE.compare(this.getNodes([id]), {}) ? null : this.getNodes([id])[id];
+    return GRASP.compare(this.getNodes([id]), {}) ? null : this.getNodes([id])[id];
   },
 
   getEdge: function(id){
-    return YOVALUE.compare(this.getEdges([id]), {}) ? null : this.getEdges([id])[id];
+    return GRASP.compare(this.getEdges([id]), {}) ? null : this.getEdges([id])[id];
   },
 
   /**
@@ -533,19 +533,19 @@ YOVALUE.GraphModel.prototype = {
       nodes : { add : { }, remove : [ 4 ], update : {} },
       edges : { add : { }, remove : [], update : {} }
     }
-   * @param c {YOVALUE.iGraphModelChanges}
-   * @return {changes:{YOVALUE.iGraphModelChanges}, rollback:{YOVALUE.iGraphModelChanges}}
+   * @param c {GRASP.iGraphModelChanges}
+   * @return {changes:{GRASP.iGraphModelChanges}, rollback:{GRASP.iGraphModelChanges}}
    */
   applyChanges: function(c){
-    if(!YOVALUE.implements(c, YOVALUE.iGraphModelChanges)) YOVALUE.errorHandler.throwError('');
+    if(!GRASP.implements(c, GRASP.iGraphModelChanges)) GRASP.errorHandler.throwError('');
     var i, e, ch,
-        changes = YOVALUE.clone(YOVALUE.iGraphModelChanges),
+        changes = GRASP.clone(GRASP.iGraphModelChanges),
         rollback = {
           name: this.getName(),
-          nodes: YOVALUE.clone(this.getNodes()),
-          edges: YOVALUE.clone(this.getEdges()),
-          nodeTypes: YOVALUE.clone(this.getNodeTypes()),
-          edgeTypes: YOVALUE.clone(this.getEdgeTypes()),
+          nodes: GRASP.clone(this.getNodes()),
+          edges: GRASP.clone(this.getEdges()),
+          nodeTypes: GRASP.clone(this.getNodeTypes()),
+          edgeTypes: GRASP.clone(this.getEdgeTypes()),
           nodeDefaultType: this.getNodeDefaultType(),
           edgeDefaultType: this.getEdgeDefaultType(),
           isEditable: this.getIsEditable(),
@@ -563,25 +563,25 @@ YOVALUE.GraphModel.prototype = {
     for(i in c.nodes.add){
       e = c.nodes.add[i];
       //check that virtual id do not exist in real node id pool
-      if(this._isNodeIdExists(i)) YOVALUE.errorHandler.throwError('Virtual node id is already exists in real node id pool. To prevent virtual id overlapping with real id try to specify it in none-number form. For example - "new_ID". It will be changed to number after creation.');
+      if(this._isNodeIdExists(i)) GRASP.errorHandler.throwError('Virtual node id is already exists in real node id pool. To prevent virtual id overlapping with real id try to specify it in none-number form. For example - "new_ID". It will be changed to number after creation.');
       ch = this.addNode(e);
       if(ch){
-        virtualNodeIds[i] = +YOVALUE.getObjectKeys(ch.nodes.add)[0];
-        changes = YOVALUE.deepmerge(ch, changes);
+        virtualNodeIds[i] = +GRASP.getObjectKeys(ch.nodes.add)[0];
+        changes = GRASP.deepmerge(ch, changes);
       }
     }
     //create edges
     for(i in c.edges.add){
       e = c.edges.add[i];
       //check that virtual id do not exist in real edge id pool
-      if(this._isEdgeIdExists(i)) YOVALUE.errorHandler.throwError('Virtual edge id is already exists in real edge id pool. To prevent virtual id overlapping with real id try to specify it in none-number form. For example - "new_ID". It will be changed to number after creation.');
+      if(this._isEdgeIdExists(i)) GRASP.errorHandler.throwError('Virtual edge id is already exists in real edge id pool. To prevent virtual id overlapping with real id try to specify it in none-number form. For example - "new_ID". It will be changed to number after creation.');
       //if edge has virtual source and target - change it to real one
       if(typeof(virtualNodeIds[e.target]) != 'undefined') e.target = +virtualNodeIds[e.target];
       if(typeof(virtualNodeIds[e.source]) != 'undefined') e.source = +virtualNodeIds[e.source];
       ch = this.addEdge(e);
       if(ch){
-        virtualEdgeIds[i] = YOVALUE.getObjectKeys(ch.edges.add)[0];
-        changes = YOVALUE.deepmerge(ch, changes);
+        virtualEdgeIds[i] = GRASP.getObjectKeys(ch.edges.add)[0];
+        changes = GRASP.deepmerge(ch, changes);
       }
     }
 
@@ -592,7 +592,7 @@ YOVALUE.GraphModel.prototype = {
       //consider that we may want to update node that was just added
       id = typeof(virtualNodeIds[i]) != 'undefined' ? +virtualNodeIds[i] : +i;
       ch = this.updateNode(id, e);
-      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+      if(ch) changes = GRASP.deepmerge(ch, changes);
     }
     //update edges
     for(i in c.edges.update){
@@ -604,7 +604,7 @@ YOVALUE.GraphModel.prototype = {
       if(typeof(e.source) !== 'undefined' && typeof(virtualNodeIds[e.source]) != 'undefined') e.source = virtualNodeIds[e.source];
 
       ch = this.updateEdge(id, e);
-      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+      if(ch) changes = GRASP.deepmerge(ch, changes);
     }
 
 
@@ -614,7 +614,7 @@ YOVALUE.GraphModel.prototype = {
       //consider that we may want to remove node that was just added
       id = typeof(virtualNodeIds[id]) != 'undefined' ? +virtualNodeIds[id] : +id;
       ch = this.removeNode(id);
-      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+      if(ch) changes = GRASP.deepmerge(ch, changes);
     }
     //remove edges
     for(i in c.edges.remove){
@@ -622,16 +622,16 @@ YOVALUE.GraphModel.prototype = {
       //consider that we may want to remove edge that was just added
       id = typeof(virtualEdgeIds[id]) != 'undefined' ? +virtualEdgeIds[id] : +id;
       ch = this.removeEdge(id);
-      if(ch) changes = YOVALUE.deepmerge(ch, changes);
+      if(ch) changes = GRASP.deepmerge(ch, changes);
     }
 
     // TODO: implement some reasonable check for new graph correctness here
     if(0){
       this.init(rollback.name, rollback.nodeTypes, rollback.edgeTypes, rollback.nodeDefaultType, rollback.edgeDefaultType, rollback.isEditable, rollback.attributes);
       this.setGraphElements({nodes: rollback.nodes, edges: rollback.edges});
-      YOVALUE.errorHandler.notifyError('Changes are not valid');
-      YOVALUE.errorHandler.notifyError(c);
-      return YOVALUE.clone(YOVALUE.iGraphModelChanges);
+      GRASP.errorHandler.notifyError('Changes are not valid');
+      GRASP.errorHandler.notifyError(c);
+      return GRASP.clone(GRASP.iGraphModelChanges);
     }
 
     return changes;
@@ -661,8 +661,8 @@ YOVALUE.GraphModel.prototype = {
     var i;
     this.readOnlyNodes = {};
     this.readOnlyEdges = {};
-    for(i in this.nodes) this.readOnlyNodes[i] = Object.freeze(YOVALUE.clone(this.nodes[i]));
-    for(i in this.edges) this.readOnlyEdges[i] = Object.freeze(YOVALUE.clone(this.edges[i]));
+    for(i in this.nodes) this.readOnlyNodes[i] = Object.freeze(GRASP.clone(this.nodes[i]));
+    for(i in this.edges) this.readOnlyEdges[i] = Object.freeze(GRASP.clone(this.edges[i]));
     Object.freeze(this.readOnlyNodes);
     Object.freeze(this.readOnlyEdges);
   },

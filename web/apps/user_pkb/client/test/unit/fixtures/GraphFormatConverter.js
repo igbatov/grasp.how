@@ -1,8 +1,8 @@
-﻿YOVALUE.TestFixtures = YOVALUE.TestFixtures || {};
-YOVALUE.TestFixtures.GraphFormatConverter = {};
+﻿GRASP.TestFixtures = GRASP.TestFixtures || {};
+GRASP.TestFixtures.GraphFormatConverter = {};
 
-YOVALUE.TestFixtures.GraphFormatConverter.XMLFromString = {};
-YOVALUE.TestFixtures.GraphFormatConverter.XMLFromString.xml_string =
+GRASP.TestFixtures.GraphFormatConverter.XMLFromString = {};
+GRASP.TestFixtures.GraphFormatConverter.XMLFromString.xml_string =
   '<?xml version="1.0" encoding="UTF-8"?>'+
 '<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2" xmlns:viz="http://www.gexf.net/1.2draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd">'+
   '<meta lastmodifieddate="2012-05-06">'+
@@ -45,8 +45,8 @@ YOVALUE.TestFixtures.GraphFormatConverter.XMLFromString.xml_string =
   '</graph>'+
 '</gexf>';
 
-YOVALUE.TestFixtures.GraphFormatConverter.parseGexfXmlToGexfObj = {};
-YOVALUE.TestFixtures.GraphFormatConverter.parseGexfXmlToGexfObj.xml_string =
+GRASP.TestFixtures.GraphFormatConverter.parseGexfXmlToGexfObj = {};
+GRASP.TestFixtures.GraphFormatConverter.parseGexfXmlToGexfObj.xml_string =
 '<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:viz="http://www.gexf.net/1.2draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">'+
   '<graph defaultedgetype="directed">'+
     '<attributes class="node">'+

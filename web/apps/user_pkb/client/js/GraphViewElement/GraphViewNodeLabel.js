@@ -6,10 +6,10 @@
  * @param args - {labelId, nodeType, graphId, x, y, text, size, angle, opacity}
  * @constructor
  */
-YOVALUE.GraphViewNodeLabel = function(drawer, graphViewElement, args){
+GRASP.GraphViewNodeLabel = function(drawer, graphViewElement, args){
   this.drawer = drawer;
   this.graphViewElement = graphViewElement;
-  YOVALUE.mixin(graphViewElement, this);
+  GRASP.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createShape('text', {
     x: args.x,
@@ -29,7 +29,7 @@ YOVALUE.GraphViewNodeLabel = function(drawer, graphViewElement, args){
   graphViewElement.setDrawerShape(this.shape);
 };
 
-YOVALUE.GraphViewNodeLabel.prototype = {
+GRASP.GraphViewNodeLabel.prototype = {
   remove: function(){
     this.graphViewElement.remove();
     delete this;

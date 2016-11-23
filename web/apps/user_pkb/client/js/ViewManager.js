@@ -1,7 +1,7 @@
 /**
  * This module allocate template views for different components in one layout.
  * All components that have views (i.e. GraphsPanelPresenter, NodeContentEditor)
- * should call YOVALUE.ViewManager.getViewContainer to get div where they can place their view.
+ * should call GRASP.ViewManager.getViewContainer to get div where they can place their view.
  * @param jQuery
  * @param settings - {
  *  'graphElementEditor': {id,padding},
@@ -12,7 +12,7 @@
  * }
  * @constructor
  */
-YOVALUE.ViewManager = function(jQuery, settings){
+GRASP.ViewManager = function(jQuery, settings){
   this.jQuery = jQuery;
   this.settings = settings;
   /*
@@ -24,7 +24,7 @@ YOVALUE.ViewManager = function(jQuery, settings){
 */
 };
 
-YOVALUE.ViewManager.prototype = {
+GRASP.ViewManager.prototype = {
 
   getViewContainer: function(componentName){
     var $ = this.jQuery, gv = $('#'+this.settings.graphViews.id);

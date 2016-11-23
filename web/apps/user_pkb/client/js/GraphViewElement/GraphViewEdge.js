@@ -6,7 +6,7 @@
  * @param args - {edgeId, edgeType, graphId, start, stop, opacity}
  * @constructor
  */
-YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
+GRASP.GraphViewEdge = function(drawer, graphViewElement, args){
   this.start =  args.start;
   this.stop =  args.stop;
   this.edgeType = args.edgeType;
@@ -16,7 +16,7 @@ YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
   this.drawer = drawer;
 
   this.graphViewElement = graphViewElement;
-  YOVALUE.mixin(graphViewElement, this);
+  GRASP.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createShape('path', {
     data: this._getQuadPathData(this.start, this.stop, this.width, this.sourceNodeRadius, this.targetNodeRadius),
@@ -33,7 +33,7 @@ YOVALUE.GraphViewEdge = function(drawer, graphViewElement, args){
   this.setEdgeType(this.edgeType);
 };
 
-YOVALUE.GraphViewEdge.prototype = {
+GRASP.GraphViewEdge.prototype = {
   remove: function(){
     this.graphViewElement.remove();
     delete this;

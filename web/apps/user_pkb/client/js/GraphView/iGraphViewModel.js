@@ -7,7 +7,7 @@
  *  edges: Object.<number,{id:number, type:string, source:number, target:number, edgeContentId: string}>
  * }}
  */
-YOVALUE.iGraphViewModel = {
+GRASP.iGraphViewModel = {
   nodes: {},
   edges: {}
 };

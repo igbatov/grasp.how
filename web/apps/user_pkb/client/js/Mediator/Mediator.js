@@ -6,14 +6,14 @@
  * _listenerTypesCallOrder - {event_name: [name1, name2, name3, ...], ...}
  * @constructor
  */
-YOVALUE.Mediator = function (listenerTypes, listenerTypesCallOrder) {
-  this._listenerTypes = YOVALUE.clone(listenerTypes) || {'undefined':null};
+GRASP.Mediator = function (listenerTypes, listenerTypesCallOrder) {
+  this._listenerTypes = GRASP.clone(listenerTypes) || {'undefined':null};
   this._listenerTypesCallOrder = listenerTypesCallOrder || [];
   this._listeners = {};
   this._eventsStack = [];   // track fired events (this is for debug purposes only)
 };
 
-YOVALUE.Mediator.prototype = {
+GRASP.Mediator.prototype = {
 
   /**
    * Subscribe modules to event in a given order
@@ -26,9 +26,9 @@ YOVALUE.Mediator.prototype = {
     for(eventName in subscriptions){
       listeners = subscriptions[eventName];
       for(j in listeners){
-        if (!(YOVALUE.implements(listeners[j], YOVALUE.iListener))) {
-          console.log('listener', listeners[j], 'do not has YOVALUE.iListener interface');
-          YOVALUE.errorHandler.throwError("listener do not has YOVALUE.iListener interface");
+        if (!(GRASP.implements(listeners[j], GRASP.iListener))) {
+          console.log('listener', listeners[j], 'do not has GRASP.iListener interface');
+          GRASP.errorHandler.throwError("listener do not has GRASP.iListener interface");
         }
       }
     }
@@ -57,8 +57,8 @@ YOVALUE.Mediator.prototype = {
   addListener: function (eventName, listener) {
     var listenerType = this._getListenerType(listener), i;
 
-    if(!YOVALUE.implements(listener, YOVALUE.iListener)) {
-      YOVALUE.errorHandler.throwError('Object do not implement YOVALUE.iListener interface');
+    if(!GRASP.implements(listener, GRASP.iListener)) {
+      GRASP.errorHandler.throwError('Object do not implement GRASP.iListener interface');
     }
 
     //if order of listener calling does not matter, just add listener to the end of the list
@@ -122,8 +122,8 @@ YOVALUE.Mediator.prototype = {
    */
   dispatch: function (event) {
     //sanity check
-    if (!(YOVALUE.implements(event, YOVALUE.iEvent))) {
-      YOVALUE.errorHandler.throwError("event do not implement YOVALUE.iEvent");
+    if (!(GRASP.implements(event, GRASP.iEvent))) {
+      GRASP.errorHandler.throwError("event do not implement GRASP.iEvent");
     }
 
     var listeners = this.getListeners(event.getName());
@@ -142,8 +142,8 @@ YOVALUE.Mediator.prototype = {
       var codeLine = src.substr(src.indexOf(":")+1);
       if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
       // log it
-      YOVALUE.debug.printEvent(currentEvent, fileName,codeLine,'fire',event.getName(),event.getData(), YOVALUE.getObjectId(event));
-      //YOVALUE.logger.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), YOVALUE.clone(event.getData()), YOVALUE.getObjectId(event));
+      GRASP.debug.printEvent(currentEvent, fileName,codeLine,'fire',event.getName(),event.getData(), GRASP.getObjectId(event));
+      //GRASP.logger.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), GRASP.clone(event.getData()), GRASP.getObjectId(event));
     }
     // endof debugging
 
@@ -152,7 +152,7 @@ YOVALUE.Mediator.prototype = {
 
         // for debugging
         if(DEBUG_MODE){
-          YOVALUE.debug.printEvent(currentEvent, listeners[i].moduleName,'','receive',event.getName(),event.getData(), YOVALUE.getObjectId(event));
+          GRASP.debug.printEvent(currentEvent, listeners[i].moduleName,'','receive',event.getName(),event.getData(), GRASP.getObjectId(event));
         }
         // endof debugging
 
@@ -171,11 +171,11 @@ YOVALUE.Mediator.prototype = {
     for(var i in this._eventsStack){
       for(var j in this._eventsStack[i]){
         if(this._eventsStack[i][j].isResolved()){
-          if(YOVALUE.getObjectId(this._eventsStack[i][j]) > maxResolvedEventId){
-            maxResolvedEventId = YOVALUE.getObjectId(this._eventsStack[i][j]);
+          if(GRASP.getObjectId(this._eventsStack[i][j]) > maxResolvedEventId){
+            maxResolvedEventId = GRASP.getObjectId(this._eventsStack[i][j]);
             currentEventId = i;
           }
-          delete this._eventsStack[YOVALUE.getObjectId(this._eventsStack[i][j])];
+          delete this._eventsStack[GRASP.getObjectId(this._eventsStack[i][j])];
           delete this._eventsStack[i][j];
         }
       }
@@ -184,14 +184,14 @@ YOVALUE.Mediator.prototype = {
     if(typeof(currentEventId) != 'undefined'){
       return currentEventId;
     }else{
-      return Math.max.apply(null, YOVALUE.getObjectKeys(this._eventsStack));
+      return Math.max.apply(null, GRASP.getObjectKeys(this._eventsStack));
     }
   },
 
   _addCurrentEvent: function(e){
     if(typeof(this._eventsStack[this._getCurrentEvent()]) == 'undefined') this._eventsStack[this._getCurrentEvent()] = [];
     this._eventsStack[this._getCurrentEvent()].push(e);
-    this._eventsStack[YOVALUE.getObjectId(e)] = [];
+    this._eventsStack[GRASP.getObjectId(e)] = [];
   }
   */
 };

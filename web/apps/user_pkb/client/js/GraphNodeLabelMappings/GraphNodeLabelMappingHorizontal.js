@@ -1,8 +1,8 @@
-YOVALUE.GraphNodeLabelMappingHorizontal = function(){
+GRASP.GraphNodeLabelMappingHorizontal = function(){
   this.CIRCLE_BOUND_COEFF = 1.3;
 };
 
-YOVALUE.GraphNodeLabelMappingHorizontal.prototype = {
+GRASP.GraphNodeLabelMappingHorizontal.prototype = {
   getMapping: function(nodeMapping, nodeLabelAreaList, nodeLabels){
     this._nodeLabelAreaList = nodeLabelAreaList;
 

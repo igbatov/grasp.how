@@ -1,8 +1,8 @@
-YOVALUE.GraphNodeLabelMappingsPubSub = function(){
+GRASP.GraphNodeLabelMappingsPubSub = function(){
   this.nodeLabelMappers = {};
 };
 
-YOVALUE.GraphNodeLabelMappingsPubSub.prototype = {
+GRASP.GraphNodeLabelMappingsPubSub.prototype = {
   eventListener: function(event){
     var eventName = event.getName(),
       graphId = event.getData()['graphId'],

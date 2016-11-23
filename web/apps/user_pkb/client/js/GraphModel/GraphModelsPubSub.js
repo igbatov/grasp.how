@@ -11,13 +11,13 @@
  * @param graphModelFactory
  * @constructor
  */
-YOVALUE.GraphModelsPubSub = function (publisher, graphModelFactory){
+GRASP.GraphModelsPubSub = function (publisher, graphModelFactory){
   this.graphModelFactory = graphModelFactory;
   this.graphModels = {};
   this.publisher = publisher;
 };
 
-YOVALUE.GraphModelsPubSub.prototype = {
+GRASP.GraphModelsPubSub.prototype = {
   eventListener: function(event){
     var that = this, eventName = event.getName();
 
@@ -42,7 +42,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
             graphSettings['isEditable'],
             graphSettings['attributes']
         );
-        if(r === false)  YOVALUE.errorHandler.throwError('Graph Model init error');
+        if(r === false)  GRASP.errorHandler.throwError('Graph Model init error');
         this.graphModels[graphId].setGraphElements(elements);
         break;
 
@@ -63,12 +63,12 @@ YOVALUE.GraphModelsPubSub.prototype = {
                 graphSettings['isEditable'],
                 graphSettings['attributes']
               );
-              if(r === false)  YOVALUE.errorHandler.throwError('Graph Model init error');
+              if(r === false)  GRASP.errorHandler.throwError('Graph Model init error');
             }
 
             // for all graphs determine its current version (position, index, step) in history
             // (for the first time it will be just the very last version)
-            var graphIds = YOVALUE.getObjectKeys(graphsSettings);
+            var graphIds = GRASP.getObjectKeys(graphsSettings);
             return that.publisher.publish(["get_current_graph_step", graphIds]);
           })
           .then(function(steps){
@@ -83,7 +83,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
         break;
 
       case "get_graph_models":
-        var i, graphModels = {}, graphIds = typeof(event.getData()) == 'undefined' ? YOVALUE.getObjectKeys(this.graphModels)  : event.getData();
+        var i, graphModels = {}, graphIds = typeof(event.getData()) == 'undefined' ? GRASP.getObjectKeys(this.graphModels)  : event.getData();
         for(i in graphIds){
           if(typeof(this.graphModels[graphIds[i]]) != 'undefined') graphModels[graphIds[i]] = this._factoryReadOnyModel(this.graphModels[graphIds[i]]);
         }
@@ -97,12 +97,12 @@ YOVALUE.GraphModelsPubSub.prototype = {
       case "request_for_graph_model_change":
 
         var graphId = event.getData()['graphId'];
-        if(typeof(this.graphModels[graphId]) == 'undefined') YOVALUE.errorHandler.throwError('graphModel with graphId '+graphId+' not found');
+        if(typeof(this.graphModels[graphId]) == 'undefined') GRASP.errorHandler.throwError('graphModel with graphId '+graphId+' not found');
         var graphModel = this.graphModels[graphId];
 
         if(!graphModel.getIsEditable()) return;
 
-        var changesApplied = false, c = YOVALUE.clone(YOVALUE.iGraphModelChanges);
+        var changesApplied = false, c = GRASP.clone(GRASP.iGraphModelChanges);
 
         // a set of changes
         if(event.getData()['type'] == 'changes'){
@@ -151,7 +151,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
 
       case 'get_node_by_nodeContentId':
         var graphId = event.getData()['graphId'];
-        if(typeof(this.graphModels[graphId]) == 'undefined') YOVALUE.errorHandler.throwError('graphModel with graphId '+graphId+' not found');
+        if(typeof(this.graphModels[graphId]) == 'undefined') GRASP.errorHandler.throwError('graphModel with graphId '+graphId+' not found');
         var graphModel = this.graphModels[graphId];
         event.setResponse(graphModel.getNodeByNodeContentId(event.getData()['nodeContentId']));
         break;
@@ -163,13 +163,13 @@ YOVALUE.GraphModelsPubSub.prototype = {
 
   applyChanges: function(type, c, graphModel){
     // if changes are empty, do nothing
-    if(YOVALUE.compare(c, YOVALUE.iGraphModelChanges)) return true;
+    if(GRASP.compare(c, GRASP.iGraphModelChanges)) return true;
 
     //  apply changes
     var changes = graphModel.applyChanges(c);
 
     // if changes are not empty fire event that model was successfully changed
-    if(YOVALUE.compare(changes, YOVALUE.iGraphModelChanges) !== true) this.publisher.publish(["graph_model_changed", {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)}]);
+    if(GRASP.compare(changes, GRASP.iGraphModelChanges) !== true) this.publisher.publish(["graph_model_changed", {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)}]);
   },
 
   /**
@@ -182,7 +182,7 @@ YOVALUE.GraphModelsPubSub.prototype = {
     var readOnlyModel = {}, i;
 
     //create copy of model
-    YOVALUE.mixin(model, readOnlyModel);
+    GRASP.mixin(model, readOnlyModel);
 
     //remove all modifiers
     var modifyFunctions = ['init', 'setIsEditable', 'setIsEditable', 'setGraphElements', 'removeEdge','removeNode','addEdge','addNode','updateEdge','updateNode'];

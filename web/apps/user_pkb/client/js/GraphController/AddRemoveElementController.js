@@ -5,11 +5,11 @@
  * @param publisher
  * @constructor
  */
-YOVALUE.AddRemoveElementController = function(publisher){
+GRASP.AddRemoveElementController = function(publisher){
   this.publisher = publisher;
 };
 
-YOVALUE.AddRemoveElementController.prototype = {
+GRASP.AddRemoveElementController.prototype = {
   execute: function(event, selectedElement){
     var that = this, eventName = event.getName(), dragMode, acceptedEvents = ['dragendnode', 'delete_pressed', 'element_editor_focusin', 'element_editor_focusout'];
 
@@ -45,7 +45,7 @@ YOVALUE.AddRemoveElementController.prototype = {
       }else{
         var graphId = data['droppedOnGraphId'];
 
-        if(typeof(graphId) == 'undefined') YOVALUE.errorHandler.throwError('no droppedOnGraphId');
+        if(typeof(graphId) == 'undefined') GRASP.errorHandler.throwError('no droppedOnGraphId');
 
         if(this.isNewNodeGraph(data['fromGraphId'])) data['draggedModelElement'].element.nodeContentId = null;
 

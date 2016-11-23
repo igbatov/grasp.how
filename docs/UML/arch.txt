@@ -11,15 +11,15 @@ GraphSkinNamesConfig
     get_skin_edge_type
     get_skin_label_type
 
-CanvasDrawerNodeFactory(Publisher, {'circle':YOVALUE.GraphViewNodeCircle,'iconset1':YOVALUE.GraphViewNodeIconSet1})
+CanvasDrawerNodeFactory(Publisher, {'circle':GRASP.GraphViewNodeCircle,'iconset1':GRASP.GraphViewNodeIconSet1})
 CanvasDrawerNodeFactory.prototype = { getNode(config) }
-CanvasDrawerEdgeFactory(Publisher, {'arc':YOVALUE.GraphViewEdgeArc, 'line':YOVALUE.GraphViewEdgeLine})
+CanvasDrawerEdgeFactory(Publisher, {'arc':GRASP.GraphViewEdgeArc, 'line':GRASP.GraphViewEdgeLine})
 CanvasDrawerEdgeFactory.prototype = { getEdge(config) }
 CanvasDrawerLabelFactory(Publisher)
 CanvasDrawerLabelFactory.prototype = { getLabel(config) }
 
-YOVALUE.GraphViewNodeCircle = function(){
-    YOVALUE.CanvasDrawer.Circle.apply(this, arguments)
+GRASP.GraphViewNodeCircle = function(){
+    GRASP.CanvasDrawer.Circle.apply(this, arguments)
 }
 
 GraphView(CanvasDrawer, CanvasDrawerNodeFactory, CanvasDrawerEdgeFactory, CanvasDrawerLabelFactory){
@@ -48,7 +48,7 @@ GraphNodeLayouts.prototype = {
 }
 
 GraphNodeLayoutTree = function(graph_tree_model){
-    YOVALUE.implements(graph_tree_model, IGraphTreeModel)
+    GRASP.implements(graph_tree_model, IGraphTreeModel)
 }
 
 IGraphTreeModel = {
@@ -80,7 +80,7 @@ GraphNodeLabelLayoutGraphModelBridgeFactory.prototype = {
 
 GraphLayoutNamesConfig(Subscriber, {'basic_layout':{'GraphNodeLayoutTree':'tree','GraphNodeLabelLayoutModule':'horizontal'}})
 
-GraphNodeLabelLayoutModuleFactory(Publisher, {'horizontal':YOVALUE.GraphNodeLabelLayoutHorizontal,'radial':YOVALUE.GraphNodeLabelLayoutRadial});
+GraphNodeLabelLayoutModuleFactory(Publisher, {'horizontal':GRASP.GraphNodeLabelLayoutHorizontal,'radial':GRASP.GraphNodeLabelLayoutRadial});
 GraphNodeLabelLayoutModuleFactory.prototype = {
     getGraphNodeLabelLayoutModule();
 }
