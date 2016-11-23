@@ -29,8 +29,8 @@
     </ul>
   </div>
 
-  <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
-  <div id="graphContainer"></div>
+  <iframe class='highcharts-iframe' src='/embed/[12,15]' style='border: 0; width: 100%; height: 600px'></iframe>
+
   <div id="quote" class="description">
     <blockquote>
       <p style="font-size: 1em;">
@@ -99,6 +99,5 @@
       <a target="_blank" href="http://vk.com/igbatov"><img src="<?php echo $this->getAppDir('img'); ?>/vk.png"></a>
     </div>
   </div>
-  <div style="display: none;" id="graphsData"><?php echo $graph ? json_encode($graph) : ""; ?></div>
   </body>
 </html>
