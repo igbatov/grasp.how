@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/reset.css">
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
 
+    <!-- fork ribbon -->
+    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/gh-fork-ribbon.css">
+    <!--[if lt IE 9]>
+    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/gh-fork-ribbon.ie.css">
+    <![endif]-->
+    <!-- end fork ribbon -->
+
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."d3.v3.min.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."graph.js" ?>"></script>
   </head>
   <body>
+  <a class="github-fork-ribbon right-top" href="https://github.com/simonwhitaker/github-fork-ribbon-css" title="FORK ME ON GRASP.HOW">FORK ME ON GRASP.HOW</a>
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
   <div id="graphContainer"></div>
   <div style="display: none;" id="graphsData"><?php echo $graph ? json_encode($graph) : ""; ?></div>
