@@ -20,7 +20,8 @@ class AppFrontend extends App{
       break;
 
       default:
-        $graph = $this->getGraphsData(array("12", "15"));
+        $graph_ids = array("12", "15");
+        $graph = $this->getGraphsData($graph_ids);
         include($this->getAppDir("template", false)."/index.php");
       break;
     }

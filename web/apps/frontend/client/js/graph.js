@@ -23,6 +23,9 @@ $( document ).ready(function(){
       for(var i in graphs){
         $("#graphMenu").append("<li id='graphMenuItem"+i+"' graphId='"+i+"' class='graphMenuItem'><a href='#'>"+graphs[i]["name"]+"</a></li>");
       }
+      $("#graphMenu").on('click', function(e){
+        document.getElementById('clone-ribbon').href = 'http://my.grasp.how/cloneGraph?data={"graph_id":"'+e.target.parentElement.getAttribute('graphId')+'"}';
+      });
     }
 
     // add onclick event handler
