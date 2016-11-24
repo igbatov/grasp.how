@@ -19,13 +19,13 @@ body {
 
 #mainMenuContainer {
     background-color: rgb(41, 127, 163);
-    margin-bottom: 1em;
     text-align: right;
     padding-top: 1%;
     padding-bottom: 1%;
 }
 
 #graphMenuContainer {
+    margin-top: 1%;
     text-align: center;
 }
 
