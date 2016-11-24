@@ -4,8 +4,8 @@
 */
 
 .github-fork-ribbon {
-  width: 12.1em;
-  height: 12.1em;
+  width: 17.1em;
+  height: 17.1em;
   position: absolute;
   overflow: hidden;
   top: 0;
@@ -25,11 +25,11 @@
   /* The right and left classes determine the side we attach our banner to */
   position: absolute;
   display: block;
-  width: 15.38em;
-  height: 1.54em;
-  
-  top: 3.23em;
-  right: -3.23em;
+    width: 20.38em;
+    height: 1.54em;
+
+    top: 5.23em;
+    right: -4.23em;
   
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;

@@ -566,6 +566,7 @@ class AppUserPkb extends App
 
       case 'cloneGraph':
         $r = $this->getRequest();
+        if(!isset($r['history_step'])) $r['history_step'] = $this->getGraphLastStep($r['graph_id']);
         $this->cloneGraph($r['graph_id'], $r['history_step'], $this->getAuthId());
         break;
 
@@ -1292,6 +1293,13 @@ class AppUserPkb extends App
     return $s;
   }
 
+  private function getGraphLastStep($graph_id){
+    $query = "SELECT step FROM `graph_history` WHERE graph_id = '".$graph_id."' ORDER BY step DESC LIMIT 1";
+    $rows = $this->db->execute($query);
+    if(!$rows) $this->error("returned no rows on query: ".$query);
+    return $rows[0]['step'];
+  }
+
   private function getGraphsHistoryChunk($request){
     $graphs_history = array();
     foreach($request as $graph_id => $step){
@@ -1345,10 +1353,7 @@ class AppUserPkb extends App
       }else{
         // if step is null we assume that they wanted the very last step
         if($step == null){
-          $query = "SELECT step FROM `graph_history` WHERE graph_id = '".$graph_id."' ORDER BY step DESC LIMIT 1";
-          $rows = $this->db->execute($query);
-          if(!$rows) $this->error("returned no rows on query: ".$query);
-          $step = $rows[0]['step'];
+          $step = $this->getGraphLastStep($graph_id);
         }
 
         $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$graph_id."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
