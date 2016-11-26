@@ -95,7 +95,7 @@ var DI = {
   UIElements: [],
 
   KeyManager: ['Publisher'],
-  StatusString: ['Publisher', 'ViewManager', 'jQuery'],
+  StatusString: ['Publisher', 'ViewManager', 'jQuery', 'miniAjaxLoader'],
 
   GraphViewNodeFactory:[],
   GraphViewEdgeFactory:[],
@@ -155,7 +155,7 @@ var DI = {
       },
       "edge":{
         "constr":"GraphViewEdge",
-        "attr":{"typeColors":{"link":"#00BFFF","in_favour_of":"#87CEFA","contrary_to":"#3CB371"}}
+        "attr":{"typeColors":{"link":"#00BFFF","causal":"#87CEFA","conditional":"#3CB371"},"typeDirection":{"link":"bi","causal":"uni","conditional":"uni"}}
       },
       "nodeLabel":{
         "constr":"GraphViewNodeLabel",

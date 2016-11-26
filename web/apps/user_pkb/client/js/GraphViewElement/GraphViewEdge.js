@@ -3,7 +3,7 @@
  * Implements IGraphViewEdge interface so that GraphView knows how to work with it.
  * @param drawer
  * @param graphViewElement
- * @param args - {edgeId, edgeType, graphId, start, stop, opacity}
+ * @param args - {color, edgeId, edgeType, start, stop, opacity, direction} + skin.edge.attr
  * @constructor
  */
 GRASP.GraphViewEdge = function(drawer, graphViewElement, args){
@@ -14,12 +14,14 @@ GRASP.GraphViewEdge = function(drawer, graphViewElement, args){
   this.sourceNodeRadius = args.sourceNodeRadius;
   this.targetNodeRadius = args.targetNodeRadius;
   this.drawer = drawer;
+  this.typeDirection = args.typeDirection;
+  this.directionType = args.typeDirection[this.edgeType];
 
   this.graphViewElement = graphViewElement;
   GRASP.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createShape('path', {
-    data: this._getQuadPathData(this.start, this.stop, this.width, this.sourceNodeRadius, this.targetNodeRadius),
+    data: this._getQuadPathData(this.start, this.stop, this.directionType, this.width, this.sourceNodeRadius, this.targetNodeRadius),
     //hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
     opacity: args.opacity,
@@ -44,6 +46,7 @@ GRASP.GraphViewEdge.prototype = {
   },
   setEdgeType: function(edgeType){
     this.edgeType = edgeType;
+    this.directionType = this.typeDirection[edgeType];
   },
 
   /**
@@ -53,7 +56,7 @@ GRASP.GraphViewEdge.prototype = {
   setStart: function(point){
     if(this.start != point){
       this.start = point;
-      var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
+      var pathData = this._getQuadPathData(this.start, this.stop, this.directionType, null, this.sourceNodeRadius,this.targetNodeRadius);
       this.shape.setData(pathData);
     }
   },
@@ -64,7 +67,7 @@ GRASP.GraphViewEdge.prototype = {
   setStop: function(point){
     if(this.stop != point){
       this.stop = point;
-      var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
+      var pathData = this._getQuadPathData(this.start, this.stop, this.directionType, null, this.sourceNodeRadius,this.targetNodeRadius);
       this.shape.setData(pathData);
     }
   },
@@ -95,7 +98,7 @@ GRASP.GraphViewEdge.prototype = {
 
   setSourceNodeRadius: function(v){
     this.sourceNodeRadius = v;
-    var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
+    var pathData = this._getQuadPathData(this.start, this.stop, this.directionType, null, this.sourceNodeRadius,this.targetNodeRadius);
     this.shape.setData(pathData);
   },
   getSourceNodeRadius: function(){
@@ -104,7 +107,7 @@ GRASP.GraphViewEdge.prototype = {
 
   setTargetNodeRadius: function(v){
     this.targetNodeRadius = v;
-    var pathData = this._getQuadPathData(this.start, this.stop, null, this.sourceNodeRadius,this.targetNodeRadius);
+    var pathData = this._getQuadPathData(this.start, this.stop, this.directionType, null, this.sourceNodeRadius,this.targetNodeRadius);
     this.shape.setData(pathData);
   },
   getTargetNodeRadius: function(){
@@ -115,11 +118,14 @@ GRASP.GraphViewEdge.prototype = {
    * Return area that is bordered by quadratic line starting at start param, ending at stop param.
    * @param start
    * @param stop
+   * @param directionType - bi-directional on uni-directional
    * @param {number=} opt_width - width of the area in pixels, default is no width
+   * @param {number=} opt_startOffset - distance from start node center to start node border
+   * @param {number=} opt_stopOffset - distance from stop node center to stop node border
    * @return {*}
    * @private
    */
-  _getQuadPathData: function (start, stop, opt_width, opt_startOffset, opt_stopOffset){
+  _getQuadPathData: function (start, stop, directionType, opt_width, opt_startOffset, opt_stopOffset){
     var path, delim = " ";
     var CURV = "Q";
   //  opt_width=6;
@@ -155,8 +161,8 @@ GRASP.GraphViewEdge.prototype = {
           +delim+CURV+" "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(start.x)+delim+Math.round(start.y);
     }
 
-    // add circle at the edge and circle intersection
-    if(typeof(opt_stopOffset) != 'undefined' && opt_stopOffset>0){
+    // for uni-direction: add circle at the edge and circle intersection
+    if((directionType == 'uni') && (typeof(opt_stopOffset) != 'undefined' && opt_stopOffset>0)){
       // get intersection of stop circle and tangent line
       var mv = {x:(middle.x-stop.x), y:(middle.y-stop.y)};
       var mvLength = Math.sqrt(Math.pow(mv.x,2) + Math.pow(mv.y,2));
