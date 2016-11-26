@@ -620,7 +620,7 @@ GRASP.GraphElementEditor.prototype = {
 
     // define and add "add source button"
     var addListItem = function(){
-      that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, {},
+      that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, {source_type: 'article'},
           function(graphId, nodeContentId, node_alternative_id, item){
             if(!validateListItem(item)) return false;
 
@@ -738,11 +738,19 @@ GRASP.GraphElementEditor.prototype = {
    */
   _editListItem: function(graphId, nodeContentId, node_alternative_id, nodeType, item, callback){
     var that = this;
-    item = item || {};
+    item = item || {source_type: 'article'};
     var modalWindow = that.UI.createModal();
     var form = {};
     var formFields = {};
-    var MANUAL_RELIABILITY_SOURCE_TYPES = ['personal experience'];  // which source types permit manual reliability enter
+    var SOURCE_TYPES = {
+      'article':'статья (peer-reviewed)',
+      'meta-article':'мета-статья (peer-reviewed)',
+      'textbook':'учебник',
+      'book':'книга',
+      'news':'новость',
+      'personal experience':'личный опыт'
+    };
+    var MANUAL_RELIABILITY_SOURCE_TYPES = GRASP.getObjectKeys(SOURCE_TYPES);  // which source types permit manual reliability enter
 
     // define which source type has which fields visible
     var itemTypeVisible = {
@@ -782,14 +790,7 @@ GRASP.GraphElementEditor.prototype = {
        var formFields = {
         'source_type':{'type':'select', 'label':'Тип',
           callback:selectSourceType,
-          'items':{
-            'article':'статья (peer-reviewed)',
-            'meta-article':'мета-статья (peer-reviewed)',
-            'textbook':'учебник',
-            'book':'книга',
-            'news':'новость',
-            'personal experience':'личный опыт'
-          },
+          'items':SOURCE_TYPES,
           'value':'article'
         },
         'name':{'type':'search', label:'Название',
