@@ -24,8 +24,8 @@
      "attr":{
        "typeColors":{
          "link":"#00BFFF",
-         "in_favour_of":"#87CEFA",
-         "contrary_to":"#3CB371"
+         "causal":"#87CEFA",
+         "conditional":"#3CB371"
        }
      }
    },

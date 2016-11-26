@@ -25,7 +25,7 @@ GRASP.GraphElementsContent = function(publisher){
   this.cacheContent = new GRASP.Cache(['elementType', 'contentId', 'content'], 5000000);
   this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
   this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
-  this.edgeAttributeNames = ['label', 'label'];
+  this.edgeAttributeNames = ['label', 'type'];
   this.DEFAULT_ALTERNATIVE_LABEL_PREFIX = 'НЕ ВЕРНО, ЧТО: ';
 
   // this will be retrieved from server only on get_graph_node_content request
@@ -158,8 +158,6 @@ GRASP.GraphElementsContent.prototype = {
           e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           /// if we changed 'type' attribute, then reload full node from server
           if(event.getData().nodeAttribute.name == 'type'){
-            // obsolete (remove after sometime next string): update type so that graph redraw fired on 'graph_element_content_changed' will be done correctly
-           // e['alternatives'][event.getData()['node_alternative_id']]['type'] = event.getData().nodeAttribute.value;
             // for node editor we must update whole node content, so remove it from cache here
             this.cacheContent.remove({elementType:'node', contentId:event.getData().nodeContentId});
             this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()]).then(function(){
@@ -175,13 +173,15 @@ GRASP.GraphElementsContent.prototype = {
             secondAlternativeEvent.node_alternative_id = 1;
             secondAlternativeEvent.nodeAttribute.value = e['alternatives'][1]['reliability'];
 
+            // update first fact alternative
             this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()]).then(function(){
-                  return that.publisher.publish(["repository_request_for_graph_element_content_change",  secondAlternativeEvent]);
-                }).then(function(){
-                  event.setResponse({});
-                  that.publisher.publish(["graph_element_content_changed",  event.getData()]);
-                  that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent]);
-                })
+              // update second fact alternative
+              return that.publisher.publish(["repository_request_for_graph_element_content_change",  secondAlternativeEvent]);
+            }).then(function(){
+              event.setResponse({});
+              that.publisher.publish(["graph_element_content_changed",  event.getData()]);
+              that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent]);
+            })
 
           }else{
             if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
@@ -192,7 +192,7 @@ GRASP.GraphElementsContent.prototype = {
 
         }else if(event.getData()['type'] == 'updateEdgeAttribute'){
           e = this.cacheContent.get({elementType: 'edge', contentId: event.getData().edgeContentId})[0].content;
-          if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().edgeAttribute.name] = event.getData().edgeAttribute.value;
+          if(this.edgeAttributeNames.indexOf(event.getData().edgeAttribute.name) != -1) e[event.getData().edgeAttribute.name] = event.getData().edgeAttribute.value;
           er = {};
           ed = event.getData();
 

@@ -33,7 +33,7 @@ abstract class App
       $q = "INSERT INTO request_log SET user_login = '".$username."', user_id = '".$this->auth_id."', type='".$type."', msg = '".$this->db->escape($msg)."', data = '".$this->db->escape($data)."'";
       //error_log($q);
       try{
-        $this->db->execute($q);
+       // $this->db->execute($q);
       }catch (Exception $e) {
         error_log($e->getMessage());
       }
@@ -48,7 +48,7 @@ abstract class App
       $msg .= " ";
     }
     error_log($msg);
-    $this->dbLog('log',$msg);
+    //$this->dbLog('log',$msg);
   }
 
   public function getAppRoot($isWeb){
