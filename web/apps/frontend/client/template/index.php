@@ -9,6 +9,7 @@
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."d3.v3.min.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."graph.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
   </head>
   <body>
   <div id="mainMenuContainer">
