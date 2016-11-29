@@ -339,22 +339,7 @@ class AppUserPkb extends App
       case 'changeGraphPosition':
         $graphId = $this->getRequest()['graphId'];
         $position = $this->getRequest()['position'];
-        $user_graph_ids = $this->getGraphIds($this->getAuthId());
-        $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id IN (".implode(',',$user_graph_ids).")";
-        $rows = $this->db->execute($query);
-        foreach($rows as $row){
-          $settings = json_decode($row['settings'], true);
-          if($settings['position'] == $position){
-            $settings['position'] = 'not to be shown';
-            $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
-            $this->db->execute($update_query);
-          }
-          if($row['graph_id'] == $graphId){
-            $settings['position'] = $position;
-            $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
-            $this->db->execute($update_query);
-          }
-        }
+        $this->changeGraphPosition($this->getAuthId(), $graphId, $position);
         $this->showRawData('success');
         break;
 
@@ -568,6 +553,8 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         if(!isset($r['history_step'])) $r['history_step'] = $this->getGraphLastStep($r['graph_id']);
         $this->cloneGraph($r['graph_id'], $r['history_step'], $this->getAuthId());
+        $this->changeGraphPosition($this->getAuthId(), $r['graph_id'], 'leftGraphView');
+        $this->redirect('/');
         break;
 
       case 'getGraphDiff':
@@ -1162,12 +1149,15 @@ class AppUserPkb extends App
     $this->db->execute($q);
 
     // Copy node_contents
-    $q = "INSERT INTO node_content (graph_id, local_content_id, alternative_id, ".implode(',', $this->node_attribute_names).", ".implode(',', $this->node_alternative_attribute_names).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, alternative_id,	".implode(',', $this->node_attribute_names).", ".implode(',', $this->node_alternative_attribute_names).", text, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $node_alternative_attr_names_without_time = $this->node_alternative_attribute_names;
+    unset($node_alternative_attr_names_without_time[array_search('created_at', $this->node_alternative_attribute_names)]);
+    unset($node_alternative_attr_names_without_time[array_search('updated_at', $this->node_alternative_attribute_names)]);
+    $q = "INSERT INTO node_content (graph_id, local_content_id, alternative_id, ".implode(',', $this->node_attribute_names).", ".implode(',', $node_alternative_attr_names_without_time).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, alternative_id,	".implode(',', $this->node_attribute_names).", ".implode(',', $node_alternative_attr_names_without_time).", text, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->log($q);
     $this->db->execute($q);
 
     // Copy node_content_sources
-    $q = "INSERT INTO node_content_source (graph_id, local_content_id, alternative_id, source_type, field_type, `name`, url, author,	editor,	publisher, publisher_reliability, scopus_title_list_id, publish_date,	pages,	comment,	source_id, created_at, updated_at) SELECT '".$new_graph_id."', local_content_id,	alternative_id, source_type, field_type, `name`, url, author,	editor,	publisher, publisher_reliability, scopus_title_list_id, publish_date,	pages,comment,source_id, NOW(), NOW() FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $q = "INSERT INTO node_content_source (graph_id, local_content_id, alternative_id, pages,	comment,	source_id, created_at, updated_at) SELECT '".$new_graph_id."', local_content_id,	alternative_id, pages,comment,source_id, NOW(), NOW() FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->log($q);
     $this->db->execute($q);
 
@@ -1557,6 +1547,35 @@ class AppUserPkb extends App
     );
 
     return $imperfect_nodes;
+  }
+
+  /**
+   * Change current selected graph
+   * @param $auth_id
+   * @param $graphId
+   * @param $position - 'leftGraphView' or 'rightGraphView'
+   * @return bool
+   */
+  private function changeGraphPosition($auth_id, $graphId, $position){
+    if(!in_array($position, array('leftGraphView', 'rightGraphView'))) return false;
+
+    $user_graph_ids = $this->getGraphIds($auth_id);
+    $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id IN (".implode(',',$user_graph_ids).")";
+    $rows = $this->db->execute($query);
+    foreach($rows as $row){
+      $settings = json_decode($row['settings'], true);
+      if($settings['position'] == $position){
+        $settings['position'] = 'not to be shown';
+        $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
+        $this->db->execute($update_query);
+      }
+      if($row['graph_id'] == $graphId){
+        $settings['position'] = $position;
+        $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
+        $this->db->execute($update_query);
+      }
+    }
+    return true;
   }
 
   public function getJsIncludeList(){

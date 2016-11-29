@@ -179,4 +179,10 @@ abstract class App
 
     return mail("$to", '=?UTF-8?B?'.base64_encode($subj).'?=', $zag, $head);
   }
+
+  protected function redirect($url, $permanent = false)
+  {
+    header('Location: ' . $url, true, $permanent ? 301 : 302);
+    exit();
+  }
 }
