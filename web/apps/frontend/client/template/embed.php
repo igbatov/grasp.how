@@ -20,7 +20,7 @@
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
   </head>
   <body>
-  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph?data={"graph_id":"<?php echo $graph_ids[0]; ?>"}' title="Edit me on grasp.how">Edit me on grasp.how</a>
+  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="Edit me on grasp.how">Edit me on grasp.how</a>
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
   <div id="graphContainer"></div>
   <div style="display: none;" id="graphsData"><?php echo $graph ? json_encode($graph) : ""; ?></div>

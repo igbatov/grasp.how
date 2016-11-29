@@ -19,6 +19,12 @@ class AppUserPkb extends App
 
     $this->contentIdConverter = new ContentIdConverter();
 
+    // define node and edge attributes (must be the same as db table column names)
+    $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
+    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers');
+    $this->node_alternative_attribute_names = array('label', 'reliability','p','created_at','updated_at');
+    $this->edge_attribute_names = array('type', 'label');
+
     $vars = $this->getRoute();
     $this->log('REQUEST ', $this->getRoute(), $this->getRequest());
 
@@ -48,6 +54,15 @@ class AppUserPkb extends App
       var_dump($this->removeGraph($vars[1]));
       exit();
 
+    }elseif($vars[0] === 'cloneGraph'){
+      if(!$this->getAuthId()) $this->redirect('/');
+
+      $graph_id = $vars[1];
+      $history_step = isset($vars[2]) ? $vars[2] : null;
+      if(!$history_step) $history_step = $this->getGraphLastStep($graph_id);
+      $this->cloneGraph($graph_id, $history_step, $this->getAuthId());
+      $this->changeGraphPosition($this->getAuthId(), $graph_id, 'leftGraphView');
+      $this->redirect('/');
     }
 
     /************** SET READ-ONLY MODE FOR SPECIAL CASES **********************/
@@ -114,7 +129,7 @@ class AppUserPkb extends App
       include($this->getAppDir("template", false)."/login.php");
       exit();
     }
-    /*************   END OF READ-ONLY PROCESS STAFF    ****************/
+    /*************   END OF SET READ-ONLY MODE STAFF    ****************/
 
     // check that user browsing from supported device/browser
     /*
@@ -131,15 +146,6 @@ class AppUserPkb extends App
       exit();
     }
 */
-
-
-
-
-    // define node and edge attributes (must be the same as db table column names)
-    $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
-    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers');
-    $this->node_alternative_attribute_names = array('label', 'reliability','p','created_at','updated_at');
-    $this->edge_attribute_names = array('type', 'label');
 
     // process action defined by url
     switch($action){
@@ -547,14 +553,6 @@ class AppUserPkb extends App
       case 'copyGraph':
         $r = $this->getRequest();
         $this->copyGraph($this->getAuthId(), $r['name'], $r['graph_id']);
-        break;
-
-      case 'cloneGraph':
-        $r = $this->getRequest();
-        if(!isset($r['history_step'])) $r['history_step'] = $this->getGraphLastStep($r['graph_id']);
-        $this->cloneGraph($r['graph_id'], $r['history_step'], $this->getAuthId());
-        $this->changeGraphPosition($this->getAuthId(), $r['graph_id'], 'leftGraphView');
-        $this->redirect('/');
         break;
 
       case 'getGraphDiff':
