@@ -1,5 +1,6 @@
 <?php
 //header('HTTP/1.1 401 Unauthorized'); exit();
+//phpinfo(); exit();
 require_once ('lib/server/bootstrap.php');
 
 // init application
