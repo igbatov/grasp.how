@@ -7,13 +7,18 @@ class AppFrontend extends App{
     // process action defined by url
     switch($action){
       case 'embed_action_track':
-        $this->log(var_export($_REQUEST, true));
         $this->log(var_export($_SERVER, true));
+        $urlArr=parse_url($_SERVER['REQUEST_URI']);
+        parse_str($urlArr['query'], $output);
+        $this->log(var_export($output, true));
         break;
 
       case 'subscribe':
-        $this->log(var_export($_REQUEST, true));
-        $email = $_REQUEST['email'];
+        $urlArr=parse_url($_SERVER['REQUEST_URI']);
+        parse_str($urlArr['query'], $output);
+        $this->log(var_export($output, true));
+
+        $email = $output['email'];
         $query = "INSERT INTO subscribe_email SET email = '".$this->db->escape($email)."'";
         $this->db->execute($query);
         $msg = 'Email '.$email.' wants to recieve new maps';
