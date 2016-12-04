@@ -188,3 +188,43 @@ blockquote:before {
     font-size: large;
 }
 
+.subscribe input[type='text']{
+    background-color: #3b4148;
+    border-radius: 0px 3px 3px 0px;
+    color: #606468;
+    margin-bottom: 1em;
+    padding: 0 16px;
+    width: 230px;
+    height: 50px;
+    border: none;
+    font-family: 'Open Sans', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5em;
+    margin-right: 50px;
+    -webkit-appearance: none;
+}
+
+.subscribe input[type='submit']{
+    cursor: pointer;
+    -webkit-border-radius: 3px;
+    background-color: #ea4c88;
+    color: #eee;
+    font-weight: bold;
+    margin-bottom: 2em;
+    text-transform: uppercase;
+    width: 280px;
+    height: 50px;
+    border: none;
+    font-family: 'Open Sans', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5em;
+    padding: 0;
+    -webkit-appearance: none;
+}
+
+.subscribe input[type="submit"]:hover {
+    background-color: #d44179;
+}
+
+
+

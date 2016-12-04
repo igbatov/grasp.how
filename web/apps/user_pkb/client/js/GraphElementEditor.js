@@ -39,7 +39,7 @@ GRASP.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIndi
 GRASP.GraphElementEditor.prototype = {
   NODE_TYPE_FACT: 'fact',
   NODE_TYPE_PROPOSITION: 'proposition',
-  DEFAULT_ALTERNATIVE_LABEL_PREFIX: 'НЕ ВЕРНО, ЧТО: ',
+  DEFAULT_ALTERNATIVE_LABEL_PREFIX: 'NOT TRUE: ',
   eventListener: function(event){
     var $ = this.jQuery, v;
 
@@ -312,13 +312,13 @@ GRASP.GraphElementEditor.prototype = {
                   // create form fields for each combination of parent alternatives
                   for(var i in formKeys){
                     var fieldLabel = '';
-                    fields[i+'_'+j+'_label'] = {type:'title',value:'ЕСЛИ'};
+                    fields[i+'_'+j+'_label'] = {type:'title',value:'IF: '};
                     for(var j in formKeys[i]){
                       fieldLabel = parentContents[j].alternatives[formKeys[i][j]].label;
                       fields[i+'_'+j+'_label'] = {type:'title',value:'----- "'+fieldLabel+'"'};
                     }
 
-                    fields[i+'_label'] = {type:'title',value:'ТО'};
+                    fields[i+'_label'] = {type:'title',value:'THEN: '};
 
                     var formKeyStr = JSON.stringify(formKeys[i]);
 
@@ -340,7 +340,7 @@ GRASP.GraphElementEditor.prototype = {
                       // do not show second alternative for facts,
                       // as it is always filled in automatically from first alternative probability
                       var isFactDenial = node.type == that.NODE_TYPE_FACT && j!=0;
-                      if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- ВЕРОЯТНОСТЬ: "'+node.alternatives[j].label+'"'};
+                      if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- PROBABILITY: "'+node.alternatives[j].label+'"'};
                       fields[formKeyStr+'__'+j] = {
                         type: isFactDenial ? 'hidden' : 'text',
                         value: GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
@@ -350,7 +350,7 @@ GRASP.GraphElementEditor.prototype = {
                     }
                   }
 
-                  fields['button'] = {type:'button', label:'Сохранить',disabled:!isEditable};
+                  fields['button'] = {type:'button', label:'Save',disabled:!isEditable};
 
                   var modalWindow = that.UI.createModal();
                   var form = that.UI.createForm(
@@ -743,12 +743,12 @@ GRASP.GraphElementEditor.prototype = {
     var form = {};
     var formFields = {};
     var SOURCE_TYPES = {
-      'article':'статья (peer-reviewed)',
-      'meta-article':'мета-статья (peer-reviewed)',
-      'textbook':'учебник',
-      'book':'книга',
-      'news':'новость',
-      'personal experience':'личный опыт'
+      'article':'article (peer-reviewed)',
+      'meta-article':'meta-article (peer-reviewed)',
+      'textbook':'textbook',
+      'book':'book',
+      'news':'news',
+      'personal experience':'personal experience'
     };
     var MANUAL_RELIABILITY_SOURCE_TYPES = GRASP.getObjectKeys(SOURCE_TYPES);  // which source types permit manual reliability enter
 
@@ -793,7 +793,7 @@ GRASP.GraphElementEditor.prototype = {
           'items':SOURCE_TYPES,
           'value':'article'
         },
-        'name':{'type':'search', label:'Название',
+        'name':{'type':'search', label:'Title',
           findCallback:function(str){
             var source_type = that.UI.getFormValue(form, 'source_type');
             return that.publisher.publish(['find_sources',{source_type:source_type, substring:str}]);
@@ -814,11 +814,11 @@ GRASP.GraphElementEditor.prototype = {
           }
         },
         'url':{'type':'text', label:'URL'},
-        'author':{'type':'text', label:'Автор'},
-        'editor':{'type':'text', label:'Рецензент'},
+        'author':{'type':'text', label:'Authors'},
+        'editor':{'type':'text', label:'Reviewer'},
         'publisher':{
           type:'search',
-          label:'Издание (журнал, книга)',
+          label:'Publisher',
           findCallback:function(str){
             return that.publisher.publish(['find_publishers',{substring:str}]);
           },
@@ -838,12 +838,12 @@ GRASP.GraphElementEditor.prototype = {
           label:'reliability'
         },
         'scopus_title_list_id':{type:'hidden'},
-        'publish_date':{type:'date', label:'Дата издания'},
-        'pages':{type:'text', label:'Том, страницы'},
-        'comment':{type:'textarea', label:'Комментарий'},
+        'publish_date':{type:'date', label:'Publish date'},
+        'pages':{type:'text', label:'volume, pages'},
+        'comment':{type:'textarea', label:'Comment'},
         'source_id':{type:'hidden'},
         'id':{type:'hidden'},
-        'button':{type:'button', label:'Сохранить'}
+        'button':{type:'button', label:'Save'}
       };
 
       return formFields;
@@ -868,7 +868,7 @@ GRASP.GraphElementEditor.prototype = {
     if(GRASP.getObjectKeys(item).length){
       GRASP.getObjectKeys(formFields).forEach(function(v,k){
         if(typeof(item[v]) != 'undefined') formFields[v].value = item[v];
-        formFields['button'].value = 'Сохранить';
+        formFields['button'].value = 'Save';
       });
     }
 

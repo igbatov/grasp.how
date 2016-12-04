@@ -26,7 +26,7 @@ GRASP.GraphElementsContent = function(publisher){
   this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
   this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
   this.edgeAttributeNames = ['label', 'type'];
-  this.DEFAULT_ALTERNATIVE_LABEL_PREFIX = 'НЕ ВЕРНО, ЧТО: ';
+  this.DEFAULT_ALTERNATIVE_LABEL_PREFIX = 'NOT TRUE: ';
 
   // this will be retrieved from server only on get_graph_node_content request
   this.nodeAlternativeContentNames = ['text', 'list'];

@@ -852,24 +852,6 @@ GRASP.roughSizeOfObject = function( object ) {
   return bytes;
 };
 
-GRASP.Promise = function(jQuery){
-  this._jQuery = jQuery;
-};
-
-GRASP.Promise.prototype = {
-  getDefer: function(){
-    return this._jQuery.Deferred();
-  },
-
-  when: function(){
-    return this._jQuery.when.apply(this._jQuery, arguments);
-  },
-
-  then: function(){
-    return this._jQuery.then.apply(this._jQuery, arguments);
-  }
-};
-
 /**
  * From https://github.com/stutrek/node-deep-equal/blob/master/index.js
  * Compare two objects on equality
@@ -977,6 +959,25 @@ GRASP.isJson = function(str) {
   }
 
   return false;
+};
+
+
+GRASP.Promise = function(jQuery){
+  this._jQuery = jQuery;
+};
+
+GRASP.Promise.prototype = {
+  getDefer: function(){
+    return this._jQuery.Deferred();
+  },
+
+  when: function(){
+    return this._jQuery.when.apply(this._jQuery, arguments);
+  },
+
+  then: function(){
+    return this._jQuery.then.apply(this._jQuery, arguments);
+  }
 };
 
 /**

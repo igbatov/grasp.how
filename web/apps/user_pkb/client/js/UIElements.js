@@ -499,7 +499,7 @@ GRASP.UIElements.prototype = {
   showConfirm: function(text, callback){
     var that = this, m = this.createModal(), modalContent = GRASP.createElement('div', {class:'ui_confirm'});
     modalContent.appendChild(this.createForm(
-        {title:{type:'title', value:text}, yes:{type:'button',value:'Yes'}, no:{type:'button', value:'No'}},
+        {title:{type:'title', value:text}, yes:{type:'button',label:'Yes'}, no:{type:'button', label:'No'}},
         function(v){
           if(v['yes']) v = 'yes';
           else v = 'no';
