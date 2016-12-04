@@ -8,7 +8,7 @@
 
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."d3.v3.min.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."graph.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."main.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
   </head>
   <body>
@@ -49,6 +49,12 @@
       </footer>
     </blockquote>
   </div>
+  <div class="description subscribe" style="text-align: right;">
+    <input type="text" placeholder="youremail@domain.com">
+    <input id="sss" type="submit" value="Уведомлять о новых картах">
+    <div id="subscribe_msg_ok" style="display: none;">спасибо, вы подписаны!</div>
+    <div id="subscribe_msg_error" style="display: none;">введите email</div>
+  </div>
   <div id="purpose" class="description">
     <h1>Цель проекта</h1>
     <?php  include($this->getAppDir('template', false).'/_aim3.php'); ?>
@@ -63,7 +69,7 @@
   </div>
   <div id="method" class="description">
     <h1>Метод</h1>
-    <p>Заключается в том чтобы разделить все утверждения которые вам предлагаются на следующие категории</p>
+    <p>Заключается в том чтобы разделить все утверждения на следующие категории</p>
     <ul>
       <li>факт</li>
       <li>гипотеза</li>
@@ -73,18 +79,18 @@
       <li>лучшие практики</li>
     </ul>
     <p>
-      Далее теориям и гипотезам нужно выставить важность - насколько вы считаете они вообще стоят внимания.
-      Может быть с вашей точки зрения автор уделяет им слишком много внимания, учитывая другие насущные проблемы.
-    </p>
-    <p>
-      Далее фактам нужно присвоить не только важность но и достоверность.
+      Далее фактам нужно присвоить достоверность.
       Достоверность показывает насколько можно доверять указанному факту, насколько он проверен.
-      Достоверность может определяться, например, на основе авторитетности журнала, автора,
+      Достоверность может определяться, например, на основе авторитетности журнала, автора или
       независимыми экспериментальными проверками.
     </p>
     <p>
+      Далее теориям и гипотезам нужно выставить важность - насколько вы считаете они вообще стоят внимания.
+    </p>
+    <p>
       Наконец, нужно связать гипотезы с относящимися к ним фактами и проставить условные вероятности
-      - либо вероятность фактов при условии данных гипотез либо наоборот.
+      - вероятности фактов при условии гипотез. Либо наоборот - гипотез при условии этих фактов
+      (но такие вероятности бывают известны значительно реже).
     </p>
     <?php  //include($this->getAppDir('template', false).'/_example1.php'); ?>
   </div>

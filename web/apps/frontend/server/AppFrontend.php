@@ -6,7 +6,21 @@ class AppFrontend extends App{
 
     // process action defined by url
     switch($action){
-      case 'embed';
+      case 'embed_action_track':
+        $this->log(var_export($_REQUEST, true));
+        $this->log(var_export($_SERVER, true));
+        break;
+
+      case 'subscribe':
+        $this->log(var_export($_REQUEST, true));
+        $email = $_REQUEST['email'];
+        $query = "INSERT INTO subscribe_email SET email = '".$this->db->escape($email)."'";
+        $this->db->execute($query);
+        $msg = 'Email '.$email.' wants to recieve new maps';
+        $this->sendMail("info@grasp.how", "igbatov@gmail.com", $msg, $msg);
+        break;
+
+      case 'embed':
         // sanity check
         if(strlen($vars[1])>255) exit('Too many graph_ids');
 
