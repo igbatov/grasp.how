@@ -31,7 +31,6 @@ var tracker = {
         if(document.activeElement === $('#fb-share-btn').find('iframe')[0]) {
           ga('send', 'event', 'facebookShare', 'click');
           var graph_id = $('#fb-share-btn-wrap').attr('data-graph_id');
-          console.log(document.location.href);
           $.ajax({
             method: "GET",
             url: "/share_track",
@@ -45,15 +44,13 @@ var tracker = {
     // pass in the target node, as well as the observer options
     observer.observe(target, config);
   }
-
-}
+};
 
 window.addEventListener("message", receiveMessage, false);
 
 function receiveMessage(event)
 {
   if(typeof(event.data.from) != 'undefined'){
-console.log(event.data.from); 
    tracker.parentURI = event.data.from;
   }
 }

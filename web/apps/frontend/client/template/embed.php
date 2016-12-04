@@ -3,7 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRASP.HOW</title>
+    <meta property="og:url"           content="<?php echo $url ?>" />
+    <meta property="og:type"          content="website" />
+    <meta property="og:title"         content="<?php echo $graph[$graph_ids[0]]['name']; ?>" />
+    <meta property="og:description"   content="" />
+    <meta property="og:image"         content="" />
+
+    <title><?php echo $graph[$graph_ids[0]]['name']; ?></title>
+
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/reset.css">
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
 
@@ -30,7 +37,7 @@
   <div id="graphContainer"></div>
 
   <div style="float: right; margin-right: 7%;"  id="fb-share-btn-wrap" data-graph_id="<?php echo $graph_ids[0]; ?>">
-    <div id="fb-share-btn" class="fb-share-button" data-href="https://developers.facebook.com/docs/plugins/" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&amp;src=sdkpreparse">Поделиться</a></div>
+    <div id="fb-share-btn" class="fb-share-button" data-href="<?php echo $url; ?>" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($url) ?>">Share</a></div>
   </div>
 
   <div style="display: none;" id="graphsData"><?php echo $graph ? json_encode($graph) : ""; ?></div>
