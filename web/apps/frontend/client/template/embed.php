@@ -3,11 +3,13 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--  Customize snippet with https://developers.facebook.com/tools/debug/sharing  -->
     <meta property="og:url"           content="<?php echo $url ?>" />
     <meta property="og:type"          content="website" />
     <meta property="og:title"         content="<?php echo $graph[$graph_ids[0]]['name']; ?>" />
-    <meta property="og:description"   content="" />
-    <meta property="og:image"         content="" />
+    <meta property="og:description"   content="Grasp foundations of '<?php echo $graph[$graph_ids[0]]['name']; ?>' at grasp.how" />
+    <meta property="og:image"         content="http://www.grasp.how/img/reasoning.jpg" />
 
     <title><?php echo $graph[$graph_ids[0]]['name']; ?></title>
 

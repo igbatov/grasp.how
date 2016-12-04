@@ -51,7 +51,7 @@ class AppFrontend extends App{
         foreach($graph_ids as $graph_id) if(!is_numeric($graph_id)) exit('Bad graph_id '.$graph_id);
 
         $graph = $this->getGraphsData($graph_ids);
-        $url = 'http://grasp.how/show/'.$graph_ids[0];
+        $url = 'http://www.grasp.how/show/['.$graph_ids[0].']';
         include($this->getAppDir("template", false)."/embed.php");
       break;
 
