@@ -215,11 +215,13 @@ GRASP.GraphMenu.prototype = {
       // create logout link
       document.getElementById(c.id).appendChild(that.UI.createButton({name:'Share',label:'Share', callback:function(){
         var m = that.UI.createModal();
+        var uniqId = Math.floor(Math.random()*10000);
+        var embedCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/[12,15]/grasp-how-'+uniqId+'"></script></div>';
         that.UI.setModalContent(
             m,
             that.UI.createForm({
               'title':{type:'title', value:'To place the "'+graphs[leftGraphId].getGraphName()+'" in a web page, copy snippet below'},
-              'name':{type:'textarea', label:'', value:"<iframe class='grasphow-iframe' src='http://www.grasp.how/embed/["+leftGraphId+"]' style='border: 0; width: 100%; height: 600px'></iframe>"}
+              'name':{type:'textarea', label:'', value:embedCode}
             })
         );
       }}));

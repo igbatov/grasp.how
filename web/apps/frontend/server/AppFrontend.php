@@ -25,6 +25,17 @@ class AppFrontend extends App{
         $this->sendMail("info@grasp.how", "igbatov@gmail.com", $msg, $msg);
         break;
 
+      // generates javascript to insert /embed iframe
+      case 'embedjs':
+        // sanity check
+        if(strlen($vars[1])>255 || strlen($vars[2])>255) exit('Too long params');
+
+        $graphIds = $vars[1];
+        $uniqId = $vars[2];
+
+        include($this->getAppDir("template", false)."/embedjs.php");
+        break;
+
       case 'embed':
         // sanity check
         if(strlen($vars[1])>255) exit('Too many graph_ids');

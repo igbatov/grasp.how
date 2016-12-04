@@ -22,7 +22,7 @@
           echo $slogans[rand(0,1)];
         ?></div>
     </div>
-    <ul id="mainMenu" >
+    <ul id="mainMenu">
       <li><a href="#purpose">ЦЕЛЬ</a></li>
       <li><a href="#method">МЕТОД</a></li>
       <li><a href="#contacts">КОНТАКТЫ</a></li>
@@ -30,7 +30,7 @@
     </ul>
   </div>
 
-  <iframe class='grasphow-iframe' src='/embed/[12,15]' style='border: 0; width: 100%; height: 600px'></iframe>
+  <div id="grasp-how-8866"><script src="http://www.grasp.how/embedjs/[12,15]/grasp-how-8866"></script></div>
 
   <div id="quote" class="description">
     <blockquote>
