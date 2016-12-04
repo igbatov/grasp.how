@@ -18,7 +18,7 @@
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."d3.v3.min.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."graph.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."ga_track.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."share_track.js" ?>"></script>
   </head>
   <body>
 

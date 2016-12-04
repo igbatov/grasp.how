@@ -6,11 +6,15 @@ class AppFrontend extends App{
 
     // process action defined by url
     switch($action){
-      case 'embed_action_track':
-        $this->log(var_export($_SERVER, true));
+      case 'share_track':
         $urlArr=parse_url($_SERVER['REQUEST_URI']);
         parse_str($urlArr['query'], $output);
         $this->log(var_export($output, true));
+        $from = $this->db->escape($output['from']);
+        $type = $this->db->escape($output['type']);
+        $graph_id = $this->db->escape($output['graph_id']);
+        $q = "INSERT INTO share_track SET `from` = '".$from."', `type` = '".$type."', `graph_id` = '".$graph_id."'";
+        $this->db->execute($q);
         break;
 
       case 'subscribe':

@@ -16,7 +16,7 @@ var tracker = {
       var graph_id = $('#clone-ribbon').attr('data-graph_id');
       $.ajax({
         method: "GET",
-        url: "/embed_action_track",
+        url: "/share_track",
         data: { type: 'clone-ribbon', from:tracker.parentURI, graph_id: graph_id }
       })
     });
@@ -34,7 +34,7 @@ var tracker = {
           console.log(document.location.href);
           $.ajax({
             method: "GET",
-            url: "/embed_action_track",
+            url: "/share_track",
             data: { type: 'facebookShare', from:tracker.parentURI, graph_id: graph_id }
           })
         }
