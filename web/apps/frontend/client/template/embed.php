@@ -35,16 +35,5 @@
 
   <div style="display: none;" id="graphsData"><?php echo $graph ? json_encode($graph) : ""; ?></div>
 
-<script>
-window.addEventListener("message", receiveMessage, false);
-
-function receiveMessage(event)
-{
-   if(typeof(event.data.from) != 'undefined') console.log(event.data.from);
-  var origin = event.origin || event.originalEvent.origin; // For Chrome, the origin property is in the event.originalEvent object.
-//  console.log(origin);
-} 
-</script>
-
   </body>
 </html>
