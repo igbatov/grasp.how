@@ -17,7 +17,7 @@ var tracker = {
       $.ajax({
         method: "GET",
         url: "/embed_action_track",
-        data: { type: 'clone-ribbon', 'from':this.parentURI, graph_id: graph_id }
+        data: { type: 'clone-ribbon', from:tracker.parentURI, graph_id: graph_id }
       })
     });
   },
@@ -35,7 +35,7 @@ var tracker = {
           $.ajax({
             method: "GET",
             url: "/embed_action_track",
-            data: { type: 'facebookShare', 'from':this.parentURI, graph_id: graph_id }
+            data: { type: 'facebookShare', from:tracker.parentURI, graph_id: graph_id }
           })
         }
       });
@@ -53,6 +53,7 @@ window.addEventListener("message", receiveMessage, false);
 function receiveMessage(event)
 {
   if(typeof(event.data.from) != 'undefined'){
-    tracker.parentURI = event.data.from;
+console.log(event.data.from); 
+   tracker.parentURI = event.data.from;
   }
 }
