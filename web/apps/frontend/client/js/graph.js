@@ -45,7 +45,8 @@
         $("#graphMenuItem"+graphId+' a').addClass('active');
 
         // show graph
-        showGraph(graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"]);
+        var svg = showGraph(graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"]);
+      //  console.log(svg[0][0].outerHTML);
       }
     }
 
@@ -77,7 +78,6 @@
           .attr("width", (100-2*(GRAPH_CONTAINER_LEFT_WIDTH_MARGIN+GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN))+"%")
           .attr("style", "margin-left: "+GRAPH_CONTAINER_LEFT_WIDTH_MARGIN+"%; margin-right: "+GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN+"%;")
           .attr("height", svgcH);
-
       // create div (textBox) where node content will be shown
       var offset = $("#graphContainer").offset();
       var graphContainerWidth = $("#graphContainer").width();
@@ -244,6 +244,8 @@
           offset += LABEL_FONT_SIZE_FACTOR*node.size;
         }
       }
+
+      return svgc;
     }
 
     function hideAllTypesExcept(type){
