@@ -55,6 +55,18 @@ class AppFrontend extends App{
         include($this->getAppDir("template", false)."/embed.php");
       break;
 
+      // input: svg text, output: jpeg
+      case 'svg2jpeg':
+        $image = new Imagick();
+        $svg = $this->getRequest()['svg'];
+        $this->log($svg);
+        $image->readImageBlob($svg);
+        $image->setImageFormat('jpeg');
+        $image->setImageCompressionQuality(90);
+        header( "Content-Type: image/jpeg" );
+        echo $image;
+      break;
+
       default:
         $graph_ids = array("12", "15");
         $graph = $this->getGraphsData($graph_ids);
