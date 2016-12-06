@@ -1,9 +1,8 @@
+/*
 <canvas id="canvas" style="border:2px solid black;" width="200" height="200">
 </canvas>
-    <script>
-
-
-var data = '<svg xmlns="http://www.w3.org/2000/svg" height="100" width="100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red"/></svg> ';
+*/
+var data = "<svg xmlns='http://www.w3.org/2000/svg' height='100' width='100'><circle cx='50' cy='50' r='40' stroke='black' stroke-width='3' fill='red'/></svg>";
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 ctx.height = 200;
@@ -26,13 +25,4 @@ img.onload = function () {
 img.src = url;
 
 document.body.appendChild(img);
-</script>
 
-
-<?php
-$image = new Imagick();
-$image->readImageBlob(file_get_contents('image.svg'));
-$image->setImageFormat("png24");
-$image->resizeImage(1024, 768, imagick::FILTER_LANCZOS, 1);
-$image->writeImage('image.png')
-?>
