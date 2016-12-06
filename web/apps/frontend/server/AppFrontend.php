@@ -59,7 +59,7 @@ class AppFrontend extends App{
       case 'svg2jpeg':
         $image = new Imagick();
         $svg = $this->getRequest()['svg'];
-        $this->log($svg);
+        $this->log($_REQUEST);
         $image->readImageBlob($svg);
         $image->setImageFormat('jpeg');
         $image->setImageCompressionQuality(90);
