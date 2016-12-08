@@ -4,44 +4,45 @@
 var showGraph = (function($){
   return showGraph;
 
-  function showGraph(area, nodes, edges, nodeContents, nodeTypes){
+  /**
+   * Draws SVG in wrapper
+   * @param wrapper
+   * @param wrapperArea
+   * @param mappingArea
+   * @param orig_nodes
+   * @param edges
+   * @param nodeContents
+   * @param nodeTypes
+   * @returns {*|{}|{typeColors}|{typeColors, typeDirection}|{font, fill, maxSize}|{fill}}
+   */
+  function showGraph(wrapper, wrapperArea, mappingArea, orig_nodes, edges, nodeContents, nodeTypes){
     // CONSTANTS
-    var GRAPH_CONTAINER_LEFT_WIDTH_MARGIN = 1; // in %
-    var GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN = 2; // in %
-    var GRAPH_CONTAINER_BOTTOM_MARGIN = 30; // in %
     var TYPE_NODES_AREA_WIDTH = 15; // in %
 
     var LABEL_FONT_FAMILY = "sans-serif";
     var LABEL_FONT_SIZE_FACTOR = 0.7;
 
-    // remove old svg id any
-    $("#mainSVG").remove();
+    var nodes = clone(orig_nodes);
 
-    // create new svg container
-    var svgcH = $(window).height();
-    svgcH -= GRAPH_CONTAINER_BOTTOM_MARGIN*svgcH/100;
-    svgcH -= $('#mainMenu').outerHeight(true); // get height of menu with margins
-    var svgc = d3.select("#graphContainer").append("svg")
-        .attr("id", "mainSVG")
-        .attr("width", (100-2*(GRAPH_CONTAINER_LEFT_WIDTH_MARGIN+GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN))+"%")
-        .attr("style", "margin-left: "+GRAPH_CONTAINER_LEFT_WIDTH_MARGIN+"%; margin-right: "+GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN+"%;")
-        .attr("height", svgcH);
+
+    var svgc = wrapper.append("svg")
+      .attr("width",  wrapperArea.width+"px")
+      .attr("height", wrapperArea.height+"px");
 
     // adjust data to our svg container area
-    var svgArea = {width: $('svg').width(), height: $('svg').height(), centerX: $('svg').width()/2, centerY: $('svg').height()/2};
-    var w = svgArea.width - TYPE_NODES_AREA_WIDTH*svgArea.width/100;
-    var h = svgArea.height;
-    var graphArea = {width: w, height: h, centerX: w/2 + TYPE_NODES_AREA_WIDTH*svgArea.width/100, centerY: h/2};
+    var w = wrapperArea.width - TYPE_NODES_AREA_WIDTH*wrapperArea.width/100;
+    var h = wrapperArea.height;
+    var graphArea = {width: w, height: h, centerX: w/2 + TYPE_NODES_AREA_WIDTH*wrapperArea.width/100, centerY: h/2};
 
-    var mapping = adjustMappingToArea({mapping:nodes, area:area}, graphArea);
+    var mapping = adjustMappingToArea({mapping:nodes, area:mappingArea}, graphArea);
     for(var i  in mapping){
       nodes[i].x = mapping[i].x;
       nodes[i].y = mapping[i].y;
     }
 
     // draw type nodes
-    var nodeTypeAreaWidth = TYPE_NODES_AREA_WIDTH*svgArea.width/100;
-    var verticalStep = svgArea.height/getObjectLength(nodeTypes);
+    var nodeTypeAreaWidth = TYPE_NODES_AREA_WIDTH*wrapperArea.width/100;
+    var verticalStep = wrapperArea.height/getObjectLength(nodeTypes);
     var x, y=-verticalStep/2, size;
     for(var i in nodeTypes){
       x = nodeTypeAreaWidth/2;
