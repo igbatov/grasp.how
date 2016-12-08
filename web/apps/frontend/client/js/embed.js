@@ -47,6 +47,9 @@
         // show graph
         var svg = showGraph(graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"]);
         //  console.log(svg[0][0].outerHTML);
+
+        // create text boxes
+        addGraphActions(graph["nodes"], graph["nodeContents"]);
       }
     }
   });
