@@ -14,4 +14,6 @@ switch($c->getWebDomainName()){
     break;
 }
 
+$app->preAccessLog();
 $app->showView();
+$app->postAccessLog();
