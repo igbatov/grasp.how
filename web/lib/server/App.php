@@ -10,6 +10,8 @@ abstract class App
   protected $eh;
   protected $logger;
   protected $auth_id;
+  private $start_time = 0;
+  private $id;
 
   function __construct(Config $c, Session $s, DB $db, ErrorHandler $eh) {
     $this->config = $c;
@@ -17,6 +19,8 @@ abstract class App
     $this->db = $db;
     $this->eh = $eh;
     $this->auth_id = null;
+    $this->start_time = microtime(true);
+    $this->id = time().'.'.rand(100,999);
   }
 
   protected function error($msg){
@@ -40,6 +44,31 @@ abstract class App
     }
   }
 
+  /**
+   * Write log to file
+   * First argument is filename
+   * All other arguments are translated to strings, concatenated and written to filename
+   */
+  protected function fileLog(){
+    if(count(func_get_args()) < 2) return false;
+
+    $msg = "";
+    foreach(func_get_args() as $i => $arg){
+      if($i==0) $filename = $arg;
+      else{
+        if(is_array($arg)) $msg .= var_export($arg, true);
+        else $msg .= $arg;
+        $msg .= " ";
+      }
+    }
+    error_log($msg."\n", 3, $this->getAppDir('log', false)."/".$filename);
+    return true;
+  }
+
+  /**
+   * Log messages to error_log
+   * All arguments are translated to strings and concatenated
+   */
   protected function log(){
     $msg = "";
     foreach(func_get_args() as $arg){
@@ -49,6 +78,22 @@ abstract class App
     }
     error_log($msg);
     //$this->dbLog('log',$msg);
+  }
+
+  public function preAccessLog(){
+    $ref = isset($_SERVER['HTTP_REFERER']) ?$_SERVER['HTTP_REFERER'] : null;
+    $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null;
+    $self = isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : null;
+    $req_method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : null;
+    $this->fileLog('pre_access.log', $this->id.';'.time().';'.date('Y-m-d H:i:s').';'.getmypid().';'.$ref.';'.$uri.';'.$self.';'.$req_method.';'.memory_get_usage());
+  }
+
+  public function postAccessLog(){
+    $ref = isset($_SERVER['HTTP_REFERER']) ?$_SERVER['HTTP_REFERER'] : null;
+    $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null;
+    $self = isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : null;
+    $req_method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : null;
+    $this->fileLog('post_access.log',$this->id.';'.time().';'.date('Y-m-d H:i:s').';'.getmypid().';'.$ref.';'.$uri.';'.$self.';'.$req_method.';'.memory_get_usage().';'.(microtime(true) - $this->start_time));
   }
 
   public function getAppRoot($isWeb){
@@ -82,6 +127,9 @@ abstract class App
       case "img":
           return $app_root."/client/img";
           break;
+      case "log":
+        return $app_root."/../../../logs";
+        break;
       case "lib":
           return $this->config->getWebRootPath()."/lib/server";
           break;
