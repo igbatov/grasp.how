@@ -1,7 +1,7 @@
 /**
  * Draws SVG given graph nodes, edges, labels
  */
-var showGraph = (function($){
+var showGraph = (function(){
   return showGraph;
 
   /**
@@ -26,6 +26,7 @@ var showGraph = (function($){
 
 
     var svgc = wrapper.append("svg")
+      .attr("style",  "background: #2C3338;")
       .attr("width",  wrapperArea.width+"px")
       .attr("height", wrapperArea.height+"px");
 
@@ -227,4 +228,4 @@ var showGraph = (function($){
       return props;
     }( obj )));
   };
-})($);
+})();
