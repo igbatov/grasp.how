@@ -33,8 +33,8 @@ class EmbGraph{
         $elements = json_decode($row['elements'], true);
         $mapping = json_decode($row['node_mapping'], true);
 
-        if(!$elements) $this->error("No elements in graph history, graph_id=".$graph_row['id']);
-        if(!$mapping) $this->error("No mapping in graph history, graph_id=".$graph_row['id']);
+        if(!$elements){ error_log("EmbGraph:: No elements in graph history, graph_id=".$graph_row['id']); return false;}
+        if(!$mapping){ error_log("EmbGraph:: No mapping in graph history, graph_id=".$graph_row['id']); return false;}
 
         $graph[$graph_row['id']]["nodes"] = $elements['nodes'];
         $graph[$graph_row['id']]["edges"] = $elements['edges'];

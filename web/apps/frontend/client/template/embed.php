@@ -9,7 +9,9 @@
     <meta property="og:type"          content="website" />
     <meta property="og:title"         content="<?php echo $graph[$graph_ids[0]]['name']; ?>" />
     <meta property="og:description"   content="Grasp foundations of '<?php echo $graph[$graph_ids[0]]['name']; ?>' at grasp.how" />
-    <meta property="og:image"         content="http://www.grasp.how/img/reasoning.jpg" />
+    <meta property="og:image"         content="http://www.grasp.how/img/graph_shots/<?php echo $graph_ids[0]; ?>.jpg" />
+    <meta property="og:image:width"   content="1280" />
+    <meta property="og:image:height"  content="960" />
 
     <title><?php echo $graph[$graph_ids[0]]['name']; ?></title>
 
