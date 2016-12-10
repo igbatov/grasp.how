@@ -26,9 +26,16 @@ var showGraph = (function(){
 
 
     var svgc = wrapper.append("svg")
-      .attr("style",  "background: #2C3338;")
       .attr("width",  wrapperArea.width+"px")
       .attr("height", wrapperArea.height+"px");
+
+    // append background
+    svgc.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("fill", '#2C3338')
+        .attr("width", wrapperArea.width)
+        .attr("height", wrapperArea.height);
 
     // adjust data to our svg container area
     var w = wrapperArea.width - TYPE_NODES_AREA_WIDTH*wrapperArea.width/100;
