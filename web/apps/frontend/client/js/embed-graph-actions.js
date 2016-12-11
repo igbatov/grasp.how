@@ -6,7 +6,7 @@ var addGraphActions = (function($,d3){
 
   function addGraphActions(nodes, nodeContents){
     createTextBoxes(nodes);
-
+console.log(nodeContents);
     // typeNodes
     d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') == 'nodeType'; })
         .on("mouseover", function(){

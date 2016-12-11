@@ -7,10 +7,10 @@ require_once ('lib/server/bootstrap.php');
 switch($c->getWebDomainName()){
   case 'my.grasp.how':
   case 'grasp.local':
-    $app = new AppUserPkb($c, $s, $db, $eh);
+    $app = new AppUserPkb($c, $s, $db, $logger);
     break;
   default:
-    $app = new AppFrontend($c, $s, $db, $eh);
+    $app = new AppFrontend($c, $s, $db, $logger);
     break;
 }
 

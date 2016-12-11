@@ -63,6 +63,7 @@ require_once ('Auth.php');
  */
 require_once ($path.'/'.'DB.php');
 require_once ($path.'/'.'ErrorHandler.php');
+require_once ($path.'/'.'Logger.php');
 require_once ($path.'/'.'Session.php');
 require_once ($path.'/'.'App.php');
 require_once ($path.'/'.'../../apps/frontend/server/AppFrontend.php');
@@ -85,6 +86,7 @@ $s->start();
 // init helper modules
 $db = new DB($c->getDbConf());
 $eh = new ErrorHandler();
+$logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());
 
 // include browser detector classes
 include_once($c->getWebRootPath()."/lib/server/vendor/Sinergi/BrowserDetector/DetectorInterface.php");
