@@ -73,7 +73,7 @@ class Graphs {
           $this->logger->log($q);
           $rows = $this->db->execute($q);
           foreach($rows as $row){
-            $q = "SELECT * FROM source WHERE id='".$row['source_id']."' AND auth_id='".$this->auth_id."'";
+            $q = "SELECT * FROM source WHERE id='".$row['source_id']."'";
             $this->logger->log($q);
             $sources = $this->db->execute($q);
             if($sources&&count($sources)){
@@ -128,7 +128,7 @@ class Graphs {
         elseif($contentId['graphId1'] && $contentId['graphId2']){
           $q = "SELECT created_at, updated_at FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
           $rows = $this->db->execute($q);
-          if(GraphDiffCreator::isCloneModified($rows)) $status = 'modified';
+          if(GraphDizffCreator::isCloneModified($rows)) $status = 'modified';
         }
         $nodes[$content_id]['stickers'][] = $status;
 
@@ -284,8 +284,6 @@ class Graphs {
   }
 
   public function updateGraphElementContent($graph_id, $local_content_id, $r){
-
-
     if($r['type'] == 'updateNodeText'){
       $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
       $this->db->execute($query);

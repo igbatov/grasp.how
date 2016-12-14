@@ -24,7 +24,6 @@ var showGraph = (function(){
 
     var nodes = clone(orig_nodes);
 
-
     var svgc = wrapper.append("svg")
       .attr("width",  wrapperArea.width+"px")
       .attr("height", wrapperArea.height+"px");
@@ -103,8 +102,9 @@ var showGraph = (function(){
     // draw labels
     for(var i in nodes){
       var node = nodes[i];
-
-      var strs = nodeContents[node.id].label.split("\n");
+//console.log(node.id);
+      var active_alternative_id = nodeContents[node.id]['active_alternative_id'];
+      var strs = nodeContents[node.id]['alternatives'][active_alternative_id].label.split("\n");
       var offset = 0;
       for(var j in strs){
         var str = strs[j];

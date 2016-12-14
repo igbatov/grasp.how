@@ -2,11 +2,17 @@
 
 /**
  * This class produce data that is used in embedded graph
+ * TODO This can be implemented by Graphs methods only, without direct call to db
  * Class EmbGraph
  */
 class EmbGraph{
-  function __construct(DB $db) {
+  private  $db;
+  private  $graphs;
+
+  function __construct(DB $db, ContentIdConverter $contentIdConverter, Graphs $graphs) {
     $this->db = $db;
+    $this->contentIdConverter = $contentIdConverter;
+    $this->graphs = $graphs;
   }
 
   /**
@@ -25,9 +31,6 @@ class EmbGraph{
       }
     }
 
-    // $decoration = array("fact"=>"#00BFFF","research"=>"#87CEFA","theory"=>"#3CB371","hypothesis"=>"#8FBC8F","illustration"=>"#FF69B4","theory_problem"=>"#FF0000", "question"=>"#FFFFE0", "to_read"=>"#FFFF00", "best_known_practice"=>"#FFA500");
-    // $nodeTypes = array("fact"=>"Факт","research"=>"Исследование","theory"=>"Теория","hypothesis"=>"Гипотеза","illustration"=>"Иллюстрация","theory_problem"=>"Проблема теории", "question"=>"Вопрос", "to_read"=>"Дальнешее чтение", "best_known_practice"=>"Лучшие практики");
-    //$graph_ids = array("15");
     $graph = array();
 
     // get names and node types
@@ -51,18 +54,26 @@ class EmbGraph{
         $graph[$graph_row['id']]["area"] = $mapping["area"];
 
         foreach($elements['nodes'] as $node){
-          $t = explode("-", $node['nodeContentId']);
-          $local_content_ids[$t[1]] = $node['id'];
+          $local_content_id = $this->contentIdConverter->decodeContentId($node['nodeContentId'])['local_content_id'];
+          $local_content_ids[$local_content_id] = $node['id'];
         }
       }
 
       // get nodes contents
       $graph[$graph_row['id']]["nodeContents"] = array();
+      foreach(array_keys($local_content_ids) as $local_content_id){
+        $global_content_ids[] = $this->contentIdConverter->createGlobalContentId($graph_row['id'], $local_content_id);
+      }
+      foreach($this->graphs->getGraphNodeContent($global_content_ids) as $global_content_id => $content){
+        $local_content_id = $this->contentIdConverter->decodeContentId($global_content_id)['local_content_id'];
+        $graph[$graph_row['id']]["nodeContents"][$local_content_ids[$local_content_id]] = $content;
+      }
+/*
       $rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_row['id']."' AND local_content_id IN ('".implode("','", array_keys($local_content_ids))."')");
       foreach($rows as $row){
         $graph[$graph_row['id']]["nodeContents"][$local_content_ids[$row['local_content_id']]] = array("label"=>$row['label'], "text"=>$row['text'], "type"=>$row['type'], "importance"=>$row['importance'], "reliability"=>$row['reliability']);
       }
-
+*/
       // convert data to the appropriate format
       $base_size = min(min($mapping["area"]["width"], $mapping["area"]["height"])/(2*count($elements['nodes'])), 5);
       $graph[$graph_row['id']]["nodes"] = $this->convertNodes($graph[$graph_row['id']]["nodes"], $mapping["mapping"], $graph[$graph_row['id']]["nodeContents"], $decoration[$graph_row['id']], $base_size);
@@ -93,19 +104,19 @@ class EmbGraph{
   private function convertNodes($nodes, $mapping, $node_contents, $decoration, $base_size){
     $decorated_nodes = array();
     foreach($nodes as $node){
-
       if($node_contents[$node["id"]]["importance"] == 0) $importance = 99;
       else $importance = $node_contents[$node["id"]]["importance"];
 
       if($node_contents[$node["id"]]["reliability"] == 0) $reliability = 99;
       else $reliability = $node_contents[$node["id"]]["reliability"];
 
+      $node_type = $node_contents[$node["id"]]["type"];
       $decorated_nodes[$node["id"]] = array(
         "id"=>$node["id"],
         "x"=>$mapping[$node["id"]]["x"],
         "y"=>$mapping[$node["id"]]["y"],
-        "type"=>$node_contents[$node["id"]]["type"],
-        "color"=>$decoration[$node_contents[$node["id"]]["type"]],
+        "type"=>$node_type,
+        "color"=>$decoration[$node_type],
         "size"=>max(1, 1.8*$base_size*$importance/50),
         "opacity"=>$reliability/99
       );

@@ -6,8 +6,8 @@ var addGraphActions = (function($,d3){
 
   function addGraphActions(nodes, nodeContents){
     createTextBoxes(nodes);
-console.log(nodeContents);
-    // typeNodes
+//console.log(nodeContents);
+    // typeNodes actions
     d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') == 'nodeType'; })
         .on("mouseover", function(){
           if(selectedNodeId !== null) return;
@@ -25,7 +25,7 @@ console.log(nodeContents);
           restoreOpacity(nodes);
         });
 
-    // graph nodes
+    // graph node actions
     d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; })
         .on("mouseover", function(){
           if(selectedNodeId !== null) return;
@@ -38,7 +38,7 @@ console.log(nodeContents);
 
           // show text box with node content
           var circle = d3.select(this);
-          var nodeText = nodeContents[selfNodeId].text;
+          var nodeText = '';//nodeContents[selfNodeId].text;
           showTextBox(circle, nodeText);
         })
         .on("mouseout", function(){

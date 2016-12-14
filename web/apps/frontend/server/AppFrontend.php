@@ -53,8 +53,11 @@ class AppFrontend extends App{
 
         foreach($graph_ids as $graph_id) if(!is_numeric($graph_id)) exit('Bad graph_id '.$graph_id);
 
-        $emb_graph = new EmbGraph($this->db);
+        $contentIdConverter = new ContentIdConverter();
+        $graphs = new Graphs($this->db, $contentIdConverter, $this->getLogger(), null);
+        $emb_graph = new EmbGraph($this->db, $contentIdConverter, $graphs);
         $graph = $emb_graph->getGraphsData($graph_ids);
+        //var_dump($graph); exit();
         $url = 'http://www.grasp.how/show/['.$graph_ids[0].']';
         include($this->getAppDir("template", false)."/embed.php");
       break;
