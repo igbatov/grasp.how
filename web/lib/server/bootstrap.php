@@ -67,6 +67,7 @@ require_once ($path.'/'.'Logger.php');
 require_once ($path.'/'.'Session.php');
 require_once ($path.'/'.'App.php');
 require_once ($path.'/'.'ContentIdConverter.php');
+require_once ($path.'/'.'GraphDiffCreator.php');
 require_once ($path.'/'.'Graphs.php');
 require_once ($path.'/'.'../../apps/frontend/server/AppFrontend.php');
 require_once ($path.'/'.'../../apps/user_pkb/server/AppUserPkb.php');

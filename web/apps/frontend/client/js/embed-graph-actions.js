@@ -38,8 +38,7 @@ var addGraphActions = (function($,d3){
 
           // show text box with node content
           var circle = d3.select(this);
-          var nodeText = '';//nodeContents[selfNodeId].text;
-          showTextBox(circle, nodeText);
+          showNodeContent(circle, nodeContents[selfNodeId]);
         })
         .on("mouseout", function(){
           if(selectedNodeId !== null) return;
@@ -54,8 +53,7 @@ var addGraphActions = (function($,d3){
 
           // show text box with node content
           var circle = d3.select(this);
-          var nodeText = nodeContents[selectedNodeId].text;
-          showTextBox(circle, nodeText);
+          showNodeContent(circle, nodeContents[selectedNodeId]);
 
           // stop propagation
           d3.event.stopPropagation();
@@ -105,16 +103,17 @@ var addGraphActions = (function($,d3){
     d3.selectAll('path').attr('fill-opacity', 0.2);
   }
 
-  function showTextBox(circle, nodeText){
-    // determine where node is - on the left part on on the right
-    var w = $("#graphContainer").width();
-    var textBoxId;
+  function showNodeContent(circle, content){
+    var w = $("#graphContainer").width(),
+        textBoxId;
 
+    // determine where node is - on the left part or on the right
     if(circle.attr('cx') > w/2) textBoxId = 'leftTextBox';
     else  textBoxId = 'rightTextBox';
 
     // set node content to textBox and show it
-    $('#'+textBoxId).html(nodeText.replace(/(?:\r\n|\r|\n)/g, '<br />'));
+    console.log(content);
+    $('#'+textBoxId).html(content['alternatives'][content['active_alternative_id']].text.replace(/(?:\r\n|\r|\n)/g, '<br />'));
     $('#'+textBoxId).show();
   }
 

@@ -2,16 +2,10 @@
 
 include("TextDiff.php");
 include("GRainQuerier.php");
-include("GraphDiffCreator.php");
-include("ContentIdConverter.php");
-include("Graphs.php");
 
 class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
-  private $node_attribute_names;
-  private $node_alternative_attribute_names;
-  private $edge_attribute_names;
   private $contentIdConverter;
   private $graphs;
 
@@ -855,7 +849,7 @@ class AppUserPkb extends App
 
   public function getJsIncludeList(){
     return array(
-      'Helpers.js',
+     // 'Helpers.js',
 
       'Mediator/iListener.js',
       'Mediator/Event.js',
@@ -878,7 +872,7 @@ class AppUserPkb extends App
       'GraphModel/GraphModelsPubSub.js',
 
       'ViewManager.js',
-      'UIElements.js',
+      //'UIElements.js',
 
       'Drawer/kinetic-v4.7.0.js',
       'Drawer/CanvasDrawer.js',

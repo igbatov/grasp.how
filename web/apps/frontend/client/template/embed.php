@@ -32,6 +32,8 @@
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."embed.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."share_track.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."Helpers.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."UIElements.js" ?>"></script>
   </head>
   <body>
 
