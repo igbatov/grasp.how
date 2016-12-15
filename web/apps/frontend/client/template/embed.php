@@ -25,15 +25,20 @@
     <![endif]-->
     <!-- end fork ribbon -->
 
+    <!-- general js -->
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
+
+    <!-- app specific js -->
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."d3.v3.min.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."node-content-view.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."graph.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."embed-graph-actions.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."embed.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."share_track.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."Helpers.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."UIElements.js" ?>"></script>
   </head>
   <body>
 

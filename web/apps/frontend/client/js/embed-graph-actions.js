@@ -113,7 +113,7 @@ var addGraphActions = (function($,d3){
 
     // set node content to textBox and show it
     console.log(content);
-    $('#'+textBoxId).html(content['alternatives'][content['active_alternative_id']].text.replace(/(?:\r\n|\r|\n)/g, '<br />'));
+    $('#'+textBoxId).html(new NodeContentView(content));
     $('#'+textBoxId).show();
   }
 
