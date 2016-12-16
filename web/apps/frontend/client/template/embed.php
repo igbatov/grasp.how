@@ -15,7 +15,6 @@
 
     <title><?php echo $graph[$graph_ids[0]]['name']; ?></title>
 
-    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/reset.css">
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
 
     <!-- fork ribbon -->
@@ -44,7 +43,7 @@
 
   <?php  include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
 
-  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="Clone me on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
+  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="Edit me on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
 
   <div id="graphContainer"></div>

@@ -5,7 +5,7 @@
 @import url(http://weloveiconfonts.com/api/?family=fontawesome);
 /* ---------- ERIC MEYER'S RESET CSS ---------- */
 /* ---------- http://meyerweb.com/eric/tools/css/reset/ ---------- */
-@import url(reset.css);
+@import url(../../../../lib/client/css/reset.css);
 /* ---------- FONTAWESOME ---------- */
 [class*="fontawesome-"]:before {
   font-family: 'FontAwesome', sans-serif;

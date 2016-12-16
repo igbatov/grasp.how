@@ -1,7 +1,6 @@
 <!doctype html>
 <html>
   <head>
-  <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/reset.css">
   <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
   <!--- <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/showGraph.css"> -->
   </head>

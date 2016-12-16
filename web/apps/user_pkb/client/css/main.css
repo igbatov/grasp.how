@@ -5,8 +5,8 @@
  http://wellcaffeinated.net/articles/2012/12/10/very-simple-css-only-proportional-resizing-of-elements/
 */
 @import url(http://fonts.googleapis.com/css?family=Roboto:300|Open+Sans+Condensed:300&subset=latin,cyrillic);
-@import "reset.css";
-@import "ui.css";
+@import "../../../../lib/client/css/reset.css";
+@import "../../../../lib/client/css/ui.css";
 @import "graph_element_editor.css";
 
 #graphViews{

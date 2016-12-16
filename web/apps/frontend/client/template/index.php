@@ -3,7 +3,6 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/reset.css">
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
 
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>

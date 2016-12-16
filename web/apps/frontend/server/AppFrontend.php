@@ -77,7 +77,9 @@ class AppFrontend extends App{
 
       default:
         $graph_ids = array("12", "15");
-        $emb_graph = new EmbGraph($this->db);
+        $contentIdConverter = new ContentIdConverter();
+        $graphs = new Graphs($this->db, $contentIdConverter, $this->getLogger(), null);
+        $emb_graph = new EmbGraph($this->db, $contentIdConverter, $graphs);
         $graph = $emb_graph->getGraphsData($graph_ids);
         include($this->getAppDir("template", false)."/index.php");
       break;

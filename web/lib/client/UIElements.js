@@ -1,6 +1,5 @@
 /**
  * This module render common UI elements - select box, modal window, text box, etc
- * @param ajax
  * @constructor
  */
 GRASP.UIElements = function(){
@@ -563,9 +562,36 @@ GRASP.UIElements.prototype = {
       buttons.appendChild(button);
     }
 
-
-
     return li;
+  },
+
+  /**
+   * Create Toggle element - content will be toggled upon label click
+   * @param label
+   * @param content
+   * @param is_default_hide
+   * @param callback
+   * @returns {HTMLElement}
+   * @constructor
+   */
+  createToggle: function(label, content, is_default_hide, callback){
+    if(GRASP.typeof(label) == 'string') label = GRASP.createElement('div',{}, label);
+    if(GRASP.typeof(content) == 'string') content = GRASP.createElement('div',{}, content);
+
+    var c = GRASP.createElement('div',{});
+    label.addEventListener('click', function(){
+      if(content.style.display == 'block'){
+        if(callback) callback(false);
+        content.style.display = 'none';
+      }else{
+        if(callback) callback(true);
+        content.style.display = 'block';
+      }
+    });
+    c.appendChild(label);
+    GRASP.setDisplay(content, is_default_hide === false ? 'block' : 'none');
+    c.appendChild(content);
+    return c;
   },
 
   /**

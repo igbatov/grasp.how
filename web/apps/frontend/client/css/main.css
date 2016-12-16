@@ -1,3 +1,6 @@
+@import "../../../../lib/client/css/reset.css";
+@import "../../../../lib/client/css/ui.css";
+
 body {
     /* background-color: #2B2B2B; */
     background-color: #2C3338;
@@ -226,5 +229,19 @@ blockquote:before {
     background-color: #d44179;
 }
 
+.altLabel {
+    cursor: pointer;
+    border: solid 1px grey;
+}
 
+.altLabel:hover{
+    background-color: lightcoral;
+}
 
+.altLabel.active{
+    background-color: lightcoral;
+}
+
+.nodeListItem{
+    display: block;
+}
