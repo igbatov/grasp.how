@@ -70,7 +70,7 @@
     var wrapperArea = {width: $('#mainSVG').width(), height: $('#mainSVG').height(), centerX: $('#mainSVG').width()/2, centerY: $('#mainSVG').height()/2};
 
     // draw graph SVG in wrapper
-    var svg = showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"]);
+    var svg = showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
     //console.log(svg[0][0].outerHTML);
 
     // create text boxes

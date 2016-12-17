@@ -2,7 +2,7 @@
 
 /**
  * This class produce data that is used in embedded graph
- * TODO This can be implemented by Graphs methods only, without direct call to db
+ * TODO This can be implemented by means of Graphs methods only, without direct call to db
  * Class EmbGraph
  */
 class EmbGraph{
@@ -21,15 +21,26 @@ class EmbGraph{
    * @return array
    */
   public function getGraphsData($graph_ids){
-    // get node types
     $graph_settings_rows = $this->db->execute("SELECT * FROM graph_settings WHERE graph_id IN ('".implode("','", $graph_ids)."')");
+
+    // get node types
     foreach($graph_settings_rows as $graph_settings_row){
       $graph_settings = json_decode($graph_settings_row['settings'], true);
       foreach($graph_settings['skin']['node']['attr']['typeColors'] as $type => $color){
-        $decoration[$graph_settings_row['graph_id']][$type] = $color;
+        $nodeDecoration[$graph_settings_row['graph_id']][$type] = $color;
         $nodeTypes[$graph_settings_row['graph_id']][$type] = $type;
       }
     }
+
+    // get edge types
+    foreach($graph_settings_rows as $graph_settings_row){
+      $graph_settings = json_decode($graph_settings_row['settings'], true);
+      foreach($graph_settings['skin']['edge']['attr']['typeColors'] as $type => $color){
+        $edgeDecoration[$graph_settings_row['graph_id']][$type] = $color;
+        $edgeTypes[$graph_settings_row['graph_id']][$type] = $type;
+      }
+    }
+
 
     $graph = array();
 
@@ -37,7 +48,7 @@ class EmbGraph{
     $graph_rows = $this->db->execute("SELECT * FROM graph WHERE id IN ('".implode("','", $graph_ids)."')");
     foreach($graph_rows as $graph_row){
       $graph_settings = json_decode($graph_row['graph'], true);
-      $graph[$graph_row['id']] = array("name"=>$graph_settings["name"], "nodeTypes"=>$graph_settings["nodeTypes"]);
+      $graph[$graph_row['id']] = array("name"=>$graph_settings["name"], "nodeTypes"=>$graph_settings["nodeTypes"], "edgeTypes"=>$graph_settings["edgeTypes"]);
 
       // get nodes and edges
       $local_content_ids = array();
@@ -76,8 +87,9 @@ class EmbGraph{
 */
       // convert data to the appropriate format
       $base_size = min(min($mapping["area"]["width"], $mapping["area"]["height"])/(2*count($elements['nodes'])), 5);
-      $graph[$graph_row['id']]["nodes"] = $this->convertNodes($graph[$graph_row['id']]["nodes"], $mapping["mapping"], $graph[$graph_row['id']]["nodeContents"], $decoration[$graph_row['id']], $base_size);
-      $graph[$graph_row['id']]["nodeTypes"] = $this->convertNodeTypes($graph[$graph_row['id']]["nodeTypes"], $nodeTypes[$graph_row['id']], $decoration[$graph_row['id']]);
+      $graph[$graph_row['id']]["nodes"] = $this->convertNodes($graph[$graph_row['id']]["nodes"], $mapping["mapping"], $graph[$graph_row['id']]["nodeContents"], $nodeDecoration[$graph_row['id']], $base_size);
+      $graph[$graph_row['id']]["nodeTypes"] = $this->convertNodeTypes($graph[$graph_row['id']]["nodeTypes"], $nodeTypes[$graph_row['id']], $nodeDecoration[$graph_row['id']]);
+      $graph[$graph_row['id']]["edgeTypes"] = $this->convertEdgeTypes($graph[$graph_row['id']]["edgeTypes"], $edgeDecoration[$graph_row['id']]);
 
       // remove root node with its edges
       foreach($graph[$graph_row['id']]["nodes"] as $node){
@@ -89,8 +101,26 @@ class EmbGraph{
           }
         }
       }
+
+      // add edge types
+      $edgeContentIds = array();
+      foreach($graph[$graph_row['id']]["edges"] as $edge) $edgeContentIds[] = $edge['edgeContentId'];
+      foreach($this->graphs->getEdgeAttributes($edgeContentIds) as $global_content_id => $attr){
+        foreach($graph[$graph_row['id']]["edges"] as $k => $edge){
+          if($edge['edgeContentId'] == $global_content_id) $graph[$graph_row['id']]["edges"][$k]['type'] = $attr['type'];
+        }
+      }
+
     }
     return $graph;
+  }
+
+  private function convertEdgeTypes($graph_edge_types, $decoration){
+    $decorated_edge_types = array();
+    foreach($graph_edge_types as $edge_type){
+      $decorated_edge_types[$edge_type] = array("color"=>$decoration[$edge_type]);
+    }
+    return $decorated_edge_types;
   }
 
   private function convertNodeTypes($graph_node_types, $base_node_types, $decoration){

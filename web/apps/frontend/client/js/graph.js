@@ -13,9 +13,10 @@ var showGraph = (function(){
    * @param edges
    * @param nodeContents
    * @param nodeTypes
+   * @param edgeTypes
    * @returns {*|{}|{typeColors}|{typeColors, typeDirection}|{font, fill, maxSize}|{fill}}
    */
-  function showGraph(wrapper, wrapperArea, mappingArea, orig_nodes, edges, nodeContents, nodeTypes){
+  function showGraph(wrapper, wrapperArea, mappingArea, orig_nodes, edges, nodeContents, nodeTypes, edgeTypes){
     // CONSTANTS
     var TYPE_NODES_AREA_WIDTH = 15; // in %
 
@@ -27,6 +28,23 @@ var showGraph = (function(){
     var svgc = wrapper.append("svg")
       .attr("width",  wrapperArea.width+"px")
       .attr("height", wrapperArea.height+"px");
+
+    // add definition for triangle arrow marker for every edge type
+    var markerScale = 0.6;
+    for(var type in edgeTypes){
+      svgc.append("svg:defs").append("svg:marker")
+          .attr("id", "triangle_"+type)
+          .attr("refX", 12*markerScale)
+          .attr("refY", 6*markerScale)
+          .attr("markerWidth", 30*markerScale)
+          .attr("markerHeight", 30*markerScale)
+          .attr("markerUnits","userSpaceOnUse")
+          .attr("orient", "auto")
+          .append("path")
+          .attr("d", "M 0 0 12 6 0 12 3 6")
+          .attr("transform", "scale("+markerScale+")")
+          .style("fill", edgeTypes[type].color);
+    }
 
     // append background
     svgc.append("rect")
@@ -82,8 +100,15 @@ var showGraph = (function(){
 
     // draw edges
     for(var i in edges){
-      svgc.append("path")
-          .attr("d", getQuadPathData(nodes[edges[i].source], nodes[edges[i].target], 1)).style("fill", 'grey').attr("class", "edges");
+      var edge = svgc.append("path")
+          .attr("d", getQuadPathData(nodes[edges[i].source], nodes[edges[i].target], nodes[edges[i].target].size))
+          .attr("stroke", edgeTypes[edges[i].type].color)
+          .attr("stroke-width", "1")
+          .style("fill", 'transparent')
+          .attr("class", "edges");
+      if(edges[i].type == 'causal' || edges[i].type == 'conditional'){
+        edge.attr("marker-end", "url(#triangle_"+edges[i].type+")");
+      }
     }
 
     // draw nodes
@@ -127,41 +152,35 @@ var showGraph = (function(){
   }
 
   /**
-   * Return area that is bordered by quadratic line starting at start param, ending at stop param.
+   * Return quadratic line starting at start param, ending at stop param.
    * @param start
    * @param stop
-   * @param {number=} opt_width - width of the area in pixels, default is no width
    * @return {*}
    * @private
    */
-  function getQuadPathData(start, stop, opt_width){
+  function getQuadPathData(start, stop, opt_stopOffset){
     var path;
 
     //perpendicular
     var p = {x:-(stop.y-start.y)/4, y:(stop.x-start.x)/4};
     var middle = {x:(start.x+(stop.x-start.x)/2 + p.x), y:(start.y+(stop.y-start.y)/2 + p.y)};
 
-    if(opt_width){
-      var norm = 2*Math.sqrt((p.x)*(p.x)+(p.y)*(p.y))/opt_width;
+    // for uni-direction: add offset so that end of line is on circle border
+    if(typeof(opt_stopOffset) != 'undefined' && opt_stopOffset>0){
+      // get intersection of stop circle and tangent line
+      var mv = {x:(middle.x-stop.x), y:(middle.y-stop.y)};
+      var mvLength = Math.sqrt(Math.pow(mv.x,2) + Math.pow(mv.y,2));
+      mv.x = mv.x/mvLength; mv.y = mv.y/mvLength;
+      var cx = stop.x+(opt_stopOffset+0)*mv.x, cy = stop.y+(opt_stopOffset+0)*mv.y;
 
-      //bottom start
-      var bs = {x:Math.round(start.x-p.x/norm), y:Math.round(start.y-p.y/norm)};
-      //bottom middle
-      var bm = {x:Math.round(middle.x-p.x/norm), y:Math.round(middle.y-p.y/norm)};
-      //bottom end
-      var be = {x:Math.round(stop.x-p.x/norm), y:Math.round(stop.y-p.y/norm)};
-
-      //up start
-      var us = {x:Math.round(stop.x+p.x/norm), y:Math.round(stop.y+p.y/norm)};
-      //up middle
-      var um = {x:Math.round(middle.x+p.x/norm), y:Math.round(middle.y+p.y/norm)};
-      //up end
-      var ue = {x:Math.round(start.x+p.x/norm), y:Math.round(start.y+p.y/norm)};
-
-      path = "M"+bs.x+","+bs.y+" Q"+bm.x+","+bm.y+","+be.x+","+be.y+" L"+us.x+","+us.y+" Q"+um.x+","+um.y+","+ue.x+","+ue.y+"Z";
+      // move this intersection 1 pixel in direction of perpendicular to straight line form start circle to stop circle
+     // cx = cx - p.x/Math.sqrt((p.x)*(p.x)+(p.y)*(p.y)); cy = cy - p.y/Math.sqrt((p.x)*(p.x)+(p.y)*(p.y));
     }else{
-      path = "M"+start.x+","+start.y+" Q"+middle.x+","+middle.y+","+stop.x+","+stop.y;
+      cx = stop.x;
+      cy = stop.y;
     }
+
+    path = "M"+start.x+","+start.y+" Q"+middle.x+","+middle.y+","+cx+","+cy;
 
     return path;
   }
