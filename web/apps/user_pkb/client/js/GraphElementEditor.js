@@ -288,74 +288,15 @@ GRASP.GraphElementEditor.prototype = {
                   var fields = {};
                   var formKeys = [{}]; // array of each combination of parent alternatives, ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
 
-                  // we calc conditional probabilities only for facts and propositions, so filter out others here
-                  for(var i in parentContents){
-                    if([that.NODE_TYPE_FACT, that.NODE_TYPE_PROPOSITION].indexOf(parentContents[i].type) == -1) delete parentContents[i];
-                  }
-
-                  for(var parentContentId in parentContents){
-                    addAlternativeColumn(formKeys, parentContentId, parentContents[parentContentId]);
-                  }
-
-                  // create form fields for each combination of parent alternatives
-                  for(var i in formKeys){
-                    var fieldLabel = '';
-                    fields[i+'_IF_label'] = {type:'title',value:'IF: '};
-                    for(var j in formKeys[i]){
-                      fieldLabel = parentContents[j].alternatives[formKeys[i][j]].label;
-                      fields[i+'_'+j+'_label'] = {type:'title',value:'----- "'+fieldLabel+'"'};
-                    }
-
-                    fields[i+'THEN_label'] = {type:'title',value:'THEN: '};
-
-                    var formKeyStr = JSON.stringify(formKeys[i]);
-
-                    // create text fields for conditional probabilities of node's alternatives
-                    for(var j in node.alternatives){
-                      // do not show second alternative for facts,
-                      // as it is always filled in automatically from first alternative probability
-                      var isFactDenial = node.type == that.NODE_TYPE_FACT && j!=0;
-                      if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- PROBABILITY: "'+node.alternatives[j].label+'"'};
-                      fields[formKeyStr+'__'+j] = {
-                        type: isFactDenial ? 'hidden' : 'text',
-                        value: GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
-                        placeholder: 1/GRASP.getObjectLength(node.alternatives),
-                        disabled:!isEditable
-                      };
-                    }
-                  }
-
-                  /**
-                   * Add parentContent alternatives to formKeys:
-                   * @param formKeys = [{p1:1},{p1:2}]
-                   * @param parentContentId = 'p2'
-                   * @param parentContent = {1:{<some alternative content>}, 2:{<some alternative content>}}
-                   * Output [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
-                   */
-                  function addAlternativeColumn(formKeys, parentContentId, parentContent){
-                    for(var i in formKeys){
-                      for(var parentAlternativeId in parentContent.alternatives){
-                        var row = GRASP.clone(formKeys[i]);
-                        row[parentContentId] = parentAlternativeId;
-                        formKeys.push(row);
-                      }
-                      delete formKeys[i];
-                    }
-                  }
-
-                  /**
-                   * alternativePs - is object where key is stringified formKey element,
-                   * value is alternative probability given parent alternatives (=formKey)
-                   * Returns alternative probability value found by formKey
-                   * @param alternativePs - like {'{"131-6":"0","131-8":"1"}': "0.5", '{"131-6":"0","131-8":"0"}': "1"}
-                   * @param formKey - like {"131-8":"0","131-6"}
-                   */
-                  function findPByFormKey(alternativePs, formKey){
-                    for(var i in alternativePs){
-                      if(GRASP.compare(JSON.parse(i), formKey)) return alternativePs[i];
-                    }
-                    return false;
-                  }
+                  var f = GRASP.getNodeConditionalFormFields(
+                      node,
+                      isEditable,
+                      function(){return node.type == that.NODE_TYPE_FACT;},
+                      parentContents,
+                      [that.NODE_TYPE_FACT, that.NODE_TYPE_PROPOSITION]
+                  );
+                  fields = f.fields;
+                  formKeys = f.formKeys;
 
                   fields['button'] = {type:'button', label:'Save',disabled:!isEditable};
 
