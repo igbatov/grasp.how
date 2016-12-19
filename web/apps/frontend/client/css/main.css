@@ -235,11 +235,11 @@ blockquote:before {
 }
 
 .altLabel:hover{
-    background-color: lightcoral;
+    border: solid #b665ff;
 }
 
 .altLabel.active{
-    background-color: lightcoral;
+    border: solid #b665ff;
 }
 
 .nodeListItem{

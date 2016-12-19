@@ -4,9 +4,9 @@ var addGraphActions = (function($,d3){
 
   return addGraphActions;
 
-  function addGraphActions(nodes, nodeContents){
+  function addGraphActions(nodes, nodeContents, condPInfo){
     createTextBoxes(nodes);
-//console.log(nodeContents);
+
     // typeNodes actions
     d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') == 'nodeType'; })
         .on("mouseover", function(){
@@ -38,7 +38,7 @@ var addGraphActions = (function($,d3){
 
           // show text box with node content
           var circle = d3.select(this);
-          showNodeContent(circle, nodeContents[selfNodeId]);
+          showNodeContent(circle, nodeContents[selfNodeId], condPInfo[selfNodeId]);
         })
         .on("mouseout", function(){
           if(selectedNodeId !== null) return;
@@ -53,7 +53,7 @@ var addGraphActions = (function($,d3){
 
           // show text box with node content
           var circle = d3.select(this);
-          showNodeContent(circle, nodeContents[selectedNodeId]);
+          showNodeContent(circle, nodeContents[selectedNodeId], condPInfo[selectedNodeId]);
 
           // stop propagation
           d3.event.stopPropagation();
@@ -103,7 +103,7 @@ var addGraphActions = (function($,d3){
     d3.selectAll('path').attr('fill-opacity', 0.2);
   }
 
-  function showNodeContent(circle, content){
+  function showNodeContent(circle, content, condPInfo){
     var w = $("#graphContainer").width(),
         textBoxId;
 
@@ -112,8 +112,7 @@ var addGraphActions = (function($,d3){
     else  textBoxId = 'rightTextBox';
 
     // set node content to textBox and show it
-    console.log(content);
-    $('#'+textBoxId).html(new NodeContentView(content));
+    $('#'+textBoxId).html(new NodeContentView(content, condPInfo));
     $('#'+textBoxId).show();
   }
 

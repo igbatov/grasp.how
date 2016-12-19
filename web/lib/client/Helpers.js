@@ -1544,7 +1544,7 @@ GRASP.getNodeConditionalFormFields = function(node, isEditable, isNodeFact, pare
       fields[i+'_'+j+'_label'] = {type:'title',value:'----- "'+fieldLabel+'"'};
     }
 
-    fields[i+'THEN_label'] = {type:'title',value:'THEN: '};
+    fields[i+'_THEN_label'] = {type:'title',value:'THEN: '};
 
     var formKeyStr = JSON.stringify(formKeys[i]);
 

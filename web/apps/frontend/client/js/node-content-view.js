@@ -33,17 +33,17 @@ var NodeContentView = (function(GRASP, UI, extState){
    * @returns {HTMLElement}
    * @constructor
    */
-  function NodeContentView(content){
+  function NodeContentView(content, condPInfo){
     var view = GRASP.createElement('div',{});
 
     // add labels
     for(var alt_id in content['alternatives']){
-      // creates alternative content
+      // creates alternative's content
       var text = content['alternatives'][alt_id].text.replace(/(?:\r\n|\r|\n)/g, '<br />');
       var list = content['alternatives'][alt_id].list;
 
       altContentList[alt_id] = new AltContent(alt_id, text, list);
-      altLabelList[alt_id] = GRASP.createElement('div',{class:'altLabel'}, content['alternatives'][alt_id].label);
+      altLabelList[alt_id] = GRASP.createElement('div',{class:'altLabel'}, content['alternatives'][alt_id].label + ' - with probability '+(content['alternatives'][alt_id].reliability/100).toFixed(2));
 
       // add label actions that shows corresponding alternative text when clicked
       (function(alt_id){
@@ -57,8 +57,7 @@ var NodeContentView = (function(GRASP, UI, extState){
       view.appendChild(altLabelList[alt_id]);
     }
 
-
-    var toggle = UI.createToggle('probabilities','ssssss', !extState.probabilitiesOpened, function(opened){
+    var toggle = UI.createToggle('conditional probabilities', condPInfo, !extState.probabilitiesOpened, function(opened){
       extState.probabilitiesOpened = opened;
     });
     toggle.addEventListener('click', function(e){ e.stopPropagation(); });

@@ -291,7 +291,7 @@ GRASP.GraphElementEditor.prototype = {
                   var f = GRASP.getNodeConditionalFormFields(
                       node,
                       isEditable,
-                      function(){return node.type == that.NODE_TYPE_FACT;},
+                      function(type){return type == that.NODE_TYPE_FACT;},
                       parentContents,
                       [that.NODE_TYPE_FACT, that.NODE_TYPE_PROPOSITION]
                   );

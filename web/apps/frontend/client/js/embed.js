@@ -73,8 +73,50 @@
     var svg = showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
     //console.log(svg[0][0].outerHTML);
 
+    var condPInfo = getCondPsInfo(graph["nodeContents"], graph["edges"], graph["node_id_global_content_id_map"]);
+
     // create text boxes
-    addGraphActions(graph["nodes"], graph["nodeContents"]);
+    addGraphActions(graph["nodes"], graph["nodeContents"], condPInfo);
+  }
+
+  function getCondPsInfo(contents, edges, node_id_global_content_id_map){
+    var condPInfo = {}; // key - nodeId, value - text
+    for(var i in contents){
+      var parentContents = {};
+      var parentIds = getParentIds(i, edges);
+      for(var j in parentIds){
+        var parentId = parentIds[j];
+        parentContents[node_id_global_content_id_map[parentId]] = contents[parentId];
+      }
+      // decipher conditional probabilities into text
+      var f = GRASP.getNodeConditionalFormFields(
+          contents[i],
+          false,
+          function(type){return type == 'fact'},
+          parentContents,
+          ['fact', 'proposition']
+      );
+
+      condPInfo[i] = '';
+      for(var j in f.fields){
+        if(f.fields[j].type != 'hidden') condPInfo[i] += f.fields[j].value + "\n";
+      }
+      //console.log(text);
+      //condPInfo[i] = GRASP.clone(text);
+    }
+    console.log(condPInfo);
+    return condPInfo;
+  }
+
+  function getParentIds(nodeId, edges){
+    var parentIds = [];
+    for(var i in edges){
+      var e = edges[i];
+      if(nodeId == e.target){
+        parentIds.push(e.source);
+      }
+    }
+    return parentIds;
   }
 
 })($);
