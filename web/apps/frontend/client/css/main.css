@@ -245,3 +245,14 @@ blockquote:before {
 .nodeListItem{
     display: block;
 }
+
+.underlyingConditionalProbabilitiesAssumptionsLabel{
+    color: darkblue;
+    border-bottom: 1px dotted darkblue;
+    text-decoration: none;
+    cursor: pointer;
+}
+.underlyingConditionalProbabilitiesAssumptionsContent{
+    background-color: #d44179;
+    font-size: 10px;
+}

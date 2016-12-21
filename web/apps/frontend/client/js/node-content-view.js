@@ -57,9 +57,14 @@ var NodeContentView = (function(GRASP, UI, extState){
       view.appendChild(altLabelList[alt_id]);
     }
 
-    var toggle = UI.createToggle('conditional probabilities', condPInfo, !extState.probabilitiesOpened, function(opened){
-      extState.probabilitiesOpened = opened;
-    });
+    var toggle = UI.createToggle(
+      'Underlying conditional probabilities assumptions',
+      condPInfo.replace(/(?:\r\n|\r|\n)/g, '<br />'),
+      !extState.probabilitiesOpened,
+      function(opened){ extState.probabilitiesOpened = opened; },
+      'underlyingConditionalProbabilitiesAssumptionsLabel',
+      'underlyingConditionalProbabilitiesAssumptionsContent'
+    );
     toggle.addEventListener('click', function(e){ e.stopPropagation(); });
     view.appendChild(toggle);
 

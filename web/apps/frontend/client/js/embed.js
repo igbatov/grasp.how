@@ -97,14 +97,22 @@
           ['fact', 'proposition']
       );
 
+      // create decorated text string for each f.fields[i]
       condPInfo[i] = '';
       for(var j in f.fields){
-        if(f.fields[j].type != 'hidden') condPInfo[i] += f.fields[j].value + "\n";
+        if(f.fields[j].type != 'hidden'){
+          if(j.includes("label")){
+            if(j.includes("_IF_label")) condPInfo[i] += '\n'+f.fields[j].value + "\n";
+            else condPInfo[i] += f.fields[j].value + "\n";
+          }
+          if(!j.includes("label")){
+            // remove previous "\n"
+            condPInfo[i] = condPInfo[i].substr(0, condPInfo[i].length-2);
+            condPInfo[i] += '<b> - IS '+f.fields[j].value + "</b>\n";
+          }
+        }
       }
-      //console.log(text);
-      //condPInfo[i] = GRASP.clone(text);
     }
-    console.log(condPInfo);
     return condPInfo;
   }
 

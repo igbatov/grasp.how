@@ -571,12 +571,14 @@ GRASP.UIElements.prototype = {
    * @param content
    * @param is_default_hide
    * @param callback
+   * @param labelClassName
+   * @param contentClassName
    * @returns {HTMLElement}
    * @constructor
    */
-  createToggle: function(label, content, is_default_hide, callback){
-    if(GRASP.typeof(label) == 'string') label = GRASP.createElement('div',{}, label);
-    if(GRASP.typeof(content) == 'string') content = GRASP.createElement('div',{}, content);
+  createToggle: function(label, content, is_default_hide, callback, labelClassName, contentClassName){
+    if(GRASP.typeof(label) == 'string') label = GRASP.createElement('div',{class:labelClassName}, label);
+    if(GRASP.typeof(content) == 'string') content = GRASP.createElement('div',{class:contentClassName}, content);
 
     var c = GRASP.createElement('div',{});
     label.addEventListener('click', function(){

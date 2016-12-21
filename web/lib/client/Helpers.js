@@ -1381,9 +1381,11 @@ GRASP.getBrowserInfo = function(){
  * @param {Object<string, string>} attrs - DOM attributes (id, class, value), no CSS here
  * @param {String=} text - text inside element
  * @param {function(string,string)=} callback - callback on value change (optional)
+ * @param {Boolean=} isText - true if text (=3d argument) should not be interpreted as html
  * @returns {HTMLElement}
  */
-GRASP.createElement = function(tag, attrs, text, callback){
+GRASP.createElement = function(tag, attrs, text, callback, isText){
+  isText = isText || false;
   if(tag == 'text') return document.createTextNode(text);
 
   var el = document.createElement(tag);
@@ -1391,8 +1393,19 @@ GRASP.createElement = function(tag, attrs, text, callback){
     if(i == 'disabled' && attrs[i] != true) continue;
     if(typeof(attrs[i]) != 'undefined') el.setAttribute(i, attrs[i]);
   }
-  if(typeof(text) != 'undefined') text = String(text);
-  if(typeof(text) != 'undefined' && text.length > 0) el.appendChild(document.createTextNode(text));
+
+  if(typeof(text) != 'undefined' && text.length > 0){
+    if(!isText) el.innerHTML = text;
+    else{
+      text = String(text);
+      // break text into paragraphs
+      var pars = text.split("\n");
+      for(var i in pars){
+        el.appendChild(document.createTextNode(pars[i]));
+        el.appendChild(document.createElement("br"));
+      }
+    }
+  }
 
   // Bind callback on form field value change
   if(typeof(callback) != 'undefined'){
