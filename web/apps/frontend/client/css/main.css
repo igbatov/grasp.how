@@ -243,7 +243,14 @@ blockquote:before {
 }
 
 .nodeListItem{
-    display: block;
+    margin-left: 1%;
+    display: inline;
+}
+
+.nodeListItem:after {
+    clear:both;
+    content:" ";
+    display:block;
 }
 
 .underlyingConditionalProbabilitiesAssumptionsLabel{

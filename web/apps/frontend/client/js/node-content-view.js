@@ -43,7 +43,7 @@ var NodeContentView = (function(GRASP, UI, extState){
       var list = content['alternatives'][alt_id].list;
 
       altContentList[alt_id] = new AltContent(alt_id, text, list);
-      altLabelList[alt_id] = GRASP.createElement('div',{class:'altLabel'}, content['alternatives'][alt_id].label + ' - with probability '+(content['alternatives'][alt_id].reliability/100).toFixed(2));
+      altLabelList[alt_id] = GRASP.createElement('div',{class:'altLabel'}, content['alternatives'][alt_id].label + ' [probability '+(content['alternatives'][alt_id].reliability/100).toFixed(2)+']');
 
       // add label actions that shows corresponding alternative text when clicked
       (function(alt_id){
@@ -88,7 +88,11 @@ var NodeContentView = (function(GRASP, UI, extState){
   function AltContent(id, text, list){
     var c = GRASP.createElement('div',{class:'alt_content', id:'alt_content_'+id});
     c.appendChild(GRASP.createElement('div',{},text));
+
+    c.appendChild(GRASP.createElement('div',{},'<br>Sources:<br>'));
     for(var i in list){
+      console.log(list[i]);
+      c.appendChild(GRASP.createElement('span',{class:'nodeListItemReliability'}, '[Reliability - '+list[i].publisher_reliability+'/10]'));
       c.appendChild(GRASP.createElement('a',{class:'nodeListItem', href:list[i].url, target:'_blank'}, list[i].author+' // '+list[i].name+' // '+list[i].publisher));
     }
     return c;

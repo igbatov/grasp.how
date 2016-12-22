@@ -76,6 +76,7 @@ class AppFrontend extends App{
       break;
 
       default:
+        include($this->getAppDir("template", false)."/index.php");
       break;
     }
   }
