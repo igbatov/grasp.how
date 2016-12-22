@@ -211,6 +211,33 @@ GRASP.GraphElementsContent.prototype = {
               event.setResponse(newEdge);
             });
 
+        }else if(event.getData()['type'] == 'removeEdge') {
+          var graphId = event.getData()['graphId'];
+          var edgeContentId = event.getData()['edge']['edgeContentId'];
+          var nodeId;
+          var graphModel;
+          var edge;
+
+          // save removed edge nodeId
+          that.publisher.publish(["get_graph_models", [graphId]]).then(
+            function(graphModels){
+              graphModel = graphModels[graphId];
+              edge = graphModel.getEdgeByEdgeContentId(edgeContentId);
+              nodeId = edge.target;
+              // remove edge from model
+              return that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeEdge', elementId:edge.id}]);
+            })
+            // when all target node's income edges were removed its conditional probabilities should be dropped
+            .then(function(){
+              // check that target node has no more income edges
+              if(graphModel.getEdgesFromParentIds(nodeId).length == 0){
+                var nodeContentId = graphModel.getNode(nodeId)['nodeContentId'];
+                that.publisher.publish(["repository_request_for_graph_element_content_change",  {graphId:graphId, type:'clear_node_conditionalPs', nodeContentId:nodeContentId}]);
+              }
+              event.setResponse('ok');
+
+            });
+
         }else if(event.getData()['type'] == 'addNode'){
 
           // function to save new node (here and in repo) and to set response with new node

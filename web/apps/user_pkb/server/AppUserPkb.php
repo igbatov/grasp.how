@@ -334,7 +334,8 @@ class AppUserPkb extends App
             'updateNodeAttribute',
             'addIcon',
             'addAlternative',
-            'removeAlternative'
+            'removeAlternative',
+            'clear_node_conditionalPs'
         ))){
           $graph_id = $this->contentIdConverter->getGraphId($r['nodeContentId']);
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);

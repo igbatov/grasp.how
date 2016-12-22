@@ -521,6 +521,12 @@ GRASP.GraphModel.prototype = {
     }
   },
 
+  getEdgeByEdgeContentId: function(edgeContentId){
+    for(var i in this.edges){
+      if(this.edges[i].edgeContentId == edgeContentId) return this.getEdge(this.edges[i].id);
+    }
+  },
+
   /**
    * Examples of changes:
    * - add new node:

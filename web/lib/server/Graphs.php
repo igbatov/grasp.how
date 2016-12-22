@@ -350,6 +350,12 @@ class Graphs {
         $this->db->execute($query);
       }
 
+      // we assume here that $r['alternatives'] contains _ALL_ alternatives of node
+      // so we can safely remove other alternatives
+      $query = "DELETE FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id NOT IN ('".implode("','",array_keys($r['alternatives']))."')";
+      $this->logger->log($query);
+      $this->db->execute($query);
+
     }else if($r['type'] == 'updateNodeAttribute'){
       if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
       if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)){
@@ -366,6 +372,11 @@ class Graphs {
 
     }else if($r['type'] == 'updateEdgeAttribute'){
       $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+      $this->db->execute($query);
+
+    }else if($r['type'] == 'clear_node_conditionalPs'){
+      $query = "UPDATE node_content SET `p` = '[]' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+      $this->logger->log($query);
       $this->db->execute($query);
 
     }else if($r['type'] == 'addEdge'){

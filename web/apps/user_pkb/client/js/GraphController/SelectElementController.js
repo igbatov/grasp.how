@@ -141,6 +141,7 @@ GRASP.SelectElementController.prototype = {
     var i, id, decoration = GRASP.clone(d);
     for(i in nodeIds){
       id = nodeIds[i];
+      if(typeof(decoration.nodes[id]) == 'undefined') continue;
       decoration.nodes[id].size = this.nodeScale*d.nodes[id].size;
       decoration.nodeLabels[id].size = this.nodeLabelScale*d.nodeLabels[id].size;
     }

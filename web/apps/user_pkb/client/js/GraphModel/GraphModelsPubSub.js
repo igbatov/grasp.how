@@ -137,7 +137,10 @@ GRASP.GraphModelsPubSub.prototype = {
         }
 
         // If changes not applied yet, apply it now
-        if(!changesApplied) this.applyChanges(event.getData()['type'], c, graphModel);
+        var changes = {};
+        if(!changesApplied) changes = this.applyChanges(event.getData()['type'], c, graphModel);
+
+        event.setResponse(changes);
         break;
 
       case 'set_graph_model_elements':
@@ -170,6 +173,8 @@ GRASP.GraphModelsPubSub.prototype = {
 
     // if changes are not empty fire event that model was successfully changed
     if(GRASP.compare(changes, GRASP.iGraphModelChanges) !== true) this.publisher.publish(["graph_model_changed", {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)}]);
+
+    return changes;
   },
 
   /**

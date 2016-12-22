@@ -664,7 +664,7 @@ GRASP.GraphElementEditor.prototype = {
         label:'Remove edge',
         callback:function(){
           if(confirm('Are you sure?')){
-            that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeEdge', elementId:edge.id}]);
+            that.publisher.publish(["request_for_graph_element_content_change", {graphId: graphId, type: 'removeEdge', edge:edge}]);
           }
         }
       }
