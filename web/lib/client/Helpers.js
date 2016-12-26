@@ -1394,10 +1394,11 @@ GRASP.createElement = function(tag, attrs, text, callback, isText){
     if(typeof(attrs[i]) != 'undefined') el.setAttribute(i, attrs[i]);
   }
 
+  if(GRASP.typeof(text) == 'number') text = String(text);
+
   if(typeof(text) != 'undefined' && text.length > 0){
     if(!isText) el.innerHTML = text;
     else{
-      text = String(text);
       // break text into paragraphs
       var pars = text.split("\n");
       for(var i in pars){
