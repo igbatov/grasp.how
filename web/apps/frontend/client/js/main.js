@@ -1,4 +1,7 @@
 (function($){
+  // main menu
+
+  // subscribe button
   $( document ).ready(function(){
     $('.subscribe input[type="submit"]').click(function(){
       var email = $('.subscribe input[type="text"]').val();

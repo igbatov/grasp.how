@@ -16,12 +16,18 @@
       GRASP.HOW<br>
       <div class="snippet">
         <?php
-          $slogans_en = array('full and reliable worldview', 'challenge your worldview');
-          $slogans = array('полное и обоснованное мировоззрение', 'проверь своё мировоззрение');
+          $slogans = array($this->i18n->__('full and reliable worldview'), $this->i18n->__('challenge your worldview'));
           echo $slogans[rand(0,1)];
         ?></div>
     </div>
     <ul id="mainMenu">
+      <li>
+        <a href="/setLang/en"><?php echo $this->i18n->getLang() == 'ru' ? 'РУ' : 'EN'?></a>
+        <ul>
+          <li><a href="/setLang/ru">РУ</a></li>
+          <li><a href="/setLang/en">EN</a></li>
+        </ul>
+      </li>
       <li><a href="#purpose">ЦЕЛЬ</a></li>
       <li><a href="#method">МЕТОД</a></li>
       <li><a href="#contacts">КОНТАКТЫ</a></li>

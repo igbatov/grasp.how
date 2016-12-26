@@ -75,6 +75,12 @@ class AppFrontend extends App{
         echo $image;
       break;
 
+      case 'setLang':
+        $this->i18n->setLang($vars[1]);
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : "/";
+        $this->redirect($referrer);
+        break;
+
       default:
         include($this->getAppDir("template", false)."/index.php");
       break;

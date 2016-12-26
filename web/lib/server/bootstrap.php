@@ -61,6 +61,7 @@ require_once ('Auth.php');
 /**
  * Include all our classes
  */
+require_once ($path.'/'.'I18N.php');
 require_once ($path.'/'.'DB.php');
 require_once ($path.'/'.'ErrorHandler.php');
 require_once ($path.'/'.'Logger.php');
@@ -83,13 +84,14 @@ session_set_cookie_params($timeout);
 
 // init session
 $s = new Session($a);
-// authorize user and start new session
+// authorize user and start new session or start unauthorized session
 $s->start();
 
 // init helper modules
 $db = new DB($c->getDbConf());
 $eh = new ErrorHandler();
 $logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());
+$i18n = new I18N($s, $logger);
 
 // include browser detector classes
 include_once($c->getWebRootPath()."/lib/server/vendor/Sinergi/BrowserDetector/DetectorInterface.php");

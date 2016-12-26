@@ -49,12 +49,12 @@ ul#mainMenu {
     display: inline-table;
 }
 
-ul#mainMenu li {
+ul#mainMenu > li {
     float: left;
     display: inline;
 }
 
-ul#mainMenu li a {
+ul#mainMenu > li a {
     display: block;
     width: 120px;
     font-weight: bold;
@@ -67,8 +67,21 @@ ul#mainMenu li a {
     font-family: sans-serif;
 }
 
-ul#mainMenu li a:hover, ul#mainMenu li a.active {
+ul#mainMenu > li a:hover, ul#mainMenu > li a.active {
     color: #FFFFFF;
+}
+
+ul#mainMenu > li:hover > ul{
+    display: block;
+}
+
+ul#mainMenu > li > ul{
+    position: absolute;
+    display: none;
+}
+
+ul#mainMenu > li > ul > li > a{
+    line-height:120%;
 }
 
 /* list of graph names */

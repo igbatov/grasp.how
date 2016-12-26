@@ -8,14 +8,35 @@ abstract class App
   protected $session;
   protected $db;
   protected $logger;
+  protected $i18n;
   protected $auth_id;
 
-  function __construct(Config $c, Session $s, DB $db, Logger $logger) {
+  function __construct(Config $c, Session $s, DB $db, Logger $logger, I18N $i18n) {
     $this->config = $c;
     $this->session = $s;
     $this->db = $db;
     $this->logger = $logger;
+    $this->i18n = $i18n;
+    $this->i18n->setI18NDir($this->getAppDir('i18n', false));
     $this->auth_id = null;
+  }
+
+  /**
+   * Save value in session
+   * @param $key
+   * @param $value
+   */
+  public function set($key, $value){
+    $this->session->set($key, $value);
+  }
+
+  /**
+   * Get value from session (previously saved with ->set())
+   * @param $key
+   * @return mixed
+   */
+  public function get($key){
+    return $this->session->get($key);
   }
 
   public function getLogger(){
@@ -73,6 +94,9 @@ abstract class App
       case "img":
           return $app_root."/client/img";
           break;
+      case "i18n":
+        return $app_root."/client/i18n";
+        break;
       case "log":
         return $app_root."/../../../logs";
         break;
@@ -182,4 +206,6 @@ abstract class App
     $this->postAccessLog();
     exit();
   }
+
+
 }
