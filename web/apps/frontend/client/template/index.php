@@ -28,10 +28,10 @@
           <li><a href="/setLang/en">EN</a></li>
         </ul>
       </li>
-      <li><a href="#purpose">ЦЕЛЬ</a></li>
-      <li><a href="#method">МЕТОД</a></li>
-      <li><a href="#contacts">КОНТАКТЫ</a></li>
-      <li><a href="http://my.grasp.how">ВХОД</a></li>
+      <li><a href="#purpose"><?php echo $this->i18n->__('GOAL') ?></a></li>
+      <li><a href="#method"><?php echo $this->i18n->__('METHOD') ?></a></li>
+      <li><a href="#contacts"><?php echo $this->i18n->__('CONTACTS') ?></a></li>
+      <li><a href="http://my.grasp.how"><?php echo $this->i18n->__('SIGN IN (UP)') ?></a></li>
     </ul>
   </div>
 
@@ -40,25 +40,21 @@
   <div id="quote" class="description">
     <blockquote>
       <p style="font-size: 1em;">
-        ...эвристика доступности позволяет объяснить почему некоторые мысли чрезвычайно сильно занимают умы людей,
-        в то время как другими они пренебрегают. Люди склонны оценивать важность идеи в зависимости от того насколько легко она вспоминается.
-        На последнее большое влияние имеет освещенность в СМИ. То что часто упоминается вытесняет остальные темы.
+        <?php echo $this->i18n->__('...availability heuristic helps explain why some issues are highly salient in the public’s mind while others are neglected. People tend to assess the relative importance of issues by the ease with which they are retrieved from memory—and this is largely determined by the extent of coverage in the media. Frequently mentioned topics populate the mind even as others slip away from awareness.'); ?>
         <br>...<br>
-        Правило СТЧВ (Существует Только То, Что Видно) означает что ни количество ни качество информации не имеет большого значения в субъективной уверенности.
-        Уверенность в своих убеждениях зависит, в большой степени, от связности истории которую вы можете рассказать о том что видите. Даже если вы видите немного.
-        Мы обычно не допускаем что существуют какие-то критически важные не учтенные нами данные - существует только то, что видно.
+        <?php echo $this->i18n->__('As the WYSIATI (What You See is All There is) rule implies, neither the quantity nor the quality of the evidence counts for much in subjective confidence. The confidence that individuals have in their beliefs depends mostly on the quality of the story they can tell about what they see, even if they see little. We often fail to allow for the possibility that evidence that should be critical to our judgment is missing—what we see is all there is.'); ?>
 
       </p>
       <footer>
-        — <cite>"Думая быстро и медленно", Даниэль Канеман, психолог, нобелевский лауреат 2002 года.</cite>
+        — <cite><?php echo $this->i18n->__("'Thinking, fast and slow', Daniel Kahneman, psychologist, Nobel Memorial Prize in Economic Sciences"); ?></cite>
       </footer>
     </blockquote>
   </div>
   <div class="description subscribe" style="text-align: right;">
     <input type="text" placeholder="youremail@domain.com">
-    <input id="sss" type="submit" value="Уведомлять о новых картах">
-    <div id="subscribe_msg_ok" style="display: none;">спасибо, вы подписаны!</div>
-    <div id="subscribe_msg_error" style="display: none;">введите email</div>
+    <input id="sss" type="submit" value="<?php echo $this->i18n->__("Subscribe to newsletter"); ?>">
+    <div id="subscribe_msg_ok" style="display: none;"><?php echo $this->i18n->__("thank you, now you subscribed!"); ?></div>
+    <div id="subscribe_msg_error" style="display: none;"><?php echo $this->i18n->__("enter you email"); ?></div>
   </div>
   <div id="purpose" class="description">
     <h1>Цель проекта</h1>
