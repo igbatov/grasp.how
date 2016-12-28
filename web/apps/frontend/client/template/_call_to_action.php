@@ -1,6 +1,6 @@
 <div class="call_to_action">
-  Можете составить качественную карту на интересную вам тему? пишите на igbatov@grasp.how!
+<?php echo $this->i18n->__("If you can design a high-quality map on a topic that is interesting to you, e-mail to igbatov@grasp.how!") ?>
   <br>
   <br>
-  Мы платим хорошие деньги за хорошие карты и обеспечиваем публикации на посещаемых ресурсах!
+<?php echo $this->i18n->__("We pay good money for good maps and provide publications in most visited resources!") ?>
 </div>

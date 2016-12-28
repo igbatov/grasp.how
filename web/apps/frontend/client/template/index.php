@@ -24,8 +24,8 @@
       <li>
         <a href="/setLang/en"><?php echo $this->i18n->getLang() == 'ru' ? 'РУ' : 'EN'?></a>
         <ul>
-          <li><a href="/setLang/ru">РУ</a></li>
           <li><a href="/setLang/en">EN</a></li>
+          <li><a href="/setLang/ru">РУ</a></li>
         </ul>
       </li>
       <li><a href="#purpose"><?php echo $this->i18n->__('GOAL') ?></a></li>
@@ -57,50 +57,45 @@
     <div id="subscribe_msg_error" style="display: none;"><?php echo $this->i18n->__("enter you email"); ?></div>
   </div>
   <div id="purpose" class="description">
-    <h1>Цель проекта</h1>
+    <h1><?php echo $this->i18n->__("Project objective"); ?></h1>
     <?php  include($this->getAppDir('template', false).'/_aim3.php'); ?>
   </div>
   <div id="video1" class="description">
     <div style="float:left; margin-right: 10%;">
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/0kMvLLOi-0A" frameborder="0" allowfullscreen></iframe>
+      <iframe width="560" height="315" src="<?php echo $this->i18n->__("https://www.youtube.com/embed/D_BMNLUkro8"); ?>" frameborder="0" allowfullscreen></iframe>
     </div>
-    <div style="padding-top: 15%;">Коротко о том что такое grasp.how и как им пользоваться.</div>
+    <div style="padding-top: 15%;"><?php echo $this->i18n->__("What is grasp.how and how to use it, in a nutshell"); ?></div>
 
     <div style="clear: both;"></div>
   </div>
   <div id="method" class="description">
-    <h1>Метод</h1>
-    <p>Заключается в том чтобы разделить все утверждения на следующие категории</p>
+    <h1><?php echo $this->i18n->__("Method"); ?></h1>
+    <p><?php echo $this->i18n->__("Aims at subdividing all statements into the following categories:"); ?></p>
     <ul>
-      <li>факт</li>
-      <li>гипотеза</li>
-      <li>иллюстрация</li>
-      <li>вопрос</li>
-      <li>материал для исследования</li>
-      <li>лучшие практики</li>
+      <li><?php echo $this->i18n->__("a fact"); ?></li>
+      <li><?php echo $this->i18n->__("a hypothesis"); ?></li>
+      <li><?php echo $this->i18n->__("an illustration"); ?></li>
+      <li><?php echo $this->i18n->__("a question"); ?></li>
+      <li><?php echo $this->i18n->__("research material"); ?></li>
+      <li><?php echo $this->i18n->__("the best practices"); ?></li>
     </ul>
     <p>
-      Далее фактам нужно присвоить достоверность.
-      Достоверность показывает насколько можно доверять указанному факту, насколько он проверен.
-      Достоверность может определяться, например, на основе авторитетности журнала, автора или
-      независимыми экспериментальными проверками.
+      <?php echo $this->i18n->__("Next, reliability level should be determined for all the facts. Reliability shows how much credence to give to the stated fact, and how proven it is."); ?>
     </p>
     <p>
-      Далее теориям и гипотезам нужно выставить важность - насколько вы считаете они вообще стоят внимания.
+      <?php echo $this->i18n->__("Then all theories and hypothesis should be rated for importance – how much attention you think is worth paying to them."); ?>
     </p>
     <p>
-      Наконец, нужно связать гипотезы с относящимися к ним фактами и проставить условные вероятности
-      - вероятности фактов при условии гипотез. Либо наоборот - гипотез при условии этих фактов
-      (но такие вероятности бывают известны значительно реже).
+      <?php echo $this->i18n->__("Finally, you need to link hypotheses with the facts relating to them, and determine conditional probabilities – the probabilities of facts on condition of hypotheses. Or, vice versa, the probability of hypotheses on condition of these facts (however, such probabilities are considerably rare to come across)."); ?>
     </p>
     <?php  //include($this->getAppDir('template', false).'/_example1.php'); ?>
   </div>
   <div id="purpose_extended" class="description">
-    <h1>Миссия</h1>
+    <h1><?php echo $this->i18n->__("Mission") ?></h1>
     <?php  include($this->getAppDir('template', false).'/_aim2.php'); ?>
   </div>
   <div id="contacts" class="description">
-    <h1>Контакты</h1>
+    <h1><?php echo $this->i18n->__("Contacts") ?></h1>
     <div id="social">
       <a target="_blank" href="https://www.google.com/+IgorBatov"><img src="<?php echo $this->getAppDir('img'); ?>/g.png"></a>
       <a target="_blank" href="https://www.facebook.com/igor.batov.351"><img src="<?php echo $this->getAppDir('img'); ?>/f.png"></a>
