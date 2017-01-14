@@ -21,12 +21,12 @@ GRASP.GraphViewEdge = function(drawer, graphViewElement, args){
   GRASP.mixin(graphViewElement, this);
 
   this.shape = this.drawer.createShape('path', {
-    data: this._getQuadPathData(this.start, this.stop, this.directionType, this.width, this.sourceNodeRadius, this.targetNodeRadius),
+    data: this._getQuadPathData(this.start, this.stop, this.directionType,this.sourceNodeRadius, this.targetNodeRadius),
     //hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
     opacity: args.opacity,
-    //fill: 'none'
-    fill: args.color
+    width: this.width,
+    fill: 'transparent'
   });
 
   this.setWidth(this.width);
@@ -47,6 +47,11 @@ GRASP.GraphViewEdge.prototype = {
   setEdgeType: function(edgeType){
     this.edgeType = edgeType;
     this.directionType = this.typeDirection[edgeType];
+    if(this.directionType == 'uni'){
+      this.drawer.createMarker("marker_"+this.edgeType, 0.6, this.getColor());
+      this.shape.setMarkerEnd("url(#marker_"+this.edgeType+")");
+    }
+    else this.shape.setMarkerEnd("");
   },
 
   /**
@@ -119,76 +124,34 @@ GRASP.GraphViewEdge.prototype = {
    * @param start
    * @param stop
    * @param directionType - bi-directional on uni-directional
-   * @param {number=} opt_width - width of the area in pixels, default is no width
    * @param {number=} opt_startOffset - distance from start node center to start node border
    * @param {number=} opt_stopOffset - distance from stop node center to stop node border
    * @return {*}
    * @private
    */
-  _getQuadPathData: function (start, stop, directionType, opt_width, opt_startOffset, opt_stopOffset){
+  _getQuadPathData: function (start, stop, directionType, opt_startOffset, opt_stopOffset){
     var path, delim = " ";
     var CURV = "Q";
-  //  opt_width=6;
+
     //perpendicular
     var p = {x:-(stop.y-start.y)/4, y:(stop.x-start.x)/4};
     var middle = {x:(start.x+(stop.x-start.x)/2 + p.x), y:(start.y+(stop.y-start.y)/2 + p.y)};
 
-    if(opt_width){
-      var norm = 2*Math.sqrt((p.x)*(p.x)+(p.y)*(p.y))/opt_width;
-      //bottom start
-      var bs = {x:(start.x-p.x/norm), y:(start.y-p.y/norm)};
-      //bottom middle
-      var bm = {x:(middle.x-p.x/norm), y:(middle.y-p.y/norm)};
-      //bottom end
-      var be = {x:(stop.x-p.x/norm), y:(stop.y-p.y/norm)};
-  //    var be = {x:(stop.x), y:(stop.y)};
-
-      //up start
-      var us = {x:(stop.x+p.x/norm), y:(stop.y+p.y/norm)};
-  //    var us = {x:(stop.x), y:(stop.y)};
-      //up middle
-      var um = {x:(middle.x+p.x/norm), y:(middle.y+p.y/norm)};
-      //up end
-      var ue = {x:(start.x+p.x/norm), y:(start.y+p.y/norm)};
-
-      path = "M "+Math.round(bs.x)+delim+Math.round(bs.y)
-          +delim+CURV+" "+Math.round(bm.x)+delim+Math.round(bm.y)+delim+Math.round(be.x)+delim+Math.round(be.y)
-          +delim+"L "+Math.round(us.x)+delim+Math.round(us.y)
-          +delim+CURV+" "+Math.round(um.x)+delim+Math.round(um.y)+delim+Math.round(ue.x)+delim+Math.round(ue.y)+delim+"Z";
-    }else{
-      path = "M "+Math.round(start.x)+delim+Math.round(start.y)
-          +delim+CURV+" "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(stop.x)+delim+Math.round(stop.y)
-          +delim+CURV+" "+Math.round(middle.x)+delim+Math.round(middle.y)+delim+Math.round(start.x)+delim+Math.round(start.y);
-    }
-
     // for uni-direction: add circle at the edge and circle intersection
-    if((directionType == 'uni') && (typeof(opt_stopOffset) != 'undefined' && opt_stopOffset>0)){
+    if(directionType == 'uni' && (typeof(opt_stopOffset) != 'undefined' && opt_stopOffset>0)){
       // get intersection of stop circle and tangent line
       var mv = {x:(middle.x-stop.x), y:(middle.y-stop.y)};
       var mvLength = Math.sqrt(Math.pow(mv.x,2) + Math.pow(mv.y,2));
       mv.x = mv.x/mvLength; mv.y = mv.y/mvLength;
-      var cx = stop.x+opt_stopOffset*mv.x, cy = stop.y+opt_stopOffset*mv.y;
-
-      // move this intersection 1 pixel in direction of perpendicular to straight line form start circle to stop circle
-      cx = cx - p.x/Math.sqrt((p.x)*(p.x)+(p.y)*(p.y)); cy = cy - p.y/Math.sqrt((p.x)*(p.x)+(p.y)*(p.y));
-
-      // draw circle around this point
-      path += this.describeArc(cx, cy, 3, 0, 359);
-
+      var stopx = stop.x+opt_stopOffset*mv.x, stopy = stop.y+opt_stopOffset*mv.y;
+    }else{
+      stopx = stop.x;
+      stopy = stop.y;
     }
-    // perpendicular to straight line form start circle to stop circle
-    //path += "M "+stop.x+delim+stop.y+" l "+(-p.x)+delim+(-p.y);
 
-    // tangent line
-    //path += "M "+stop.x+delim+stop.y+" L "+middle.x+delim+middle.y;
-
-    // line from stop circle the center of the bezier curve
-    //var middle2 = {x:(start.x+(stop.x-start.x)/2 + p.x/2), y:(start.y+(stop.y-start.y)/2 + p.y/2)};
-    //path += "M "+stop.x+delim+stop.y+" L "+middle2.x+delim+middle2.y;
-
-    // straight line form start circle to stop circle
-    //var middle3 = {x:(start.x+(stop.x-start.x)/2), y:(start.y+(stop.y-start.y)/2)};
-    //path += "M "+stop.x+delim+stop.y+" L "+middle3.x+delim+middle3.y;
+    path = "M " + Math.round(start.x) + delim + Math.round(start.y)
+        + delim + CURV + " " + Math.round(middle.x) + delim + Math.round(middle.y)
+        + delim + Math.round(stopx) + delim + Math.round(stopy);
 
     return path;
   },

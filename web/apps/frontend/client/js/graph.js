@@ -21,7 +21,8 @@ var showGraph = (function(){
     var TYPE_NODES_AREA_WIDTH = 15; // in %
 
     var LABEL_FONT_FAMILY = "sans-serif";
-    var LABEL_FONT_SIZE_FACTOR = 0.7;
+    var LABEL_FONT_SIZE_FACTOR = 1.6;
+    var NODE_SIZE_FACTOR = 2;
 
     var nodes = clone(orig_nodes);
 
@@ -71,7 +72,7 @@ var showGraph = (function(){
     var x, y=-verticalStep/2, size;
     for(var i in nodeTypes){
       x = nodeTypeAreaWidth/2;
-      size = nodeTypeAreaWidth/12;
+      size = nodeTypeAreaWidth/20;
       y += verticalStep;
       svgc.append("circle")
           .attr("nodeId", i)
@@ -101,7 +102,7 @@ var showGraph = (function(){
     // draw edges
     for(var i in edges){
       var edge = svgc.append("path")
-          .attr("d", getQuadPathData(nodes[edges[i].source], nodes[edges[i].target], nodes[edges[i].target].size))
+          .attr("d", getQuadPathData(nodes[edges[i].source], nodes[edges[i].target], nodes[edges[i].target].size*NODE_SIZE_FACTOR))
           .attr("stroke", edgeTypes[edges[i].type].color)
           .attr("stroke-width", "1")
           .style("fill", 'transparent')
@@ -119,7 +120,7 @@ var showGraph = (function(){
           .attr("nodeType", node.type)
           .attr("cx", node.x)
           .attr("cy", node.y)
-          .attr("r", node.size)
+          .attr("r", node.size*NODE_SIZE_FACTOR)
           .style("fill", node.color)
           .attr('fill-opacity', node.opacity);
     }

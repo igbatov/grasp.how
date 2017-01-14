@@ -13,6 +13,12 @@ GRASP.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainer
   this.shapes = {}; // all shapes added by addShape()
   this.shapeCallbacks = {};
   this.stageCallbacks = {};
+
+  // svg definition section, where SVG holds marker definitions
+  this.defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  this.svgroot.appendChild(this.defs);
+  this.markers = {}; // list of markers id: marker
+
   document.getElementById(stageContainerId).appendChild(this.svgroot);
   this._createSVGDragEvent();
   this._createDoubleTapEvent();
@@ -207,6 +213,28 @@ GRASP.SVGDrawer.prototype = {
 
   createGroup: function(args){
     return new GRASP.SVGDrawer.Group(new GRASP.SVGDrawer.BaseShape(args));
+  },
+
+  createMarker: function(id, scale, color){
+    console.log(this.markers[id],id, scale, color);
+    if(typeof this.markers[id] != 'undefined') return null;
+
+    this.markers[id] = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    this.markers[id].setAttribute('id', id);
+    this.markers[id].setAttribute('refX', 12*scale);
+    this.markers[id].setAttribute('refY', 6*scale);
+    this.markers[id].setAttribute('markerUnits', 'userSpaceOnUse');
+    this.markers[id].setAttribute('markerWidth', 30*scale);
+    this.markers[id].setAttribute('markerHeight', 30*scale);
+    this.markers[id].setAttribute('orient', 'auto');
+
+    this.path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    this.path.setAttribute('d', 'M 0 0 12 6 0 12 3 6');
+    this.path.setAttribute('transform', 'scale('+scale+')');
+    this.path.setAttribute('fill', color);
+
+    this.markers[id].appendChild(this.path);
+    this.defs.appendChild(this.markers[id]);
   },
 
   createShape: function(type, args){
@@ -760,6 +788,7 @@ GRASP.SVGDrawer.Path = function(baseShape, args){
   baseShape.setShape(this.shape);
   baseShape.init();
   this.setData(args.data);
+  this.setWidth(args.width);
 };
 
 GRASP.SVGDrawer.Path.prototype = {
@@ -774,6 +803,10 @@ GRASP.SVGDrawer.Path.prototype = {
     return false;
   },
 
+  setWidth: function(v){
+    this.getShape().setAttribute("stroke-width",  v);
+  },
+
   /**
    * Path can not be draggable in this implementation
    * @param v boolean
@@ -783,6 +816,22 @@ GRASP.SVGDrawer.Path.prototype = {
   },
   getDraggable: function(){
     return false;
+  },
+
+  /**
+   *
+   * @param url
+   */
+  setMarkerEnd: function(url){
+    this.getShape().setAttribute("marker-end", url);
+  },
+
+  /**
+   *
+   * @param url
+   */
+  setMarkerStart: function(url){
+    this.getShape().setAttribute("marker-start", url);
   }
 };
 
