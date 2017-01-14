@@ -216,7 +216,6 @@ GRASP.SVGDrawer.prototype = {
   },
 
   createMarker: function(id, scale, color){
-    console.log(this.markers[id],id, scale, color);
     if(typeof this.markers[id] != 'undefined') return null;
 
     this.markers[id] = document.createElementNS("http://www.w3.org/2000/svg", "marker");

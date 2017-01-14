@@ -1529,55 +1529,68 @@ GRASP.watch = function(oObj, sProp) {
 /**
  * Helper for GraphElementEditor
  * I moved it here because embed.js also use it
- * @param node
- * @param isEditable - is graph editable
- * @param isNodeFact - callback to check if node type is 'fact'
- * @param parentContents
- * @param condNodeTypes
- * @returns {{fields: {}, formKeys: *[]}}
  */
-GRASP.getNodeConditionalFormFields = function(node, isEditable, isNodeFact, parentContents, condNodeTypes){
-  var fields = {};
-  var formKeys = [{}]; // array of each combination of parent alternatives, ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+GRASP.nodeConditionalFormHelper = (function(){
 
-  // we calc conditional probabilities only for facts and propositions, so filter out others here
-  for(var i in parentContents){
-    if(condNodeTypes.indexOf(parentContents[i].type) == -1) delete parentContents[i];
-  }
+  /**
+   * @param node
+   * @param isEditable - is graph editable
+   * @param isNodeFact - callback to check if node type is 'fact'
+   * @param parentContents
+   * @param condNodeTypes
+   * @returns {{fields: {}, formKeys: *[]}}
+   */
+  var getNodeConditionalFormFields = function(node, isEditable, isNodeFact, parentContents, condNodeTypes){
+    var fields = {};
+    var formKeys = [{}]; // array of each combination of parent alternatives, ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
 
-  for(var parentContentId in parentContents){
-    addAlternativeColumn(formKeys, parentContentId, parentContents[parentContentId]);
-  }
-
-  // create form fields for each combination of parent alternatives
-  for(var i in formKeys){
-    var fieldLabel = '';
-    fields[i+'_IF_label'] = {type:'title',value:'IF: '};
-    for(var j in formKeys[i]){
-      fieldLabel = parentContents[j].alternatives[formKeys[i][j]].label;
-      fields[i+'_'+j+'_label'] = {type:'title',value:'----- "'+fieldLabel+'"'};
+    // we calc conditional probabilities only for facts and propositions, so filter out others here
+    for(var i in parentContents){
+      if(condNodeTypes.indexOf(parentContents[i].type) == -1) delete parentContents[i];
     }
 
-    fields[i+'_THEN_label'] = {type:'title',value:'THEN: '};
+    for(var parentContentId in parentContents){
+      addAlternativeColumn(formKeys, parentContentId, parentContents[parentContentId]);
+    }
 
-    var formKeyStr = JSON.stringify(formKeys[i]);
+    // create form fields for each combination of parent alternatives
+    for(var i in formKeys){
+      var fieldLabel = '';
+      fields[i+'_IF_label'] = {type:'title',value:'IF: '};
+      for(var j in formKeys[i]){
+        fieldLabel = parentContents[j].alternatives[formKeys[i][j]].label;
+        fields[i+'_'+j+'_label'] = {type:'title',value:'----- "'+fieldLabel.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
+      }
 
-    // create text fields for conditional probabilities of node's alternatives
+      fields[i+'_THEN_label'] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;THEN: '};
+
+      var formKeyStr = JSON.stringify(formKeys[i]);
+
+      // create text fields for conditional probabilities of node's alternatives
+      for(var j in node.alternatives){
+        // do not show second alternative for facts,
+        // as it is always filled in automatically from first alternative probability
+        var isFactDenial = isNodeFact(node.type) && j!=0;
+        if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;----- PROBABILITY: "'+node.alternatives[j].label.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
+        fields[formKeyStr+'__'+j] = {
+          type: isFactDenial ? 'hidden' : 'text',
+          value: GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
+          placeholder: 1/GRASP.getObjectLength(node.alternatives),
+          disabled:!isEditable
+        };
+      }
+    }
+
+    return {'fields':fields, formKeys:formKeys};
+  }
+
+  var isNodeConditionalFieldsEmpty = function(node){
     for(var j in node.alternatives){
-      // do not show second alternative for facts,
-      // as it is always filled in automatically from first alternative probability
-      var isFactDenial = isNodeFact(node.type) && j!=0;
-      if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'----- PROBABILITY: "'+node.alternatives[j].label+'"'};
-      fields[formKeyStr+'__'+j] = {
-        type: isFactDenial ? 'hidden' : 'text',
-        value: GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
-        placeholder: 1/GRASP.getObjectLength(node.alternatives),
-        disabled:!isEditable
-      };
+      if(GRASP.getObjectValues(node.alternatives[j].p).length == 0) return true;
     }
+    return false;
   }
 
-  return {'fields':fields, formKeys:formKeys};
   /**
    * Add parentContent alternatives to formKeys:
    * @param formKeys = [{p1:1},{p1:2}]
@@ -1597,8 +1610,8 @@ GRASP.getNodeConditionalFormFields = function(node, isEditable, isNodeFact, pare
   }
 
   /**
-   * alternativePs - is object where key is stringified formKey element,
-   * value is alternative probability given parent alternatives (=formKey)
+   * alternativePs - is object where key is stringified formKey element
+   * and value is alternative probability given parent alternatives (=formKey)
    * Returns alternative probability value found by formKey
    * @param alternativePs - like {'{"131-6":"0","131-8":"1"}': "0.5", '{"131-6":"0","131-8":"0"}': "1"}
    * @param formKey - like {"131-8":"0","131-6"}
@@ -1610,7 +1623,10 @@ GRASP.getNodeConditionalFormFields = function(node, isEditable, isNodeFact, pare
     return false;
   }
 
-};
-
+  return {
+    getNodeConditionalFormFields: getNodeConditionalFormFields,
+    isNodeConditionalFieldsEmpty: isNodeConditionalFieldsEmpty
+  };
+})();
 
 GRASP.DOMParser = new DOMParser();

@@ -8,7 +8,9 @@ var globalState = typeof(globalState) == 'undefined' ? {probabilitiesOpened: tru
  * @param extState - type of {probabilitiesOpened: true}
  */
 var NodeContentView = (function(GRASP, UI, extState){
+  // component props
   var _state = {active_alternative_id:null};
+  // children components
   var altContentList = [];
   var altLabelList = [];
 
@@ -57,16 +59,18 @@ var NodeContentView = (function(GRASP, UI, extState){
       view.appendChild(altLabelList[alt_id]);
     }
 
-    var toggle = UI.createToggle(
-      'Underlying conditional probabilities assumptions',
-      condPInfo.replace(/(?:\r\n|\r|\n)/g, '<br />'),
-      !extState.probabilitiesOpened,
-      function(opened){ extState.probabilitiesOpened = opened; },
-      'underlyingConditionalProbabilitiesAssumptionsLabel',
-      'underlyingConditionalProbabilitiesAssumptionsContent'
-    );
-    toggle.addEventListener('click', function(e){ e.stopPropagation(); });
-    view.appendChild(toggle);
+    if(condPInfo){
+      var toggle = UI.createToggle(
+          'Underlying conditional probabilities assumptions',
+          condPInfo.replace(/(?:\r\n|\r|\n)/g, '<br />'),
+          !extState.probabilitiesOpened,
+          function(opened){ extState.probabilitiesOpened = opened; },
+          'underlyingConditionalProbabilitiesAssumptionsLabel',
+          'underlyingConditionalProbabilitiesAssumptionsContent'
+      );
+      toggle.addEventListener('click', function(e){ e.stopPropagation(); });
+      view.appendChild(toggle);
+    }
 
     // add content
     for(var alt_id in content['alternatives']){
@@ -88,10 +92,8 @@ var NodeContentView = (function(GRASP, UI, extState){
   function AltContent(id, text, list){
     var c = GRASP.createElement('div',{class:'alt_content', id:'alt_content_'+id});
     c.appendChild(GRASP.createElement('div',{},text));
-
-    c.appendChild(GRASP.createElement('div',{},'<br>Sources:<br>'));
+    if(GRASP.getObjectLength(list)>0) c.appendChild(GRASP.createElement('div',{},'<br>Sources:<br>'));
     for(var i in list){
-      console.log(list[i]);
       c.appendChild(GRASP.createElement('span',{class:'nodeListItemReliability'}, '[Reliability - '+list[i].publisher_reliability+'/10]'));
       c.appendChild(GRASP.createElement('a',{class:'nodeListItem', href:list[i].url, target:'_blank'}, list[i].author+' // '+list[i].name+' // '+list[i].publisher));
     }

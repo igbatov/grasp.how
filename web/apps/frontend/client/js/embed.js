@@ -80,7 +80,7 @@
   }
 
   function getCondPsInfo(contents, edges, node_id_global_content_id_map){
-    var condPInfo = {}; // key - nodeId, value - text
+    var condPInfo = {}; // key - nodeId, value - text or null
     for(var i in contents){
       var parentContents = {};
       var parentIds = getParentIds(i, edges);
@@ -88,8 +88,14 @@
         var parentId = parentIds[j];
         parentContents[node_id_global_content_id_map[parentId]] = contents[parentId];
       }
+
+      if(GRASP.nodeConditionalFormHelper.isNodeConditionalFieldsEmpty(contents[i])){
+        condPInfo[i] = null;
+        continue;
+      }
+
       // decipher conditional probabilities into text
-      var f = GRASP.getNodeConditionalFormFields(
+      var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
           contents[i],
           false,
           function(type){return type == 'fact'},

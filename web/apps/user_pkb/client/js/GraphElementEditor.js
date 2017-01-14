@@ -288,7 +288,7 @@ GRASP.GraphElementEditor.prototype = {
                   var fields = {};
                   var formKeys = [{}]; // array of each combination of parent alternatives, ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
 
-                  var f = GRASP.getNodeConditionalFormFields(
+                  var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
                       node,
                       isEditable,
                       function(type){return type == that.NODE_TYPE_FACT;},

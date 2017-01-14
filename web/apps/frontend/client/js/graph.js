@@ -22,7 +22,7 @@ var showGraph = (function(){
 
     var LABEL_FONT_FAMILY = "sans-serif";
     var LABEL_FONT_SIZE_FACTOR = 1.6;
-    var NODE_SIZE_FACTOR = 2;
+    var NODE_SIZE_FACTOR = 1.6;
 
     var nodes = clone(orig_nodes);
 
