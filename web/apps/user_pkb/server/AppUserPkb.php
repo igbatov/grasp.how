@@ -3,6 +3,10 @@
 include("TextDiff.php");
 include("GRainQuerier.php");
 
+/**
+ * Controller - entry point for all requests
+ * Class AppUserPkb
+ */
 class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
@@ -50,9 +54,9 @@ class AppUserPkb extends App
       $graph_id = $vars[1];
       $history_step = isset($vars[2]) ? $vars[2] : null;
       if(!$history_step) $history_step = $this->getGraphLastStep($graph_id);
-      $this->graphs->cloneGraph($graph_id, $history_step, $this->getAuthId());
+      $new_graph_id = $this->graphs->cloneGraph($graph_id, $history_step, $this->getAuthId());
       $user_graph_ids = $this->getGraphIds($this->getAuthId());
-      $this->graphs->changeGraphPosition($graph_id, 'leftGraphView', $user_graph_ids);
+      $this->graphs->changeGraphPosition($new_graph_id, 'leftGraphView', $user_graph_ids);
       $this->redirect('/');
     }
 

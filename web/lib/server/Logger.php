@@ -68,7 +68,7 @@ class Logger{
     foreach(func_get_args() as $arg){
       if(is_array($arg)) $msg .= var_export($arg, true);
       else $msg .= $arg;
-      $msg .= " ";
+      $msg .= "\n";
     }
     error_log($msg);
     //$this->dbLog('log',$msg);

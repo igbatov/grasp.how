@@ -729,5 +729,7 @@ class Graphs {
     $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
     $this->logger->log($q);
     $this->db->execute($q);
+
+    return $new_graph_id;
   }
 }
