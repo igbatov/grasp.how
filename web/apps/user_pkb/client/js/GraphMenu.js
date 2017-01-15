@@ -136,40 +136,70 @@ GRASP.GraphMenu.prototype = {
       };
 
       /**
-       * show graph diff between graph selected in panel pos and its clone
+       * show list of clones of graph selected in position pos
        * @param pos
        */
       var showClones = function(pos){
         var graphId;
+
+        // determine graphId selected on position pos
         for(var i in that.selectedPosition){
           if(that.selectedPosition[i] == pos) graphId = i;
         }
 
+        var showGraph = function(cloneId){
+          // get graph diff and show it
+          that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
+            // change change graph position
+            that.selectedPosition[cloneId] = 'rightGraphView';
+            // and then show them
+            that.publisher.publish('show_graphs');
+            that.UI.closeModal(m);
+          });
+        };
+
+        var clonedFromList = that.UI.createList(clones[graphId]['cloned_from'],
+            {
+              'show clone': showGraph,
+              'show diff':function(cloneId){
+                // get graph diff and show it
+                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
+                  // and then show them
+                  that.publisher.publish('show_graphs');
+                  that.UI.closeModal(m);
+                });
+              }
+            });
+
+        var clonedToList = that.UI.createList(clones[graphId]['cloned_to'],
+            {
+              'show clone': showGraph,
+              'show diff':function(cloneId){
+                // get graph diff and show it
+                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
+                  // and then show them
+                  that.publisher.publish('show_graphs');
+                  that.UI.closeModal(m);
+                });
+              }
+            });
+
         var m = that.UI.createModal();
-        that.UI.setModalContent(m,that.UI.createList(clones[graphId],
-          {
-            'show clone':function(cloneId){
-              // get graph diff and show it
-              that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
-                // change change graph position
-                that.selectedPosition[cloneId] = 'rightGraphView';
-                // and then show them
-                that.publisher.publish('show_graphs');
-                that.UI.closeModal(m);
-              });
-            },
-            'show diff':function(cloneId){
-              // get graph diff and show it
-              that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
-                // and then show them
-                that.publisher.publish('show_graphs');
-                that.UI.closeModal(m);
-              });
-            }
-          })
-        );
+
+        var cloneListContainer = GRASP.createElement('div', {});
+        cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned from'));
+        cloneListContainer.appendChild(clonedFromList);
+        cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned to'));
+        cloneListContainer.appendChild(clonedToList);
+
+        that.UI.setModalContent(m,cloneListContainer);
       };
 
+      /**
+       * Graph select
+       * @param position
+       * @param graphId
+       */
       var onSelect = function(position, graphId){
         // set position of old selected graph to 'not to be shown'
         for(var i in that.selectedPosition){
@@ -212,11 +242,11 @@ GRASP.GraphMenu.prototype = {
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Edit', label:'Edit', callback:function(){onEdit('rightGraphView')}}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
 
-      // create logout link
+      // Share button
       document.getElementById(c.id).appendChild(that.UI.createButton({name:'Share',label:'Share', callback:function(){
         var m = that.UI.createModal();
         var uniqId = Math.floor(Math.random()*10000);
-        var embedCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/[12,15]/grasp-how-'+uniqId+'"></script></div>';
+        var embedCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/['+leftGraphId+']/grasp-how-'+uniqId+'"></script></div>';
         that.UI.setModalContent(
             m,
             that.UI.createForm({

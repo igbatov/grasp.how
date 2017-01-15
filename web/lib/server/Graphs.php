@@ -128,7 +128,7 @@ class Graphs {
         elseif($contentId['graphId1'] && $contentId['graphId2']){
           $q = "SELECT created_at, updated_at FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
           $rows = $this->db->execute($q);
-          if(GraphDizffCreator::isCloneModified($rows)) $status = 'modified';
+          if(GraphDiffCreator::isCloneModified($rows)) $status = 'modified';
         }
         $nodes[$content_id]['stickers'][] = $status;
 
