@@ -28,7 +28,7 @@ fs.readFile(arg1, (err, data) => {
                 var wrapper = window.d3.select("body").append("div").attr("id", "mainSVG").attr('style','background: #2C3338;');
 
                 // draw graph SVG in wrapper
-                var svg = showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"]);
+                var svg = showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
 
                 svg.attr({xmlns:'http://www.w3.org/2000/svg'});
 
