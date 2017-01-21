@@ -127,7 +127,7 @@ var addGraphActions = (function($,d3){
     }
 
     // edges
-    d3.selectAll('path').attr('fill-opacity', 1);
+    //d3.selectAll('path').attr('fill-opacity', 1);
 
     // labels
     d3.selectAll('text').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 1);
