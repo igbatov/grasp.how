@@ -8,12 +8,21 @@ chdir($curdir);
 
 include($root.'/web/lib/server/Config.php');
 include($root.'/web/lib/server/DB.php');
+include($root.'/web/lib/server/GraphDiffCreator.php');
+include($root.'/web/lib/server/ContentIdConverter.php');
+include($root.'/web/lib/server/Graphs.php');
+include($root.'/web/lib/server/ErrorHandler.php');
+include($root.'/web/lib/server/Logger.php');
 include($root."/web/apps/frontend/server/EmbGraph.php");
 $image = new Imagick();
 
 $c = new Config();
 $db = new DB($c->getDbConf());
-$emb_graph = new EmbGraph($db);
+$contentIdConverter = new ContentIdConverter();
+$eh = new ErrorHandler();
+$logger = new Logger($db, $eh, $curdir.'../../logs', 'generator.php');
+$graphs = new Graphs($db, $contentIdConverter, $logger, null);
+$emb_graph = new EmbGraph($db, $contentIdConverter, $graphs);
 // for each graph generate its jpeg image with #node converter.js graph.svg
 $q = "SELECT id FROM graph";
 foreach($db->execute($q) as $row){
