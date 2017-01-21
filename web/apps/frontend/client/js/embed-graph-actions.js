@@ -63,8 +63,8 @@ var addGraphActions = (function($,d3){
   }
 
   function createTextBoxes(nodes){
-    var TEXT_BOX_WIDTH_CENTER_MARGIN = 20; // in %
-    var TEXT_BOX_WIDTH_BORDER_MARGIN = 5; // in %
+    var TEXT_BOX_WIDTH_CENTER_MARGIN = 17; // in %
+    var TEXT_BOX_WIDTH_BORDER_MARGIN = 13; // in %
     var TEXT_BOX_WIDTH_BOTTOM_MARGIN = 5; // in %
 
     // create div (textBox) where node content will be shown

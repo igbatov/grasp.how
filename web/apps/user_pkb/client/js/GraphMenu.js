@@ -247,7 +247,7 @@ GRASP.GraphMenu.prototype = {
         var m = that.UI.createModal();
         var uniqId = Math.floor(Math.random()*10000);
         var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/['+leftGraphId+']/grasp-how-'+uniqId+'"></script></div>';
-        var embedImageCode = '<a href="http://www.grasp.how/embed/['+leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+leftGraphId+'.jpg"></a>';
+        var embedImageCode = '<a target="_blank" href="http://www.grasp.how/embed/['+leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+leftGraphId+'.jpg"></a>';
         that.UI.setModalContent(
             m,
             that.UI.createForm({

@@ -51,7 +51,7 @@
     // ------- show graph ----------
     var GRAPH_CONTAINER_LEFT_WIDTH_MARGIN = 1; // in %
     var GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN = 2; // in %
-    var GRAPH_CONTAINER_BOTTOM_MARGIN = 30; // in %
+    var GRAPH_CONTAINER_BOTTOM_MARGIN = 12; // in %
 
     // remove old svg id any
     $("#mainSVG").remove();
