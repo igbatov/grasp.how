@@ -388,15 +388,35 @@ class AppUserPkb extends App
       case 'getGraphsCloneList':
         $clone_list = array();
         $graph_ids = $this->getGraphIds($this->getAuthId());
-        $q = "SELECT * FROM graph WHERE cloned_from_graph_id IN ('".implode("','", $graph_ids)."')";
-        $rows = $this->db->execute($q);
-        foreach($rows as $row){
-          $graph = json_decode($row['graph'], true);
-          if(!isset($clone_list[$row['cloned_from_graph_id']])) $clone_list[$row['cloned_from_graph_id']] = array();
-          $q = "SELECT username FROM auth WHERE id = '".$row['auth_id']."'";
-          $users = $this->db->execute($q);
-          $clone_list[$row['cloned_from_graph_id']][$row['id']] = $users[0]['username'].":".$graph['name'];
+
+        foreach($graph_ids as $graph_id){
+          $clone_list[$graph_id] = array('cloned_from'=>array(), 'cloned_to'=>array());
+
+          // get cloned from graph name and username
+          $q = "SELECT cloned_from_graph_id FROM graph WHERE id = '".$graph_id."'";
+          $rows = $this->db->execute($q);
+          if(!count($rows)) continue;
+
+          $cloned_from_graph_id = $rows[0]['cloned_from_graph_id'];
+          if(is_numeric($cloned_from_graph_id)){
+            $q = "SELECT auth_id, graph FROM graph WHERE id = '".$cloned_from_graph_id."'";
+            $cloned_from_graphname = json_decode($this->db->execute($q)[0]['graph'], true)['name'];
+            $cloned_from_auth_id = $this->db->execute($q)[0]['auth_id'];
+            $q = "SELECT username FROM auth WHERE id = '".$cloned_from_auth_id."'";
+            $cloned_from_username = $this->db->execute($q)[0]['username'];
+            $clone_list[$graph_id]['cloned_from'][$cloned_from_graph_id] = $cloned_from_username.": ".$cloned_from_graphname;
+          }
+
+          // now get list of cloned to graph name and username
+          $q = "SELECT id, auth_id, graph FROM graph WHERE cloned_from_graph_id = '".$graph_id."'";
+          $rows = $this->db->execute($q);
+          foreach($rows as $row){
+            $q = "SELECT username FROM auth WHERE id = '".$row['auth_id']."'";
+            $username = $this->db->execute($q)[0]['username'];
+            $clone_list[$graph_id]['cloned_to'][$row['id']] = $username.": ".json_decode($row['graph'], true)['name'];
+          }
         }
+
         $this->showRawData(json_encode($clone_list));
         break;
 
