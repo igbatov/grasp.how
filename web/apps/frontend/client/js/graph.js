@@ -106,6 +106,7 @@ var showGraph = (function(){
           .attr("stroke", edgeTypes[edges[i].type].color)
           .attr("stroke-width", "1")
           .style("fill", 'transparent')
+          .style("fill-opacity", '0')
           .attr("class", "edges");
       if(edges[i].type == 'causal' || edges[i].type == 'conditional'){
         edge.attr("marker-end", "url(#triangle_"+edges[i].type+")");

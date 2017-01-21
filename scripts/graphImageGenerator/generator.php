@@ -6,6 +6,10 @@ $node = '/root/.nvm/versions/node/v4.4.3/bin/node';
 
 chdir($curdir);
 
+/* handle cli args  */
+if(isset($argv[1]) && is_numeric($argv[1])) $graph_id = $argv[1];
+else $graph_id = null;
+
 include($root.'/web/lib/server/Config.php');
 include($root.'/web/lib/server/DB.php');
 include($root.'/web/lib/server/GraphDiffCreator.php');
@@ -24,7 +28,7 @@ $logger = new Logger($db, $eh, $curdir.'../../logs', 'generator.php');
 $graphs = new Graphs($db, $contentIdConverter, $logger, null);
 $emb_graph = new EmbGraph($db, $contentIdConverter, $graphs);
 // for each graph generate its jpeg image with #node converter.js graph.svg
-$q = "SELECT id FROM graph";
+$q = "SELECT id FROM graph ".($graph_id ? "WHERE id = '".$graph_id."'" : "");
 foreach($db->execute($q) as $row){
   // wrap in try-catch for one bad graph could not stop all proccess
   try{
@@ -34,7 +38,7 @@ foreach($db->execute($q) as $row){
     $svg = file_get_contents($curdir.'/'.$row['id'].'.svg');
     $svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'.$svg;
     $image->readImageBlob($svg);
-    $image->setImageFormat('jpeg');
+    $image->setImageFormat('jpg');
     $image->setImageCompressionQuality(90);
     $image->writeImage($curdir.'/'.$row['id'].".jpg");
 
