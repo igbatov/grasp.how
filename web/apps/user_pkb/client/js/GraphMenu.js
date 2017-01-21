@@ -246,12 +246,23 @@ GRASP.GraphMenu.prototype = {
       document.getElementById(c.id).appendChild(that.UI.createButton({name:'Share',label:'Share', callback:function(){
         var m = that.UI.createModal();
         var uniqId = Math.floor(Math.random()*10000);
-        var embedCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/['+leftGraphId+']/grasp-how-'+uniqId+'"></script></div>';
+        var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/['+leftGraphId+']/grasp-how-'+uniqId+'"></script></div>';
+        var embedImageCode = '<a href="http://www.grasp.how/embed/['+leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+leftGraphId+'.jpg"></a>';
         that.UI.setModalContent(
             m,
             that.UI.createForm({
-              'title':{type:'title', value:'To place the "'+graphs[leftGraphId].getGraphName()+'" in a web page, copy snippet below'},
-              'name':{type:'textarea', label:'', value:embedCode}
+              'title':{
+                type:'title',
+                value:'To place the "'+graphs[leftGraphId].getGraphName()+'" in a web page, copy snippet below'
+              },
+              'tabs':{
+                type:'tabs',
+                items:{
+                  'javascript code':GRASP.createElement('textarea',{},embedJSCode),
+                  'image':GRASP.createElement('textarea',{},embedImageCode)
+                },
+                defaultItem:'javascript code'
+              }
             })
         );
       }}));

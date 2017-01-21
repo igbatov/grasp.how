@@ -1,0 +1,20 @@
+.ui_tabs{
+
+}
+
+.ui_tab{
+    cursor: pointer;
+    padding: 1px 6px 0px 6px;
+}
+
+.ui_tab.active{
+    background-color: grey;
+}
+
+.ui_tab_content{
+    display: none;
+}
+
+.ui_tab_content.active{
+    display: block;
+}

@@ -334,6 +334,91 @@ GRASP.UIElements.prototype = {
   },
 
   /**
+   * Create Toggle element - content will be toggled upon label click
+   * @param attrs = {label:, content:, is_default_hide:, callback:, labelClassName:, contentClassName:, name:, formname:}
+   * @returns {HTMLElement}
+   * @constructor
+   */
+  createToggle: function(attrs){
+    var label = attrs.label,
+        content = attrs.content,
+        is_default_hide = attrs.is_default_hide,
+        callback = attrs.callback,
+        labelClassName = attrs.labelClassName,
+        contentClassName = attrs.contentClassName;
+
+    var uniqId = this.generateId();
+
+    if(GRASP.typeof(label) == 'string') label = GRASP.createElement('div',{class:labelClassName}, label);
+    if(GRASP.typeof(content) == 'string') content = GRASP.createElement('div',{class:contentClassName}, content);
+
+    var c = GRASP.createElement('div',{});
+    label.addEventListener('click', function(){
+      if(content.style.display == 'block'){
+        if(callback) callback(false);
+        content.style.display = 'none';
+      }else{
+        if(callback) callback(true);
+        content.style.display = 'block';
+      }
+    });
+    c.appendChild(label);
+    GRASP.setDisplay(content, is_default_hide === false ? 'block' : 'none');
+    c.appendChild(content);
+
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'toggle', definition:attrs, dom:c});
+
+    return c;
+  },
+
+  /**
+   * Create horizontal tabs
+   * @param attrs - {name:, formname:, items:, defaultItem:}
+   * items - {'tabLabel':HTMLElement, ...}
+   * @returns {HTMLElement}
+   */
+  createTabs: function(attrs){
+    var uniqId = this.generateId();
+
+    var c = GRASP.createElement('div',{class:'ui_tabs'});
+    var tabsC = GRASP.createElement('div',{class:'ui_tabs_tabContainer'});
+    var tabContentC = GRASP.createElement('div',{class:'ui_tabs_tabContentContainer'});
+    c.appendChild(tabsC);
+    c.appendChild(tabContentC);
+
+    for(var tabLabel in attrs.items){
+      var tabUniqId = this.generateId();
+      var tab = GRASP.createElement('span',{id:tabUniqId, class:'ui_tab'}, tabLabel);
+      tabsC.appendChild(tab);
+      var content = GRASP.createElement('div',{id:'tabContent_'+tabUniqId, class:'ui_tab_content'}, '');
+      content.appendChild(attrs.items[tabLabel]);
+      tabContentC.appendChild(content);
+      if(tabLabel == attrs.defaultItem){
+        tab.classList.add("active");
+        content.classList.add("active");
+      }
+    }
+
+    tabsC.addEventListener('click', function(e){
+      /* tab */
+      Array.prototype.map.call(tabsC.getElementsByClassName('ui_tab'), function(item){
+        item.classList.remove("active");
+      });
+      document.getElementById(e.target.id).classList.add('active');
+
+      /* content */
+      Array.prototype.map.call(tabContentC.getElementsByClassName('ui_tab_content'), function(item){
+        item.classList.remove("active");
+      });
+      document.getElementById('tabContent_'+e.target.id).classList.add('active');
+    });
+
+    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'toggle', definition:attrs, dom:c});
+    return c;
+  },
+
+
+  /**
    * Creates form fields and buttons
    * @param fields
    * @param {Function=} callback - called when any button from fields is pressed
@@ -379,6 +464,7 @@ GRASP.UIElements.prototype = {
       if(fields[name]['type'] == 'hidden') form.appendChild(this.createHidden({name:name,value:fields[name]['value'], formname:uniqId, disabled:fields[name]['disabled']}));
       if(fields[name]['type'] == 'title') form.appendChild(this.createTitle({value:fields[name]['value'], formname:uniqId}));
       if(fields[name]['type'] == 'list') form.appendChild(this.createListBox({name:name,items:fields[name]['items'], itemActions:fields[name]['itemActions'], addLabel: fields[name]['addLabel'], addCallback:fields[name]['addCallback'], formname:uniqId}));
+      if(fields[name]['type'] == 'tabs') form.appendChild(this.createTabs({name:name, items:fields[name]['items'], defaultItem:fields[name]['defaultItem'], formname:uniqId}));
     }
 
     return form;
@@ -563,37 +649,6 @@ GRASP.UIElements.prototype = {
     }
 
     return li;
-  },
-
-  /**
-   * Create Toggle element - content will be toggled upon label click
-   * @param label
-   * @param content
-   * @param is_default_hide
-   * @param callback
-   * @param labelClassName
-   * @param contentClassName
-   * @returns {HTMLElement}
-   * @constructor
-   */
-  createToggle: function(label, content, is_default_hide, callback, labelClassName, contentClassName){
-    if(GRASP.typeof(label) == 'string') label = GRASP.createElement('div',{class:labelClassName}, label);
-    if(GRASP.typeof(content) == 'string') content = GRASP.createElement('div',{class:contentClassName}, content);
-
-    var c = GRASP.createElement('div',{});
-    label.addEventListener('click', function(){
-      if(content.style.display == 'block'){
-        if(callback) callback(false);
-        content.style.display = 'none';
-      }else{
-        if(callback) callback(true);
-        content.style.display = 'block';
-      }
-    });
-    c.appendChild(label);
-    GRASP.setDisplay(content, is_default_hide === false ? 'block' : 'none');
-    c.appendChild(content);
-    return c;
   },
 
   /**
