@@ -68,6 +68,22 @@
 
     <div style="clear: both;"></div>
   </div>
+  <div id="video2" class="description">
+    <div style="float:left; margin-right: 10%;">
+      <iframe width="560" height="315" src="<?php echo $this->i18n->__("https://www.youtube.com/embed/JRFGqepAnhU"); ?>" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <div style="padding-top: 15%;"><?php echo $this->i18n->__("Real-life example: map of Evolution theory"); ?></div>
+
+    <div style="clear: both;"></div>
+  </div>
+  <div id="video3" class="description">
+    <div style="float:left; margin-right: 10%;">
+      <iframe width="560" height="315" src="<?php echo $this->i18n->__("https://www.youtube.com/embed/2Fw-zeoT2ew"); ?>" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <div style="padding-top: 15%;"><?php echo $this->i18n->__("How to share map, clone maps of others and get their modifications"); ?></div>
+
+    <div style="clear: both;"></div>
+  </div>
   <div id="method" class="description">
     <h1><?php echo $this->i18n->__("Method"); ?></h1>
     <p><?php echo $this->i18n->__("Aims at subdividing all statements into the following categories:"); ?></p>
