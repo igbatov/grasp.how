@@ -578,6 +578,7 @@ class AppUserPkb extends App
   }
 
   private function isUserOwnGraph($graph_id){
+    if($graph_id == 'none') return true;
     $q = "SELECT auth_id FROM graph WHERE id = '".$graph_id."'";
     $rows = $this->db->execute($q);
     return isset($rows[0]) ? $rows[0]['auth_id'] == $this->getAuthId() : false;
