@@ -448,6 +448,10 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($items));
         break;
 
+      case 'get_username':
+        $this->showRawData(json_encode(array('username'=>$this->session->getUsername())));
+        break;
+
       case 'findSources':
         $r = $this->getRequest();
         if(strlen($r['substring']) == 0) break;

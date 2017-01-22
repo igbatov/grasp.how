@@ -239,11 +239,11 @@ GRASP.GraphMenu.prototype = {
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('leftGraphView')}}));
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Clones', label:'Clones', callback:function(){showClones('leftGraphView')}}));
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'CalculateBayes', label:'Bayes|>', callback:function(){calculateBayes('leftGraphView')}}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Edit', label:'Edit', callback:function(){onEdit('rightGraphView')}}));
+      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Edit', label:'Edit name', callback:function(){onEdit('rightGraphView')}}));
       document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
 
       // Share button
-      document.getElementById(c.id).appendChild(that.UI.createButton({name:'Share',label:'Share', callback:function(){
+      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Share',label:'Share', class:'share_button', callback:function(){
         var m = that.UI.createModal();
         var uniqId = Math.floor(Math.random()*10000);
         var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/['+leftGraphId+']/grasp-how-'+uniqId+'"></script></div>';
@@ -266,7 +266,14 @@ GRASP.GraphMenu.prototype = {
             })
         );
       }}));
-      document.getElementById(c.id).appendChild(GRASP.createElement('a',{href:'/logout',class:'logout'},'logout'));
+
+      // logout button
+      document.getElementById('rightSelectContainer').appendChild(GRASP.createElement('a',{href:'/logout',class:'logout'},'logout'));
+
+      // username
+      that.publisher.publish(['get_username']).then(function(data){
+        document.getElementById('rightSelectContainer').appendChild(GRASP.createElement('span',{class:'username'},data.username));
+      });
     });
   }
 };

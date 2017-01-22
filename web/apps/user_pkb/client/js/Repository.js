@@ -190,6 +190,12 @@ GRASP.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
+    }else if(name == 'get_username'){
+      this.pendingRequests.push({url:'get_username', data:e.getData(), callback:function(data){
+        that.setEventResponse(e, data, 'JSON');
+      }});
+      this.sendPendingRequests()
+
     }else if(name == 'query_grain'){
       this.pendingRequests.push({url:'query_grain', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');

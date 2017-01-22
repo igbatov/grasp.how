@@ -55,11 +55,25 @@
 }
 
 #rightSelectContainer{
-    width: 30%;
+    width: 40%;
 }
 
 .GeneralButtons{
     width:20%;
     display: inline-block;
+}
+
+.username{
+    float: right;
+    margin-right: 1%;
+}
+
+.logout{
+    float: right;
+    margin-right: 1%;
+}
+
+.share_button{
+    margin-left: 1%;
 }
 
