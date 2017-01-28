@@ -6,7 +6,7 @@ GRASP.UIElements = function(){
   this.uniqueId = 0;
   this.SELECT_ITEM_MAX_LENGTH = 255;
   // list of all elements created
-  this.elements = new GRASP.Table(['id', 'type', 'formname', 'name', 'definition', 'dom']);
+  this.elements = new GRASP.Table(['id', 'type', 'formname', 'name', 'definition', 'dom', 'state']);
 };
 
 GRASP.UIElements.prototype = {
@@ -255,14 +255,48 @@ GRASP.UIElements.prototype = {
 
   /**
    *
-   * @param attrs - {name:, value:, label:, disabled:, callback:, formname:}
+   * @param attrs - {name:, value:, label:, disabled:, callback:, formname:, callback_delay:}
    * @returns {HTMLElement}
    */
   createTextareaBox: function(attrs){
     var uniqId = this.generateId();
-    var el = GRASP.createElement('textarea',{id:uniqId,name:attrs.name, placeholder:attrs.label, disabled:attrs.disabled}, attrs.value, attrs.callback);
+    // if attrs.callback_delay>0 they want us to call callback
+    // only after attrs.callback_delay ms after user finished typing
+    var CALLBACK_DELAY = typeof(attrs.callback_delay) != 'undefined' ? attrs.callback_delay : 0;
+    // internal state variables of element
+    var state = {
+      timer: null
+    };
+    var el = GRASP.createElement(
+        'textarea',
+        {
+          id:uniqId,
+          name:attrs.name,
+          placeholder:attrs.label,
+          disabled:attrs.disabled
+        },
+        attrs.value,
+        function(name, value){
+          if(CALLBACK_DELAY>0){
+            if(state.timer) clearTimeout(state.timer);
+            state.timer = setTimeout(function(){
+              attrs.callback(name, value)
+            }, CALLBACK_DELAY)
+          }else{
+            attrs.callback(name, value)
+          }
+        }
+    );
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'textarea', definition:attrs, dom:el});
+    this.elements.insertRow({
+      id:uniqId,
+      formname:attrs.formname,
+      name:attrs.name,
+      type:'textarea',
+      definition:attrs,
+      dom:el,
+      state:state
+    });
 
     return el;
   },
@@ -432,7 +466,7 @@ GRASP.UIElements.prototype = {
 
     for(name in fields){
       if(fields[name]['type'] == 'text') form.appendChild(this.createTextBox({name:name, value:fields[name]['value'], label:fields[name]['label'],placeholder:fields[name]['placeholder'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
-      if(fields[name]['type'] == 'textarea') form.appendChild(this.createTextareaBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
+      if(fields[name]['type'] == 'textarea') form.appendChild(this.createTextareaBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], callback_delay:fields[name]['callback_delay'], formname:uniqId}));
       if(fields[name]['type'] == 'date') form.appendChild(this.createDate({name:name, value:fields[name]['value'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
       if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox({name:name, items:fields[name]['items'], defaultValue:fields[name]['value'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId, nodrop:fields[name]['nodrop']}));
       if(fields[name]['type'] == 'button'){

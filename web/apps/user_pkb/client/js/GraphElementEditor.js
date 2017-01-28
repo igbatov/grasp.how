@@ -212,10 +212,10 @@ GRASP.GraphElementEditor.prototype = {
     formDef['type'] = {type:'select',items:[],value:'',disabled:!isEditable};
     formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100,disabled:!isEditable};
     formDef['node-alternative_division_line'] = {type:'hidden'};
-    formDef['label'] = {type:'textarea',value:'',disabled:!isEditable};
+    formDef['label'] = {type:'textarea',value:'',disabled:!isEditable, callback_delay:1000};
     formDef['reliability'] = {type:'hidden'};
     //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
-    formDef['text'] ={type:'textarea',label:'',disabled:!isEditable};
+    formDef['text'] ={type:'textarea',label:'',disabled:!isEditable, callback_delay:1000};
     formDef['list'] ={type:'list',disabled:!isEditable};
 
     var form = this.UI.createForm(formDef);
