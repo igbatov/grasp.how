@@ -1,0 +1,35 @@
+a:10:{s:7:"attribs";a:4:{s:5:"xmlns";s:36:"http://pear.php.net/dtd/rest.package";s:9:"xmlns:xsi";s:41:"http://www.w3.org/2001/XMLSchema-instance";s:11:"xmlns:xlink";s:28:"http://www.w3.org/1999/xlink";s:18:"xsi:schemaLocation";s:80:"http://pear.php.net/dtd/rest.package    http://pear.php.net/dtd/rest.package.xsd";}s:1:"n";s:3:"MDB";s:1:"c";s:12:"pear.php.net";s:2:"ca";a:2:{s:7:"attribs";a:1:{s:10:"xlink:href";s:16:"/rest/c/Database";}s:8:"_content";s:8:"Database";}s:1:"l";s:9:"BSD style";s:1:"s";s:26:"database abstraction layer";s:1:"d";s:1317:"PEAR MDB is a merge of the PEAR DB and Metabase php database abstraction layers.
+It provides a common API for all support RDBMS. The main difference to most
+other DB abstraction packages is that MDB goes much further to ensure
+portability. Among other things MDB features:
+* An OO-style query API
+* A DSN (data source name) or array format for specifying database servers
+* Datatype abstraction and on demand datatype conversion
+* Portable error codes
+* Sequential and non sequential row fetching as well as bulk fetching
+* Ordered array and associative array for the fetched rows
+* Prepare/execute (bind) emulation
+* Sequence emulation
+* Replace emulation
+* Limited Subselect emulation
+* Row limit support
+* Transactions support
+* Large Object support
+* Index/Unique support
+* Module Framework to load advanced functionality on demand
+* Table information interface
+* RDBMS management methods (creating, dropping, altering)
+* RDBMS independent xml based schema definition management
+* Altering of a DB from a changed xml schema
+* Reverse engineering of xml schemas from an existing DB (currently only MySQL)
+* Full integration into the PEAR Framework
+* Wrappers for the PEAR DB and Metabase APIs
+* PHPDoc API documentation
+Currently supported RDBMS:
+MySQL
+PostGreSQL
+Oracle
+Frontbase
+Querysim
+Interbase/Firebird
+MSSQL";s:1:"r";a:1:{s:7:"attribs";a:1:{s:10:"xlink:href";s:11:"/rest/r/mdb";}}s:2:"dc";s:12:"pear.php.net";s:2:"dp";s:4:"MDB2";}

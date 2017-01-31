@@ -1,0 +1,73 @@
+a:14:{s:7:"attribs";a:4:{s:5:"xmlns";s:36:"http://pear.php.net/dtd/rest.release";s:9:"xmlns:xsi";s:41:"http://www.w3.org/2001/XMLSchema-instance";s:11:"xmlns:xlink";s:28:"http://www.w3.org/1999/xlink";s:18:"xsi:schemaLocation";s:81:"http://pear.php.net/dtd/rest.release     http://pear.php.net/dtd/rest.release.xsd";}s:1:"p";a:2:{s:7:"attribs";a:1:{s:10:"xlink:href";s:11:"/rest/p/mdb";}s:8:"_content";s:3:"MDB";}s:1:"c";s:12:"pear.php.net";s:1:"v";s:5:"1.3.0";s:2:"st";s:6:"stable";s:1:"l";s:9:"BSD style";s:1:"m";s:6:"lsmith";s:1:"s";s:26:"database abstraction layer";s:1:"d";s:1317:"PEAR MDB is a merge of the PEAR DB and Metabase php database abstraction layers.
+It provides a common API for all support RDBMS. The main difference to most
+other DB abstraction packages is that MDB goes much further to ensure
+portability. Among other things MDB features:
+* An OO-style query API
+* A DSN (data source name) or array format for specifying database servers
+* Datatype abstraction and on demand datatype conversion
+* Portable error codes
+* Sequential and non sequential row fetching as well as bulk fetching
+* Ordered array and associative array for the fetched rows
+* Prepare/execute (bind) emulation
+* Sequence emulation
+* Replace emulation
+* Limited Subselect emulation
+* Row limit support
+* Transactions support
+* Large Object support
+* Index/Unique support
+* Module Framework to load advanced functionality on demand
+* Table information interface
+* RDBMS management methods (creating, dropping, altering)
+* RDBMS independent xml based schema definition management
+* Altering of a DB from a changed xml schema
+* Reverse engineering of xml schemas from an existing DB (currently only MySQL)
+* Full integration into the PEAR Framework
+* Wrappers for the PEAR DB and Metabase APIs
+* PHPDoc API documentation
+Currently supported RDBMS:
+MySQL
+PostGreSQL
+Oracle
+Frontbase
+Querysim
+Interbase/Firebird
+MSSQL";s:2:"da";s:19:"2004-04-22 07:26:53";s:1:"n";s:1479:"MDB requires PHP 4.2 from now on.
+MDB:
+- fixed PHP5 compatibility issue in MDB::isError()
+all drivers:
+- added quoteIdentifier() method
+- added sequence_col_name option to make the column name inside sequence
+  emulation tables configurable
+- renamed toString() to __toString() in order to take advantage of new PHP5
+  goodness and made it public
+- unified the native error raising methods (tested on oracle, pgsql, mysql and ibase)
+- fixed bug #1159 which would break index handling in getTableFieldDefinition()
+  if not in portability mode
+MDB_ibase:
+- fixed several bugs in the buffering code
+- fixed NULL management
+- fixed replace()
+MDB_oci8:
+- fixed several bugs in the buffering code
+- added native currId() implementation
+MDB_Manager_oci8:
+- added listTables() and listTableFields()
+MDB_mysql:
+- added quoteIdentifier() method
+MDB_fbsql:
+- removed broken implementations of currId()
+MDB_mssql:
+- removed broken implementations of currId()
+- added quoteIdentifier() method
+MDB_Manager_mysql:
+- fixed mysql 4.0.13 issue in createSequence()
+- several fixes to ensure the correct case is used when fetching data
+  without the portability flag setting enabled
+MDB_Manager_mssql:
+- added listTables() and listTableFields()
+- added getTableFieldDefinition() (still alpha quality)
+test suite:
+- added several test and applied PHP5 compatibility fixes
+- fixed a wrong assumption in the fetchmode bug test
+- moved set_time_limit() call to the setup script to be easier to customize";s:1:"f";s:6:"218957";s:1:"g";s:33:"http://pear.php.net/get/MDB-1.3.0";s:1:"x";a:1:{s:7:"attribs";a:1:{s:10:"xlink:href";s:17:"package.1.3.0.xml";}}}

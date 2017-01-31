@@ -1,0 +1,20 @@
+a:8:{s:7:"attribs";a:4:{s:5:"xmlns";s:36:"http://pear.php.net/dtd/rest.package";s:9:"xmlns:xsi";s:41:"http://www.w3.org/2001/XMLSchema-instance";s:11:"xmlns:xlink";s:28:"http://www.w3.org/1999/xlink";s:18:"xsi:schemaLocation";s:80:"http://pear.php.net/dtd/rest.package    http://pear.php.net/dtd/rest.package.xsd";}s:1:"n";s:4:"Auth";s:1:"c";s:12:"pear.php.net";s:2:"ca";a:2:{s:7:"attribs";a:1:{s:10:"xlink:href";s:22:"/rest/c/Authentication";}s:8:"_content";s:14:"Authentication";}s:1:"l";s:11:"PHP License";s:1:"s";s:34:"Creating an authentication system.";s:1:"d";s:612:"The PEAR::Auth package provides methods for creating an authentication
+system using PHP.
+
+Currently it supports the following storage containers to read/write
+the login data:
+
+* All databases supported by the PEAR database layer
+* All databases supported by the MDB database layer
+* All databases supported by the MDB2 database layer
+* Plaintext files
+* LDAP servers
+* POP3 servers
+* IMAP servers
+* vpopmail accounts (Using either PECL vpopmail or PEAR Net_Vpopmaild)
+* RADIUS
+* SAMBA password files
+* SOAP (Using either PEAR SOAP package or PHP5 SOAP extension)
+* PEAR website
+* Kerberos V servers
+* SAP servers";s:1:"r";a:1:{s:7:"attribs";a:1:{s:10:"xlink:href";s:12:"/rest/r/auth";}}}

@@ -1,0 +1,1 @@
+s:254:"a:1:{s:8:"required";a:3:{s:3:"php";a:1:{s:3:"min";s:5:"5.0.0";}s:13:"pearinstaller";a:1:{s:3:"min";s:7:"1.4.0b1";}s:7:"package";a:4:{s:4:"name";s:6:"radius";s:7:"channel";s:12:"pecl.php.net";s:3:"min";s:5:"1.2.5";s:17:"providesextension";s:6:"radius";}}}";

@@ -1,0 +1,7 @@
+a:14:{s:7:"attribs";a:4:{s:5:"xmlns";s:36:"http://pear.php.net/dtd/rest.release";s:9:"xmlns:xsi";s:41:"http://www.w3.org/2001/XMLSchema-instance";s:11:"xmlns:xlink";s:28:"http://www.w3.org/1999/xlink";s:18:"xsi:schemaLocation";s:81:"http://pear.php.net/dtd/rest.release     http://pear.php.net/dtd/rest.release.xsd";}s:1:"p";a:2:{s:7:"attribs";a:1:{s:10:"xlink:href";s:18:"/rest/p/crypt_chap";}s:8:"_content";s:10:"Crypt_CHAP";}s:1:"c";s:12:"pear.php.net";s:1:"v";s:5:"1.5.0";s:2:"st";s:6:"stable";s:1:"l";s:3:"BSD";s:1:"m";s:8:"mbretter";s:1:"s";s:24:"Generating CHAP packets.";s:1:"d";s:198:"This package provides Classes for generating CHAP packets.
+Currently these types of CHAP are supported:
+* CHAP-MD5
+* MS-CHAPv1
+* MS-CHAPv2
+For MS-CHAP the mhash and mcrypt extensions must be loaded.";s:2:"da";s:19:"2010-09-19 05:47:49";s:1:"n";s:55:"* switch from mhash to  hash
+* use real .phpt for tests";s:1:"f";s:4:"5549";s:1:"g";s:40:"http://pear.php.net/get/Crypt_CHAP-1.5.0";s:1:"x";a:1:{s:7:"attribs";a:1:{s:10:"xlink:href";s:17:"package.1.5.0.xml";}}}

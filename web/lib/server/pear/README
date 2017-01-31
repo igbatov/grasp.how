@@ -1,0 +1,2 @@
+To install additional PEAR packages you can use
+pear -c web/lib/server/pear/.pearrc install <PEAR package name>

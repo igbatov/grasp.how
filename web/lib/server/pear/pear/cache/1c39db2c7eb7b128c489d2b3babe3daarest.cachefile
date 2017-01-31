@@ -1,0 +1,15 @@
+a:14:{s:7:"attribs";a:4:{s:5:"xmlns";s:36:"http://pear.php.net/dtd/rest.release";s:9:"xmlns:xsi";s:41:"http://www.w3.org/2001/XMLSchema-instance";s:11:"xmlns:xlink";s:28:"http://www.w3.org/1999/xlink";s:18:"xsi:schemaLocation";s:81:"http://pear.php.net/dtd/rest.release     http://pear.php.net/dtd/rest.release.xsd";}s:1:"p";a:2:{s:7:"attribs";a:1:{s:10:"xlink:href";s:12:"/rest/p/soap";}s:8:"_content";s:4:"SOAP";}s:1:"c";s:12:"pear.php.net";s:1:"v";s:6:"0.13.0";s:2:"st";s:4:"beta";s:1:"l";s:11:"PHP License";s:1:"m";s:8:"doconnor";s:1:"s";s:26:"SOAP Client/Server for PHP";s:1:"d";s:44:"Implementation of SOAP protocol and services";s:2:"da";s:19:"2012-01-26 13:43:55";s:1:"n";s:844:"* Rename QName::ns property to QName::prefix.
+* Fix parsing multipart/related responses (Bugs #14756, #14854).
+* Fix parsing certain WSDLs with attachments (Bill Blough, Bug #16968).
+* Use PCRE instead of ereg_* functions (Olle Jonsson, Bug #17726).]
+QA release
+Bug #11729 WSDL Local File loading
+Bug #14344 Use Net_Server in SOAP_Server_TCP
+Bug #14756 multipart/related response is not parsed
+Bug #14782 logic problem in SOAP_Base bulids multidimensional arrays instead of flat
+Bug #14854 multipart/related responses no longer handled correctly
+Bug #16968 Bad array assignment when using WSDL client
+Bug #17659 Assigning the return value of new by reference is deprecated
+Bug #17726 Patch: Using PCRE functions to avoid deprecated functions
+Bug #18458 Returning SOAP_Attachment in MIME
+Bug #18492 Wrong response when returning multiple results";s:1:"f";s:5:"85945";s:1:"g";s:35:"http://pear.php.net/get/SOAP-0.13.0";s:1:"x";a:1:{s:7:"attribs";a:1:{s:10:"xlink:href";s:18:"package.0.13.0.xml";}}}
