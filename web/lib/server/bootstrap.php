@@ -56,6 +56,8 @@ register_shutdown_function('shutdown');
  * http://www.peachpit.com/articles/article.aspx?p=711187&seqNum=4
  */
 set_include_path(get_include_path() . PATH_SEPARATOR . $path.'/pear/pear/php');
+require_once ('Log.php');
+require_once ('Log/observer.php');
 require_once ('Auth.php');
 
 /**
@@ -74,8 +76,22 @@ require_once ($path.'/'.'../../apps/frontend/server/AppFrontend.php');
 require_once ($path.'/'.'../../apps/user_pkb/server/AppUserPkb.php');
 
 // init pear auth module
-$options = array('dsn' => 'mysql://'.$c->getDbConf()->login.':'.$c->getDbConf()->password.'@'.$c->getDbConf()->host.'/'.$c->getDbConf()->dbName);
+class Auth_Log_Observer extends Log_observer {
+  var $messages = array();
+  function notify($event) {
+    error_log(print_r($event, true));
+  }
+}
+
+$options = array(
+  'enableLogging' => true,
+  'dsn' => 'mysql://'.$c->getDbConf()->login.':'.$c->getDbConf()->password.'@'.$c->getDbConf()->host.'/'.$c->getDbConf()->dbName
+);
+
 $a = new Auth('MDB2', $options, null, false);
+$debugObserver = new Auth_Log_Observer(PEAR_LOG_INFO);
+$a->attachLogObserver($debugObserver);
+
 // set auth timeout
 $timeout = 604800;
 $a->setExpire($timeout);
