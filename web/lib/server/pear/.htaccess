@@ -1,4 +1,0 @@
-AuthUserFile $(pwd)/.htpasswd
-AuthType Basic
-AuthName "Web-based PEAR Frontend"
-Require valid-user

@@ -55,7 +55,7 @@ register_shutdown_function('shutdown');
  * http://pear.php.net/manual/en/package.authentication.auth.intro.php
  * http://www.peachpit.com/articles/article.aspx?p=711187&seqNum=4
  */
-set_include_path(get_include_path() . PATH_SEPARATOR . $path.'/'.'pear/php');
+set_include_path(get_include_path() . PATH_SEPARATOR . $path.'/pear/pear/php');
 require_once ('Auth.php');
 
 /**
