@@ -38,6 +38,12 @@ class AppUserPkb extends App
       $this->createNewUser($vars[1], $vars[2]);
       exit();
 
+    //remove user: my.grasp.how/removeUser/<login>/<admin secret>
+    }elseif($vars[0] === 'removeUser'){
+      if($vars[2] != $this->getAdminSecret()) exit('wrong secret!');
+      var_dump($this->removeUser($vars[1]));
+      exit();
+
     }elseif($vars[0] === 'updateUserPassword'){
       if($vars[3] != $this->getAdminSecret()) exit('wrong secret!');
       $this->updateUserPassword($vars[1], $vars[2]);
@@ -58,6 +64,27 @@ class AppUserPkb extends App
       $user_graph_ids = $this->getGraphIds($this->getAuthId());
       $this->graphs->changeGraphPosition($new_graph_id, 'leftGraphView', $user_graph_ids);
       $this->redirect('/');
+
+    }elseif($vars[0] === 'oauth'){
+      $type = $vars[1];
+      if(!isset($_GET['code'])){
+        $msg = 'Error in OAuth: no code in _GET: URI = '.var_export($_REQUEST, true);
+        $this->logger->log($msg);
+        exit($msg);
+      }else $code = $_GET['code'];
+
+      $info = $this->oauth->oauth($type, $code);
+
+      // search user with this email, if not found create him
+      if($this->getUserId($info['email']) === null){
+        $this->createNewUser($info['email'], bin2hex(openssl_random_pseudo_bytes(10)));
+      }
+      // authorize him
+      $this->session->setAuth($info['email']);
+      // update his info
+      $this->updateUserInfo(array('type'=>$type, 'info'=>$info));
+      // redirect to homepage
+      $this->redirect("/");
     }
 
     /************** SET READ-ONLY MODE FOR SPECIAL CASES **********************/
@@ -559,6 +586,21 @@ class AppUserPkb extends App
       if($node['nodeContentId'] == $globalContentId) return $id;
     }
     return null;
+  }
+
+  protected function removeUser($login){
+    $r = array();
+    $q = "SELECT id FROM auth WHERE username = '".$login."'";
+    $rows = $this->db->execute($q);
+
+    if(count($rows) == 0) return false;
+
+    $user_id = $rows[0]['id'];
+    $graph_ids = $this->getGraphIds($user_id);
+    foreach($graph_ids as $graph_id) $r[] = $this->graphs->removeGraph($graph_id);
+
+    $q = "DELETE FROM auth WHERE id = '".$user_id."'";
+    $r[] = $this->db->execute($q);
   }
 
   protected function createNewUser($login, $password){

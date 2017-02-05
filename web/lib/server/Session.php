@@ -46,6 +46,14 @@ class Session{
     return $this->auth->checkAuth();
   }
 
+  /**
+   * Set a specific user to be marked as logged in
+   * @param $username
+   */
+  public function setAuth($username){
+    return $this->auth->setAuth($username);
+  }
+
   public function logout(){
     $this->auth->logout();
   }

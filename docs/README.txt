@@ -1,5 +1,6 @@
 Админские команды:
 Создать нового пользователя http://my.grasp.how/createNewUser/<login>/<password>/<admin secret>
+Удвлить пользователя и все его графы http://my.grasp.how/removeUser/<login>/<admin secret>
 Обновить пароль пользователя http://my.grasp.how/updateUserPassword/<login>/<password>/<admin_secret>
 Удалить граф http://grasp.local/removeGraph/<graph id>/<admin_secret>
 

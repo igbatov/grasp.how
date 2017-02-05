@@ -20,6 +20,12 @@ class Config{
     return $c;
   }
 
+  public function get($key){
+    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
+    $config_json = json_decode($string, true);
+    return isset($config_json[$key]) ? $config_json[$key] : false;
+  }
+
   public function getAdminSecret(){
     $string = file_get_contents($this->getWebRootPath()."/../Config.json");
     $config_json = json_decode($string, true);
@@ -33,20 +39,24 @@ class Config{
   }
 
   public function getWebDomainURL(){
-    return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName() .'/';
+    return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName();
   }
 
   public function getWebDomainName(){
     return isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
   }
 
+  public function getWebProtocol(){
+    return isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+  }
+
   public function getDefaultPath($type){
     switch ($type) {
       case "js":
-        return $this->getWebDomainURL()."lib/client/";
+        return $this->getWebDomainURL()."/lib/client/";
         break;
       case "css":
-        return $this->getWebDomainURL()."css/";
+        return $this->getWebDomainURL()."/css/";
         break;
       case "log":
         return $this->getWebRootPath()."/../logs";

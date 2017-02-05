@@ -72,6 +72,7 @@ require_once ($path.'/'.'App.php');
 require_once ($path.'/'.'ContentIdConverter.php');
 require_once ($path.'/'.'GraphDiffCreator.php');
 require_once ($path.'/'.'Graphs.php');
+require_once ($path.'/'.'OAuthUser.php');
 require_once ($path.'/'.'../../apps/frontend/server/AppFrontend.php');
 require_once ($path.'/'.'../../apps/user_pkb/server/AppUserPkb.php');
 
@@ -114,3 +115,5 @@ include_once($c->getWebRootPath()."/lib/server/vendor/Sinergi/BrowserDetector/De
 foreach (glob($c->getWebRootPath()."/lib/server/vendor/Sinergi/BrowserDetector/*.php") as $filename) include_once($filename);
 // include mobile detection
 require_once($c->getWebRootPath()."/lib/server/vendor/Mobile_Detect.php");
+
+$oauth = new OAuthUser($c, $logger);

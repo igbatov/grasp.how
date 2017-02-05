@@ -10,8 +10,9 @@ abstract class App
   protected $logger;
   protected $i18n;
   protected $auth_id;
+  protected $oauth;
 
-  function __construct(Config $c, Session $s, DB $db, Logger $logger, I18N $i18n) {
+  function __construct(Config $c, Session $s, DB $db, Logger $logger, I18N $i18n, OAuthUser $oauth=null) {
     $this->config = $c;
     $this->session = $s;
     $this->db = $db;
@@ -19,6 +20,7 @@ abstract class App
     $this->i18n = $i18n;
     $this->i18n->setI18NDir($this->getAppDir('i18n', false));
     $this->auth_id = null;
+    $this->oauth = $oauth;
   }
 
   /**
@@ -68,7 +70,7 @@ abstract class App
     $fn = str_replace("\\", "/", $reflector->getFileName());
 
     $app_root = dirname(dirname($fn));
-    if($isWeb) $app_root = $this->config->getWebDomainURL() . substr ($app_root, strlen($_SERVER['DOCUMENT_ROOT'])+1);
+    if($isWeb) $app_root = $this->config->getWebDomainURL() .'/'. substr ($app_root, strlen($_SERVER['DOCUMENT_ROOT'])+1);
     return $app_root;
   }
 
@@ -124,8 +126,7 @@ abstract class App
 
   protected function showView(){
     // get auth_id
-    $rows = $this->db->execute("SELECT id FROM auth WHERE username = '".$this->session->getUsername()."'");
-    if(count($rows)>0) $this->auth_id = $rows[0]['id'];
+    $this->auth_id = $this->getUserId($this->session->getUsername());
 
     // get request params
     $vars = $this->getRoute();
@@ -138,6 +139,11 @@ abstract class App
       case 'logout':
         $this->session->logout();
     }
+  }
+
+  protected function getUserId($username){
+    $rows = $this->db->execute("SELECT id FROM auth WHERE username = '".$username."'");
+    return count($rows)>0 ? $rows[0]['id'] : null;
   }
 
   protected function getAuthId(){
@@ -164,6 +170,23 @@ abstract class App
 
   protected function updateUserPassword($login, $password){
     return $this->session->updateUserPassword($login, $password);
+  }
+
+  protected function updateUserInfo(array $info){
+    $username = $this->session->getUsername();
+    if(!$username) return false;
+
+    $query = "UPDATE auth SET info = '".json_encode($info)."' WHERE username = '".$username."'";
+    $this->db->execute($query);
+  }
+
+  protected function getUserInfo(){
+    $username = $this->session->getUsername();
+    if(!$username) return false;
+
+    $query = "SELECT info FROM auth WHERE username = '".$username."'";
+    $rows = $this->db->execute($query);
+    return count($rows) ? json_decode($rows[0], true) : false;
   }
 
   protected function getAdminSecret(){
