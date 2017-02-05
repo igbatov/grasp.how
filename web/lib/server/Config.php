@@ -11,6 +11,11 @@ class Config{
     $string = file_get_contents($this->getWebRootPath()."/../Config.json");
     $config_json = json_decode($string, true);
 
+    if(!$config_json){
+      error_log(__FILE__."\n"."Cannot parse Config.json");
+      return false;
+    }
+
     $c = new dbConf();
     $c->host = $config_json["db"]["host"];
     $c->dbName = $config_json["db"]["dbName"];

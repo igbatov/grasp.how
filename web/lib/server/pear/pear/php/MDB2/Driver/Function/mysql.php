@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP versions 4 and 5                                                 |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2006 Manuel Lemos, Tomas V.V.Cox,                 |
+// | Copyright (c) 1998-2008 Manuel Lemos, Tomas V.V.Cox,                 |
 // | Stig. S. Bakken, Lukas Smith                                         |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
@@ -42,7 +42,7 @@
 // | Author: Lukas Smith <smith@pooteeweet.org>                           |
 // +----------------------------------------------------------------------+
 //
-// $Id: mysql.php,v 1.11 2007/01/12 11:29:12 quipo Exp $
+// $Id: mysql.php 327310 2012-08-27 15:16:18Z danielc $
 //
 
 require_once 'MDB2/Driver/Function/Common.php';
@@ -71,16 +71,32 @@ class MDB2_Driver_Function_mysql extends MDB2_Driver_Function_Common
      * @return mixed a result handle or MDB2_OK on success, a MDB2 error on failure
      * @access public
      */
-    function &executeStoredProc($name, $params = null, $types = null, $result_class = true, $result_wrap_class = false)
+    function executeStoredProc($name, $params = null, $types = null, $result_class = true, $result_wrap_class = false)
     {
-        $db =& $this->getDBInstance();
-        if (PEAR::isError($db)) {
+        $db = $this->getDBInstance();
+        if (MDB2::isError($db)) {
             return $db;
         }
 
         $query = 'CALL '.$name;
         $query .= $params ? '('.implode(', ', $params).')' : '()';
         return $db->query($query, $types, $result_class, $result_wrap_class);
+    }
+
+    // }}}
+    // {{{ unixtimestamp()
+
+    /**
+     * return string to call a function to get the unix timestamp from a iso timestamp
+     *
+     * @param string $expression
+     *
+     * @return string to call a variable with the timestamp
+     * @access public
+     */
+    function unixtimestamp($expression)
+    {
+        return 'UNIX_TIMESTAMP('. $expression.')';
     }
 
     // }}}

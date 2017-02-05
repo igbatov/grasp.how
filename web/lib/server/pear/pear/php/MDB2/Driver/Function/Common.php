@@ -42,7 +42,7 @@
 // | Author: Lukas Smith <smith@pooteeweet.org>                           |
 // +----------------------------------------------------------------------+
 //
-// $Id: Common.php,v 1.17 2007/01/12 11:29:12 quipo Exp $
+// $Id: Common.php 327310 2012-08-27 15:16:18Z danielc $
 //
 
 /**
@@ -54,9 +54,12 @@
 /**
  * Base class for the function modules that is extended by each MDB2 driver
  *
- * @package MDB2
+ * To load this module in the MDB2 object:
+ * $mdb->loadModule('Function');
+ *
+ * @package  MDB2
  * @category Database
- * @author  Lukas Smith <smith@pooteeweet.org>
+ * @author   Lukas Smith <smith@pooteeweet.org>
  */
 class MDB2_Driver_Function_Common extends MDB2_Module_Common
 {
@@ -71,17 +74,18 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
      *                        the result set
      * @param mixed $result_class string which specifies which result class to use
      * @param mixed $result_wrap_class string which specifies which class to wrap results in
+     *
      * @return mixed a result handle or MDB2_OK on success, a MDB2 error on failure
      * @access public
      */
-    function &executeStoredProc($name, $params = null, $types = null, $result_class = true, $result_wrap_class = false)
+    function executeStoredProc($name, $params = null, $types = null, $result_class = true, $result_wrap_class = false)
     {
-        $db =& $this->getDBInstance();
-        if (PEAR::isError($db)) {
+        $db = $this->getDBInstance();
+        if (MDB2::isError($db)) {
             return $db;
         }
 
-        $error =& $db->raiseError(MDB2_ERROR_UNSUPPORTED, null, null,
+        $error = $db->raiseError(MDB2_ERROR_UNSUPPORTED, null, null,
             'method not implemented', __FUNCTION__);
         return $error;
     }
@@ -110,6 +114,8 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
      * - CURRENT_DATE (date, DATE type)
      * - CURRENT_TIME (time, TIME type)
      *
+     * @param string $type 'timestamp' | 'time' | 'date'
+     *
      * @return string to call a variable with the current timestamp
      * @access public
      */
@@ -127,6 +133,29 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
     }
 
     // }}}
+    // {{{ unixtimestamp()
+
+    /**
+     * return string to call a function to get the unix timestamp from a iso timestamp
+     *
+     * @param string $expression
+     *
+     * @return string to call a variable with the timestamp
+     * @access public
+     */
+    function unixtimestamp($expression)
+    {
+        $db = $this->getDBInstance();
+        if (MDB2::isError($db)) {
+            return $db;
+        }
+
+        $error = $db->raiseError(MDB2_ERROR_UNSUPPORTED, null, null,
+            'method not implemented', __FUNCTION__);
+        return $error;
+    }
+
+    // }}}
     // {{{ substring()
 
     /**
@@ -137,10 +166,24 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
      */
     function substring($value, $position = 1, $length = null)
     {
-        if (!is_null($length)) {
+        if (null !== $length) {
             return "SUBSTRING($value FROM $position FOR $length)";
         }
         return "SUBSTRING($value FROM $position)";
+    }
+
+    // }}}
+    // {{{ replace()
+
+    /**
+     * return string to call a function to get replace inside an SQL statement.
+     *
+     * @return string to call a function to get a replace
+     * @access public
+     */
+    function replace($str, $from_str, $to_str)
+    {
+        return "REPLACE($str, $from_str , $to_str)";
     }
 
     // }}}
@@ -152,6 +195,7 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
      * @param string $value1
      * @param string $value2
      * @param string $values...
+     *
      * @return string to concatenate two strings
      * @access public
      */
@@ -182,6 +226,7 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
      * return string to call a function to lower the case of an expression
      *
      * @param string $expression
+     *
      * @return return string to lower case of an expression
      * @access public
      */
@@ -197,12 +242,29 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
      * return string to call a function to upper the case of an expression
      *
      * @param string $expression
+     *
      * @return return string to upper case of an expression
      * @access public
      */
     function upper($expression)
     {
         return "UPPER($expression)";
+    }
+
+    // }}}
+    // {{{ length()
+
+    /**
+     * return string to call a function to get the length of a string expression
+     *
+     * @param string $expression
+     *
+     * @return return string to get the string expression length
+     * @access public
+     */
+    function length($expression)
+    {
+        return "LENGTH($expression)";
     }
 
     // }}}
@@ -216,12 +278,12 @@ class MDB2_Driver_Function_Common extends MDB2_Module_Common
      */
     function guid()
     {
-        $db =& $this->getDBInstance();
-        if (PEAR::isError($db)) {
+        $db = $this->getDBInstance();
+        if (MDB2::isError($db)) {
             return $db;
         }
 
-        $error =& $db->raiseError(MDB2_ERROR_UNSUPPORTED, null, null,
+        $error = $db->raiseError(MDB2_ERROR_UNSUPPORTED, null, null,
             'method not implemented', __FUNCTION__);
         return $error;
     }

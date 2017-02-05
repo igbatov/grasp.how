@@ -74,6 +74,7 @@ class AppUserPkb extends App
       }else $code = $_GET['code'];
 
       $info = $this->oauth->oauth($type, $code);
+      if(!isset($info['email']) || strlen($info['email']) == 0) return false;
 
       // search user with this email, if not found create him
       if($this->getUserId($info['email']) === null){
@@ -601,6 +602,8 @@ class AppUserPkb extends App
 
     $q = "DELETE FROM auth WHERE id = '".$user_id."'";
     $r[] = $this->db->execute($q);
+
+    return $r;
   }
 
   protected function createNewUser($login, $password){

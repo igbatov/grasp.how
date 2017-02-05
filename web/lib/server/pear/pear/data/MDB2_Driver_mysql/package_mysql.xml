@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package packagerversion="1.5.3" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+<package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
  <name>MDB2_Driver_mysql</name>
  <channel>pear.php.net</channel>
  <summary>mysql MDB2 driver</summary>
@@ -16,32 +16,48 @@
   <email>l.alberton@quipo.it</email>
   <active>yes</active>
  </lead>
- <date>2007-05-03</date>
- <time>20:54:52</time>
+ <date>2012-10-23</date>
+ <time>13:33:01</time>
  <version>
-  <release>1.4.1</release>
-  <api>1.4.1</api>
+  <release>1.5.0b4</release>
+  <api>1.5.0b4</api>
  </version>
  <stability>
-  <release>stable</release>
-  <api>stable</api>
+  <release>beta</release>
+  <api>beta</api>
  </stability>
  <license>BSD License</license>
- <notes>- fixed bug #10378: incorrect query rewrite in setLimit() when using &quot;FOR UPDATE&quot;
-  or &quot;LOCK IN SHARE MODE&quot; (thanks to priyadi) or &quot;INTO OUTFILE&quot; or &quot;INTO DUMPFILE&quot;
-- return length as &quot;precision,scale&quot; for NUMERIC and DECIMAL fields in mapNativeDatatype()
-- in getTableIndexDefinition() and getTableConstraintDefinition() in the Reverse
-  module, also return the field position in the index/constraint
-- fixed bug #10636: transactions broken in release 2.4.0 because of some properties
-  being reset (thanks to Conor Kerr)
-- fixed bug #10807: connect() Method Incorrectly Caches Connections [fornax]
-- fixed bug #10895: setLimit() does not work properly when a subquery uses LIMIT
-
-note:
-- the multi_query test failes because this is not supported by ext/mysql
+ <notes>
+- Make varchar_max_length property public, Bug #19582.
+- Revert 327099 by afz, caused &quot;Notice: Undefined index: charset on line 1003&quot;
+- PEAR::isError() -&gt; MDB2::isError(), Bug #19491.
+- PEAR::loadExtension() -&gt; extension_loaded(), Bug #19583.
+- max value for VARCHAR is 65535 but if used multi-bytes (UTF8) so it is 21844, because UTF8 string takes 3bytes
+- Fix Bug #19262. Updates conditional stagements to use logical operators to include MDB2_FETCHMODE_OBJECT where appropriate. Was broken in r321197.
+- Have truncateTable() return MDB2_OK on success, as documented (bug 19201)
+- Have alterTable() return MDB2_OK on success, as documented (bug 19200)
+- Have dropIndex() return MDB2_OK on success, as documented (bug 19198)
+- Have vacuum() return MDB2_OK on success, as documented (bug 19196)
+- Have createIndex() return MDB2_OK on success, as documented (bug 19195)
+- Have dropConstraint() return MDB2_OK on success, as documented (bug 19194)
+- Have dropSequence() return MDB2_OK on success, as documented (bug 19191).
+- Make setOption(&apos;result_wrap_class&apos;) actually useful by changing the default value of $result_wrap_class parameters from false to true.
+- Obtain error information in _doQuery() because standaloneQuery() throws off $this-&gt;connection.
+- FETCHMODE constants are NOT bitwise.
+- Make $sql_comments public (was before, used in tests, no real harm).
+- Property visibility
+- boolean data type
+- fixed bug #17984: Error is not reported when mysqli_stmt_bind_param() fails [dennylin93]
+- fixed bug #18057: Result of getDeclaration() can have invalid syntax [hschletz]
+- request #18068: mapNativeDatatype() returns decimal places also for &apos;float&apos; mdb2type
+- fixed bug #18203: Type introspection breaks with associative arrays if names are identical (patch by Peter Bex)
+- fixed bug #17892: removed debug message [pdt256]
+- fixed bug #18057: Result of getDeclaration() can have invalid syntax [hschletz]
+- request #18068: mapNativeDatatype() returns decimal places also for &apos;float&apos; mdb2type
 
 open todo items:
-- use a trigger to emulate setting default now()</notes>
+- use a trigger to emulate setting default now()
+ </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
    <dir name="MDB2">
@@ -77,7 +93,9 @@ open todo items:
     </dir> <!-- /MDB2/Driver -->
    </dir> <!-- /MDB2 -->
    <dir name="tests">
-    <file name="MDB2_nonstandard_mysql.php" role="test" />
+    <dir name="Nonstandard">
+     <file name="MysqlHelper.php" role="test" />
+    </dir> <!-- /tests/Nonstandard -->
    </dir> <!-- /tests -->
    <file name="package_mysql.xml" role="data" />
   </dir> <!-- / -->
@@ -85,15 +103,15 @@ open todo items:
  <dependencies>
   <required>
    <php>
-    <min>4.3.0</min>
+    <min>5.2.0</min>
    </php>
    <pearinstaller>
-    <min>1.4.0b1</min>
+    <min>1.9.1</min>
    </pearinstaller>
    <package>
     <name>MDB2</name>
     <channel>pear.php.net</channel>
-    <min>2.4.1</min>
+    <min>2.5.0b4</min>
    </package>
    <extension>
     <name>mysql</name>
@@ -102,6 +120,206 @@ open todo items:
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>1.5.0b4</release>
+    <api>1.5.0b4</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2012-10-23</date>
+   <license>BSD License</license>
+   <notes>
+- Make varchar_max_length property public, Bug #19582.
+- Revert 327099 by afz, caused &quot;Notice: Undefined index: charset on line 1003&quot;
+- PEAR::isError() -&gt; MDB2::isError(), Bug #19491.
+- PEAR::loadExtension() -&gt; extension_loaded(), Bug #19583.
+- max value for VARCHAR is 65535 but if used multi-bytes (UTF8) so it is 21844, because UTF8 string takes 3bytes
+- Fix Bug #19262. Updates conditional stagements to use logical operators to include MDB2_FETCHMODE_OBJECT where appropriate. Was broken in r321197.
+- Have truncateTable() return MDB2_OK on success, as documented (bug 19201)
+- Have alterTable() return MDB2_OK on success, as documented (bug 19200)
+- Have dropIndex() return MDB2_OK on success, as documented (bug 19198)
+- Have vacuum() return MDB2_OK on success, as documented (bug 19196)
+- Have createIndex() return MDB2_OK on success, as documented (bug 19195)
+- Have dropConstraint() return MDB2_OK on success, as documented (bug 19194)
+- Have dropSequence() return MDB2_OK on success, as documented (bug 19191).
+- Make setOption(&apos;result_wrap_class&apos;) actually useful by changing the default value of $result_wrap_class parameters from false to true.
+- Obtain error information in _doQuery() because standaloneQuery() throws off $this-&gt;connection.
+- FETCHMODE constants are NOT bitwise.
+- Make $sql_comments public (was before, used in tests, no real harm).
+- Property visibility
+- boolean data type
+- fixed bug #17984: Error is not reported when mysqli_stmt_bind_param() fails [dennylin93]
+- fixed bug #18057: Result of getDeclaration() can have invalid syntax [hschletz]
+- request #18068: mapNativeDatatype() returns decimal places also for &apos;float&apos; mdb2type
+- fixed bug #18203: Type introspection breaks with associative arrays if names are identical (patch by Peter Bex)
+- fixed bug #17892: removed debug message [pdt256]
+- fixed bug #18057: Result of getDeclaration() can have invalid syntax [hschletz]
+- request #18068: mapNativeDatatype() returns decimal places also for &apos;float&apos; mdb2type
+
+open todo items:
+- use a trigger to emulate setting default now()
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.5.0b3</release>
+    <api>1.5.0b3</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2010-08-29</date>
+   <license>BSD License</license>
+   <notes>
+- fixed bug #15650: mysqli function used in setCharset()
+- fixed bug #16003: incorrect check for error after mysql_store_result
+- fixed bug #16147: first prepared statement is emulated when using factory with mysql
+- fixed bug #16669: hostspec is ignored when protocol is unix
+- fixed bug #17037: &apos;on update&apos; not mentioned in tableInfo()
+- fixed bug #17065: There is no NEW row in on DELETE trigger (fix error in FK constraint triggers)
+- fixed bug #17650: lastInsertId can not handle bigint, forces cast to integer [alexpw]
+- return ON UPDATE|DELETE action in getTableConstraintDefinition()
+
+note:
+- the multi_query test failes because this is not supported by ext/mysql
+
+open todo items:
+- use a trigger to emulate setting default now()
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.5.0b2</release>
+    <api>1.5.0b2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2009-01-14</date>
+   <license>BSD License</license>
+   <notes>
+- fixed bug #12117: disconnect() does not work as documented
+- fixed bug #13412: sometimes getTableConstraintDefinition() fails for FOREIGN KEYs
+- fixed bug #13581: wrong query in beginTransaction() for certain MySQL versions
+- request #13657: in setCharset(), use mysql_set_charset() if available [cwiedmann]
+- fixed bug #13928: Invalid triggers created for &apos;ON UPDATE&apos;
+- fixed bug #15051: Cannot create constraints with field length
+- add index on FK column(s) or a FK constraint cannot be created in some cases
+
+note:
+- the multi_query test failes because this is not supported by ext/mysql
+
+open todo items:
+- use a trigger to emulate setting default now()
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.5.0b1</release>
+    <api>1.5.0b1</api>
+   </version>
+   <stability>
+    <release>alpha</release>
+    <api>alpha</api>
+   </stability>
+   <date>2008-03-15</date>
+   <license>BSD License</license>
+   <notes>
+- fixed bug #11831: createTable() now supports tables with a multi-field PRIMARY KEY
+  where one field is defined as AUTO_INCREMENT
+- request #11204: support AUTO_INCREMENT for FLOAT data type and UNSIGNED option
+  for FLOAT and DECIMAL data type [afz]
+- fixed bug #11692: value of $db-&gt;supports(&apos;transactions&apos;) changes after query [afz]
+- request #12731: added truncateTable() in the Manager module
+- request #12732: added vacuum() in the Manager module for OPTIMIZE/VACUUM TABLE abstraction
+- request #12800: added alterDatabase() in the Manager module [afz]
+- fixed quoting in createDatabase() in the Manager module
+- fixed bug #12924: correctly handle internal expected errors even with custom error handling
+- added standaloneQuery() and databaseExists()
+- request #13106: added unixtimestamp() in the Function module
+- fixed regexp in listTableConstraints() in the Manager module to list FOREIGN KEY constraints
+- fixed bug #13180: MySQL driver tells SAVEPOINT is supported for MyISAM tables
+- fixed bug #13283: replace() doesn&apos;t respect quote_identifiers option
+- request #13313: setCharSet() supports &apos;COLLATE&apos; too
+- fixed bug #13370: some capabilities depend on user options, so check them after
+  a setOption() call
+- when triggers are supported, two triggers are created to emulate ON UPDATE / ON DELETE actions
+  for FOREIGN KEY constraints. Known limitation: since mysql doesn&apos;t support multiple triggers
+  with the same action time and event for one table, if there are multiple table referencing
+  the same table, only the first one will have the triggers created.
+
+note:
+- the multi_query test failes because this is not supported by ext/mysql
+
+open todo items:
+- use a trigger to emulate setting default now()
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.5.0a2</release>
+    <api>1.5.0a2</api>
+   </version>
+   <stability>
+    <release>alpha</release>
+    <api>alpha</api>
+   </stability>
+   <date>2007-12-06</date>
+   <license>BSD License</license>
+   <notes>
+- fixed bug #12516: error in FK constraint creation query
+- request #12012: added charset/collation support in createDatabase()
+
+note:
+- the multi_query test failes because this is not supported by ext/mysql
+
+open todo items:
+- use a trigger to emulate setting default now()
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.5.0a1</release>
+    <api>1.5.0a1</api>
+   </version>
+   <stability>
+    <release>alpha</release>
+    <api>alpha</api>
+   </stability>
+   <date>2007-10-28</date>
+   <license>BSD License</license>
+   <notes>
+- fixed bug #10024: Added new option &apos;lob_allow_url_include&apos; (default false) to
+  [dis]allow inserting a LOB from an url (file, http, ...).
+- fixed bug #10986: Using more random statement names (request #11625)
+- fixed bug #11055: Using placeholders with := variable assignment fails [bekarau]
+- initial support for FOREIGN KEY constraints in the Manager and Reverse modules
+- request #11389: added many new MySQL 5.1 error codes in errorInfo()
+- fixed bug #11428: propagate quote() errors with invalid data types
+- fixed bug #11590: _getServerCapabilities() has to be called once per connection
+- fixed bug #11790: avoid array_diff() because it has a memory leak in PHP 5.1.x
+- fixed some E_STRICT errors with PHP5
+- fixed bug #12010: MDB2_PORTABILITY_RTRIM option was ignored
+- fixed bug #12083: createTable() in the Manager module now returns MDB2_OK on success,
+  as documented
+- fixed bug #12217: mysql_num_rows() returns FALSE on failure, not NULL (thanks to zaa@zaa.pp.ru)
+- fixed bug #12242: missing charset info in the Reverse module (patch by Carsten Wiedmann)
+- fixed bug #12269: tableInfo() in the Reverse module detect &apos;clob&apos; data type
+  as first option
+- fixed bug #12336: supply default value for NOT NULL timestamp fields
+
+note:
+- the multi_query test failes because this is not supported by ext/mysql
+
+open todo items:
+- use a trigger to emulate setting default now()
+   </notes>
+  </release>
   <release>
    <version>
     <release>1.4.1</release>
@@ -113,7 +331,8 @@ open todo items:
    </stability>
    <date>2007-05-03</date>
    <license>BSD License</license>
-   <notes>- fixed bug #10378: incorrect query rewrite in setLimit() when using &quot;FOR UPDATE&quot;
+   <notes>
+- fixed bug #10378: incorrect query rewrite in setLimit() when using &quot;FOR UPDATE&quot;
   or &quot;LOCK IN SHARE MODE&quot; (thanks to priyadi) or &quot;INTO OUTFILE&quot; or &quot;INTO DUMPFILE&quot;
 - return length as &quot;precision,scale&quot; for NUMERIC and DECIMAL fields in mapNativeDatatype()
 - in getTableIndexDefinition() and getTableConstraintDefinition() in the Reverse
@@ -127,7 +346,8 @@ note:
 - the multi_query test failes because this is not supported by ext/mysql
 
 open todo items:
-- use a trigger to emulate setting default now()</notes>
+- use a trigger to emulate setting default now()
+   </notes>
   </release>
   <release>
    <version>
@@ -140,7 +360,8 @@ open todo items:
    </stability>
    <date>2007-03-13</date>
    <license>BSD License</license>
-   <notes>- fixed bug #9283: missing support for BINARY/VARBINARY data types (thanks to Tom Hendrikx)
+   <notes>
+- fixed bug #9283: missing support for BINARY/VARBINARY data types (thanks to Tom Hendrikx)
 - propagate errors in getTableFieldDefinition() in the Reverse module
 - implemented getTriggerDefinition() in the Reverse module (mysql &gt; 5.0.2) [experimental]
 - implemented listTableTriggers() in the Manager module (mysql &gt; 5.0.2)
@@ -166,7 +387,8 @@ note:
 - the multi_query test failes because this is not supported by ext/mysql
 
 open todo items:
-- use a trigger to emulate setting default now()</notes>
+- use a trigger to emulate setting default now()
+   </notes>
   </release>
   <release>
    <version>
@@ -179,7 +401,8 @@ open todo items:
    </stability>
    <date>2006-11-03</date>
    <license>BSD License</license>
-   <notes>- added charset and collation support to field declaration
+   <notes>
+- added charset and collation support to field declaration
 - fixed bug #9024: typo in error checking
 - fix typos in error handling in a few places (bug #9024)
 - do not skip id generation in nextId() when creating a sequence on demand
@@ -188,7 +411,8 @@ open todo items:
 
 note:
 - the multi_query test failes because this is not supported by ext/mysql
-- use a trigger to emulate setting default now()</notes>
+- use a trigger to emulate setting default now()
+   </notes>
   </release>
   <release>
    <version>
@@ -201,13 +425,15 @@ note:
    </stability>
    <date>2006-09-03</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- flip positions property array in prepared statement objects to make it
+   <notes>
+- flip positions property array in prepared statement objects to make it
   possible to optionally use the same named placeholder in multiple places
   inside a single prepared statement
 
 note:
 - the multi_query test failes because this is not supported by ext/mysql
-- use a trigger to emulate setting default now()</notes>
+- use a trigger to emulate setting default now()
+   </notes>
   </release>
   <release>
    <version>
@@ -220,7 +446,8 @@ note:
    </stability>
    <date>2006-08-21</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- fixed issue in tableInfo() that originates in getTableFieldDefinition() which
+   <notes>
+- fixed issue in tableInfo() that originates in getTableFieldDefinition() which
   led to returning incorrect type values (Bug #8291)
 - quote identifiers in the reverse module when &apos;quote_identifiers&apos; is enabled (Bug #8309)
 - use version_compare() to fix complex version comparisons (Bug #8355)
@@ -240,7 +467,8 @@ note:
 
 note:
 - the multi_query test failes because this is not supported by ext/mysql
-- use a trigger to emulate setting default now()</notes>
+- use a trigger to emulate setting default now()
+   </notes>
   </release>
   <release>
    <version>
@@ -253,7 +481,8 @@ note:
    </stability>
    <date>2006-07-23</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- added ability to escape wildcard characters in escape() and quote()
+   <notes>
+- added ability to escape wildcard characters in escape() and quote()
 - added setTransactionIsolation()
 - added savepoint support to beginTransaction(), commit() and rollback()
 - added debug() call at the end of a query/prepare/execute calling (Request #7933)
@@ -268,7 +497,8 @@ note:
 - fixed incorrect regex in mapNativeDatatype() (Bug #8256) (thx ioz at ionosfera dot com)
 - use old dsn when rolling back open transactions in disconnect()
 - mysql_insert_id() breaks if the prepared statement that was executed to
-  generate the ID is deallocated before (Bug #8051)</notes>
+  generate the ID is deallocated before (Bug #8051)
+   </notes>
   </release>
   <release>
    <version>
@@ -281,7 +511,8 @@ note:
    </stability>
    <date>2006-06-15</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- tweaked handling of free() for prepared statements
+   <notes>
+- tweaked handling of free() for prepared statements
 - return error if a prepared statement is attempted to be freed twice
 - added setCharset()
 - use setCharset() in connect()/_doConnect()
@@ -297,7 +528,8 @@ note:
 - check if result/connection has not yet been freed/dicsonnected before
   attempting to free a result set(Bug #7790)
 - revert change that would prefer &apos;clob&apos; over &apos;text&apos; for TEXT fields
-  (this was breaking runtime instrospection)</notes>
+  (this was breaking runtime instrospection)
+   </notes>
   </release>
   <release>
    <version>
@@ -310,10 +542,12 @@ note:
    </stability>
    <date>2006-05-22</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- fixed unsigned handling and minor tweaks to type mapping in mapNativeDatatype()
+   <notes>
+- fixed unsigned handling and minor tweaks to type mapping in mapNativeDatatype()
 - use emulated prepared statements on mysql 4.0 or lower
 - properly quote query to prepare
-- added &quot;emulate_prepared&quot; option to force prepared statement emulation</notes>
+- added &quot;emulate_prepared&quot; option to force prepared statement emulation
+   </notes>
   </release>
   <release>
    <version>
@@ -326,7 +560,8 @@ note:
    </stability>
    <date>2006-05-14</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- optimized listTables() and listViews()
+   <notes>
+- optimized listTables() and listViews()
 - optimized show related queries
 - explicitly set is_manip parameter to false for transaction debug calls
 - silently change name of primary key contraints to PRIMARY
@@ -338,7 +573,8 @@ note:
 - added userinfo&apos;s to all raiseError calls that previously had none
 - use native prepared queries of mysql 4.1 or higher
 - added &apos;prepared_statements&apos; supported meta data setting
-- added missing supported parameter to prepare() signature</notes>
+- added missing supported parameter to prepare() signature
+   </notes>
   </release>
   <release>
    <version>
@@ -351,7 +587,8 @@ note:
    </stability>
    <date>2006-04-16</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- handle qualified table names in tableInfo()
+   <notes>
+- handle qualified table names in tableInfo()
 - aligned _modifyQuery() signature and phpdoc
 - added support for tabe options in createTable() (bug ##7079)
 - added optional database parameter to listTables() and listSequences()
@@ -361,7 +598,8 @@ note:
 - use parent::disconnect() in disconnect()
 - added support for length in integer reverse engineering
 - some fixes regarding boolean reverse engineering
-- added listViews() and hide views in listTables()</notes>
+- added listViews() and hide views in listTables()
+   </notes>
   </release>
   <release>
    <version>
@@ -374,7 +612,9 @@ note:
    </stability>
    <date>2006-02-09</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- handle null as resource when disable_query option is enabled in result object</notes>
+   <notes>
+- handle null as resource when disable_query option is enabled in result object
+   </notes>
   </release>
   <release>
    <version>
@@ -387,14 +627,16 @@ note:
    </stability>
    <date>2006-02-05</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- added support for length in integer and decimal columns
+   <notes>
+- added support for length in integer and decimal columns
 - removed ugly hack for quote parameter in quote() since it was insufficient
   (escaping also needs to be prevented)
 - now using TINYINT(1) by default instead of CHAR(1) for the boolean datatype (BC BREAK!)
 - typo fix in error message in createTable()
 - improved parsing in getServerInfo() (bug #6550)
 - fixed subselect emulation
-- support an arbitrary number of arguments in concat()</notes>
+- support an arbitrary number of arguments in concat()
+   </notes>
   </release>
   <release>
    <version>
@@ -407,7 +649,8 @@ note:
    </stability>
    <date>2006-01-13</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- explicitly pass if the module is phptype specific in all loadModule calls (bug #6226)
+   <notes>
+- explicitly pass if the module is phptype specific in all loadModule calls (bug #6226)
 - properly handle PRIMARY keys in listTableConstraints()
 - apply _isIndexName() on non primary keys in getTableConstraintDefinition()
 - fixed signature of quoteIdentifier() to make second param optional
@@ -416,7 +659,8 @@ note:
 - _fixIndexName() now just attempts to remove possible formatting
 - renamed _isSequenceName() to _fixSequenceName()
 - _fixSequenceName() now just attempts to remove possible formatting, and only
-  returns a boolean if no formatting was applied when the new &quot;check&quot; parameter is set to true</notes>
+  returns a boolean if no formatting was applied when the new &quot;check&quot; parameter is set to true
+   </notes>
   </release>
   <release>
    <version>
@@ -429,7 +673,9 @@ note:
    </stability>
    <date>2005-12-30</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- fixed typo in sub select detection</notes>
+   <notes>
+- fixed typo in sub select detection
+   </notes>
   </release>
   <release>
    <version>
@@ -442,7 +688,9 @@ note:
    </stability>
    <date>2005-12-28</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- proper quote new table name in alterTable()</notes>
+   <notes>
+- proper quote new table name in alterTable()
+   </notes>
   </release>
   <release>
    <version>
@@ -455,7 +703,8 @@ note:
    </stability>
    <date>2005-12-21</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>- do not fix case in listUsers()
+   <notes>
+- do not fix case in listUsers()
 - unified case fixing in the list*() methods
 - fixed change and rename in alterTable()
 - primary key must be called primary
@@ -485,7 +734,8 @@ note:
 - added getServerVersion() and use it to determine sub select support
 - unified array structure in mapNativeDatatype() *BC BREAK*
 - added &apos;mdbtype&apos; to tableInfo() output that is generated from mapNativeDatatype()
-- changed &apos;len&apos; to &apos;length&apos; in tableInfo() output *BC BREAK*</notes>
+- changed &apos;len&apos; to &apos;length&apos; in tableInfo() output *BC BREAK*
+   </notes>
   </release>
   <release>
    <version>
@@ -498,7 +748,8 @@ note:
    </stability>
    <date>2005-10-16</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>Warning: this release features numerous BC breaks!
+   <notes>
+Warning: this release features numerous BC breaks!
 
 There have been considerable improvements to the datatype, manager and reverse
 modules. Furthermore preliminary support for auto increment and primary keys
@@ -525,7 +776,8 @@ column primary key on this field.
 - removed subSelect() implementation (now in already included in common)
 - return 0 for manipulation queries when disable_query is enabled
 - tweaked handling of notnull and default in field reverse engineering
-- tweaked getTableFieldDefinition() in reverse module</notes>
+- tweaked getTableFieldDefinition() in reverse module
+   </notes>
   </release>
   <release>
    <version>
@@ -538,14 +790,16 @@ column primary key on this field.
    </stability>
    <date>2005-04-29</date>
    <license uri="http://www.example.com">BSD License</license>
-   <notes>first unbundled release from MDB2 core
+   <notes>
+first unbundled release from MDB2 core
 
 - fixed new_link support (bug #4308)
 - dont just check for isset() for boolean values in order to support
   setting them false as well (bug #4373)
 - ensure SQL injection protection in all _quote() methods (was missing in
   some decimal, float, time, date and timestamp implementations)
-- dont inherite from the mysqli driver anymore to prevent indirect dependency on mysqli</notes>
+- dont inherite from the mysqli driver anymore to prevent indirect dependency on mysqli
+   </notes>
   </release>
  </changelog>
 </package>

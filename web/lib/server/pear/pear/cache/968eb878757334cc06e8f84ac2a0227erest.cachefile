@@ -1,0 +1,29 @@
+a:14:{s:7:"attribs";a:4:{s:5:"xmlns";s:36:"http://pear.php.net/dtd/rest.release";s:9:"xmlns:xsi";s:41:"http://www.w3.org/2001/XMLSchema-instance";s:11:"xmlns:xlink";s:28:"http://www.w3.org/1999/xlink";s:18:"xsi:schemaLocation";s:81:"http://pear.php.net/dtd/rest.release     http://pear.php.net/dtd/rest.release.xsd";}s:1:"p";a:2:{s:7:"attribs";a:1:{s:10:"xlink:href";s:25:"/rest/p/mdb2_driver_mysql";}s:8:"_content";s:17:"MDB2_Driver_mysql";}s:1:"c";s:12:"pear.php.net";s:1:"v";s:7:"1.5.0b4";s:2:"st";s:4:"beta";s:1:"l";s:11:"BSD License";s:1:"m";s:7:"danielc";s:1:"s";s:17:"mysql MDB2 driver";s:1:"d";s:30:"This is the MySQL MDB2 driver.";s:2:"da";s:19:"2012-10-23 19:15:34";s:1:"n";s:2068:"- Make varchar_max_length property public, Bug #19582.
+- Revert 327099 by afz, caused "Notice: Undefined index: charset on line 1003"
+- PEAR::isError() -> MDB2::isError(), Bug #19491.
+- PEAR::loadExtension() -> extension_loaded(), Bug #19583.
+- max value for VARCHAR is 65535 but if used multi-bytes (UTF8) so it is 21844, because UTF8 string takes 3bytes
+- Fix Bug #19262. Updates conditional stagements to use logical operators to include MDB2_FETCHMODE_OBJECT where appropriate. Was broken in r321197.
+- Have truncateTable() return MDB2_OK on success, as documented (bug 19201)
+- Have alterTable() return MDB2_OK on success, as documented (bug 19200)
+- Have dropIndex() return MDB2_OK on success, as documented (bug 19198)
+- Have vacuum() return MDB2_OK on success, as documented (bug 19196)
+- Have createIndex() return MDB2_OK on success, as documented (bug 19195)
+- Have dropConstraint() return MDB2_OK on success, as documented (bug 19194)
+- Have dropSequence() return MDB2_OK on success, as documented (bug 19191).
+- Make setOption('result_wrap_class') actually useful by changing the default value of $result_wrap_class parameters from false to true.
+- Obtain error information in _doQuery() because standaloneQuery() throws off $this->connection.
+- FETCHMODE constants are NOT bitwise.
+- Make $sql_comments public (was before, used in tests, no real harm).
+- Property visibility
+- boolean data type
+- fixed bug #17984: Error is not reported when mysqli_stmt_bind_param() fails [dennylin93]
+- fixed bug #18057: Result of getDeclaration() can have invalid syntax [hschletz]
+- request #18068: mapNativeDatatype() returns decimal places also for 'float' mdb2type
+- fixed bug #18203: Type introspection breaks with associative arrays if names are identical (patch by Peter Bex)
+- fixed bug #17892: removed debug message [pdt256]
+- fixed bug #18057: Result of getDeclaration() can have invalid syntax [hschletz]
+- request #18068: mapNativeDatatype() returns decimal places also for 'float' mdb2type
+
+open todo items:
+- use a trigger to emulate setting default now()";s:1:"f";s:5:"47418";s:1:"g";s:49:"http://pear.php.net/get/MDB2_Driver_mysql-1.5.0b4";s:1:"x";a:1:{s:7:"attribs";a:1:{s:10:"xlink:href";s:19:"package.1.5.0b4.xml";}}}

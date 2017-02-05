@@ -174,7 +174,19 @@ class OAuthUser{
     );
     $uri = $oc['token_url'] . '?' . urldecode(http_build_query($params));
     $this->logger->log(__FILE__."\n".$uri);
-    $r = file_get_contents($uri);
+    if($type == 'google'){
+      $curl = curl_init();
+      curl_setopt($curl, CURLOPT_URL, $oc['token_url']);
+      curl_setopt($curl, CURLOPT_POST, 1);
+      curl_setopt($curl, CURLOPT_POSTFIELDS, urldecode(http_build_query($params)));
+      curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+      $r = curl_exec($curl);
+      curl_close($curl);
+    }else{
+      $r = file_get_contents($uri);
+    }
+
     $this->logger->log(__FILE__."\n got ".$r);
     $token = null;
     if($type == 'vk'){
@@ -183,7 +195,10 @@ class OAuthUser{
       parse_str($r, $token);
       reset($token);
       $token = json_decode(key($token), true);
+    }if($type == 'google'){
+      $token = json_decode($r, true);
     }
+
     $this->logger->log('response', $token);
     if(!isset($token['access_token'])){
       $this->logger->log('OAuth error: cannot get access_token, got', $token);

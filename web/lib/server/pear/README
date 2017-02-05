@@ -1,2 +1,7 @@
 To install additional PEAR packages you can use
 pear -c web/lib/server/pear/.pearrc install <PEAR package name>
+
+i.e.
+pear -c web/lib/server/pear/.pearrc install MDB2
+or
+pear -c web/lib/server/pear/.pearrc install channel://pear.php.net/MDB2-2.5.0b5
