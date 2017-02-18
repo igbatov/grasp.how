@@ -1,29 +1,14 @@
-var addGraphActions = (function($,d3){
+var graphActions = (function($,d3){
   // global variable for current selected (clicked) node
   var selectedNodeId = null;
 
-  return addGraphActions;
+  return {
+    addActions: addActions
+  };
 
-  function addGraphActions(nodes, nodeContents, condPInfo){
+  function addActions(nodes, nodeContents, condPInfo, nodeContentView){
     createTextBoxes(nodes);
-
-    // typeNodes actions
-    d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') == 'nodeType'; })
-        .on("mouseover", function(){
-          if(selectedNodeId !== null) return;
-          hideAllTypesExcept(d3.select(this).attr('nodeId'));
-        })
-        .on("click", function(){
-          if(selectedNodeId != null) return;
-          selectedNodeId = d3.select(this).attr('nodeId');
-          hideAllTypesExcept(d3.select(this).attr('nodeId'));
-          // stop propagation
-          d3.event.stopPropagation();
-        })
-        .on("mouseout", function(){
-          if(selectedNodeId !== null) return;
-          restoreOpacity(nodes);
-        });
+    menuCirclesActions(nodes, selectedNodeId)
 
     // graph node actions
     d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; })
@@ -32,9 +17,10 @@ var addGraphActions = (function($,d3){
 
           // hide all other nodes
           var selfNodeId = d3.select(this).attr('nodeId');
-          d3.selectAll('circle').filter(function (x) { return selfNodeId != d3.select(this).attr('nodeId') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.2);
-          d3.selectAll('text').filter(function (x) { return selfNodeId != d3.select(this).attr('nodeId') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.2);
-          d3.selectAll('path').attr('fill-opacity', 0.2);
+          d3.selectAll('circle').filter(function (x) { return selfNodeId != d3.select(this).attr('nodeId') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.1);
+          d3.selectAll('text').filter(function (x) { return selfNodeId != d3.select(this).attr('nodeId') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.1);
+          d3.selectAll('path').attr('stroke-opacity', 0.1);
+          d3.selectAll('marker').attr('fill-opacity', 0.1);
 
           // show text box with node content
           var circle = d3.select(this);
@@ -58,8 +44,6 @@ var addGraphActions = (function($,d3){
           // stop propagation
           d3.event.stopPropagation();
         });
-
-
   }
 
   function createTextBoxes(nodes){
@@ -112,7 +96,7 @@ var addGraphActions = (function($,d3){
     else  textBoxId = 'rightTextBox';
 
     // set node content to textBox and show it
-    $('#'+textBoxId).html(new NodeContentView(content, condPInfo));
+    $('#'+textBoxId).html(nodeContentView.getView(content, condPInfo));
     $('#'+textBoxId).show();
   }
 
@@ -127,9 +111,30 @@ var addGraphActions = (function($,d3){
     }
 
     // edges
-    //d3.selectAll('path').attr('fill-opacity', 1);
+    d3.selectAll('path').attr('stroke-opacity', 1);
+    d3.selectAll('marker').attr('fill-opacity', 1);
 
     // labels
     d3.selectAll('text').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 1);
+  }
+
+  function menuCirclesActions(nodes, selectedNodeId){
+    // typeNodes actions
+    d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') == 'nodeType'; })
+        .on("mouseover", function(){
+          if(selectedNodeId !== null) return;
+          hideAllTypesExcept(d3.select(this).attr('nodeId'));
+        })
+        .on("click", function(){
+          if(selectedNodeId != null) return;
+          selectedNodeId = d3.select(this).attr('nodeId');
+          hideAllTypesExcept(d3.select(this).attr('nodeId'));
+          // stop propagation
+          d3.event.stopPropagation();
+        })
+        .on("mouseout", function(){
+          if(selectedNodeId !== null) return;
+          restoreOpacity(nodes);
+        });
   }
 })($,d3);

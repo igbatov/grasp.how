@@ -598,10 +598,10 @@ class AppUserPkb extends App
 
     $user_id = $rows[0]['id'];
     $graph_ids = $this->getGraphIds($user_id);
-    foreach($graph_ids as $graph_id) $r[] = $this->graphs->removeGraph($graph_id);
+    foreach($graph_ids as $graph_id) array_push($r, $this->graphs->removeGraph($graph_id));
 
     $q = "DELETE FROM auth WHERE id = '".$user_id."'";
-    $r[] = $this->db->execute($q);
+    array_push($r, $this->db->execute($q));
 
     return $r;
   }
@@ -924,15 +924,6 @@ class AppUserPkb extends App
 
   public function getJsIncludeList(){
     return array(
-     // 'Helpers.js',
-
-      'Mediator/iListener.js',
-      'Mediator/Event.js',
-      'Mediator/Mediator.js',
-      'Mediator/Publisher.js',
-      'Mediator/Subscriber.js',
-
-      'Ajax.js',
       'Repository.js',
       'GraphHistory.js',
       'KeyManager.js',
@@ -947,7 +938,6 @@ class AppUserPkb extends App
       'GraphModel/GraphModelsPubSub.js',
 
       'ViewManager.js',
-      //'UIElements.js',
 
       'Drawer/kinetic-v4.7.0.js',
       'Drawer/CanvasDrawer.js',

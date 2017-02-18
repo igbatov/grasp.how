@@ -28,16 +28,22 @@
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Ajax.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/iListener.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Event.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Mediator.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Publisher.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Subscriber.js"></script>
 
     <!-- app specific js -->
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."d3.v3.min.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."node-content-view.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."graph.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."embed-graph-actions.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."embed.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."share_track.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."d3.v3.min.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."node-content-view.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph-actions.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."main.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."googleanalytics.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."share_track.js" ?>"></script>
   </head>
   <body>
 

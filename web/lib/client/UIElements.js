@@ -369,7 +369,7 @@ GRASP.UIElements.prototype = {
 
   /**
    * Create Toggle element - content will be toggled upon label click
-   * @param attrs = {label:, content:, is_default_hide:, callback:, labelClassName:, contentClassName:, name:, formname:}
+   * @param attrs = {label: {string | HTMLElement}, content {string | HTMLElement}:, is_default_hide:, callback:, labelClassName:, contentClassName:, name:, formname:}
    * @returns {HTMLElement}
    * @constructor
    */
@@ -683,6 +683,19 @@ GRASP.UIElements.prototype = {
     }
 
     return li;
+  },
+
+  /**
+   * Wraps el with tooltip
+   * @param el {HTMLElement}
+   * @param tooltiptext string
+   * @returns {HTMLElement}
+   */
+  addToopltip: function(el, tooltiptext){
+    // add tooltiped class
+    el.className += ' tooltiped';
+    el.title = tooltiptext;
+    return el;
   },
 
   /**

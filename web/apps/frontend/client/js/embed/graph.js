@@ -1,9 +1,16 @@
 /**
  * Draws SVG given graph nodes, edges, labels
  */
-var showGraph = (function(){
-  return showGraph;
+var graphDrawer = (function(){
+  return {
+    eventListener: eventListener,
+    showGraph: showGraph,
+    moduleName: 'graphDrawer'
+  };
 
+  function eventListener(e){
+    console.log(e)
+  }
   /**
    * Draws SVG in wrapper
    * @param wrapper
@@ -105,6 +112,7 @@ var showGraph = (function(){
           .attr("d", getQuadPathData(nodes[edges[i].source], nodes[edges[i].target], nodes[edges[i].target].size*NODE_SIZE_FACTOR))
           .attr("stroke", edgeTypes[edges[i].type].color)
           .attr("stroke-width", "1")
+          .attr("stroke-opacity", "1")
           .style("fill", 'transparent')
           .style("fill-opacity", '0')
           .attr("class", "edges");

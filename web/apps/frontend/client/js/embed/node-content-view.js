@@ -1,3 +1,7 @@
+var jquery = jquery || $;
+var mediator = mediator || new GRASP.Mediator();
+var promise = promise || new GRASP.Promise(jquery);
+var publisher = publisher || new GRASP.Publisher(mediator, promise);
 var uielements = uielements || new GRASP.UIElements();
 var globalState = typeof(globalState) == 'undefined' ? {probabilitiesOpened: true} : globalState;
 
@@ -6,15 +10,18 @@ var globalState = typeof(globalState) == 'undefined' ? {probabilitiesOpened: tru
  * @param GRASP
  * @param UI
  * @param extState - type of {probabilitiesOpened: true}
+ * @param publisher - instance of GRASP.Publisher
  */
-var NodeContentView = (function(GRASP, UI, extState){
+var nodeContentView = (function(GRASP, UI, globalState, publisher){
   // component props
   var _state = {active_alternative_id:null};
   // children components
   var altContentList = [];
   var altLabelList = [];
 
-  return NodeContentView;
+  return {
+    getView: getView
+  };
 
   function setState(newstate){
     _state = newstate;
@@ -35,7 +42,7 @@ var NodeContentView = (function(GRASP, UI, extState){
    * @returns {HTMLElement}
    * @constructor
    */
-  function NodeContentView(content, condPInfo){
+  function getView(content, condPInfo){
     var view = GRASP.createElement('div',{});
 
     // add labels
@@ -62,11 +69,16 @@ var NodeContentView = (function(GRASP, UI, extState){
     if(condPInfo){
       var toggle = UI.createToggle({
         name: 'cond_prob_toggle',
-        label: 'Underlying conditional probabilities assumptions',
+        label: UI.addToopltip(
+            GRASP.createElement('span',{class:'underlyingConditionalProbabilitiesAssumptionsLabel'}, 'Underlying conditional probabilities assumptions'),
+            'This numbers are the assumptions of map author'
+        ),
         content: condPInfo.replace(/(?:\r\n|\r|\n)/g, '<br />'),
-        is_default_hide: !extState.probabilitiesOpened,
-        callback: function(opened){ extState.probabilitiesOpened = opened; },
-        labelClassName: 'underlyingConditionalProbabilitiesAssumptionsLabel',
+        is_default_hide: !globalState.probabilitiesOpened,
+        callback: function(opened){
+          publisher.publish('hide_all_labels');
+          globalState.probabilitiesOpened = opened;
+        },
         contentClassName: 'underlyingConditionalProbabilitiesAssumptionsContent'
       });
       toggle.addEventListener('click', function(e){ e.stopPropagation(); });
@@ -92,12 +104,23 @@ var NodeContentView = (function(GRASP, UI, extState){
    */
   function AltContent(id, text, list){
     var c = GRASP.createElement('div',{class:'alt_content', id:'alt_content_'+id});
+
+    // text
     c.appendChild(GRASP.createElement('div',{},text));
-    if(GRASP.getObjectLength(list)>0) c.appendChild(GRASP.createElement('div',{},'<br>Sources:<br>'));
-    for(var i in list){
-      c.appendChild(GRASP.createElement('span',{class:'nodeListItemReliability'}, '[Reliability - '+list[i].publisher_reliability+'/10]'));
-      c.appendChild(GRASP.createElement('a',{class:'nodeListItem', href:list[i].url, target:'_blank'}, list[i].author+' // '+list[i].name+' // '+list[i].publisher));
+
+    // source list
+    if(GRASP.getObjectLength(list)>0){
+      c.appendChild(GRASP.createElement('div',{},'<br>Sources:<br>'));
+      for(var i in list){
+        c.appendChild(
+            UI.addToopltip(
+                GRASP.createElement('span',{class:'nodeListItemReliability'},'[Reliability - '+list[i].publisher_reliability+'/10]')
+                , 'This numbers are the assumptions of map author'
+            )
+        );
+        c.appendChild(GRASP.createElement('a',{class:'nodeListItem', href:list[i].url, target:'_blank'}, list[i].author+' // '+list[i].name+' // '+list[i].publisher));
+      }
     }
     return c;
   }
-})(GRASP, uielements, globalState);
+})(GRASP, uielements, globalState, publisher);

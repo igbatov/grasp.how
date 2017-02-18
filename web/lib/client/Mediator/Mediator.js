@@ -129,7 +129,7 @@ GRASP.Mediator.prototype = {
     var listeners = this.getListeners(event.getName());
 
     // for debugging: get info about event publisher and listeners
-    if(DEBUG_MODE){
+    if(typeof(DEBUG_MODE) != 'undefined' && DEBUG_MODE){
       var currentEvent = undefined;
       var stack = printStackTrace();
       for(i = 0; i < stack.length; i++){
@@ -151,7 +151,7 @@ GRASP.Mediator.prototype = {
       try {
 
         // for debugging
-        if(DEBUG_MODE){
+        if(typeof(DEBUG_MODE) != 'undefined' && DEBUG_MODE){
           GRASP.debug.printEvent(currentEvent, listeners[i].moduleName,'','receive',event.getName(),event.getData(), GRASP.getObjectId(event));
         }
         // endof debugging
