@@ -11,13 +11,15 @@ var mediator = mediator || new GRASP.Mediator();
     // example
     /*
      var area = {width:300, height:250, centerX:150, centerY: 125};
-     var nodes = {1:{id:1, x:0, y:25, color:"purple", type:"fact", size:25, opacity: 1}, 2:{id:2, x:125, y:225, color:"red", type:"hypothesis", size:20, opacity: 0.8}};
-     var edges = {1:{id:1, source:1, target:2}};
-     var nodeContents = {1:{label:"История и Хайдте", text:"Длинная История о Хайдте"}, 2:{label:"Доказательство бытия", text:"Длтнное Доказательство бытия"}};
      var nodeTypes = {fact:{label:"Факт", color:"purple"}, hypothesis:{label:"Гипотеза", color:"red"}};
+     var nodes = {1:{id:1, x:0, y:25, color:"purple", type:"fact", size:25, opacity: 1}, 2:{id:2, x:125, y:225, color:"red", type:"hypothesis", size:20, opacity: 0.8}};
+     var edgeTypes = {causal:{color:"purple"}, conditional:{color:"red"}, link:{color:"red"}};
+     var edges = {1:{id:1, source:1, target:2}};
+     var nodeContents = {0:{active_alternative_id:,alternatives:{},has_icon:,importance:,stickers:,type:}, ...}};
+     var node_id_global_content_id_map = {0:"123-1"}
      var graphs = {
-       1: {name:"Name1", area:area, nodes:nodes, edges:edges, nodeContents:nodeContents, nodeTypes:nodeTypes},
-       2: {name:"Name2", area:area, nodes:nodes, edges:edges, nodeContents:nodeContents, nodeTypes:nodeTypes}
+       1: {name:"Name1", area:area, nodes:nodes, edges:edges, nodeContents:nodeContents, nodeTypes:nodeTypes,edgeTypes:edgeTypes.node_id_global_content_id_map:node_id_global_content_id_map},
+       2: {name:"Name2", area:area, nodes:nodes, edges:edges, nodeContents:nodeContents, nodeTypes:nodeTypes.edgeTypes:edgeTypes,node_id_global_content_id_map:node_id_global_content_id_map}
      };
      */
     var graphs = $("#graphsData").text() != "" ? JSON.parse($("#graphsData").text()) : null;
@@ -39,7 +41,7 @@ var mediator = mediator || new GRASP.Mediator();
     $("#mainSVG").remove();
 
     var wrapper = createWrapper();
-
+console.log(graph);
     // draw graph SVG in wrapper
     graphDrawer.showGraph(wrapper.div, wrapper.dims, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
 
@@ -100,47 +102,48 @@ var mediator = mediator || new GRASP.Mediator();
 
   /**
    * Convert conditional probabilities onto human-readable text
-   * @param contents
+   * @param contents - array of node contents
    * @param edges
    * @param node_id_global_content_id_map
    * @returns {{}}
    */
   function getCondPsInfo(contents, edges, node_id_global_content_id_map){
     var condPInfo = {}; // key - nodeId, value - text or null
-    for(var i in contents){
+    console.log(contents, node_id_global_content_id_map);
+    for(var nodeId in contents){
       var parentContents = {};
-      var parentIds = getParentIds(i, edges);
+      var parentIds = getParentIds(nodeId, edges);
       for(var j in parentIds){
         var parentId = parentIds[j];
         parentContents[node_id_global_content_id_map[parentId]] = contents[parentId];
       }
 
-      if(GRASP.nodeConditionalFormHelper.isNodeConditionalFieldsEmpty(contents[i])){
-        condPInfo[i] = null;
+      if(GRASP.nodeConditionalFormHelper.isNodeConditionalFieldsEmpty(contents[nodeId])){
+        condPInfo[nodeId] = null;
         continue;
       }
 
       // decipher conditional probabilities into text
       var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
-          contents[i],
+          contents[nodeId],
           false,
           function(type){return type == 'fact'},
           parentContents,
-          ['fact', 'proposition']
+          ['fact', 'proposition'],
+          node_id_global_content_id_map[nodeId]
       );
-
+console.log(f)
       // create decorated text string for each f.fields[i]
-      condPInfo[i] = '';
+      condPInfo[nodeId] = '';
       for(var j in f.fields){
         if(f.fields[j].type != 'hidden'){
           if(j.includes("label")){
-            if(j.includes("_IF_label")) condPInfo[i] += '\n'+f.fields[j].value + "\n";
-            else condPInfo[i] += f.fields[j].value + "\n";
-          }
-          if(!j.includes("label")){
+            if(j.includes("_IF_label")) condPInfo[nodeId] += '\n'+f.fields[j].value + "\n";
+            else condPInfo[nodeId] += f.fields[j].value + "\n";
+          }else{
             // remove previous "\n"
-            condPInfo[i] = condPInfo[i].substr(0, condPInfo[i].length-2);
-            condPInfo[i] += '<b> - IS '+f.fields[j].value + "</b>\n";
+            condPInfo[nodeId] = condPInfo[nodeId].substr(0, condPInfo[nodeId].length-2);
+            condPInfo[nodeId] += '<b> - IS '+f.fields[j].value + "</b>\n";
           }
         }
       }

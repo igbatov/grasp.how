@@ -132,7 +132,7 @@ GRASP.GraphElementEditor.prototype = {
   getEventElementType: function(event){
     if(event.getName() == 'graph_element_content_changed' && [
       'updateEdgeAttribute',
-      'addEdge',
+      'addEdge'
     ].indexOf(event.getData().type) != -1) return 'edge';
 
     if(event.getName() == 'graph_element_content_changed' && [
@@ -146,7 +146,7 @@ GRASP.GraphElementEditor.prototype = {
       'node_list_remove_request',
       'node_list_add_request',
       'addNode',
-      'addIcon',
+      'addIcon'
     ].indexOf(event.getData().type) != -1) return 'node';
 
     return false;
@@ -286,14 +286,17 @@ GRASP.GraphElementEditor.prototype = {
                 )
                 .then(function(parentContents){
                   var fields = {};
-                  var formKeys = [{}]; // array of each combination of parent alternatives, ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+                  // array of each combination of parent alternatives,
+                  // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+                  var formKeys = [{}];
 
                   var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
                       node,
                       isEditable,
                       function(type){return type == that.NODE_TYPE_FACT;},
                       parentContents,
-                      [that.NODE_TYPE_FACT, that.NODE_TYPE_PROPOSITION]
+                      [that.NODE_TYPE_FACT, that.NODE_TYPE_PROPOSITION],
+                      nodeId
                   );
                   fields = f.fields;
                   formKeys = f.formKeys;
@@ -311,14 +314,14 @@ GRASP.GraphElementEditor.prototype = {
                         probabilities[j] = {};
                         for(var i in formKeys){
                           var formKeyStr = JSON.stringify(formKeys[i]);
-                          probabilities[j][formKeyStr] = form[formKeyStr+'__'+j] != '' ? form[formKeyStr+'__'+j] : 1/GRASP.getObjectLength(node.alternatives);
+                          probabilities[j][formKeyStr] = form[i+'_THEN_'+formKeyStr+'_'+j] != '' ? form[i+'_THEN_'+formKeyStr+'_'+j] : 1/GRASP.getObjectLength(node.alternatives);
                         }
-                      }  
+                      }
 
                       // sanity check of probability values
                       for(var i in formKeys){
                         var formKeyStr = JSON.stringify(formKeys[i]);
-                       
+
                         // check that every probability in [0,1]
                         for(var j in node.alternatives){
                           if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){

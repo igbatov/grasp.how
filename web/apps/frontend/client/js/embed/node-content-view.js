@@ -76,7 +76,6 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
         content: condPInfo.replace(/(?:\r\n|\r|\n)/g, '<br />'),
         is_default_hide: !globalState.probabilitiesOpened,
         callback: function(opened){
-          publisher.publish('hide_all_labels');
           globalState.probabilitiesOpened = opened;
         },
         contentClassName: 'underlyingConditionalProbabilitiesAssumptionsContent'

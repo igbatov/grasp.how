@@ -1538,12 +1538,55 @@ GRASP.nodeConditionalFormHelper = (function(){
    * @param isNodeFact - callback to check if node type is 'fact'
    * @param parentContents
    * @param condNodeTypes
-   * @returns {{fields: {}, formKeys: *[]}}
+   * @param nodeId - nodeId of the node that for which we get conditional form fields
+   * @returns {{fields: {}, fieldsObj: {}, formKeys: *[]}}
    */
-  var getNodeConditionalFormFields = function(node, isEditable, isNodeFact, parentContents, condNodeTypes){
-    var fields = {};
-    var formKeys = [{}]; // array of each combination of parent alternatives, ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+  var getNodeConditionalFormFields = function(node, isEditable, isNodeFact, parentContents, condNodeTypes, nodeId){
+    /**
+     * fieldsObj:
+     * Output in a hierarchical form, i.e.
+     * {
+     *   0:{
+     *     IF:{
+     *       <parent1NodeId>:{alternativeId:0, alternativeLabel:<string>}
+     *     }
+     *     THEN:{
+     *       <nodeAlternative1Id>:{probability:0.4, alternativeLabel:<string>}
+     *       <nodeAlternative2Id>:{probability:0.5, alternativeLabel:<string>}
+     *     }
+     *   },
+     *   1:{
+     *     ...
+     *   }
+     * }
+     * @type {{}}
+     */
+    var fieldsObj = {};
 
+    /**
+     * Fields in a flat form that suits for UI.createForm, i.e.
+     * {
+     *   '0_IF__label': {type:'title', value: "IF: "},
+     *   '0_IF_<parent1NodeId>=<parent1NodeAlternative1Id>_label': {type:'title', value: <string>},
+     *   '0_THEN__label': {type:'title', value: "THEN"},
+     *   '0_THEN_{<parent1NodeId>:<parent1NodeAlternative1Id>}_<nodeAlternative1Id>__label':{
+     *     type:'title',
+     *     value:<string>
+     *   }
+     *   '0_THEN_{<parent1NodeId>:<parent1NodeAlternative1Id>}__<nodeAlternative1Id>':{
+           type: 'text',
+           value: 0.4,
+           placeholder: 0.5,
+           disabled:false
+         },
+         ...
+     * }
+     * @type {{}}
+     */
+    var fields = {};
+    // array of each combination of parent alternatives,
+    // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+    var formKeys = [{}];
     // we calc conditional probabilities only for facts and propositions, so filter out others here
     for(var i in parentContents){
       if(condNodeTypes.indexOf(parentContents[i].type) == -1) delete parentContents[i];
@@ -1554,34 +1597,41 @@ GRASP.nodeConditionalFormHelper = (function(){
     }
 
     // create form fields for each combination of parent alternatives
-    for(var i in formKeys){
-      var fieldLabel = '';
-      fields[i+'_IF_label'] = {type:'title',value:'IF: '};
-      for(var j in formKeys[i]){
-        fieldLabel = parentContents[j].alternatives[formKeys[i][j]].label;
-        fields[i+'_'+j+'_label'] = {type:'title',value:'----- "'+fieldLabel.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
+    for(var i in formKeys){ // i - number of combination
+      var alternativeLabel = '';
+      fieldsObj[i] = {IF:{},THEN:{}};
+      fields[i+'_IFLabel'] = {type:'title',value:'IF: '};
+      for(var j in formKeys[i]){ // j - parent node id, formKeys[i][j] - parent node j alternative id
+        alternativeLabel = parentContents[j].alternatives[formKeys[i][j]].label;
+        fields[i+'_IF_'+j+'='+formKeys[i][j]+'_label'] = {type:'title',value:'----- "'+alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
+        fieldsObj[i]['IF'][j] = {alternativeId:formKeys[i][j], alternativeLabel:alternativeLabel}
       }
 
-      fields[i+'_THEN_label'] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;THEN: '};
+      fields[i+'_THENLabel'] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;THEN: '};
 
+      // formKeyStr is a fixed set of parent nodes alternatives, i.e. {p1:1,p2:1}
       var formKeyStr = JSON.stringify(formKeys[i]);
 
       // create text fields for conditional probabilities of node's alternatives
       for(var j in node.alternatives){
+        var inputLabelKey = i+'_THEN_'+formKeyStr+'_'+j+'_label';
+        var inputKey = i+'_THEN_'+formKeyStr+'_'+j;
         // do not show second alternative for facts,
         // as it is always filled in automatically from first alternative probability
         var isFactDenial = isNodeFact(node.type) && j!=0;
-        if(!isFactDenial) fields[formKeyStr+'_'+j+'_'+'_label'] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;----- PROBABILITY: "'+node.alternatives[j].label.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
-        fields[formKeyStr+'__'+j] = {
+        if(!isFactDenial) fields[inputLabelKey] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;----- PROBABILITY: "'+node.alternatives[j].label.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
+        var probability = GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "";
+        fields[inputKey] = {
           type: isFactDenial ? 'hidden' : 'text',
-          value: GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "",
+          value: probability,
           placeholder: 1/GRASP.getObjectLength(node.alternatives),
           disabled:!isEditable
         };
+        fieldsObj[i]['THEN'][j] = {nodeId: nodeId, alternativeId: j, probability:probability, alternativeLabel:node.alternatives[j].label}
       }
     }
 
-    return {'fields':fields, formKeys:formKeys};
+    return {'fields':fields, fieldsObj:fieldsObj, formKeys:formKeys};
   }
 
   var isNodeConditionalFieldsEmpty = function(node){
@@ -1592,11 +1642,12 @@ GRASP.nodeConditionalFormHelper = (function(){
   }
 
   /**
-   * Add parentContent alternatives to formKeys:
+   * Add parentContent alternative id to formKeys.
+   * For example, for this input
    * @param formKeys = [{p1:1},{p1:2}]
    * @param parentContentId = 'p2'
    * @param parentContent = {1:{<some alternative content>}, 2:{<some alternative content>}}
-   * Output [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+   * Output will be [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
    */
   function addAlternativeColumn(formKeys, parentContentId, parentContent){
     for(var i in formKeys){
