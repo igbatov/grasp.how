@@ -386,6 +386,16 @@ GRASP.UIElements.prototype = {
     if(GRASP.typeof(label) == 'string') label = GRASP.createElement('div',{class:labelClassName}, label);
     if(GRASP.typeof(content) == 'string') content = GRASP.createElement('div',{class:contentClassName}, content);
 
+    if(!GRASP.typeof(content).includes('html')){
+      console.log('Argument content in createToggle must be string or HTMLElement, got'+GRASP.typeof(content));
+    }
+    if(!GRASP.typeof(label).includes('html')){
+      console.log('Argument label in createToggle must be string or HTMLElement, got '+GRASP.typeof(label));
+    }
+
+    label.className += ' ' + labelClassName;
+    content.className += ' ' + contentClassName;
+
     var c = GRASP.createElement('div',{});
     label.addEventListener('click', function(){
       if(content.style.display == 'block'){

@@ -3,7 +3,8 @@ var mediator = mediator || new GRASP.Mediator();
 (function($, graphDrawer, actions, nodeContentView, mediator){
 
   mediator.setSubscriptions({
-    'hide_all_labels':[graphDrawer]
+    'hide_all_labels':[graphDrawer],
+    'show_custom_labels':[graphDrawer]
   });
 
   $( document ).ready(function(){
@@ -41,7 +42,7 @@ var mediator = mediator || new GRASP.Mediator();
     $("#mainSVG").remove();
 
     var wrapper = createWrapper();
-console.log(graph);
+
     // draw graph SVG in wrapper
     graphDrawer.showGraph(wrapper.div, wrapper.dims, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
 
@@ -109,7 +110,7 @@ console.log(graph);
    */
   function getCondPsInfo(contents, edges, node_id_global_content_id_map){
     var condPInfo = {}; // key - nodeId, value - text or null
-    console.log(contents, node_id_global_content_id_map);
+
     for(var nodeId in contents){
       var parentContents = {};
       var parentIds = getParentIds(nodeId, edges);
@@ -124,7 +125,7 @@ console.log(graph);
       }
 
       // decipher conditional probabilities into text
-      var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
+      condPInfo[nodeId] = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
           contents[nodeId],
           false,
           function(type){return type == 'fact'},
@@ -132,21 +133,6 @@ console.log(graph);
           ['fact', 'proposition'],
           node_id_global_content_id_map[nodeId]
       );
-console.log(f)
-      // create decorated text string for each f.fields[i]
-      condPInfo[nodeId] = '';
-      for(var j in f.fields){
-        if(f.fields[j].type != 'hidden'){
-          if(j.includes("label")){
-            if(j.includes("_IF_label")) condPInfo[nodeId] += '\n'+f.fields[j].value + "\n";
-            else condPInfo[nodeId] += f.fields[j].value + "\n";
-          }else{
-            // remove previous "\n"
-            condPInfo[nodeId] = condPInfo[nodeId].substr(0, condPInfo[nodeId].length-2);
-            condPInfo[nodeId] += '<b> - IS '+f.fields[j].value + "</b>\n";
-          }
-        }
-      }
     }
     return condPInfo;
 

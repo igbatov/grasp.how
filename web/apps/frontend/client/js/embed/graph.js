@@ -10,6 +10,11 @@ var graphDrawer = (function(){
 
   function eventListener(e){
     console.log(e)
+    if(e.eventName == 'hide_all_labels'){
+
+    }else if(e.eventName == 'show_custom_labels'){
+
+    }
   }
   /**
    * Draws SVG in wrapper
@@ -137,7 +142,7 @@ var graphDrawer = (function(){
     // draw labels
     for(var i in nodes){
       var node = nodes[i];
-//console.log(node.id);
+
       var active_alternative_id = nodeContents[node.id]['active_alternative_id'];
       var strs = nodeContents[node.id]['alternatives'][active_alternative_id].label.split("\n");
       var offset = 0;

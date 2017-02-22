@@ -1552,7 +1552,7 @@ GRASP.nodeConditionalFormHelper = (function(){
      *     }
      *     THEN:{
      *       <nodeAlternative1Id>:{probability:0.4, alternativeLabel:<string>}
-     *       <nodeAlternative2Id>:{probability:0.5, alternativeLabel:<string>}
+     *       <nodeAlternative2Id>:{probability:0.5, alternativeLabel:<string>, nodeId:1, alternativeId:0}
      *     }
      *   },
      *   1:{
@@ -1599,12 +1599,12 @@ GRASP.nodeConditionalFormHelper = (function(){
     // create form fields for each combination of parent alternatives
     for(var i in formKeys){ // i - number of combination
       var alternativeLabel = '';
-      fieldsObj[i] = {IF:{},THEN:{}};
-      fields[i+'_IFLabel'] = {type:'title',value:'IF: '};
+      fieldsObj[i] = {IF:{}, THEN:{}};
+      fields[i+'_IFLabel'] = {type:'title', value:'IF: '};
       for(var j in formKeys[i]){ // j - parent node id, formKeys[i][j] - parent node j alternative id
         alternativeLabel = parentContents[j].alternatives[formKeys[i][j]].label;
         fields[i+'_IF_'+j+'='+formKeys[i][j]+'_label'] = {type:'title',value:'----- "'+alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
-        fieldsObj[i]['IF'][j] = {alternativeId:formKeys[i][j], alternativeLabel:alternativeLabel}
+        fieldsObj[i]['IF'][j] = {alternativeId:formKeys[i][j], alternativeLabel:alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')}
       }
 
       fields[i+'_THENLabel'] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;THEN: '};
@@ -1627,7 +1627,7 @@ GRASP.nodeConditionalFormHelper = (function(){
           placeholder: 1/GRASP.getObjectLength(node.alternatives),
           disabled:!isEditable
         };
-        fieldsObj[i]['THEN'][j] = {nodeId: nodeId, alternativeId: j, probability:probability, alternativeLabel:node.alternatives[j].label}
+        fieldsObj[i]['THEN'][j] = {nodeId: nodeId, alternativeId: j, probability:probability, alternativeLabel:node.alternatives[j].label.replace(/(?:\r\n|\r|\n)/g, ' ')}
       }
     }
 

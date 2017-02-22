@@ -24,7 +24,7 @@ var graphActions = (function($,d3){
 
           // show text box with node content
           var circle = d3.select(this);
-          showNodeContent(circle, nodeContents[selfNodeId], condPInfo[selfNodeId]);
+          showNodeContent(circle, nodeContents[selfNodeId], condPInfo[selfNodeId], nodeContentView);
         })
         .on("mouseout", function(){
           if(selectedNodeId !== null) return;
@@ -39,7 +39,7 @@ var graphActions = (function($,d3){
 
           // show text box with node content
           var circle = d3.select(this);
-          showNodeContent(circle, nodeContents[selectedNodeId], condPInfo[selectedNodeId]);
+          showNodeContent(circle, nodeContents[selectedNodeId], condPInfo[selectedNodeId], nodeContentView);
 
           // stop propagation
           d3.event.stopPropagation();
@@ -61,14 +61,14 @@ var graphActions = (function($,d3){
       width:graphContainerWidth/2 - TEXT_BOX_WIDTH_CENTER_MARGIN*(graphContainerWidth/2)/100,
       height:graphContainerHeight - TEXT_BOX_WIDTH_BOTTOM_MARGIN*graphContainerHeight/100
     };
-    $('body').append('<div id="leftTextBox" class="textBox" style="display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px"></div>');
+    $('body').append('<div id="leftTextBox" style="display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px"></div>');
     var pos = {
       top:offset.top,
       left:offset.left + graphContainerWidth/2 + (TEXT_BOX_WIDTH_CENTER_MARGIN - TEXT_BOX_WIDTH_BORDER_MARGIN)*(graphContainerWidth/2)/100,
       width:graphContainerWidth/2 - TEXT_BOX_WIDTH_CENTER_MARGIN*(graphContainerWidth/2)/100,
       height:graphContainerHeight - TEXT_BOX_WIDTH_BOTTOM_MARGIN*graphContainerHeight/100
     };
-    $('body').append('<div id="rightTextBox" class="textBox" style="display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px"></div>');
+    $('body').append('<div id="rightTextBox" style="display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px"></div>');
 
     // unset selectedNodeId when clicked somewhere
     $(document).click(function(e){
@@ -87,7 +87,7 @@ var graphActions = (function($,d3){
     d3.selectAll('path').attr('fill-opacity', 0.2);
   }
 
-  function showNodeContent(circle, content, condPInfo){
+  function showNodeContent(circle, content, condPInfo, nodeContentView){
     var w = $("#graphContainer").width(),
         textBoxId;
 

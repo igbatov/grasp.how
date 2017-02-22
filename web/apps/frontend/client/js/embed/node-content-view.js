@@ -43,7 +43,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
    * @constructor
    */
   function getView(content, condPInfo){
-    var view = GRASP.createElement('div',{});
+    var view = GRASP.createElement('div',{class:'textBox'});
 
     // add labels
     for(var alt_id in content['alternatives']){
@@ -67,13 +67,33 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
     }
 
     if(condPInfo){
+      var condPInfoDOM = createCondPInfoDOM(condPInfo);
+      for(var i=0; i<condPInfoDOM.childNodes.length; i++){
+        var el = condPInfoDOM.childNodes[i];
+        el.addEventListener('mouseover', function(evt){
+          // hide el parent
+          var clone = cloneToAbsolute(this);
+          clone.style.backgroundColor = 'blue';
+          view.style.opacity = 0;
+          clone.addEventListener('mouseleave', function(evt){
+            view.style.opacity = 1;
+            this.parentNode.removeChild(this);
+          });
+
+          // send event to graph drawer
+          publisher.publish(['hide_all_labels',{}]);
+          publisher.publish(['show_custom_labels', condPInfo.fieldsObj[this.dataset.condPInfoBlockId]]);
+        });
+
+
+      }
       var toggle = UI.createToggle({
         name: 'cond_prob_toggle',
         label: UI.addToopltip(
             GRASP.createElement('span',{class:'underlyingConditionalProbabilitiesAssumptionsLabel'}, 'Underlying conditional probabilities assumptions'),
             'This numbers are the assumptions of map author'
         ),
-        content: condPInfo.replace(/(?:\r\n|\r|\n)/g, '<br />'),
+        content: condPInfoDOM,
         is_default_hide: !globalState.probabilitiesOpened,
         callback: function(opened){
           globalState.probabilitiesOpened = opened;
@@ -93,6 +113,95 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
     setState({active_alternative_id:content['active_alternative_id']});
 
     return view;
+  }
+
+  /**
+   * Clone element and make its position absolute with coordinates of cloned one
+   * Similar to https://www.impressivewebs.com/fixing-parent-child-opacity/
+   * @param el
+   */
+  function cloneToAbsolute(el){
+    var x, y, w, newParent, clonedChild;
+
+    clonedChild = el.cloneNode(true);
+    copyComputedStyle(el, clonedChild);
+    newParent = document.documentElement;
+
+    newParent.appendChild(clonedChild);
+
+    function doCoords () {
+      x = el.getBoundingClientRect().left;
+      y = el.getBoundingClientRect().top;
+      if (el.getBoundingClientRect().width) {
+        w = el.getBoundingClientRect().width; // for modern browsers
+      } else {
+        w = el.offsetWidth; // for oldIE
+      }
+
+      clonedChild.style.position = 'absolute';
+      clonedChild.style.left = x + 'px';
+      clonedChild.style.top = y + 'px';
+      clonedChild.style.width = w + 'px';
+    }
+
+    window.onresize = function () {
+      doCoords();
+    };
+
+    doCoords();
+
+    function realStyle(_elem, _style) {
+      var computedStyle;
+      if ( typeof _elem.currentStyle != 'undefined' ) {
+        computedStyle = _elem.currentStyle;
+      } else {
+        computedStyle = document.defaultView.getComputedStyle(_elem, null);
+      }
+
+      return _style ? computedStyle[_style] : computedStyle;
+    };
+
+    function copyComputedStyle(src, dest) {
+      var s = realStyle(src);
+      for ( var i in s ) {
+        // Do not use `hasOwnProperty`, nothing will get copied
+        if ( typeof i == "string" && i != "cssText" && !/\d/.test(i) ) {
+          // The try is for setter only properties
+          try {
+            dest.style[i] = s[i];
+            // `fontSize` comes before `font` If `font` is empty, `fontSize` gets
+            // overwritten.  So make sure to reset this property. (hackyhackhack)
+            // Other properties may need similar treatment
+            if ( i == "font" ) {
+              dest.style.fontSize = s.fontSize;
+            }
+          } catch (e) {}
+        }
+      }
+    };
+
+    return clonedChild;
+  }
+
+  function createCondPInfoDOM(condPInfo){
+    var cont = GRASP.createElement('div',{},'');
+    // create decorated text string for each f.fields[i]
+    for(var j in condPInfo.fieldsObj){
+      var text = '';
+      var b = condPInfo.fieldsObj[j];
+      text += 'IF: <br>';
+      for(var parentId in b['IF']){
+        text += b['IF'][parentId].alternativeLabel + '<br>';
+      }
+      text += 'THEN: <br>';
+      for(var alternativeId in b['THEN']){
+        text += 'PROBABILITY THAT "'+b['THEN'][alternativeId].alternativeLabel + '" IS '+b['THEN'][alternativeId].probability+'<br>';
+      }
+      var el = GRASP.createElement('div',{},text);
+      el.dataset.condPInfoBlockId = j;
+      cont.appendChild(el);
+    }
+    return cont;
   }
 
   /**
