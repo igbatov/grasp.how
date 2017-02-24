@@ -1,10 +1,14 @@
+var DEBUG = false;
 var mediator = mediator || new GRASP.Mediator();
 
 (function($, graphDrawer, actions, nodeContentView, mediator){
 
   mediator.setSubscriptions({
     'hide_all_labels':[graphDrawer],
-    'show_custom_labels':[graphDrawer]
+    'show_nodes':[graphDrawer],
+    'add_labels':[graphDrawer],
+    'remove_labels':[graphDrawer],
+    'show_all_labels':[graphDrawer]
   });
 
   $( document ).ready(function(){
@@ -43,12 +47,50 @@ var mediator = mediator || new GRASP.Mediator();
 
     var wrapper = createWrapper();
 
+
+    // Lets use only global node ids
+    graph = convertIdsToGlobal(graph);
+
     // draw graph SVG in wrapper
     graphDrawer.showGraph(wrapper.div, wrapper.dims, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
 
     // create text boxes
-    var condPInfo = getCondPsInfo(graph["nodeContents"], graph["edges"], graph["node_id_global_content_id_map"]);
+    var condPInfo = getCondPsInfo(graph["nodeContents"], graph["edges"]);
     graphActions.addActions(graph["nodes"], graph["nodeContents"], condPInfo, nodeContentView);
+  }
+
+  /**
+   * Convert node ids to global node ids
+   * @param graphs
+   */
+  function convertIdsToGlobal(graph){
+    var nodes = {}, edges={}, nodeContents={}, globalId;
+    for(var i in graph["nodes"]){
+      globalId = graph["node_id_global_content_id_map"][graph["nodes"][i].id];
+      nodes[globalId] = graph["nodes"][i];
+      nodes[globalId].id = globalId;
+    }
+
+    for(var i in graph["edges"]){
+      edges[i] = graph["edges"][i];
+      edges[i].source = graph["node_id_global_content_id_map"][edges[i].source];
+      edges[i].target = graph["node_id_global_content_id_map"][edges[i].target];
+    }
+
+    for(var i in graph["nodeContents"]){
+      globalId = graph["node_id_global_content_id_map"][i];
+      nodeContents[globalId] = graph["nodeContents"][i];
+    }
+
+    return {
+      name:graph['name'],
+      area:graph['area'],
+      nodeTypes:graph['nodeTypes'],
+      edgeTypes:graph['edgeTypes'],
+      nodes:nodes,
+      edges:edges,
+      nodeContents:nodeContents
+    };
   }
 
   /**
@@ -105,10 +147,9 @@ var mediator = mediator || new GRASP.Mediator();
    * Convert conditional probabilities onto human-readable text
    * @param contents - array of node contents
    * @param edges
-   * @param node_id_global_content_id_map
    * @returns {{}}
    */
-  function getCondPsInfo(contents, edges, node_id_global_content_id_map){
+  function getCondPsInfo(contents, edges){
     var condPInfo = {}; // key - nodeId, value - text or null
 
     for(var nodeId in contents){
@@ -116,7 +157,7 @@ var mediator = mediator || new GRASP.Mediator();
       var parentIds = getParentIds(nodeId, edges);
       for(var j in parentIds){
         var parentId = parentIds[j];
-        parentContents[node_id_global_content_id_map[parentId]] = contents[parentId];
+        parentContents[parentId] = contents[parentId];
       }
 
       if(GRASP.nodeConditionalFormHelper.isNodeConditionalFieldsEmpty(contents[nodeId])){
@@ -131,7 +172,7 @@ var mediator = mediator || new GRASP.Mediator();
           function(type){return type == 'fact'},
           parentContents,
           ['fact', 'proposition'],
-          node_id_global_content_id_map[nodeId]
+          nodeId
       );
     }
     return condPInfo;

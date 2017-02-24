@@ -74,15 +74,24 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
           // hide el parent
           var clone = cloneToAbsolute(this);
           clone.style.backgroundColor = 'blue';
-          view.style.opacity = 0;
-          clone.addEventListener('mouseleave', function(evt){
-            view.style.opacity = 1;
-            this.parentNode.removeChild(this);
-          });
+          view.style.opacity = 0.1;
 
           // send event to graph drawer
           publisher.publish(['hide_all_labels',{}]);
-          publisher.publish(['show_custom_labels', condPInfo.fieldsObj[this.dataset.condPInfoBlockId]]);
+
+          var condBlock = condPInfo.fieldsObj[this.dataset.condPInfoBlockId];
+          var eventData = createConditionalPInfoNodeLabels(condBlock);
+          publisher.publish(['add_labels', eventData]);
+
+          clone.addEventListener('mouseleave', function(evt){
+            view.style.opacity = 1;
+            publisher.publish(['show_all_labels',{}]);
+            publisher.publish(['remove_labels',eventData.map(function(item){
+              return item.key;
+            })]);
+            // remove absolute clone
+            this.parentNode.removeChild(this);
+          });
         });
 
 
@@ -113,6 +122,34 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
     setState({active_alternative_id:content['active_alternative_id']});
 
     return view;
+  }
+
+  // create labels for conditional info in a form [{key:, nodeId:, label:,}, ...]
+  function createConditionalPInfoNodeLabels(condBlock){
+    var eventData = [];
+    for(var j in condBlock['IF']){
+      eventData.push({
+        key: 'condLabel',
+        nodeId: j,
+        label: 'IF:\n"'+condBlock['IF'][j].alternativeLabel+'"'
+      });
+    }
+
+    // extract nodeId from THEN block
+    var thenNodeId = condBlock['THEN'][0]['nodeId'];
+    // concat 'then' alternative labels
+    var thenLabel = '';
+    for(var i in condBlock['THEN']){
+      thenLabel += 'THEN PROBABILITY OF\n"'+condBlock['THEN'][i].alternativeLabel+'"';
+      thenLabel += '\nIS '+condBlock['THEN'][i].probability+'\n';
+    }
+    eventData.push({
+      key: 'condLabel',
+      nodeId: thenNodeId,
+      label: thenLabel
+    });
+
+    return eventData;
   }
 
   /**

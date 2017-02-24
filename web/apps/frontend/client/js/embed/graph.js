@@ -2,6 +2,17 @@
  * Draws SVG given graph nodes, edges, labels
  */
 var graphDrawer = (function(){
+  // CONSTANTS
+  var TYPE_NODES_AREA_WIDTH = 15; // in %
+
+  var LABEL_FONT_FAMILY = "sans-serif";
+  var LABEL_FONT_SIZE_FACTOR = 1.6;
+  var NODE_SIZE_FACTOR = 1.6;
+
+  // private module vars
+  var _svgc;
+  var _nodes;
+
   return {
     eventListener: eventListener,
     showGraph: showGraph,
@@ -9,11 +20,20 @@ var graphDrawer = (function(){
   };
 
   function eventListener(e){
-    console.log(e)
-    if(e.eventName == 'hide_all_labels'){
-
-    }else if(e.eventName == 'show_custom_labels'){
-
+    var eventName = e.getName();
+    var eventData = e.getData();
+    if(eventName == 'hide_all_labels'){
+      d3.selectAll('.graphLabel').style("visibility", "hidden");
+    }else if(eventName == 'show_all_labels'){
+      d3.selectAll('.graphLabel').style("visibility", "visible");
+    }else if(eventName == 'add_labels'){
+      for(var i in eventData){
+        addLabel(_nodes[eventData[i].nodeId], eventData[i].label, eventData[i].key)
+      }
+    }else if(eventName == 'remove_labels'){
+      for(var i in eventData){
+        d3.selectAll('[key = "'+eventData[i]+'"]').remove();
+      }
     }
   }
   /**
@@ -29,23 +49,16 @@ var graphDrawer = (function(){
    * @returns {*|{}|{typeColors}|{typeColors, typeDirection}|{font, fill, maxSize}|{fill}}
    */
   function showGraph(wrapper, wrapperArea, mappingArea, orig_nodes, edges, nodeContents, nodeTypes, edgeTypes){
-    // CONSTANTS
-    var TYPE_NODES_AREA_WIDTH = 15; // in %
+    _nodes = clone(orig_nodes);
 
-    var LABEL_FONT_FAMILY = "sans-serif";
-    var LABEL_FONT_SIZE_FACTOR = 1.6;
-    var NODE_SIZE_FACTOR = 1.6;
-
-    var nodes = clone(orig_nodes);
-
-    var svgc = wrapper.append("svg")
+    _svgc = wrapper.append("svg")
       .attr("width",  wrapperArea.width+"px")
       .attr("height", wrapperArea.height+"px");
 
     // add definition for triangle arrow marker for every edge type
     var markerScale = 0.6;
     for(var type in edgeTypes){
-      svgc.append("svg:defs").append("svg:marker")
+      _svgc.append("svg:defs").append("svg:marker")
           .attr("id", "triangle_"+type)
           .attr("refX", 12*markerScale)
           .attr("refY", 6*markerScale)
@@ -60,7 +73,7 @@ var graphDrawer = (function(){
     }
 
     // append background
-    svgc.append("rect")
+    _svgc.append("rect")
         .attr("x", 0)
         .attr("y", 0)
         .attr("fill", '#2C3338')
@@ -72,10 +85,10 @@ var graphDrawer = (function(){
     var h = wrapperArea.height;
     var graphArea = {width: w, height: h, centerX: w/2 + TYPE_NODES_AREA_WIDTH*wrapperArea.width/100, centerY: h/2};
 
-    var mapping = adjustMappingToArea({mapping:nodes, area:mappingArea}, graphArea);
+    var mapping = adjustMappingToArea({mapping:_nodes, area:mappingArea}, graphArea);
     for(var i  in mapping){
-      nodes[i].x = mapping[i].x;
-      nodes[i].y = mapping[i].y;
+      _nodes[i].x = mapping[i].x;
+      _nodes[i].y = mapping[i].y;
     }
 
     // draw type nodes
@@ -86,7 +99,8 @@ var graphDrawer = (function(){
       x = nodeTypeAreaWidth/2;
       size = nodeTypeAreaWidth/20;
       y += verticalStep;
-      svgc.append("circle")
+      _svgc.append("circle")
+          .attr("class", 'typeNode')
           .attr("nodeId", i)
           .attr("nodeType", "nodeType")
           .attr("cx", x)
@@ -97,7 +111,8 @@ var graphDrawer = (function(){
           .style("fill", nodeTypes[i].color)
           .style("fill-opacity", 0);
 
-      svgc.append("text")
+      _svgc.append("text")
+          .attr("class", 'typeLabel')
           .attr("nodeId", i)
           .attr("nodeType", "nodeType")
           .attr("style", "pointer-events: none;")
@@ -113,8 +128,8 @@ var graphDrawer = (function(){
 
     // draw edges
     for(var i in edges){
-      var edge = svgc.append("path")
-          .attr("d", getQuadPathData(nodes[edges[i].source], nodes[edges[i].target], nodes[edges[i].target].size*NODE_SIZE_FACTOR))
+      var edge = _svgc.append("path")
+          .attr("d", getQuadPathData(_nodes[edges[i].source], _nodes[edges[i].target], _nodes[edges[i].target].size*NODE_SIZE_FACTOR))
           .attr("stroke", edgeTypes[edges[i].type].color)
           .attr("stroke-width", "1")
           .attr("stroke-opacity", "1")
@@ -127,9 +142,10 @@ var graphDrawer = (function(){
     }
 
     // draw nodes
-    for(var i in nodes){
-      var node = nodes[i];
-      svgc.append("circle")
+    for(var i in _nodes){
+      var node = _nodes[i];
+      _svgc.append("circle")
+          .attr("class", 'graphNode')
           .attr("nodeId", node.id)
           .attr("nodeType", node.type)
           .attr("cx", node.x)
@@ -140,30 +156,37 @@ var graphDrawer = (function(){
     }
 
     // draw labels
-    for(var i in nodes){
-      var node = nodes[i];
+    for(var i in _nodes){
+      var node = _nodes[i];
 
       var active_alternative_id = nodeContents[node.id]['active_alternative_id'];
-      var strs = nodeContents[node.id]['alternatives'][active_alternative_id].label.split("\n");
-      var offset = 0;
-      for(var j in strs){
-        var str = strs[j];
-        svgc.append("text")
-            .attr("nodeId", node.id)
-            .attr("nodeType", node.type)
-            .attr("style", "pointer-events: none;")
-            .attr("dx", node.x)
-            .attr("dy", node.y + node.size/2 + offset)
-            .style("font-family", LABEL_FONT_FAMILY)
-            .style("font-size", LABEL_FONT_SIZE_FACTOR*node.size)
-            .style("fill", "#BBBBBB")
-            .style("opacity", node.opacity)
-            .html(str);
-        offset += LABEL_FONT_SIZE_FACTOR*node.size;
-      }
+      addLabel(node, nodeContents[node.id]['alternatives'][active_alternative_id].label);
     }
 
-    return svgc;
+    return _svgc;
+  }
+
+  function addLabel(node, str, key){
+    var strs = str.split("\n");
+    var offset = 0;
+    for(var j in strs){
+      var str = strs[j];
+      _svgc.append("text")
+          .attr("class", 'graphLabel')
+          .attr("key", key)
+          .attr("nodeId", node.id)
+          .attr("nodeType", node.type)
+          .attr("style", "pointer-events: none;")
+          .attr("dx", node.x)
+          .attr("dy", node.y + node.size/2 + offset)
+          .style("font-family", LABEL_FONT_FAMILY)
+          .style("font-size", LABEL_FONT_SIZE_FACTOR*node.size)
+          .style("fill", "#BBBBBB")
+          .style("opacity", node.opacity)
+          .html(str);
+      offset += LABEL_FONT_SIZE_FACTOR*node.size;
+    }
+
   }
 
   /**

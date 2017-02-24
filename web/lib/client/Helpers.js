@@ -1584,7 +1584,7 @@ GRASP.nodeConditionalFormHelper = (function(){
      * @type {{}}
      */
     var fields = {};
-    // array of each combination of parent alternatives,
+    // formKeys is array of each combination of parent alternatives,
     // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
     var formKeys = [{}];
     // we calc conditional probabilities only for facts and propositions, so filter out others here
@@ -1604,7 +1604,7 @@ GRASP.nodeConditionalFormHelper = (function(){
       for(var j in formKeys[i]){ // j - parent node id, formKeys[i][j] - parent node j alternative id
         alternativeLabel = parentContents[j].alternatives[formKeys[i][j]].label;
         fields[i+'_IF_'+j+'='+formKeys[i][j]+'_label'] = {type:'title',value:'----- "'+alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
-        fieldsObj[i]['IF'][j] = {alternativeId:formKeys[i][j], alternativeLabel:alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')}
+        fieldsObj[i]['IF'][j] = {alternativeId:formKeys[i][j], alternativeLabel:alternativeLabel}
       }
 
       fields[i+'_THENLabel'] = {type:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;THEN: '};
@@ -1627,7 +1627,7 @@ GRASP.nodeConditionalFormHelper = (function(){
           placeholder: 1/GRASP.getObjectLength(node.alternatives),
           disabled:!isEditable
         };
-        fieldsObj[i]['THEN'][j] = {nodeId: nodeId, alternativeId: j, probability:probability, alternativeLabel:node.alternatives[j].label.replace(/(?:\r\n|\r|\n)/g, ' ')}
+        fieldsObj[i]['THEN'][j] = {nodeId: nodeId, alternativeId: j, probability:probability, alternativeLabel:node.alternatives[j].label}
       }
     }
 
