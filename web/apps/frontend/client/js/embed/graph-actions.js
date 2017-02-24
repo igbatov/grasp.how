@@ -61,23 +61,38 @@ var graphActions = (function($,d3){
       width:graphContainerWidth/2 - TEXT_BOX_WIDTH_CENTER_MARGIN*(graphContainerWidth/2)/100,
       height:graphContainerHeight - TEXT_BOX_WIDTH_BOTTOM_MARGIN*graphContainerHeight/100
     };
-    $('body').append('<div id="leftTextBox" class="textBox" style="display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px"></div>');
+
+    var leftTextBox = GRASP.createElement('div',{
+      id: 'leftTextBox',
+      class: 'textBox', // TODO: this class is used somewhere to hide all textBoxes, better do it with events
+      style: 'display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px'
+    });
+    document.body.appendChild(leftTextBox);
+
     var pos = {
       top:offset.top,
       left:offset.left + graphContainerWidth/2 + (TEXT_BOX_WIDTH_CENTER_MARGIN - TEXT_BOX_WIDTH_BORDER_MARGIN)*(graphContainerWidth/2)/100,
       width:graphContainerWidth/2 - TEXT_BOX_WIDTH_CENTER_MARGIN*(graphContainerWidth/2)/100,
       height:graphContainerHeight - TEXT_BOX_WIDTH_BOTTOM_MARGIN*graphContainerHeight/100
     };
-    $('body').append('<div id="rightTextBox" class="textBox" style="display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px"></div>');
+    var rightTextBox = GRASP.createElement('div',{
+      id: 'rightTextBox',
+      class: 'textBox', // TODO: this class is used somewhere to hide all textBoxes, better do it with events
+      style: 'display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px'
+    });
+    document.body.appendChild(rightTextBox);
 
     // unset selectedNodeId when clicked somewhere
     $(document).click(function(e){
-      if(e.target.id == 'leftTextBox' || e.target.id == 'rightTextBox') return;
+      if(e.target != rightTextBox && e.target != leftTextBox
+          && (rightTextBox.contains(e.target) || leftTextBox.contains(e.target))) return;
+
       selectedNodeId = null;
       restoreOpacity(nodes);
 
       // hide all textBoxes
-      $('.textBox').hide();
+      $(rightTextBox).hide();
+      $(leftTextBox).hide();
     });
   }
 
