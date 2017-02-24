@@ -37,7 +37,7 @@ body {
     text-align: center;
 }
 
-.textBox {
+.textBoxContent {
     overflow-y: auto;
     background-color: rgb(233, 233, 233);
     padding: 15px 15px 15px 15px;

@@ -43,7 +43,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
    * @constructor
    */
   function getView(content, condPInfo){
-    var view = GRASP.createElement('div',{class:'textBox'});
+    var view = GRASP.createElement('div',{class:'textBoxContent'});
 
     // add labels
     for(var alt_id in content['alternatives']){
@@ -99,8 +99,8 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
       var toggle = UI.createToggle({
         name: 'cond_prob_toggle',
         label: UI.addToopltip(
-            GRASP.createElement('span',{class:'underlyingConditionalProbabilitiesAssumptionsLabel'}, 'Underlying conditional probabilities assumptions'),
-            'This numbers are the assumptions of map author'
+            GRASP.createElement('span',{class:'underlyingConditionalProbabilitiesAssumptionsLabel'}, 'Map author also assumes that:'),
+            'This numbers are the conditional probabilities assumptions of map author'
         ),
         content: condPInfoDOM,
         is_default_hide: !globalState.probabilitiesOpened,
