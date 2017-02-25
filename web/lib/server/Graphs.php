@@ -732,4 +732,8 @@ class Graphs {
 
     return $new_graph_id;
   }
+
+  public function getAuthId(){
+    return $this->auth_id;
+  }
 }

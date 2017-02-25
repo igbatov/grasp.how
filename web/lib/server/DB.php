@@ -24,7 +24,7 @@ class DB
 
   public function escape($str)
   {
-    if($str == NULL) return NULL;
+    if($str === NULL) return NULL;
     if(!is_string($str) && !is_numeric($str)){
       error_log('DB::escape: $str is not a string and not a number $str = '.var_export($str, true)." \n\n STACKTRACE: ".print_r(debug_backtrace(),true));
     }
