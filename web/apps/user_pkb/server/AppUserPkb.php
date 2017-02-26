@@ -413,6 +413,65 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($this->getGraphDiff($r['graphId'], $r['cloneId'])));
         break;
 
+      case 'getUserSources':
+        $user_graph_ids = $this->getGraphIds($this->getAuthId());
+        $graphs = $this->getGraphs($user_graph_ids);
+        $node_attributes = $this->graphs->getGraphNodeAttributes($user_graph_ids);
+
+        $q = "SELECT * FROM source WHERE auth_id = '".$this->getAuthId()."'";
+        $sources = $this->db->execute($q);
+
+        foreach($sources as $source_id => $source){
+          $source_graphs = [];
+          $q = "SELECT * FROM node_content_source WHERE source_id = '".$source['id']."' AND auth_id = '".$this->getAuthId()."'";
+          $source_node_contents = $this->db->execute($q);
+          foreach ($source_node_contents as $source_node_content){
+            if(!isset($source_graphs[$source_node_content['graph_id']])) {
+              $source_graphs[$source_node_content['graph_id']] = [
+                  'graphId' => $source_node_content['graph_id'],
+                  'graphName' => $graphs[$source_node_content['graph_id']]['name'],
+                  'usedInNodes' => []
+              ];
+            }
+
+            $global_content_id = $this->contentIdConverter->createGlobalContentId(
+                $source_node_content['graph_id'],
+                $source_node_content['local_content_id']
+            );
+
+            $active_alternative_id = $node_attributes[$global_content_id]['active_alternative_id'];
+            $source_graphs[$source_node_content['graph_id']]['usedInNodes'][] = [
+                'nodeId'=>$global_content_id,
+                'label'=>$node_attributes[$global_content_id]['alternatives'][$active_alternative_id]['label']
+            ];
+          }
+          $sources[$source_id]['usedIn'] = $source_graphs;
+        }
+
+        $this->showRawData(json_encode($sources));
+        break;
+
+      case 'removeUserSources':
+        $r = $this->getRequest();
+
+        $report = ['removed'=>[], 'cannot_remove'=>[]];
+        foreach ($r as $source_id){
+          // check that source is not used somewhere
+          $q = "SELECT * FROM node_content_source WHERE source_id = '".$source_id."' AND auth_id = '".$this->getAuthId()."'";
+          if(count($this->db->execute($q))){
+            $report['cannot_remove'][] = $source_id;
+            continue;
+          }
+
+          $q = "DELETE FROM source WHERE id = '".$source_id."' AND auth_id = '".$this->getAuthId()."'";
+          if($this->db->execute($q)){
+            $report['removed'][] = $source_id;
+            $this->logger->log('Source with id = '.$source_id.' removed');
+          }
+        }
+        $this->showRawData(json_encode($report));
+        break;
+
       case 'getGraphsCloneList':
         $clone_list = array();
         $graph_ids = $this->getGraphIds($this->getAuthId());

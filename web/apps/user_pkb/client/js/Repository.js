@@ -178,6 +178,20 @@ GRASP.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
+    }else if(name == 'repository_get_user_sources') {
+      this.pendingRequests.push({
+        url: 'getUserSources', data: null, callback: function (data) {
+          that.setEventResponse(e, data, 'JSON');
+        }
+      });
+      this.sendPendingRequests();
+
+    }else if(name == 'repository_remove_user_sources'){
+      this.pendingRequests.push({url:'removeUserSources', data:e.getData(), callback:function(data){
+        that.setEventResponse(e, data, 'JSON');
+      }});
+      this.sendPendingRequests();
+
     }else if(name == 'find_publishers'){
       this.pendingRequests.push({url:'findPublishers', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');

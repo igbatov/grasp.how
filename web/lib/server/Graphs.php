@@ -99,9 +99,15 @@ class Graphs {
     return $nodes;
   }
 
+  /**
+   * get all node content except text (because text can be very long)
+   * @param $content_ids
+   * @return array
+   */
   public function getNodeAttributes($content_ids){
     $nodes = array();
     foreach($content_ids as $content_id){
+      // content_id is from for graph that shows difference between two graphs?
       if(GraphDiffCreator::isDiffContentId($content_id)){
         $contentId = GraphDiffCreator::decodeContentId($content_id);
         if($contentId['graphId1']){
@@ -132,6 +138,7 @@ class Graphs {
         }
         $nodes[$content_id]['stickers'][] = $status;
 
+      // $content_id is global content id from ordinary graph
       }else{
         $graph_id = $this->contentIdConverter->decodeContentId($content_id)['graph_id'];
         $local_content_id = $this->contentIdConverter->decodeContentId($content_id)['local_content_id'];
@@ -222,18 +229,18 @@ class Graphs {
     return $attributes;
   }
 
-  public function getGraphNodeAttributes($graphId){
-    $attributes = array();
-    $q = "SELECT local_content_id FROM node_content WHERE graph_id = '".$graphId."'";
-    $rows = $this->db->execute($q);
+  public function getGraphNodeAttributes($graph_ids=null){
     $contentIds = array();
-    foreach($rows as $row) $contentIds[] = $this->contentIdConverter->createGlobalContentId($graphId, $row['local_content_id']);
+    if(!is_array($graph_ids)) return false;
 
-    $attrs = $this->graphs->getNodeAttributes($contentIds);
-    foreach($attrs as $global_content_id => $attr){
-      $attributes[$this->contentIdConverter->getLocalContentId($global_content_id)] = $attr;
+    $q = "SELECT graph_id, local_content_id FROM node_content WHERE graph_id IN ('".implode("','", $graph_ids)."')";
+
+    $rows = $this->db->execute($q);
+    foreach($rows as $row){
+      $contentIds[] = $this->contentIdConverter->createGlobalContentId($row['graph_id'], $row['local_content_id']);
     }
-    return $attributes;
+
+    return $this->getNodeAttributes($contentIds);
   }
 
   public function updateGraphName($graph_id, $name){

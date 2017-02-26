@@ -267,6 +267,48 @@ GRASP.GraphMenu.prototype = {
         );
       }}));
 
+      // Sources button
+      generalButtonsContainer.appendChild(
+        that.UI.createButton({
+          name:'Sources',
+          label:'Sources',
+          class:'sources_button',
+          callback:function(){
+            that.publisher.publish(['repository_get_user_sources', {}]).then(function(sources){
+              var items = {};
+
+              // create label for every source
+              for(var i in sources){
+                items[sources[i].id] = GRASP.createElement('div', {}, sources[i].name+'//'+sources[i].author+'\n || Used in graphs:\n');
+
+                // create DOM for nodes used in sources[i]
+                for(var j in sources[i].usedIn){
+                  var usedInNodesLabels = 'Used in nodes:\n';
+                  for(var k in sources[i].usedIn[j].usedInNodes) usedInNodesLabels += '"'+sources[i].usedIn[j].usedInNodes[k].label+'",';
+                  var graph = that.UI.addToopltip(GRASP.createElement('div', {}, sources[i].usedIn[j]['graphName']), usedInNodesLabels);
+                  items[sources[i].id].appendChild(graph);
+                }
+              }
+              that.UI.showModalList(items, {
+
+/*                edit:function(id){
+
+                },
+                */
+                remove: function(id, el){
+                  that.publisher.publish(['repository_remove_user_sources', [id]]).then(function(result){
+                    if(result['removed'].length && result['removed'][0] == id){
+                      el.parentNode.removeChild(el);
+                    }
+                  });
+                }
+              });
+
+            });
+          }
+        })
+      );
+
       // logout button
       document.getElementById('rightSelectContainer').appendChild(GRASP.createElement('a',{href:'/logout',class:'logout'},'logout'));
 
