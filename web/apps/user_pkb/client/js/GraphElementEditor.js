@@ -364,12 +364,12 @@ GRASP.GraphElementEditor.prototype = {
                       var formKeyStr = JSON.stringify(formKeys[i]);
                       var alternativeIds = GRASP.getObjectKeys(node.alternatives);
                       for(var j in alternativeIds){
-                        (function(formKeyStr, j, alternativeIds){
-                          that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[j], {callback: function(name,value){
+                        (function(formKeyStr, i, j, alternativeIds){
+                          that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[j], {callback: function(name,value){
                             var newValue = parseFloat(Number((1 - parseFloat(value))).toFixed(15));
-                              that.UI.updateForm(form, formKeyStr+'__'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
+                              that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
                           }});
-                        })(formKeyStr, j, alternativeIds);
+                        })(formKeyStr, i, j, alternativeIds);
                       }
                     }
                   }
