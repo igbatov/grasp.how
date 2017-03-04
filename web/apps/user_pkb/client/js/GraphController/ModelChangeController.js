@@ -32,6 +32,12 @@ GRASP.ModelChangeController.prototype = {
             that.showGraph(graphModels[i]);
           }
         }
+        // hide loader if there so no graph to show
+        var countNoToBeShown=0;
+        for(var i in positions){
+          if(positions[i] == 'not to be shown') countNoToBeShown++;
+        }
+        if(countNoToBeShown == GRASP.getObjectLength(positions)) that.viewManager.hideAjaxLoader();
       });
 
     }else if(eventName == 'graph_model_changed'){

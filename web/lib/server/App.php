@@ -138,9 +138,11 @@ abstract class App
     switch($vars[0]){
       case 'logout':
         $this->session->logout();
+        break;
       case 'logger':
         $this->logger->warning(var_export($_GET, true));
         exit();
+        break;
     }
   }
 
