@@ -17,8 +17,15 @@ class Logger{
     $this->id = time().'.'.rand(100,999);
   }
 
+  public function warning($msg){
+    error_log('warning: '.$msg);
+    $this->dbLog('warning',$msg);
+    $this->postAccessLog();
+    exit();
+  }
+
   public function error($msg){
-    error_log($msg);
+    error_log('error: '.$msg);
     $this->dbLog('error',$msg);
     $this->eh->throwError($msg);
     $this->postAccessLog();
@@ -28,10 +35,11 @@ class Logger{
   public function dbLog($type,$msg,$data=null){
     // try to log error in request_log table
     if($this->db){
-      $q = "INSERT INTO request_log SET user_login = '".$this->username."', user_id = NULL, type='".$type."', msg = '".$this->db->escape($msg)."', data = '".$this->db->escape($data)."'";
+      $username = $this->username ? $this->username : 'null';
+      $q = "INSERT INTO request_log SET user_login = '".$username."', user_id = NULL, type='".$type."', msg = '".$this->db->escape($msg)."', data = '".$this->db->escape($data)."'";
       //error_log($q);
       try{
-        // $this->db->execute($q);
+        $this->db->execute($q);
       }catch (Exception $e) {
         error_log($e->getMessage());
       }
@@ -71,7 +79,7 @@ class Logger{
       $msg .= "\n";
     }
     error_log($msg);
-    //$this->dbLog('log',$msg);
+    $this->dbLog('log',$msg);
   }
 
   public function preAccessLog(){

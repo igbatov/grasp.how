@@ -683,7 +683,7 @@ class Graphs {
     $rows = $this->db->execute($q);
     if(!count($rows)) return false;
 
-    $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', auth_id = '".$auth_id."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."'";
+    $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', auth_id = '".$auth_id."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."', created_at = NOW()";
     $new_graph_id = $this->db->execute($q);
 
     // change local_content_id and local_content_id to create history of clone
@@ -719,9 +719,53 @@ class Graphs {
     $this->db->execute($q);
 
     // Copy node_content_sources
-    $q = "INSERT INTO node_content_source (graph_id, local_content_id, alternative_id, pages,	comment,	source_id, created_at, updated_at) SELECT '".$new_graph_id."', local_content_id,	alternative_id, pages,comment,source_id, NOW(), NOW() FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
-    $this->logger->log($q);
-    $this->db->execute($q);
+    $q = "SELECT * FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $rows = $this->db->execute($q);
+    foreach ($rows as $row){
+      $q = "SELECT id FROM source WHERE auth_id = '".$auth_id."' AND cloned_from_id = '".$row['source_id']."'";
+      $cloned_sources = $this->db->execute($q);
+      // if we have already duplicated source for this node_content_source, just use its id
+      if(count($cloned_sources)){
+        $id = $cloned_sources[0]['id'];
+      }else{
+        // duplicate source for clonee user
+        $q = "SELECT * FROM source WHERE auth_id = '".$row['auth_id']."' AND id = '".$row['source_id']."'";
+        $source = $this->db->execute($q)[0];
+
+        $q = "INSERT INTO source SET ".
+            " auth_id = '".$auth_id."',".
+            " source_type = '".$source['source_type']."',".
+            " field_type = '".$source['field_type']."',".
+            " `name` = '".$source['name']."',".
+            " url = '".$source['url']."',".
+            " author = '".$source['author']."',".
+            " editor = '".$source['editor']."',".
+            " publisher = '".$source['publisher']."',".
+            " publisher_reliability = '".$source['publisher_reliability']."', ".
+            " scopus_title_list_id = ".($source['scopus_title_list_id'] ? "'".$source['scopus_title_list_id']."'" : 'NULL').", ".
+            " publish_date = '".$source['publish_date']."', ".
+            " comment = '".$source['comment']."', ".
+            " cloned_from_id = '".$source['id']."', ".
+            " cloned_from_auth_id = '".$source['auth_id']."', ".
+            " created_at = NOW(), ".
+            " updated_at = NOW()";
+        $id = $this->db->execute($q);
+        $this->logger->log($q);
+      }
+
+      $q = "INSERT INTO node_content_source SET ".
+          "graph_id = '".$new_graph_id."',".
+          "auth_id = '".$auth_id."',".
+          "local_content_id = '".$row['local_content_id']."',".
+          "alternative_id = '".$row['alternative_id']."',".
+          "pages = '".$row['pages']."',".
+          "comment = '".$row['comment']."',".
+          "source_id = '".$id."',".
+          "created_at = NOW(), ".
+          "updated_at = NOW()";
+      $this->db->execute($q);
+      $this->logger->log($q);
+    }
 
     // Copy node_content_falsification
     $q = "INSERT INTO node_content_falsification (graph_id, local_content_id, alternative_id, `name`, comment,	created_at, updated_at) SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment, NOW(), NOW() FROM node_content_falsification WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
