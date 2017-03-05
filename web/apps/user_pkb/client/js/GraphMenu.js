@@ -4,14 +4,16 @@
  * @param publisher
  * @param viewManager
  * @param UI
+ * @param formFields
  * @param jQuery
  * @constructor
  */
-GRASP.GraphMenu = function(publisher, viewManager, UI, jQuery){
+GRASP.GraphMenu = function(publisher, viewManager, UI, formFields, jQuery){
   this.publisher = publisher;
   this.selectedPosition = {};  // {graphId:<'leftGraphView', 'rightGraphView', 'not to be shown'>, ...}
   this.viewManager = viewManager;
   this.UI = UI;
+  this.formFields = formFields;
   this.jQuery = jQuery;
 
   this.container = this.viewManager.getViewContainer('horizontalMenu');
@@ -277,24 +279,81 @@ GRASP.GraphMenu.prototype = {
             that.publisher.publish(['repository_get_user_sources', {}]).then(function(sources){
               var items = {};
 
-              // create label for every source
-              for(var i in sources){
-                items[sources[i].id] = GRASP.createElement('div', {}, sources[i].name+'//'+sources[i].author+'\n || Used in graphs:\n');
+              function createSourceDOM(source){
+                var dom = GRASP.createElement('div', {}, source.name
+                    +' //'+source.author+' // '
+                    +source.publisher
+                    +' // (rel. '+source.publisher_reliability
+                    +')\n || Used in graphs:\n');
 
                 // create DOM for nodes used in sources[i]
-                for(var j in sources[i].usedIn){
+                for(var j in source.usedIn){
                   var usedInNodesLabels = 'Used in nodes:\n';
-                  for(var k in sources[i].usedIn[j].usedInNodes) usedInNodesLabels += '"'+sources[i].usedIn[j].usedInNodes[k].label+'",';
-                  var graph = that.UI.addToopltip(GRASP.createElement('div', {}, sources[i].usedIn[j]['graphName']), usedInNodesLabels);
-                  items[sources[i].id].appendChild(graph);
+                  for(var k in source.usedIn[j].usedInNodes) usedInNodesLabels += '"'+source.usedIn[j].usedInNodes[k].label+'",';
+                  var graph = that.UI.addToopltip(GRASP.createElement('div', {}, source.usedIn[j]['graphName']), usedInNodesLabels);
+                  dom.appendChild(graph);
                 }
+
+                return dom;
               }
-              that.UI.showModalList(items, {
 
-/*                edit:function(id){
+              // create label for every source
+              for(var i in sources){
+                items[sources[i].id] = createSourceDOM(sources[i]);
+              }
 
+              var itemActions = {
+                edit:function(id, el){
+                  var item = sources[id];
+                  var modalWindow = that.UI.createModal();
+                  // create blank form with submit callback
+                  var form = that.UI.createForm(
+                      {},
+                      function(form) {
+                        // update sources
+                        GRASP.getObjectKeys(sources[id]).forEach(function (v, k) {
+                          if (typeof(form[v]) != 'undefined') sources[id][v] = form[v];
+                        });
+                        // update server
+                        that.publisher.publish(['repository_update_source', form]).then(function () {
+                          el.parentNode.insertBefore(that.UI.createListItem(id, createSourceDOM(sources[id]), itemActions), el);
+                          el.parentNode.removeChild(el);
+                          that.UI.closeModal(modalWindow);
+                        });
+                      }
+                  );
+
+                  // create fields for this form
+                  var formFields = that.formFields.getSourceFields(form);
+                  // do not find other sources by name modification
+                  formFields['name']['findCallback'] = function () {
+                  };
+                  formFields['name']['selectCallback'] = function () {
+                  };
+                  formFields['name']['typeCallback'] = function () {
+                  };
+                  // remove 'pages' field because it is set custom for each concrete node
+                  delete formFields['pages'];
+                  // remove 'source' field because we gonna use id field instead
+                  delete formFields['source_id'];
+
+                  // fill in form fields
+                  if (GRASP.getObjectKeys(item).length) {
+                    GRASP.getObjectKeys(formFields).forEach(function (v, k) {
+                      if (typeof(item[v]) != 'undefined') formFields[v].value = item[v];
+                    });
+                  }
+
+                  // fill blank form with fields
+                  for (var fieldName in formFields) {
+                    that.UI.updateForm(form, fieldName, formFields[fieldName]);
+                  }
+
+                  // show/hide fields in a form according to item source_type
+                  if (item.source_type) formFields['source_type'].callback('', item.source_type);
+
+                  that.UI.setModalContent(modalWindow, form);
                 },
-                */
                 remove: function(id, el){
                   that.publisher.publish(['repository_remove_user_sources', [id]]).then(function(result){
                     if(result['removed'].length && result['removed'][0] == id){
@@ -302,7 +361,8 @@ GRASP.GraphMenu.prototype = {
                     }
                   });
                 }
-              });
+              };
+              that.UI.showModalList(items, itemActions);
 
             });
           }

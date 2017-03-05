@@ -54,6 +54,7 @@ var Modules = {
 
   ViewManager: GRASP.ViewManager,
   UIElements: GRASP.UIElements,
+  FormFields: GRASP.FormFields,
   GraphElementEditor: GRASP.GraphElementEditor,
 
   jQuery: jQuery,
@@ -126,7 +127,8 @@ var DI = {
   imageLoader: ['Promise'],
   Repository: ['Publisher', 'Ajax', 'imageLoader'],
 
-  GraphMenu: ['Publisher', 'ViewManager', 'UIElements', 'jQuery'],
+  FormFields: ['UIElements', 'Publisher'],
+  GraphMenu: ['Publisher', 'ViewManager', 'UIElements', 'FormFields', 'jQuery'],
 
   SelectGraphLayoutModel: ['Publisher',{
     basicLayout: {
@@ -173,7 +175,7 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['GraphDecoration'],
 
-  GraphElementEditor: ['Publisher', 'ViewManager', 'UIElements', 'jQuery', GRASP.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
+  GraphElementEditor: ['Publisher', 'ViewManager', 'UIElements', 'FormFields', 'jQuery', GRASP.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
 
   NodeListCache: ['Publisher'],
 
@@ -300,6 +302,7 @@ Modules['Mediator'].setSubscriptions(
     'repository_get_graph_node_content':[Modules['Repository']],
     'repository_get_graphs_history_timeline':[Modules['Repository']],
     'repository_get_graphs_clone_list':[Modules['Repository']],
+    'repository_update_source':[Modules['Repository']],
     'repository_get_user_sources':[Modules['Repository']],
     'repository_remove_user_sources':[Modules['Repository']],
     'repository_update_node_mapping':[Modules['Repository']],

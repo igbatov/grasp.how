@@ -6,15 +6,17 @@
  * @param publisher
  * @param ViewManager
  * @param UI
+ * @param formFields
  * @param jQuery
  * @param ajaxIndicator
  * @constructor
  */
-GRASP.GraphElementEditor = function(publisher, ViewManager, UI, jQuery, ajaxIndicator){
+GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, jQuery, ajaxIndicator){
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
   this.UI = UI;
+  this.formFields = formFields;
 
   this.currentElement = null;
   this.currentEvent = null;
@@ -679,11 +681,11 @@ GRASP.GraphElementEditor.prototype = {
   /**
    * - Show modal window with node source fields
    * - Publish add/update event on form submit
-   * - Call callback (graphId, nodeContentId,  item}
-   * @param graphId
-   * @param nodeContentId
-   * @param node_alternative_id
-   * @param nodeType
+   * - Call callback (graphId, nodeContentId,  item} after submit
+   * @param graphId - to put in callback
+   * @param nodeContentId - to put in callback
+   * @param node_alternative_id - to put in callback
+   * @param nodeType - to distinguish between 'fact' source form and 'proposition' falsification form
    * @param item - {name1:value1, name2:value2, ...}
    * @param callback - arguments are (graphId, nodeContentId, item)
    * @private
@@ -692,139 +694,7 @@ GRASP.GraphElementEditor.prototype = {
     var that = this;
     item = item || {source_type: 'article'};
     var modalWindow = that.UI.createModal();
-    var form = {};
-    var formFields = {};
-    var SOURCE_TYPES = {
-      'article':'article (peer-reviewed)',
-      'meta-article':'meta-article (peer-reviewed)',
-      'textbook':'textbook',
-      'book':'book',
-      'news':'news',
-      'personal experience':'personal experience'
-    };
-    var MANUAL_RELIABILITY_SOURCE_TYPES = GRASP.getObjectKeys(SOURCE_TYPES);  // which source types permit manual reliability enter
-
-    // define which source type has which fields visible
-    var itemTypeVisible = {
-      'all':{
-        'name':'search','url':'text','author':'text','editor':'text',
-        'publisher':'search','publisher_reliability':'text',
-        'publish_date':'date','pages':'text','comment':'textarea'
-      },
-      'personal experience':{'name':'text','comment':'text','publisher_reliability':'text'}
-    };
-
-    var selectSourceType = function(name, value){
-      if(MANUAL_RELIABILITY_SOURCE_TYPES.indexOf(value) != -1){
-        that.UI.updateForm(form,'publisher_reliability',{disabled:false});
-      }else{
-        that.UI.updateForm(form,'publisher_reliability',{disabled:true});
-      }
-
-      // show only fields that is valid for 'personal experience'
-      if(value == 'personal experience'){
-        for(var fieldname in itemTypeVisible['all']){
-          if(GRASP.getObjectKeys(itemTypeVisible['personal experience']).indexOf(fieldname) == -1){
-            that.UI.updateForm(form,fieldname,{type:'hidden'});
-          }
-        }
-      }
-      // show all fields
-      else{
-        for(var fieldname in itemTypeVisible['all']){
-          var fieldtype = itemTypeVisible['all'][fieldname];
-          that.UI.updateForm(form,fieldname,{type:fieldtype});
-        }
-      }
-    };
-
-    var _createSourceFields = function(){
-       var formFields = {
-        'source_type':{'type':'select', 'label':'Тип',
-          callback:selectSourceType,
-          'items':SOURCE_TYPES,
-          'value':'article'
-        },
-        'name':{'type':'search', label:'Title',
-          findCallback:function(str){
-            var source_type = that.UI.getFormValue(form, 'source_type');
-            return that.publisher.publish(['find_sources',{source_type:source_type, substring:str}]);
-          },
-          selectCallback:function(name, value){
-            // if value didn't come just return
-            if(typeof(value.source_id) == 'undefined') return;
-
-            GRASP.getObjectKeys(formFields).forEach(function(v){
-              if(typeof(value[v]) != 'undefined'){
-                that.UI.updateForm(form,v,{value:value[v]});
-              }
-            });
-          },
-          typeCallback:function(name, value){
-            // reset default values
-            that.UI.updateForm(form,'source_id',{value:''});
-          }
-        },
-        'url':{'type':'text', label:'URL'},
-        'author':{'type':'text', label:'Authors'},
-        'editor':{'type':'text', label:'Reviewer'},
-        'publisher':{
-          type:'search',
-          label:'Publisher',
-          findCallback:function(str){
-            return that.publisher.publish(['find_publishers',{substring:str}]);
-          },
-          selectCallback:function(name, value){
-            that.UI.updateForm(form, 'publisher', {value:value.title});
-            that.UI.updateForm(form, 'publisher_reliability', {value:value.reliability});
-            that.UI.updateForm(form, 'scopus_title_list_id', {value:value.id});
-          },
-          typeCallback:function(name, value){
-            that.UI.updateForm(form, 'publisher_reliability', {value:0});
-            that.UI.updateForm(form, 'scopus_title_list_id', {value:null});
-          }
-        },
-        'publisher_reliability':{
-          type:'text',
-          disabled:true,
-          label:'reliability'
-        },
-        'scopus_title_list_id':{type:'hidden'},
-        'publish_date':{type:'date', label:'Publish date'},
-        'pages':{type:'text', label:'volume, pages'},
-        'comment':{type:'textarea', label:'Comment'},
-        'source_id':{type:'hidden'},
-        'id':{type:'hidden'},
-        'button':{type:'button', label:'Save'}
-      };
-
-      return formFields;
-    };
-
-    var _createFalsificationFields = function(){
-      var formFields = {
-        'name':{type:'text', label:'Название'},
-        'comment':{type:'textarea', label:'Описание'},
-        'button':{type:'button', label:'Добавить'}
-      };
-      return formFields;
-    };
-
-    if(nodeType == this.NODE_TYPE_FACT){
-      formFields = _createSourceFields();
-    }else if(nodeType == that.NODE_TYPE_PROPOSITION){
-      formFields = _createFalsificationFields();
-    }
-
-    // fill in form fields
-    if(GRASP.getObjectKeys(item).length){
-      GRASP.getObjectKeys(formFields).forEach(function(v,k){
-        if(typeof(item[v]) != 'undefined') formFields[v].value = item[v];
-        formFields['button'].value = 'Save';
-      });
-    }
-
-    form = that.UI.createForm(formFields,
+    var form = that.UI.createForm({},
       // form submit callback
       function (form) {
         // set form fields to item
@@ -836,9 +706,27 @@ GRASP.GraphElementEditor.prototype = {
         }
       }
     );
+    var formFields = {};
 
-    // update fields in a form accourding to item source_type
-    if(item.source_type) selectSourceType('',item.source_type);
+    if(nodeType == this.NODE_TYPE_FACT){
+      formFields = that.formFields.getSourceFields(form);
+    }else if(nodeType == that.NODE_TYPE_PROPOSITION){
+      formFields = that.formFields.getFalsificationFields();
+    }
+
+    // fill in form fields
+    if(GRASP.getObjectKeys(item).length){
+      GRASP.getObjectKeys(formFields).forEach(function(v,k){
+        if(typeof(item[v]) != 'undefined') formFields[v].value = item[v];
+      });
+    }
+
+    for(var fieldName in formFields){
+      that.UI.updateForm(form, fieldName, formFields[fieldName]);
+    }
+
+    // update fields in a form according to item source_type
+    if(item.source_type) formFields['source_type'].callback('',item.source_type);
 
     that.UI.setModalContent(modalWindow, form);
 

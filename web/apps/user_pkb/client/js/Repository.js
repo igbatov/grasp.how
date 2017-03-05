@@ -186,6 +186,14 @@ GRASP.Repository.prototype = {
       });
       this.sendPendingRequests();
 
+    }else if(name == 'repository_update_source') {
+      this.pendingRequests.push({
+        url: 'updateSource', data: e.getData(), callback: function (data) {
+          that.setEventResponse(e, data, 'JSON');
+        }
+      });
+      this.sendPendingRequests();
+
     }else if(name == 'repository_remove_user_sources'){
       this.pendingRequests.push({url:'removeUserSources', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');

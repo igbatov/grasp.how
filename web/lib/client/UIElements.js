@@ -30,8 +30,9 @@ GRASP.UIElements.prototype = {
 
     var items = {};
     search.addEventListener('keyup', function(){
-      attrs.typeCallback(attrs.name,search.value);
-      attrs.findCallback(search.value).then(function(v) {
+      if(attrs.typeCallback) attrs.typeCallback(attrs.name,search.value);
+      if(attrs.typeCallback) var promise = attrs.findCallback(search.value)
+      if(typeof(promise) != 'undefined' && typeof(promise.then) != 'undefined') promise.then(function(v) {
          items = v;
 
         // remove all children from ul
@@ -283,7 +284,7 @@ GRASP.UIElements.prototype = {
               attrs.callback(name, value)
             }, CALLBACK_DELAY)
           }else{
-            attrs.callback(name, value)
+            if(typeof(attrs.callback) != 'undefined') attrs.callback(name, value)
           }
         }
     );
@@ -468,54 +469,69 @@ GRASP.UIElements.prototype = {
    * @param {Function=} callback - called when any button from fields is pressed
    * @returns {HTMLElement}
    */
-  createForm: function(fields, callback){
+  createForm: function(fields, submitCallback){
     var name,
       uniqId = this.generateId(),
       form = GRASP.createElement('div',{id:uniqId, class:'ui_form'},'');
-
+      form.submitCallback = submitCallback;
 
     for(name in fields){
-      if(fields[name]['type'] == 'text') form.appendChild(this.createTextBox({name:name, value:fields[name]['value'], label:fields[name]['label'],placeholder:fields[name]['placeholder'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
-      if(fields[name]['type'] == 'textarea') form.appendChild(this.createTextareaBox({name:name, value:fields[name]['value'], label:fields[name]['label'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], callback_delay:fields[name]['callback_delay'], formname:uniqId}));
-      if(fields[name]['type'] == 'date') form.appendChild(this.createDate({name:name, value:fields[name]['value'], disabled:fields[name]['disabled'], callback:fields[name]['callback'], formname:uniqId}));
-      if(fields[name]['type'] == 'select') form.appendChild(this.createSelectBox({name:name, items:fields[name]['items'], defaultValue:fields[name]['value'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId, nodrop:fields[name]['nodrop']}));
-      if(fields[name]['type'] == 'button'){
-        // if button field has callback - use it, if no - use general form callback and pass form data to it
-        form.appendChild(this.createButton({
-          name: name,
-          label: fields[name]['label'],
-          callback: fields[name]['callback'] ? fields[name]['callback'] : function(evt){
-            var data = {};
-            // gather data from form fields
-            [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
-              data[child.getAttribute('name')] = child.value;
-            });
-            [].forEach.call(form.getElementsByTagName("button"), function(child) {
-              data[child.getAttribute('name')] = child == evt.target;
-            });
-            [].forEach.call(form.getElementsByTagName("input"), function(child) {
-              data[child.getAttribute('name')] = child.value;
-            });
-            callback(data);
-          },
-          disabled:fields[name]['disabled'],
-          formname:uniqId
-        }));
-      }
-      if(fields[name]['type'] == 'search') form.appendChild(this.createSearch({name:name, label:fields[name]['label'], value:fields[name]['value'], findCallback:fields[name]['findCallback'], typeCallback:fields[name]['typeCallback'], selectCallback:fields[name]['selectCallback'], disabled:fields[name]['disabled'], formname:uniqId}));
-      if(fields[name]['type'] == 'file') form.appendChild(this.createFileBox({name:name, items:fields[name]['items'], addCallback:fields[name]['addCallback'], removeCallback:fields[name]['removeCallback'], disabled:fields[name]['disabled'], formname:uniqId}));
-      if(fields[name]['type'] == 'range') form.appendChild(this.createRange({name:name, value:fields[name]['value'], min:fields[name]['min'], max:fields[name]['max'], step:fields[name]['step'], callback:fields[name]['callback'], disabled:fields[name]['disabled'], formname:uniqId}));
-      if(fields[name]['type'] == 'hidden') form.appendChild(this.createHidden({name:name,value:fields[name]['value'], formname:uniqId, disabled:fields[name]['disabled']}));
-      if(fields[name]['type'] == 'title') form.appendChild(this.createTitle({value:fields[name]['value'], formname:uniqId}));
-      if(fields[name]['type'] == 'list') form.appendChild(this.createListBox({name:name,items:fields[name]['items'], itemActions:fields[name]['itemActions'], addLabel: fields[name]['addLabel'], addCallback:fields[name]['addCallback'], formname:uniqId}));
-      if(fields[name]['type'] == 'tabs') form.appendChild(this.createTabs({name:name, items:fields[name]['items'], defaultItem:fields[name]['defaultItem'], formname:uniqId}));
+      form.appendChild(this.createFormField(form, name, fields[name]));
     }
 
     return form;
   },
 
   /**
+   *
+   * @param form
+   * @param name
+   * @param field
+   * @returns {*}
+   */
+  createFormField: function(form, name, field){
+    var fieldDOM;
+    if(field['type'] == 'text') fieldDOM = this.createTextBox({name:name, value:field['value'], label:field['label'],placeholder:field['placeholder'], disabled:field['disabled'], callback:field['callback'], formname:form.id});
+    if(field['type'] == 'textarea') fieldDOM = this.createTextareaBox({name:name, value:field['value'], label:field['label'], disabled:field['disabled'], callback:field['callback'], callback_delay:field['callback_delay'], formname:form.id});
+    if(field['type'] == 'date') fieldDOM = this.createDate({name:name, value:field['value'], disabled:field['disabled'], callback:field['callback'], formname:form.id});
+    if(field['type'] == 'select') fieldDOM = this.createSelectBox({name:name, items:field['items'], defaultValue:field['value'], callback:field['callback'], disabled:field['disabled'], formname:form.id, nodrop:field['nodrop']});
+    if(field['type'] == 'button'){
+      // if button field has callback - use it, if no - use general form submitCallback and pass form data to it
+      fieldDOM = this.createButton({
+        name: name,
+        label: field['label'],
+        callback: field['callback'] ? field['callback'] : function(evt){
+          var data = {};
+          // gather data from form fields
+          [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
+            data[child.getAttribute('name')] = child.value;
+          });
+          [].forEach.call(form.getElementsByTagName("button"), function(child) {
+            data[child.getAttribute('name')] = child == evt.target;
+          });
+          [].forEach.call(form.getElementsByTagName("input"), function(child) {
+            data[child.getAttribute('name')] = child.value;
+          });
+          if(form.submitCallback) form.submitCallback(data);
+        },
+        disabled:field['disabled'],
+        formname:form.id
+      });
+    }
+    if(field['type'] == 'search') fieldDOM = this.createSearch({name:name, label:field['label'], value:field['value'], findCallback:field['findCallback'], typeCallback:field['typeCallback'], selectCallback:field['selectCallback'], disabled:field['disabled'], formname:form.id});
+    if(field['type'] == 'file') fieldDOM = this.createFileBox({name:name, items:field['items'], addCallback:field['addCallback'], removeCallback:field['removeCallback'], disabled:field['disabled'], formname:form.id});
+    if(field['type'] == 'range') fieldDOM = this.createRange({name:name, value:field['value'], min:field['min'], max:field['max'], step:field['step'], callback:field['callback'], disabled:field['disabled'], formname:form.id});
+    if(field['type'] == 'hidden') fieldDOM = this.createHidden({name:name,value:field['value'], formname:form.id, disabled:field['disabled']});
+    if(field['type'] == 'title') fieldDOM = this.createTitle({value:field['value'], formname:form.id});
+    if(field['type'] == 'list') fieldDOM = this.createListBox({name:name,items:field['items'], itemActions:field['itemActions'], addLabel: field['addLabel'], addCallback:field['addCallback'], formname:form.id});
+    if(field['type'] == 'tabs') fieldDOM = this.createTabs({name:name, items:field['items'], defaultItem:field['defaultItem'], formname:form.id});
+
+    return fieldDOM;
+  },
+
+  /**
    * Updates form field with given name to given attrs
+   * If element with this name is absent, create new one
    * @param form
    * @param name
    * @param attrs
@@ -523,37 +539,36 @@ GRASP.UIElements.prototype = {
   updateForm: function(form,name,attrs){
     var els = this.elements.getRows({formname:form.id, name:name});
 
-    if(els.length){
+    if(els.length) {
       var el = els[0];
 
       // fill in absent attrs from old version
-      for(var i in el.definition) if(typeof(attrs[i]) == 'undefined') attrs[i] = el.definition[i];
-      if(typeof(attrs.type) == 'undefined') attrs.type = el.type;
+      for (var i in el.definition) if (typeof(attrs[i]) == 'undefined') attrs[i] = el.definition[i];
+      if (typeof(attrs.type) == 'undefined') attrs.type = el.type;
+    }else{
+      // this is for brand new element
+      attrs.name = name;
+      attrs.formname = form.id;
+    }
 
-      // create new version
-      var newDom = null;
-      if(attrs.type == 'search') newDom = this.createSearch(attrs);
-      if(attrs.type == 'select') newDom = this.createSelectBox(attrs);
-      if(attrs.type == 'file') newDom = this.createFileBox(attrs);
-      if(attrs.type == 'range') newDom = this.createRange(attrs);
-      if(attrs.type == 'button') newDom = this.createButton(attrs);
-      if(attrs.type == 'text') newDom = this.createTextBox(attrs);
-      if(attrs.type == 'textarea') newDom = this.createTextareaBox(attrs);
-      if(attrs.type == 'hidden') newDom = this.createHidden(attrs);
-      if(attrs.type == 'title') newDom = this.createTitle(attrs);
-      if(attrs.type == 'list') newDom = this.createListBox(attrs);
-      if(attrs.type == 'date') newDom = this.createDate(attrs);
+    // create new version
+    var newDom = this.createFormField(form, name, attrs);
 
-      //var oldDom = document.getElementById(el.id);
+    // old element was found? remove it and create new one
+    if(els.length) {
       var oldDom = el.dom;
       oldDom.parentNode.insertBefore(newDom, oldDom);
       oldDom.parentNode.removeChild(oldDom);
 
-      // remove old version
-      this.elements.removeRowByIds(this.elements.getRowIds({id:el.id}));
-
-      newDom.dispatchEvent(new Event('input'));
+      // remove old version (new one was already inserted in create<ElementName>() above)
+      this.elements.removeRowByIds(this.elements.getRowIds({id: el.id}));
     }
+    // old element was not found? just insert new one at the end
+    else{
+      form.appendChild(newDom);
+    }
+
+    newDom.dispatchEvent(new Event('input'));
   },
 
   /**
@@ -645,7 +660,9 @@ GRASP.UIElements.prototype = {
    * @param {Object<string, string>} actions - action that can be made to item, in a form {name:callback, ...}
    */
   showModalList: function(items, actions){
-    this.setModalContent(this.createModal(),this.createList(items, actions));
+    var modal = this.createModal();
+    this.setModalContent(modal,this.createList(items, actions));
+    return modal;
   },
 
   /**

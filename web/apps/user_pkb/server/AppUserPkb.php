@@ -413,13 +413,35 @@ class AppUserPkb extends App
         $this->showRawData(json_encode($this->getGraphDiff($r['graphId'], $r['cloneId'])));
         break;
 
+      case 'updateSource':
+        $r = $this->getRequest();
+        $scopus_title_list_id = is_numeric($this->db->escape($r['scopus_title_list_id'])) ? $this->db->escape($r['scopus_title_list_id']) : 'null';
+        $q = "UPDATE source SET ".
+            "source_type = '".$this->db->escape($r['source_type'])."',  ".
+            "name = '".$this->db->escape($r['name'])."',  ".
+            "comment = '".$this->db->escape($r['comment'])."',  ".
+            "url = '".$this->db->escape($r['url'])."',  ".
+            "author = '".$this->db->escape($r['author'])."',  ".
+            "editor = '".$this->db->escape($r['editor'])."',  ".
+            "publisher = '".$this->db->escape($r['publisher'])."',  ".
+            "publisher_reliability = '".$this->db->escape($r['publisher_reliability'])."',  ".
+            "scopus_title_list_id = ".$scopus_title_list_id.",  ".
+            "publish_date = '".$this->db->escape($r['publish_date'])."',  ".
+            "publish_date = '".$this->db->escape($r['publish_date'])."'  ".
+            "WHERE auth_id = '".$this->getAuthId()."' AND id = '".$this->db->escape($r['id'])."'";
+        $this->db->execute($q);
+        $this->showRawData(json_encode(['result'=>'success']));
+        break;
+
       case 'getUserSources':
         $user_graph_ids = $this->getGraphIds($this->getAuthId());
         $graphs = $this->getGraphs($user_graph_ids);
         $node_attributes = $this->graphs->getGraphNodeAttributes($user_graph_ids);
 
+        $sources = [];
         $q = "SELECT * FROM source WHERE auth_id = '".$this->getAuthId()."'";
-        $sources = $this->db->execute($q);
+        $rows = $this->db->execute($q);
+        foreach ($rows as $row) $sources[$row['id']] = $row;
 
         foreach($sources as $source_id => $source){
           $source_graphs = [];
@@ -1048,7 +1070,8 @@ class AppUserPkb extends App
       'GraphDecorations/GraphDecorationByType.js',
       //'GraphDecorations/iDecoration.js',
 
-      'GraphElementEditor.js',
+      'GraphElementEditor/FormFields.js',
+      'GraphElementEditor/GraphElementEditor.js',
 
       'Bayes/BayesPubSub.js',
       'Bayes/BayesCalculatorGRain.js',
