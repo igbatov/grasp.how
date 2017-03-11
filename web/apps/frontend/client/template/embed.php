@@ -37,12 +37,12 @@
     <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Subscriber.js"></script>
 
     <!-- app specific js -->
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."d3.v3.min.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."node-content-view.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph-actions.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."main.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."googleanalytics.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."share_track.js" ?>"></script>
   </head>
   <body>

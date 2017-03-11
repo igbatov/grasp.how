@@ -17,6 +17,8 @@
   </div>
 
   <!-- General js libs -->
+  <script src="<?php echo $this->getDefaultDir('js'); ?>jserrorlog.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>

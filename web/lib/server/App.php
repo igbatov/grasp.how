@@ -134,7 +134,6 @@ abstract class App
     // log request to db
     if($this->config && $this->config->isDebugOn()) $this->dbLog('request', $_SERVER["REQUEST_URI"], var_export($_REQUEST, true));
 
-    // logout action
     switch($vars[0]){
       case 'logout':
         $this->session->logout();

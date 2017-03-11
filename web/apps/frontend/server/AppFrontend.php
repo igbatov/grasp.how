@@ -33,12 +33,14 @@ class AppFrontend extends App{
         break;
 
       // generates javascript to insert /embed iframe
-      case 'embedjs':
-        // sanity check
-        if(strlen($vars[1])>255 || strlen($vars[2])>255) exit('Too long params');
+      case 'embed.js':
+        $r = $this->getRequest();
+        //var_dump($r);
+        $graphIds = $r['graphIds'];
+        $uniqId = $r['uniqId'];
 
-        $graphIds = $vars[1];
-        $uniqId = $vars[2];
+        // sanity check
+        if(count($graphIds)>50 || strlen($uniqId)>255) exit('Too long params');
 
         include($this->getAppDir("template", false)."/embedjs.php");
         break;

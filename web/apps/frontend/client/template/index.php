@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
 
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."d3.v3.min.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."main.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
   </head>
@@ -35,7 +34,9 @@
     </ul>
   </div>
 
-  <div id="grasp-how-8866" style="height: 600px;"><script src="http://www.grasp.how/embedjs/[155]/grasp-how-8866"></script></div>
+  <div id="grasp-how-8866" style="height: 600px;">
+    <script src='http://www.grasp.how/embed.js?data={"graphIds":[155],"uniqId":"grasp-how-8866"}'></script>
+  </div>
 
   <div id="quote" class="description">
     <blockquote>

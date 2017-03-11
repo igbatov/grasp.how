@@ -1,14 +1,30 @@
 (function(){
-  var el = document.getElementById('<?php echo $uniqId; ?>');
-  var width = el.style.width ? el.style.width : '100%';
-  var height = el.style.height ? el.style.height : el.offsetWidth*2/3+'px;';
-  var iframe = document.createElement('iframe');
-  iframe.scrolling = "no";
-  iframe.class = 'grasphow-iframe';
-  iframe.src = 'http://www.grasp.how/embed/<?php echo $graphIds; ?>';
-  iframe.style = 'border: 0; width: '+width+'; height: '+height;
-  iframe.onload = function(){
-    this.contentWindow.postMessage({from:document.location.href}, "http://www.grasp.how/embed/<?php echo $graphIds; ?>");
-  };
-  el.append(iframe);
+  try{
+    var el = document.getElementById('<?php echo $uniqId; ?>');
+    if(el == null) return;
+    var width = el.style.width ? el.style.width : '100%';
+    var height = el.style.height ? el.style.height : el.offsetWidth*2/3+'px;';
+    var iframe = document.createElement('iframe');
+    iframe.scrolling = "no";
+    iframe.class = 'grasphow-iframe';
+    iframe.src = 'http://www.grasp.how/embed/<?php echo "[".implode(',',$graphIds)."]"; ?>';
+    iframe.style = 'border: 0; width: '+width+'; height: '+height;
+    iframe.onload = function(){
+      this.contentWindow.postMessage({from:document.location.href}, "http://www.grasp.how/embed/<?php echo "[".implode(',',$graphIds)."]"; ?>");
+    };
+    el.append(iframe);
+  }catch(e){
+    if (window.XMLHttpRequest) {
+      var xhr = new XMLHttpRequest();
+      var data = "msg="+encodeURIComponent(e.message)
+      +"&url="+
+      +"&line="+
+      +"&col="+
+      +"&stack="+e.stack
+      +"&href="+encodeURIComponent(window.location.href);
+      xhr.open("GET", "/logger?"+data, true);
+      xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+      xhr.send();
+    }
+  }
 })()

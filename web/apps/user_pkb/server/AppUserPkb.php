@@ -818,7 +818,7 @@ class AppUserPkb extends App
   }
 
  /**
-  * Extract Bayes Graphs from graph_id Graph.
+  * Extract Bayes Graphs from Graph with id=graph_id.
   * The structure of every extracted Bayes Graph is in a form
   * {
   *   nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2']}, // every node contains array of its alternative_ids

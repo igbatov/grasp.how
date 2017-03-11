@@ -50,6 +50,10 @@ class Graphs {
     return json_decode($row['settings'], true);
   }
 
+  /**
+   * @param $content_ids - node ids in 'global' format
+   * @return array
+   */
   public function getGraphNodeContent($content_ids){
     // get all except text
     $nodes = $this->getNodeAttributes($content_ids);
@@ -229,6 +233,11 @@ class Graphs {
     return $attributes;
   }
 
+  /**
+   * Get node attributes - all node content except text
+   * @param null $graph_ids
+   * @return array|bool
+   */
   public function getGraphNodeAttributes($graph_ids=null){
     $contentIds = array();
     if(!is_array($graph_ids)) return false;
@@ -669,8 +678,9 @@ class Graphs {
   }
 
   /**
-   * Clone graph from specific step. All text and attributes are copied - this preserve text on clone from modification by clonee and
-   * simplify process of cloning from clones
+   * Clone graph from specific step. All text and attributes are copied
+   * - this preserve text on clone from modification by clonee and
+   * simplify process of cloning from clones itself
    * @param $graph_id - original graph id
    * @param $graph_history_step - step in history of original graph
    * @param $auth_id - user which clones graph
@@ -686,7 +696,7 @@ class Graphs {
     $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', auth_id = '".$auth_id."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."', created_at = NOW()";
     $new_graph_id = $this->db->execute($q);
 
-    // change local_content_id and local_content_id to create history of clone
+    // change nodeContentId, edgeContentId in graph_history table for new graph
     $q = "SELECT elements, node_mapping FROM graph_history WHERE graph_id = '".$graph_id."' AND step = '".$graph_history_step."'";
     $rows = $this->db->execute($q);
     $nodes = array();
@@ -714,7 +724,15 @@ class Graphs {
     $node_alternative_attr_names_without_time = $this->node_alternative_attribute_names;
     unset($node_alternative_attr_names_without_time[array_search('created_at', $this->node_alternative_attribute_names)]);
     unset($node_alternative_attr_names_without_time[array_search('updated_at', $this->node_alternative_attribute_names)]);
-    $q = "INSERT INTO node_content (graph_id, local_content_id, alternative_id, ".implode(',', $this->node_attribute_names).", ".implode(',', $node_alternative_attr_names_without_time).",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, alternative_id,	".implode(',', $this->node_attribute_names).", ".implode(',', $node_alternative_attr_names_without_time).", text, '".$graph_id."', local_content_id, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $q = "INSERT INTO node_content (graph_id, local_content_id, alternative_id, "
+        .implode(',', $this->node_attribute_names).", "
+        .implode(',', $node_alternative_attr_names_without_time)
+        .",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) "
+        ."SELECT '".$new_graph_id."', local_content_id, alternative_id,	"
+        .implode(',', $this->node_attribute_names).", "
+        .implode(',', $node_alternative_attr_names_without_time)
+        .", text, '".$graph_id."', local_content_id, NOW(), NOW() "
+        ." FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->logger->log($q);
     $this->db->execute($q);
 
@@ -768,16 +786,20 @@ class Graphs {
     }
 
     // Copy node_content_falsification
-    $q = "INSERT INTO node_content_falsification (graph_id, local_content_id, alternative_id, `name`, comment,	created_at, updated_at) SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment, NOW(), NOW() FROM node_content_falsification WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $q = "INSERT INTO node_content_falsification (graph_id, local_content_id, alternative_id, `name`, comment,	created_at, updated_at) "
+        ."SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment, NOW(), NOW() FROM node_content_falsification "
+        ."WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $this->logger->log($q);
     $this->db->execute($q);
 
     // just copy edges as is
-    $q = "INSERT INTO edge_content (graph_id, local_content_id,	".implode(',', $this->edge_attribute_names).", updated_at, created_at) SELECT '".$new_graph_id."', local_content_id, ".implode(',', $this->edge_attribute_names).", NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO edge_content (graph_id, local_content_id,	".implode(',', $this->edge_attribute_names).", updated_at, created_at) "
+        ."SELECT '".$new_graph_id."', local_content_id, ".implode(',', $this->edge_attribute_names).", NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
     $this->logger->log($q);
     $this->db->execute($q);
 
-    $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
+    $q = "INSERT INTO graph_settings (graph_id, settings) "
+        ."SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
     $this->logger->log($q);
     $this->db->execute($q);
 

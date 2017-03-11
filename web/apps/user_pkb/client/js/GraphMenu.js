@@ -152,7 +152,7 @@ GRASP.GraphMenu.prototype = {
         var showGraph = function(cloneId){
           // get graph diff and show it
           that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
-            // change change graph position
+            // change graph position
             that.selectedPosition[cloneId] = 'rightGraphView';
             // and then show them
             that.publisher.publish('show_graphs');
@@ -248,7 +248,7 @@ GRASP.GraphMenu.prototype = {
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Share',label:'Share', class:'share_button', callback:function(){
         var m = that.UI.createModal();
         var uniqId = Math.floor(Math.random()*10000);
-        var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src="http://www.grasp.how/embedjs/['+leftGraphId+']/grasp-how-'+uniqId+'"></script></div>';
+        var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src=\'http://www.grasp.how/embed.js?data={"graphIds":['+leftGraphId+'],"uniqId":"grasp-how-'+uniqId+'"}\'></script></div>';
         var embedImageCode = '<a target="_blank" href="http://www.grasp.how/embed/['+leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+leftGraphId+'.jpg"></a>';
         that.UI.setModalContent(
             m,
