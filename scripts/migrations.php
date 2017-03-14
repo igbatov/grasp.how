@@ -40,12 +40,10 @@ if(isset($keys['-m']) && isset($keys['-d'])){
   $migrationDates = [];
   foreach ($files as $file){
     $timestamp = $roller->getFileRevisionDate($file);
-    if(isset($migrationDates[$timestamp])){
-      $roller->mylog($file.' and '.$migrationDates[$timestamp].' has the same commit timestamp! exiting...');
-      exit();
-    }
-    $migrationDates[$timestamp] = $file;
+    $classname = substr($file,0,-4);
+    $migrationDates[$classname] = $timestamp;
   }
+
   $roller->rollDownTo($revdate);
   $roller->rollUpTo($revdate, $migrationDates);
 }

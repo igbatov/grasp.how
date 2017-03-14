@@ -73,10 +73,10 @@ class MigrationRoller{
     exec('git log --pretty=format:%ct --diff-filter=A -- '.$file.' 2>&1', $date);
     if(count($date) == 0){
       // nothing found, file was not commited yet
-      return $date[0];
+      return null;
     }
     else if(count($date) == 1){
-      return $date[0];
+      return (int)$date[0];
     }
     else{
       $this->mylog('migration.php: getFileRevisionDate: error getting revision for file '.$file);
@@ -124,7 +124,7 @@ class MigrationRoller{
       $this->db->rollbackTransaction();
     }
     $this->db->commitTransaction();
-    $timestamp = $this->getFileRevisionDate($migrationName);
+    $timestamp = $this->getFileRevisionDate($migrationName.'.php');
     $this->updateMigrationStatus($migrationName, $direction, $timestamp);
     $this->mylog('successfully rolled '.$direction.' '.$migrationName);
   }
