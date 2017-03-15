@@ -105,7 +105,7 @@ $s = new Session($a);
 $s->start();
 
 // init helper modules
-$db = new DB($c->getDbConf());
+$db = new NestedDB($c->getDbConf());
 $eh = new ErrorHandler();
 $logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());
 $i18n = new I18N($s, $logger);

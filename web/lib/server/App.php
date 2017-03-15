@@ -114,17 +114,17 @@ abstract class App
     return $this->config->getDefaultPath($type);
   }
 
-  protected function getRoute(){
+  public function getRoute(){
     $url=strtok($_SERVER["REQUEST_URI"],'?');
     return explode('/',substr($url, 1));
   }
 
-  protected function getRequest(){
+  public function getRequest(){
     if(substr(phpversion(), 0, 3) == '5.2') return json_decode(stripslashes(urldecode($_REQUEST['data'])), true); // ugly fix for old php
     return isset($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : null;
   }
 
-  protected function showView(){
+  public function showView(){
     // get auth_id
     $this->auth_id = $this->getUserId($this->session->getUsername());
 

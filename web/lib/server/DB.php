@@ -2,6 +2,7 @@
 class DB
 {
   private $mysqlLink;
+  private $preExecListeners;
 
   public function __construct(dbConf $c)
   {
@@ -11,6 +12,15 @@ class DB
 
   public function execute($query)
   {
+    // notify all preexec listeners that we are going to execute query
+    foreach($this->preExecListeners as $listener){
+      try{
+        $listener['obj']->$listener['method']($query);
+      }catch(Exception $e){
+        error_log('Cannot exec '.$listener['obj'].'->'.$listener['method']);
+      }
+    }
+
     $result = mysqli_query($this->mysqlLink, $query) or trigger_error("MysqlHelper::execute query='".$query."'\n".mysqli_error($this->mysqlLink));
 
     if(strtoupper(substr($query, 0, 6)) == "DELETE") return $result;
@@ -84,6 +94,10 @@ class DB
   public function rollbackTransaction()
   {
     mysqli_query($this->mysqlLink, "ROLLBACK");
+  }
+
+  public function addPreExecListener($obj, $method){
+    $this->preExecListeners[] = ['obj'=>$obj, 'method'=>$method];
   }
 }
 ?>

@@ -8,7 +8,12 @@ switch($c->getWebDomainName()){
   case 'my.grasp.how':
   case 'grasp.local':
     $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
+    // if it is test, then rollback all db queries after script finishes
+    if(isset($_GET['TEST_NAME'])){
+      $app = new TestableApp($db, $app, $_GET['TEST_NAME']);
+    }
     break;
+
   default:
     $app = new AppFrontend($c, $s, $db, $logger, $i18n, $oauth);
     break;

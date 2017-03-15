@@ -255,6 +255,7 @@ GRASP.Repository.prototype = {
     var formData = new FormData();
     formData.append('data', JSON.stringify(r.data));
     formData.append('files', r.files);
+    if(TEST_NAME) formData.append('TEST_NAME', TEST_NAME);
 
     this.transport.send({
       url: r.url,
