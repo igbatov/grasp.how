@@ -255,36 +255,36 @@ GRASP.Repository.prototype = {
     var formData = new FormData();
     formData.append('data', JSON.stringify(r.data));
     formData.append('files', r.files);
-    if(TEST_NAME) formData.append('TEST_NAME', TEST_NAME);
+    if(typeof(TEST_NAME) != 'undefined') formData.append('TEST_NAME', TEST_NAME);
 
     this.transport.send({
-      url: r.url,
+      url: window.location.origin+'/'+r.url,
       type: 'POST',
       data: formData,
       processData: false,
       contentType: false,
-      // server returns 200 (OK)
-      success: function(data) {
+    }).then(
+    // server returns 200 (OK)
+    function(data) {
+      that.pendingRequests.shift();
+      that.isLastRequestDone = true;
+      r.callback(data);
+      that.sendPendingRequests();
+    },
+    // server returns 401, 500 or 503 error
+    function(data){
+      var reason = '';
+      if(data.status == 401){
+        reason = 'Unauthorized';
+      }else if(data.status == 503){
+        reason = 'Server unavailable';
+        that.isLastRequestDone = true;
+      }else{
+        reason = 'Unknown error';
         that.pendingRequests.shift();
         that.isLastRequestDone = true;
-        r.callback(data);
-        that.sendPendingRequests();
-      },
-      // server returns 401, 500 or 503 error
-      error: function(data){
-        var reason = '';
-        if(data.status == 401){
-          reason = 'Unauthorized';
-        }else if(data.status == 503){
-          reason = 'Server unavailable';
-          that.isLastRequestDone = true;
-        }else{
-          reason = 'Unknown error';
-          that.pendingRequests.shift();
-          that.isLastRequestDone = true;
-        }
-        that.publisher.publish(["repository_error", {reason:reason}]);
       }
+      that.publisher.publish(["repository_error", {reason:reason}]);
     });
   }
 };

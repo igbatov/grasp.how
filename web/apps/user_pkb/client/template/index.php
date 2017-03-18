@@ -19,7 +19,6 @@
   <!-- General js libs -->
   <script src="<?php echo $this->getDefaultDir('js'); ?>jserrorlog.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
@@ -35,6 +34,7 @@
   <?php foreach($this->getJsIncludeList() as $js_include) : ?>
       <script src="<?php echo $this->getAppDir('js')."/".$js_include; ?>"></script>
   <?php endforeach ?>
+  <script src="<?php echo $this->getAppDir('js'); ?>/init.js"></script>
   <script src="<?php echo $this->getAppDir('js'); ?>/main.js"></script>
 
   </body>

@@ -56,7 +56,7 @@ class AppFrontend extends App{
         foreach($graph_ids as $graph_id) if(!is_numeric($graph_id)) exit('Bad graph_id '.$graph_id);
 
         $contentIdConverter = new ContentIdConverter();
-        $graphs = new Graphs($this->db, $contentIdConverter, $this->getLogger(), null);
+        $graphs = new Graphs($this->db, $contentIdConverter, $this->getLogger());
         $emb_graph = new EmbGraph($this->db, $contentIdConverter, $graphs);
         $graph = $emb_graph->getGraphsData($graph_ids);
         //var_dump($graph); exit();

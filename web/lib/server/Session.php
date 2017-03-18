@@ -85,4 +85,11 @@ class Session{
   public function updateUserPassword($login, $password){
     return $this->auth->changePassword($login, $password);
   }
+
+  public function switchDB($login, $password, $host, $dbname){
+    $this->auth->storage_options['dsn'] = 'mysql://'.$login.':'.$password.'@'.$host.'/'.$dbname;
+    if(is_object($this->auth->storage)){
+      $this->auth->storage->connect($this->auth->storage_options['dsn']);
+    }
+  }
 }

@@ -13,11 +13,14 @@ class AppUserPkb extends App
   private $contentIdConverter;
   private $graphs;
 
+  function __construct(Config $c, Session $s, DB $db, Logger $logger, I18N $i18n, OAuthUser $oauth=null) {
+    parent::__construct($c, $s, $db, $logger, $i18n, $oauth);
+    $this->contentIdConverter = new ContentIdConverter();
+    $this->graphs = new Graphs($this->db, $this->contentIdConverter, $this->getLogger());
+  }
+
   public function showView(){
     parent::showView();
-
-    $this->contentIdConverter = new ContentIdConverter();
-    $this->graphs = new Graphs($this->db, $this->contentIdConverter, $this->getLogger(), $this->getAuthId());
 
     $vars = $this->getRoute();
     $this->log('REQUEST ', $this->getRoute(), $this->getRequest());
@@ -71,7 +74,9 @@ class AppUserPkb extends App
         $msg = 'Error in OAuth: no code in _GET: URI = '.var_export($_REQUEST, true);
         $this->logger->log($msg);
         exit($msg);
-      }else $code = $_GET['code'];
+      }else{
+        $code = $_GET['code'];
+      }
 
       $info = $this->oauth->oauth($type, $code);
       if(!isset($info['email']) || strlen($info['email']) == 0) return false;
@@ -394,7 +399,7 @@ class AppUserPkb extends App
           }
         }
 
-        $result = $this->graphs->updateGraphElementContent($graph_id, $local_content_id, $r);
+        $result = $this->graphs->updateGraphElementContent($graph_id, $local_content_id, $r, $this->getAuthId());
         $this->showRawData($result);
         break;
 
@@ -687,7 +692,7 @@ class AppUserPkb extends App
     return $r;
   }
 
-  protected function createNewUser($login, $password){
+  public function createNewUser($login, $password){
     if(!parent::createNewUser($login, $password)) return false;
 
     $q = "SELECT id FROM auth WHERE username = '".$login."'";
@@ -1075,6 +1080,7 @@ class AppUserPkb extends App
 
       'Bayes/BayesPubSub.js',
       'Bayes/BayesCalculatorGRain.js',
+      //'Bayes/BayesCalculatorTree.js',
     );
   }
 }

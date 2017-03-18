@@ -12,10 +12,9 @@ class Graphs {
 
   private $auth_id;
 
-  public function __construct(DB $db, ContentIdConverter $contentIdConverter, $logger, $auth_id){
+  public function __construct(DB $db, ContentIdConverter $contentIdConverter, $logger){
     $this->db = $db;
     $this->logger = $logger;
-    $this->auth_id = $auth_id;
     $this->contentIdConverter = $contentIdConverter;
 
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
@@ -299,16 +298,16 @@ class Graphs {
     return true;
   }
 
-  public function updateGraphElementContent($graph_id, $local_content_id, $r){
+  public function updateGraphElementContent($graph_id, $local_content_id, $r, $auth_id){
     if($r['type'] == 'updateNodeText'){
       $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
       $this->db->execute($query);
     }else if($r['type'] == 'node_list_add_request'){
-      return $this->addNodeContentList($r);
+      return $this->addNodeContentList($r, $auth_id);
     }else if($r['type'] == 'node_list_remove_request'){
       return $this->removeNodeContentList($r);
     }else if($r['type'] == 'node_list_update_request'){
-      return $this->updateNodeContentList($r);
+      return $this->updateNodeContentList($r, $auth_id);
     }else if($r['type'] == 'addAlternative'){
       // get type and importance of node
       $query = "SELECT type, importance FROM node_content WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
@@ -470,18 +469,18 @@ class Graphs {
     return $this->db->execute($q);
   }
 
-  private function addNodeContentList($r){
+  private function addNodeContentList($r, $auth_id){
     if($r['nodeType'] == $this->node_basic_types['fact']){
       // if it is a new source - add it to the main list
       if(empty($r['item']['source_id'])){
         // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
-        $r['item']['source_id'] = $this->addSource($this->auth_id, $r['item']);
+        $r['item']['source_id'] = $this->addSource($auth_id, $r['item']);
       }
 
       $graph_id = $r['graphId'];
       $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
       $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
-          ."', `auth_id`='".$this->auth_id
+          ."', `auth_id`='".$auth_id
           ."', local_content_id='".$local_content_id
           ."', alternative_id='".$r['node_alternative_id']
           ."', comment='".$this->db->escape($r['item']['comment'])
@@ -509,14 +508,14 @@ class Graphs {
     }
   }
 
-  private function updateNodeContentList($r){
+  private function updateNodeContentList($r, $auth_id){
     $graph_id = $r['graphId'];
     $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
     if($r['nodeType'] == $this->node_basic_types['fact']) {
       // Client sets $r['item']['source_id'] as empty if user modified fields of source
       // We treat it here as signal for new source creation
       if(empty($r['item']['source_id'])){
-        $source_id = $this->addSource($this->getAuthId(), $r['item']);
+        $source_id = $this->addSource($auth_id, $r['item']);
       }else{
         // TODO: check that this source_id is ours
         $source_id = $r['item']['source_id'];
@@ -613,6 +612,11 @@ class Graphs {
   }
 
   public function createNewGraph($auth_id, $name){
+    if(strlen($auth_id) == 0){
+      $this->logger->log('cannot createNewGraph for auth_id='.$auth_id);
+      return false;
+    }
+
     $graph = '{"name":"'.$name.'","isEditable":true, "attributes":{"isInTrash":false}, "edgeTypes":["link","causal","conditional"],"nodeTypes":["fact","proposition","illustration","question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"causal"}';
     $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."', created_at = NOW()";
     $graph_id = $this->db->execute($q);
@@ -804,9 +808,5 @@ class Graphs {
     $this->db->execute($q);
 
     return $new_graph_id;
-  }
-
-  public function getAuthId(){
-    return $this->auth_id;
   }
 }

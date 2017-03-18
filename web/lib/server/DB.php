@@ -3,11 +3,18 @@ class DB
 {
   private $mysqlLink;
   private $preExecListeners;
+  private $dbConf;
 
   public function __construct(dbConf $c)
   {
     $this->mysqlLink = mysqli_connect($c->host, $c->login, $c->password, $c->dbName);
     mysqli_query($this->mysqlLink, "SET NAMES utf8");
+    $this->preExecListeners = [];
+    $this->dbConf = $c;
+  }
+
+  public function switchDB($dbname){
+    $this->execute("USE ".$dbname);
   }
 
   public function execute($query)
@@ -98,6 +105,22 @@ class DB
 
   public function addPreExecListener($obj, $method){
     $this->preExecListeners[] = ['obj'=>$obj, 'method'=>$method];
+  }
+
+  public function getCurrentDB(){
+    $rows = $this->execute('SELECT DATABASE()');
+    return reset(reset($rows));
+  }
+
+  public function getTableNames(){
+    $dbname = $this->getCurrentDB();
+    $q = 'SHOW TABLES FROM '.$dbname;
+    $rows = $this->execute($q);
+    $tablenames = [];
+    foreach($rows as $row){
+      $tablenames[] = reset($row);
+    }
+    return $tablenames;
   }
 }
 ?>

@@ -65,10 +65,12 @@ require_once ('Auth.php');
  */
 require_once ($path.'/'.'I18N.php');
 require_once ($path.'/'.'DB.php');
+require_once ($path.'/'.'NestedDB.php');
 require_once ($path.'/'.'ErrorHandler.php');
 require_once ($path.'/'.'Logger.php');
 require_once ($path.'/'.'Session.php');
 require_once ($path.'/'.'App.php');
+require_once ($path.'/'.'TestableApp.php');
 require_once ($path.'/'.'ContentIdConverter.php');
 require_once ($path.'/'.'GraphDiffCreator.php');
 require_once ($path.'/'.'Graphs.php');
@@ -85,7 +87,7 @@ class Auth_Log_Observer extends Log_observer {
 }
 
 $options = array(
-  'enableLogging' => true,
+  'enableLogging' => false,
   'dsn' => 'mysql://'.$c->getDbConf()->login.':'.$c->getDbConf()->password.'@'.$c->getDbConf()->host.'/'.$c->getDbConf()->dbName
 );
 

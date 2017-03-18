@@ -5,7 +5,7 @@
 abstract class App
 {
   protected $config;
-  protected $session;
+  public $session;
   protected $db;
   protected $logger;
   protected $i18n;
@@ -145,7 +145,7 @@ abstract class App
     }
   }
 
-  protected function getUserId($username){
+  public function getUserId($username){
     $rows = $this->db->execute("SELECT id FROM auth WHERE username = '".$username."'");
     return count($rows)>0 ? $rows[0]['id'] : null;
   }
@@ -154,7 +154,7 @@ abstract class App
     return $this->auth_id;
   }
 
-  protected function showRawData($data){
+  public function showRawData($data){
     echo $data;
     $this->postAccessLog();
     exit();
@@ -234,5 +234,17 @@ abstract class App
     exit();
   }
 
+  public function getDB(){
+    return $this->db;
+  }
 
+  public function switchDB($dbname){
+    $this->getDB()->switchDB($dbname);
+    $this->session->switchDB(
+        $this->config->getDbConf()->login,
+        $this->config->getDbConf()->password,
+        $this->config->getDbConf()->host,
+        $dbname
+    );
+  }
 }

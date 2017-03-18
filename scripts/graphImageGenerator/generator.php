@@ -25,7 +25,7 @@ $db = new DB($c->getDbConf());
 $contentIdConverter = new ContentIdConverter();
 $eh = new ErrorHandler();
 $logger = new Logger($db, $eh, $curdir.'../../logs', 'generator.php');
-$graphs = new Graphs($db, $contentIdConverter, $logger, null);
+$graphs = new Graphs($db, $contentIdConverter, $logger);
 $emb_graph = new EmbGraph($db, $contentIdConverter, $graphs);
 // for each graph generate its jpeg image with #node converter.js graph.svg
 $q = "SELECT id FROM graph ".($graph_id ? "WHERE id = '".$graph_id."'" : "");

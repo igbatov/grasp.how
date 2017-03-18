@@ -949,7 +949,7 @@ GRASP.isJson = function(str) {
   if(typeof str !== "string") return false;
 
   try {
-    item = JSON.parse(str);
+    var item = JSON.parse(str);
   } catch (e) {
     return false;
   }
@@ -1681,3 +1681,23 @@ GRASP.nodeConditionalFormHelper = (function(){
 })();
 
 GRASP.DOMParser = new DOMParser();
+
+/**
+ * Parse url and return get parameters into associative array
+ * @param url
+ * @returns {{}}
+ */
+GRASP.getURLParameters = function(url){
+  var prmstr = url.split("?")[1];
+  return typeof(prmstr) != 'undefined' && prmstr != "" ? transformToAssocArray(prmstr) : {};
+
+  function transformToAssocArray( prmstr ) {
+    var params = {};
+    var prmarr = prmstr.split("&");
+    for ( var i = 0; i < prmarr.length; i++) {
+      var tmparr = prmarr[i].split("=");
+      params[tmparr[0]] = tmparr[1];
+    }
+    return params;
+  }
+}

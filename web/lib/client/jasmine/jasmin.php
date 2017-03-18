@@ -1,6 +1,6 @@
 <?php
 require_once ('../../server/bootstrap.php');
-$app = new AppUserPkb($c, $s, $db, $eh, $l);
+$app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 ?>
 <html>
 <head>
@@ -23,9 +23,23 @@ $app = new AppUserPkb($c, $s, $db, $eh, $l);
   <script type="text/javascript" src="../../../lib/client/stacktrace-0.4.js"></script>
   <script type="text/javascript" src="../../../lib/client/xor4096.min.js"></script>
 
+  <!-- General js libs -->
+  <script src="<?php echo $app->getDefaultDir('js'); ?>jserrorlog.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>jquery.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>xor4096.min.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>Helpers.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>Ajax.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>UIElements.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>Mediator/iListener.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>Mediator/Event.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>Mediator/Mediator.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>Mediator/Publisher.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>Mediator/Subscriber.js"></script>
+
   <!-- GRASP source files -->
   <?php foreach($app->getJsIncludeList() as $js_include) : ?>
-    <script src="<?php echo "../../../apps/user_pkb/client/js/".$js_include; ?>"></script>
+    <script src="<?php echo $app->getAppDir('js')."/".$js_include; ?>"></script>
   <?php endforeach ?>
 
   <!--- data for spec files (fixtures) of unit tests --->

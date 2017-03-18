@@ -16,5 +16,5 @@ require_once ($path.'/'.'DB.php');
 require_once ($path.'/'.'ErrorHandler.php');
 
 // init helper modules
-$db = new NestedDB($c->getDbConf());
+$db = new DB($c->getDbConf());
 $eh = new ErrorHandler();
