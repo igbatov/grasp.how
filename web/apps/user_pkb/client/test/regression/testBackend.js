@@ -41,23 +41,43 @@ Modules['Ajax'].send({
     url: window.location.origin+'/loginTestUser?username='+USERNAME+'&TEST_NAME='+TEST_NAME
   });
 }).then(function(){
-  return p.publish(['create_new_graph', {name:'testGraph'}]);
-}).then(function(){
-  // test repository_get_graphs_model_settings
-  return p.publish(['repository_get_graphs_model_settings']);
-}).then(function(e){
-  GRASP.TestHelpers.cmp(
-      'repository_get_graphs_model_settings',
-      e,
-      GRASP_TEST_DATA[TEST_NAME]['repository_get_graphs_model_settings']
-  );
 
-  // test get_current_graph_step
+  /**
+   * Test empty graph creation
+   */
+  var testGraphId = null;
+  return p.publish(['create_new_graph', {name:'testGraph'}])
+      /**
+       *  Check that repository_get_graphs_model_settings is OK
+       */
+      .then(function(){
+          return p.publish(['repository_get_graphs_model_settings']);
+      })
+      .then(function(e){
+        testGraphId = Math.max.apply(null, GRASP.getObjectKeys(e));
+        GRASP.TestHelpers.cmp(
+            'repository_get_graphs_model_settings',
+            e[testGraphId],
+            GRASP_TEST_DATA[TEST_NAME]['repository_get_graphs_model_settings']
+        );
+      })
+      /**
+       *  Check that repository_get_graphs_history_timeline is OK
+       */
+      .then(function(){
+        return p.publish(['repository_get_graphs_history_timeline',{ids:[testGraphId]}]);
+      })
+      .then(function(e){
+        GRASP.TestHelpers.cmp(
+            'repository_get_graphs_history_timeline',
+            e[testGraphId],
+            GRASP_TEST_DATA[TEST_NAME]['repository_get_graphs_history_timeline']
+        );
+      });
+
+}).then(function(e){
   return p.publish(['load_graph_models']);
 }).then(function(e){
-  // assume here
-  console.log(e);
-
   // clear testableapp_queries for this test, commitTestChanges will execute all testableapp_queries
   return Modules['Ajax'].send({
     url: window.location.origin+'/rollbackTestChanges?TEST_NAME='+TEST_NAME

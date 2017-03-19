@@ -53,7 +53,8 @@ GRASP.Publisher.prototype = {
 
   /**
    * Publish events
-   * @param events - every argument can be an array [name, data], string 'name' or GRASP.Event(name, data)
+   * @param events - every argument is an event.
+   * Event can be an array [name, data], string 'name' or GRASP.Event(name, data)
    */
   publish: function(events){
     for(var i in arguments){

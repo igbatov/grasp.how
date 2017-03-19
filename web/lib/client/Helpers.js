@@ -10,7 +10,7 @@ var GRASP = GRASP || {};
  * based on http://javascriptweblog.wordpress.com/2011/08/08/fixing-the-javascript-typeof-operator/
  * It detects every type except 'undefined', for which it just throws ReferenceError
  * @param obj
- * @returns {string} - 'string' | 'number' | 'array' | 'object' | 'function' | 'null'
+ * @returns {string} - 'string' | 'number' | 'array' | 'object' | 'function' | 'null' | 'boolean'
  */
 GRASP.typeof = function(obj) {
   return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
@@ -869,7 +869,16 @@ GRASP.compare = (function() {
   var customTypeof = function(obj) {
     return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
   };
-  var deepEqual = function (actual, expected) {
+  /**
+   *
+   * @param actual
+   * @param expected
+   * @param usingTestDummies - if set to true then expected may be (or may contain)
+   *  GRASP.TestHelpers.likeRegexp that will be treated differently (see tests in unit/Helpers.js for examples)
+   * @returns {*}
+   */
+  var deepEqual = function (actual, expected, usingTestDummies) {
+    usingTestDummies = typeof(usingTestDummies) != 'undefined' ? usingTestDummies : false;
     // 7.1. All identical values are equivalent, as determined by ===.
     if (actual === expected) {
       return true;
@@ -877,8 +886,11 @@ GRASP.compare = (function() {
     } else if (actual instanceof Date && expected instanceof Date) {
       return actual.getTime() === expected.getTime();
 
-      // 7.3. Other pairs that do not both pass typeof value == 'object',
-      // equivalence is determined by ==.
+      // this is magic for grasp tests
+    } else if (usingTestDummies && customTypeof(expected) === 'object' && /function (.{1,})\(/.exec(expected.constructor.toString())[1] === 'likeRegexp') {
+      var regexp = new RegExp(expected.regexp);
+      return regexp.test(actual);
+
     } else if (customTypeof(actual) === 'function' && customTypeof(expected)  === 'function') {
       return actual.toString() === expected.toString();
 
@@ -894,7 +906,7 @@ GRASP.compare = (function() {
       // corresponding key, and an identical 'prototype' property. Note: this
       // accounts for both named and indexed properties on Arrays.
     } else {
-      return objEquiv(actual, expected);
+      return objEquiv(actual, expected, usingTestDummies);
     }
   }
 
@@ -906,7 +918,7 @@ GRASP.compare = (function() {
     return Object.prototype.toString.call(object) == '[object Arguments]';
   }
 
-  function objEquiv(a, b) {
+  function objEquiv(a, b, usingTestDummies) {
     if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
       return false;
     // an identical 'prototype' property.
@@ -944,7 +956,7 @@ GRASP.compare = (function() {
     //~~~possibly expensive deep test
     for (i = ka.length - 1; i >= 0; i--) {
       key = ka[i];
-      if (!deepEqual(a[key], b[key])) return false;
+      if (!deepEqual(a[key], b[key], usingTestDummies)) return false;
     }
     return true;
   }

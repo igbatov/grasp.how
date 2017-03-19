@@ -29,6 +29,7 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
   <script src="<?php echo $app->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>xor4096.min.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>Helpers.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>TestHelpers.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>Ajax.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>UIElements.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>Mediator/iListener.js"></script>
@@ -47,19 +48,19 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
   <!--- data for spec files (fixtures) of integration tests
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/fixtures/CanvasDrawer.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/fixtures/GraphView.js"></script>
---->
-  <!-- Spec files of unit tests
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Helpers.js"></script>
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Mediator.js"></script>
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Publisher.js"></script>
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphModel.js"></script>
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphModelTree.js"></script>
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingTree.js"></script>
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingForceDirected.js"></script>
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingTreeNode.js"></script>
-  -->
-  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/BayesCalculator.js"></script>
 
+  <!-- Spec files of unit tests --->
+  <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Helpers.js"></script>
+  <!--
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Mediator.js"></script>
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Publisher.js"></script>
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphModel.js"></script>
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphModelTree.js"></script>
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingTree.js"></script>
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingForceDirected.js"></script>
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/GraphNodeMappingTreeNode.js"></script>
+    <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/BayesCalculator.js"></script>
+  -->
   <!-- Spec files of integration tests
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/CanvasDrawer.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/integration/GraphView.js"></script>

@@ -1,4 +1,49 @@
 
+describe("GRASP.compare", function(){
+  it('should correctly compare all types', function () {
+
+    expect(GRASP.compare('str','str')).toBe(true);
+    expect(GRASP.compare('str','stv')).toBe(false);
+
+    expect(GRASP.compare(null,null)).toBe(true);
+    expect(GRASP.compare(null,0)).toBe(false);
+
+    expect(GRASP.compare(123,123)).toBe(true);
+    // TODO: fix this after all frontend tests will be written
+    // expect(GRASP.compare(123,'123')).toBe(false);
+    expect(GRASP.compare(123.33,123.33)).toBe(true);
+    expect(GRASP.compare(123.33,123)).toBe(false);
+
+    expect(GRASP.compare(true,true)).toBe(true);
+    expect(GRASP.compare(true,false)).toBe(false);
+
+    expect(GRASP.compare([],[])).toBe(true);
+    expect(GRASP.compare([],[1])).toBe(false);
+    expect(GRASP.compare([1,2,3],[1,2,3])).toBe(true);
+    expect(GRASP.compare([1,2,3],[1,3,2])).toBe(false);
+    expect(GRASP.compare([1,2,3],[1,2,4])).toBe(false);
+
+    expect(GRASP.compare({},{})).toBe(true);
+    expect(GRASP.compare({a:'a'},{})).toBe(false);
+    expect(GRASP.compare({a:'a'},{a:'a'})).toBe(true);
+    expect(GRASP.compare({a:{b:'b',d:'d'}},{a:{b:'b',d:'d'}})).toBe(true);
+    expect(GRASP.compare({a:{b:'b',d:'d'}},{a:{d:'d',b:'b'}})).toBe(true);
+    expect(GRASP.compare({a:{b:'b'}},{a:{c:'b'}})).toBe(false);
+    expect(GRASP.compare({a:{b:'b'}},{a:{b:'c'}})).toBe(false);
+
+    expect(GRASP.compare(function(){},function(){})).toBe(true);
+    expect(GRASP.compare(function(){},function(){ return 123;})).toBe(false);
+    expect(GRASP.compare({a:function(){}},{a:function(){}})).toBe(true);
+    expect(GRASP.compare({a:function(){}},{a:function(){ return 123;}})).toBe(false);
+
+    // using test dummies
+    var testDummy = new GRASP.TestHelpers.likeRegexp('[0-9]+');
+    expect(GRASP.compare(1234, testDummy, true)).toBe(true);
+    expect(GRASP.compare({a:1234},{a:testDummy}, true)).toBe(true);
+    expect(GRASP.compare('abc',testDummy, true)).toBe(false);
+  });
+});
+
 describe("GRASP.typeof", function(){
   it('should return right type for variables', function () {
     var a = "str";
