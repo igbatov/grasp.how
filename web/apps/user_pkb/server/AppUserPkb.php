@@ -33,29 +33,29 @@ class AppUserPkb extends App
 
       // show signup success page
       include($this->getAppDir("template", false)."/signupSuccess.php");
-      exit();
+      return $this->showRawData();
 
     // create new user: my.grasp.how/createNewUser/<login>/<password>/<admin secret>
     }elseif($vars[0] === 'createNewUser'){
-      if($vars[3] != $this->getAdminSecret()) exit('wrong secret!');
+      if($vars[3] != $this->getAdminSecret()) return $this->showRawData('wrong secret!');
       $this->createNewUser($vars[1], $vars[2]);
-      exit();
+      return $this->showRawData();
 
     //remove user: my.grasp.how/removeUser/<login>/<admin secret>
     }elseif($vars[0] === 'removeUser'){
-      if($vars[2] != $this->getAdminSecret()) exit('wrong secret!');
+      if($vars[2] != $this->getAdminSecret()) return $this->showRawData('wrong secret!');
       var_dump($this->removeUser($vars[1]));
-      exit();
+      return $this->showRawData();
 
     }elseif($vars[0] === 'updateUserPassword'){
-      if($vars[3] != $this->getAdminSecret()) exit('wrong secret!');
+      if($vars[3] != $this->getAdminSecret()) return $this->showRawData('wrong secret!');
       $this->updateUserPassword($vars[1], $vars[2]);
-      exit();
+      return $this->showRawData();
 
     }elseif($vars[0] === 'removeGraph'){
-      if($vars[2] != $this->getAdminSecret()) exit('wrong secret!');
+      if($vars[2] != $this->getAdminSecret()) return $this->showRawData('wrong secret!');
       var_dump($this->graphs->removeGraph($vars[1]));
-      exit();
+      return $this->showRawData();
 
     }elseif($vars[0] === 'cloneGraph'){
       if(!$this->getAuthId()) $this->redirect('/');
@@ -73,7 +73,7 @@ class AppUserPkb extends App
       if(!isset($_GET['code'])){
         $msg = 'Error in OAuth: no code in _GET: URI = '.var_export($_REQUEST, true);
         $this->logger->log($msg);
-        exit($msg);
+        return $this->showRawData($msg);
       }else{
         $code = $_GET['code'];
       }
@@ -136,7 +136,7 @@ class AppUserPkb extends App
 
     if(isset($this->getRequest()['graphId']) && GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId'])) $access_level = 'read';
 
-    if(in_array($action, $this->writeActions) && $access_level == 'read') exit();
+    if(in_array($action, $this->writeActions) && $access_level == 'read') return $this->showRawData();
 
     // if we are not authorized and want to go edit mode, just show login form
     if($access_level == 'read&write' && !$this->session->checkAuth()){
@@ -155,7 +155,7 @@ class AppUserPkb extends App
           )
       );
       include($this->getAppDir("template", false)."/login.php");
-      exit();
+      return $this->showRawData();
     }
     /*************   END OF SET READ-ONLY MODE STAFF    ****************/
 
@@ -171,7 +171,7 @@ class AppUserPkb extends App
       || $os_checker->getName() != \Sinergi\BrowserDetector\Os::WINDOWS
     ){
       include($this->getAppDir("template", false)."/browserUnsupported.php");
-      exit();
+      return $this->showRawData();
     }
 */
 
@@ -198,7 +198,7 @@ class AppUserPkb extends App
               .'$probabilities = '.print_r($probabilities, true)
               .'$imperfect_nodes = '.print_r($imperfect_nodes, true
               ));
-          $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'error', 'data'=>$imperfect_nodes)));
+          return $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'error', 'data'=>$imperfect_nodes)));
           return false;
         }
 
@@ -211,7 +211,7 @@ class AppUserPkb extends App
         foreach($probabilities as $local_node_id => $probability){
           $data[$converter->createGlobalContentId($graph_id, $local_node_id)] = $probability;
         }
-        $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'success', 'data'=>$data)));
+        return $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'success', 'data'=>$data)));
         break;
 
       /**
@@ -234,7 +234,7 @@ class AppUserPkb extends App
           if(!$this->isUserOwnGraph($id)) $graphs_settings[$id]['isEditable'] = false;
         }
 
-        $this->showRawData(json_encode($graphs_settings));
+        return $this->showRawData(json_encode($graphs_settings));
         break;
 
       case 'getGraphNodeContent':
@@ -261,7 +261,7 @@ class AppUserPkb extends App
         }
 
         $this->log('getGraphNodeContent', $nodes);
-        $this->showRawData(json_encode($nodes));
+        return $this->showRawData(json_encode($nodes));
         break;
 
       case 'getIcon':
@@ -280,7 +280,7 @@ class AppUserPkb extends App
         $nodes = $this->graphs->getNodeAttributes($r['nodes']);
         $edges = $this->graphs->getEdgeAttributes($r['edges']);
         $graphs_elements = array('nodes'=>$nodes, 'edges'=>$edges);
-        $this->showRawData(json_encode($graphs_elements));
+        return $this->showRawData(json_encode($graphs_elements));
         break;
 
       case 'getGraphsHistoryTimeline':
@@ -298,25 +298,25 @@ class AppUserPkb extends App
             }
           }
         }
-        $this->showRawData(json_encode($timeline));
+        return $this->showRawData(json_encode($timeline));
         break;
 
       case 'getGraphsHistoryChunk':
         $chunk = $this->getGraphsHistoryChunk($this->getRequest());
-        $this->showRawData(json_encode($chunk));
+        return $this->showRawData(json_encode($chunk));
         break;
 
       case "getGraphSettings":
         $graph_ids = $this->getRequest();
         $s = $this->getGraphSettings($graph_ids);
-        $this->showRawData(json_encode($s));
+        return $this->showRawData(json_encode($s));
         break;
 
       /* MODIFY ACTIONS */
       case 'updateGraphName':
         $r = $this->getRequest();
         $this->graphs->updateGraphName($r['graphId'], $r['name']);
-        $this->showRawData('success');
+        return $this->showRawData('success');
         break;
 
       case 'setGraphAttributes':
@@ -326,7 +326,7 @@ class AppUserPkb extends App
           if($key != 'graphId') $attributes[$key] = $value;
         }
         $this->graphs->setGraphAttributes($graphId, $attributes);
-        $this->showRawData('success');
+        return $this->showRawData('success');
         break;
 
       case 'changeGraphPosition':
@@ -334,16 +334,16 @@ class AppUserPkb extends App
         $position = $this->getRequest()['position'];
         $user_graph_ids = $this->getGraphIds($this->getAuthId());
         $this->graphs->changeGraphPosition($graphId, $position, $user_graph_ids);
-        $this->showRawData('success');
+        return $this->showRawData('success');
         break;
 
       case 'addGraphHistoryItem':
         $r = $this->getRequest();
         $query = 'INSERT INTO graph_history SET graph_id = "'.$r['graphId'].'", step = "'.$r['step'].'", timestamp = "'.$r['timestamp'].'", elements = "'.$this->db->escape(json_encode($r['elements'], JSON_FORCE_OBJECT)).'", node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
         if($this->db->execute($query)){
-          $this->showRawData('success');
+          return $this->showRawData('success');
         }else{
-          $this->showRawData('error');
+          return $this->showRawData('error');
         }
         break;
 
@@ -352,9 +352,9 @@ class AppUserPkb extends App
         if(!isset($r['node_mapping'])) return 'no node_mapping';
         $query = 'UPDATE graph_history SET node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'], JSON_FORCE_OBJECT)).'" WHERE graph_id = "'.$r['graphId'].'" AND step = "'.$r['step'].'"';
         if($this->db->execute($query)){
-          $this->showRawData('success');
+          return $this->showRawData('success');
         }else{
-          $this->showRawData('error');
+          return $this->showRawData('error');
         }
         break;
 
@@ -400,7 +400,7 @@ class AppUserPkb extends App
         }
 
         $result = $this->graphs->updateGraphElementContent($graph_id, $local_content_id, $r, $this->getAuthId());
-        $this->showRawData($result);
+        return $this->showRawData($result);
         break;
 
       case 'createNewGraph':
@@ -415,7 +415,7 @@ class AppUserPkb extends App
 
       case 'getGraphDiff':
         $r = $this->getRequest();
-        $this->showRawData(json_encode($this->getGraphDiff($r['graphId'], $r['cloneId'])));
+        return $this->showRawData(json_encode($this->getGraphDiff($r['graphId'], $r['cloneId'])));
         break;
 
       case 'updateSource':
@@ -435,7 +435,7 @@ class AppUserPkb extends App
             "publish_date = '".$this->db->escape($r['publish_date'])."'  ".
             "WHERE auth_id = '".$this->getAuthId()."' AND id = '".$this->db->escape($r['id'])."'";
         $this->db->execute($q);
-        $this->showRawData(json_encode(['result'=>'success']));
+        return $this->showRawData(json_encode(['result'=>'success']));
         break;
 
       case 'getUserSources':
@@ -475,7 +475,7 @@ class AppUserPkb extends App
           $sources[$source_id]['usedIn'] = $source_graphs;
         }
 
-        $this->showRawData(json_encode($sources));
+        return $this->showRawData(json_encode($sources));
         break;
 
       case 'removeUserSources':
@@ -496,7 +496,7 @@ class AppUserPkb extends App
             $this->logger->log('Source with id = '.$source_id.' removed');
           }
         }
-        $this->showRawData(json_encode($report));
+        return $this->showRawData(json_encode($report));
         break;
 
       case 'getGraphsCloneList':
@@ -531,7 +531,7 @@ class AppUserPkb extends App
           }
         }
 
-        $this->showRawData(json_encode($clone_list));
+        return $this->showRawData(json_encode($clone_list));
         break;
 
       case 'findPublishers':
@@ -559,11 +559,11 @@ class AppUserPkb extends App
           if($k>10) unset($items[$k]);
         }
 
-        $this->showRawData(json_encode($items));
+        return $this->showRawData(json_encode($items));
         break;
 
       case 'get_username':
-        $this->showRawData(json_encode(array('username'=>$this->session->getUsername())));
+        return $this->showRawData(json_encode(array('username'=>$this->session->getUsername())));
         break;
 
       case 'findSources':
@@ -574,7 +574,7 @@ class AppUserPkb extends App
         $this->log($q);
         $rows = $this->db->execute($q);
         $items = array();
-        if(count($rows) > 30) $this->showRawData(json_encode(false));
+        if(count($rows) > 30) return $this->showRawData(json_encode(false));
         foreach($rows as $k=>$row){
           $row['order'] = levenshtein($row['name'], $r['substring']);
           $row['title'] = $row['name'];
@@ -592,7 +592,7 @@ class AppUserPkb extends App
           if($k>10) unset($items[$k]);
         }
 
-        $this->showRawData(json_encode($items));
+        return $this->showRawData(json_encode($items));
         break;
 
       default:

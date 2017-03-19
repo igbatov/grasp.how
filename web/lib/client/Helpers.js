@@ -10,7 +10,7 @@ var GRASP = GRASP || {};
  * based on http://javascriptweblog.wordpress.com/2011/08/08/fixing-the-javascript-typeof-operator/
  * It detects every type except 'undefined', for which it just throws ReferenceError
  * @param obj
- * @returns {string}
+ * @returns {string} - 'string' | 'number' | 'array' | 'object' | 'function' | 'null'
  */
 GRASP.typeof = function(obj) {
   return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
@@ -866,7 +866,9 @@ GRASP.compare = (function() {
         return keys;
       }
       ;
-
+  var customTypeof = function(obj) {
+    return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+  };
   var deepEqual = function (actual, expected) {
     // 7.1. All identical values are equivalent, as determined by ===.
     if (actual === expected) {
@@ -874,6 +876,11 @@ GRASP.compare = (function() {
 
     } else if (actual instanceof Date && expected instanceof Date) {
       return actual.getTime() === expected.getTime();
+
+      // 7.3. Other pairs that do not both pass typeof value == 'object',
+      // equivalence is determined by ==.
+    } else if (customTypeof(actual) === 'function' && customTypeof(expected)  === 'function') {
+      return actual.toString() === expected.toString();
 
       // 7.3. Other pairs that do not both pass typeof value == 'object',
       // equivalence is determined by ==.

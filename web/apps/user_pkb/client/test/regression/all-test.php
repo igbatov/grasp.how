@@ -26,6 +26,7 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <script src="<?php echo $app->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>xor4096.min.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>Helpers.js"></script>
+<script src="<?php echo $app->getDefaultDir('js'); ?>TestHelpers.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>Ajax.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>UIElements.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>Mediator/iListener.js"></script>
@@ -41,7 +42,8 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <script src="<?php echo $app->getAppDir('js'); ?>/init.js"></script>
 
 <!-- tests -->
-<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/createGraph.js"></script>
+<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testBackendData.js"></script>
+<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testBackend.js"></script>
 
 </body>
 </html>

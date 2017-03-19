@@ -157,7 +157,7 @@ class TestableApp{
     $dbname = $this->app->getDB()->getCurrentDB();
     foreach ($this->autoincrements as $tablename => $autoincrement){
       if($this->getAutoIncrement($dbname, $tablename) == $autoincrement) continue;
-      $q = "ALTER TABLE ".$tablename." AUTO_INCREMENT = ".$autoincrement;
+      $q = "ALTER TABLE ".$dbname.".".$tablename." AUTO_INCREMENT = ".$autoincrement;
       $this->testConn->execute($q);
     }
   }
@@ -192,10 +192,15 @@ class TestableApp{
     $this->testConn->execute($q);
     $tablenames = $this->app->getDB()->getTableNames();
     foreach ($tablenames as $tablename){
+      StopWatch::start($tablename.'1');
       $q = 'CREATE TABLE '.$tdb.'.'.$tablename.' LIKE '.$currentDB.'.'.$tablename;
       $this->testConn->execute($q);
+      error_log($tablename.' CREATE TABLE got '.StopWatch::elapsed($tablename.'1'));
+
+      StopWatch::start($tablename.'2');
       $q = 'ALTER TABLE '.$tdb.'.'.$tablename.' AUTO_INCREMENT = 0';
       $this->testConn->execute($q);
+      error_log($tablename.' AUTO_INCREMENT got '.StopWatch::elapsed($tablename.'2'));
     }
   }
 

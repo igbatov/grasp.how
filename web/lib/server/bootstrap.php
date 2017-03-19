@@ -63,6 +63,7 @@ require_once ('Auth.php');
 /**
  * Include all our classes
  */
+require_once ($path.'/'.'StopWatch.php');
 require_once ($path.'/'.'I18N.php');
 require_once ($path.'/'.'DB.php');
 require_once ($path.'/'.'NestedDB.php');

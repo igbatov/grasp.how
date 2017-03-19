@@ -156,8 +156,7 @@ abstract class App
 
   public function showRawData($data){
     echo $data;
-    $this->postAccessLog();
-    exit();
+    return true;
   }
 
   protected function showImage($file, $type="image/jpeg"){
@@ -165,7 +164,7 @@ abstract class App
     header('Content-Length: ' . filesize($file));
     readfile($file);
     $this->postAccessLog();
-    exit();
+    return;
   }
 
   protected function createNewUser($login, $password){
@@ -231,7 +230,7 @@ abstract class App
   {
     header('Location: ' . $url, true, $permanent ? 301 : 302);
     $this->postAccessLog();
-    exit();
+    return;
   }
 
   public function getDB(){
