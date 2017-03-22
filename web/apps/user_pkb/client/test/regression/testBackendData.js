@@ -24,5 +24,17 @@ GRASP_TEST_DATA[TEST_NAME] = {
   },
   'repository_get_graphs_history_timeline':{
     "1": new GRASP.TestHelpers.likeRegexp('[0-9]+')
-  }
+  },
+  'repository_get_graphs_model_elements':[
+    {
+      "graphId": 2,
+      "step": 1,
+      "timestamp": new GRASP.TestHelpers.likeRegexp('[0-9]+'),
+      "elements": {
+        "nodes": [],
+        "edges": []
+      },
+      "node_mapping": null
+    }
+  ],
 }
