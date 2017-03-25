@@ -1,5 +1,7 @@
 TEST_NAME = TEST_NAME || 'testBackend';
-GRASP_TEST_DATA[TEST_NAME] = {
+GRASP_TEST_DATA[TEST_NAME] = {}
+SUBTEST_NAME = 'testEmptyGraphCreation'
+GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME] = {
   'repository_get_graphs_model_settings': {
       "name": "testGraph",
       "isEditable": true,

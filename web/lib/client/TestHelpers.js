@@ -23,5 +23,21 @@ GRASP.TestHelpers = {
 
     console.log("%c"+testname+" - is OK", successCSS);
     return true;
+  },
+  fetch: function(testName, url, obj){
+    if (typeof obj === 'undefined') obj = {}
+    var formData = new FormData();
+    formData.append('TEST_NAME',testName);
+    formData.append('data',JSON.stringify(obj));
+    return fetch(
+        url,
+        {
+          method: 'post',
+          body: formData,
+          credentials: 'include'
+        }
+    ).then(function(response){
+      return response.text();
+    });
   }
 };

@@ -89,7 +89,7 @@ class Session{
   public function switchDB($login, $password, $host, $dbname){
     $this->auth->storage_options['dsn'] = 'mysql://'.$login.':'.$password.'@'.$host.'/'.$dbname;
     if(is_object($this->auth->storage)){
-      $this->auth->storage->connect($this->auth->storage_options['dsn']);
+      $this->auth->storage->_connect($this->auth->storage_options['dsn']);
     }
   }
 }

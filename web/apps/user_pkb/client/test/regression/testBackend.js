@@ -4,37 +4,45 @@ DEBUG_MODE = true;
 
 // helpers
 var clearTest = function(){
-  return Modules['Ajax'].send({
-    url: window.location.origin+'/clearTest?TEST_NAME='+TEST_NAME
-  });
+  return GRASP.TestHelpers.fetch(
+    TEST_NAME,
+    window.location.origin+'/clearTest'
+  );
 }
 
 // start
 var USERNAME = '';
-var repositoryRequests = []; // to track events to repository that we tested
 
 // create new DB for this test and switch on it
-Modules['Ajax'].send({
-  url: window.location.origin+'/createTestUser?dbSchemaFromUserId=1&TEST_NAME='+TEST_NAME
-}).then(function(loginData){
+GRASP.TestHelpers.fetch(
+    TEST_NAME,
+    window.location.origin+'/createTestUser?dbSchemaFromUserId=1'
+).then(function(loginData){
+  console.log(loginData)
   loginData = JSON.parse(loginData);
   USERNAME = loginData['username'];
-  return Modules['Ajax'].send({
-    url: window.location.origin+'/loginTestUser?username='+USERNAME+'&TEST_NAME='+TEST_NAME
-  });
+  return GRASP.TestHelpers.fetch(
+      TEST_NAME,
+      window.location.origin+'/loginTestUser?username='+USERNAME
+  );
 }).then(function(){
-    return GRASP['testBackend']['testEmptyGraphCreation']();
+  return GRASP['testBackend']['testEmptyGraphCreation']();
+  //return Promise.resolve();
+}).then(function(){
+   return GRASP['testBackend']['testGraphRemove']();
 }).then(function(e){
   // return p.publish(['load_graph_models']);
-  return {then:function(){}}
+  return Promise.resolve();
 }).then(function(e){
   // clear testableapp_queries for this test, commitTestChanges will execute all testableapp_queries
-  return Modules['Ajax'].send({
-    url: window.location.origin+'/rollbackTestChanges?TEST_NAME='+TEST_NAME
-  });
+  return GRASP.TestHelpers.fetch(
+    TEST_NAME,
+    window.location.origin+'/rollbackTestChanges'
+  );
+}).then(function(){
+  return clearTest();
 }).then(function(){
   console.log('all is done');
-  clearTest();
 });
 
 

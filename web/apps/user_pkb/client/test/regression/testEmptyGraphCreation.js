@@ -1,4 +1,5 @@
 TEST_NAME='testBackend';
+SUBTEST_NAME='testEmptyGraphCreation'
 /**
  * Test empty graph creation
  */
@@ -22,7 +23,7 @@ var tester = new GRASP[TEST_NAME](p);
 Modules['Mediator'].addListener('set_graph_attributes',tester);
 
 // test run function
-GRASP[TEST_NAME]['testEmptyGraphCreation'] = function testEmptyGraphCreation(){
+GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   var testGraphId = null;
   return p.publish(['create_new_graph', {name:'testGraph'}])
   /**
@@ -36,7 +37,7 @@ GRASP[TEST_NAME]['testEmptyGraphCreation'] = function testEmptyGraphCreation(){
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_model_settings',
             e[testGraphId],
-            GRASP_TEST_DATA[TEST_NAME]['repository_get_graphs_model_settings']
+            GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME]['repository_get_graphs_model_settings']
         );
       })
       /**
@@ -49,7 +50,7 @@ GRASP[TEST_NAME]['testEmptyGraphCreation'] = function testEmptyGraphCreation(){
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_history_timeline',
             e[testGraphId],
-            GRASP_TEST_DATA[TEST_NAME]['repository_get_graphs_history_timeline']
+            GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME]['repository_get_graphs_history_timeline']
         );
       })
       /**
@@ -63,7 +64,7 @@ GRASP[TEST_NAME]['testEmptyGraphCreation'] = function testEmptyGraphCreation(){
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_model_elements',
             e ,
-            GRASP_TEST_DATA[TEST_NAME]['repository_get_graphs_model_elements']
+            GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME]['repository_get_graphs_model_elements']
         );
       });
 
