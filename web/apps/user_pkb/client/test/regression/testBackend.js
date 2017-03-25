@@ -26,20 +26,23 @@ GRASP.TestHelpers.fetch(
       window.location.origin+'/loginTestUser?username='+USERNAME
   );
 }).then(function(){
-  return GRASP['testBackend']['testEmptyGraphCreation']();
-  //return Promise.resolve();
+   return GRASP['testBackend']['testEmptyGraphCreation']();
 }).then(function(){
    return GRASP['testBackend']['testGraphRemove']();
+}).then(function(){
+   return GRASP['testBackend']['testAddGraphElements']();
 }).then(function(e){
   // return p.publish(['load_graph_models']);
   return Promise.resolve();
 }).then(function(e){
   // clear testableapp_queries for this test, commitTestChanges will execute all testableapp_queries
+  //return Promise.resolve();
   return GRASP.TestHelpers.fetch(
     TEST_NAME,
     window.location.origin+'/rollbackTestChanges'
   );
 }).then(function(){
+  //return Promise.resolve();
   return clearTest();
 }).then(function(){
   console.log('all is done');

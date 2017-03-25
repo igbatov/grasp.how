@@ -13,7 +13,7 @@ class NestedDB extends DB {
     if($this->transLevel == 0) {
       parent::startTransaction();
     } else {
-      $this->execute("SAVE TRANSACTION LEVEL{$this->transLevel}");
+      $this->execute("SAVEPOINT LEVEL{$this->transLevel}");
     }
 
     $this->transLevel++;
@@ -25,7 +25,7 @@ class NestedDB extends DB {
     if($this->transLevel == 0) {
       parent::commitTransaction();
     } else {
-      $this->execute("COMMIT TRANSACTION LEVEL{$this->transLevel}");
+      $this->execute("RELEASE SAVEPOINT LEVEL{$this->transLevel}");
     }
   }
 
@@ -35,7 +35,7 @@ class NestedDB extends DB {
     if($this->transLevel == 0) {
       parent::rollbackTransaction();
     } else {
-      $this->execute("ROLLBACK TRANSACTION LEVEL{$this->transLevel}");
+      $this->execute("ROLLBACK TO SAVEPOINT LEVEL{$this->transLevel}");
     }
   }
 }

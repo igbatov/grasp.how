@@ -2,7 +2,12 @@
 //header('HTTP/1.1 401 Unauthorized'); exit();
 //phpinfo(); exit();
 require_once ('lib/server/bootstrap.php');
-$logger->log(var_export($_REQUEST, true));
+
+// log request to db
+if($c && $c->isDebugOn()){
+  $logger->log('request', $_SERVER["REQUEST_URI"], var_export($_REQUEST, true));
+}
+
 // init application
 switch($c->getWebDomainName()){
   case 'my.grasp.how':

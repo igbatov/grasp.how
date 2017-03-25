@@ -19,6 +19,7 @@ class DB
 
   public function execute($query)
   {
+    error_log($query);
     // notify all preexec listeners that we are going to execute query
     foreach($this->preExecListeners as $listener){
       try{

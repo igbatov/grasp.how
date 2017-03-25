@@ -395,52 +395,44 @@ class Graphs {
       $this->db->execute($query);
 
     }else if($r['type'] == 'addEdge'){
-      $this->db->startTransaction();
-      try{
-        $query = "SELECT MAX(local_content_id) as max_id FROM edge_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
-        $rows = $this->db->execute($query);
-        $local_content_id = (int)$rows[0]['max_id'] + 1;
-        $query = "INSERT INTO edge_content SET `graph_id` = '".$this->db->escape($graph_id)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['edge']['type'])."', `label` = '".$this->db->escape($r['edge']['label'])."', created_at = NOW()";
-        $this->db->execute($query);
-      }catch (Exception $e) {
-        $this->db->rollbackTransaction();
-        $this->logger->log("Error during transaction: ".mysql_error().". Transaction rollbacked.");
-      }
-      $this->db->commitTransaction();
+      $this->db->execute('LOCK TABLES edge_content WRITE');
+      $query = "SELECT MAX(local_content_id) as max_id FROM edge_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
+      $rows = $this->db->execute($query);
+      $local_content_id = (int)$rows[0]['max_id'] + 1;
+      $query = "INSERT INTO edge_content SET `graph_id` = '".$this->db->escape($graph_id)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['edge']['type'])."', `label` = '".$this->db->escape($r['edge']['label'])."', created_at = NOW()";
+      $this->db->execute($query);
+      $this->db->execute("UNLOCK TABLES");
       return json_encode(array('edgeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id,$local_content_id)));
 
     }else if($r['type'] == 'addNode'){
-      $this->db->startTransaction();
-      try{
-        $query = "SELECT MAX(local_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
-        $rows = $this->db->execute($query);
-        $local_content_id = $rows[0]['max_id'] + 1;
-        foreach($r['node']['alternatives'] as $alternative_id => $alternative){
+      $this->db->execute('LOCK TABLES node_content WRITE');
 
-          // mysql_real_escape(0) gives '' so check this numeric fields here
-          if(!is_numeric($alternative_id)) $this->logger->log('Error: alternative_id '.var_export($alternative_id, true).' is not numeric');
-          if(!is_numeric($local_content_id)) $this->logger->log('Error: local_content_id '.var_export($local_content_id, true).' is not numeric');
-          if(!is_numeric($r['node']['active_alternative_id'])) $this->logger->log('Error: active_alternative_id '.var_export($r['node']['active_alternative_id'], true).' is not numeric');
+      $query = "SELECT MAX(local_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
+      $rows = $this->db->execute($query);
+      $local_content_id = $rows[0]['max_id'] + 1;
+      foreach($r['node']['alternatives'] as $alternative_id => $alternative){
 
-          $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)
-              ."', `local_content_id` = '".$local_content_id
-              ."', `alternative_id` = '".$alternative_id
-              ."', `p` = '".$this->db->escape(json_encode($alternative['p']))
-              ."', `active_alternative_id` = '".$r['node']['active_alternative_id']
-              ."', `type` = '".$this->db->escape($r['node']['type'])
-              ."', `label` = '".$this->db->escape($alternative['label'])
-              ."', `text` = '".$this->db->escape($alternative['text'])
-              ."', `reliability` = ".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
-              .", `importance` = ".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0).", created_at = NOW()";
-          $this->logger->log($query);
+        // mysql_real_escape(0) gives '' so check this numeric fields here
+        if(!is_numeric($alternative_id)) $this->logger->log('Error: alternative_id '.var_export($alternative_id, true).' is not numeric');
+        if(!is_numeric($local_content_id)) $this->logger->log('Error: local_content_id '.var_export($local_content_id, true).' is not numeric');
+        if(!is_numeric($r['node']['active_alternative_id'])) $this->logger->log('Error: active_alternative_id '.var_export($r['node']['active_alternative_id'], true).' is not numeric');
 
-          $this->db->execute($query);
-        }
-      }catch (Exception $e) {
-        $this->db->rollbackTransaction();
-        $this->logger->log("Error during transaction: ".mysql_error().". Transaction rollbacked.");
+        $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)
+            ."', `local_content_id` = '".$local_content_id
+            ."', `alternative_id` = '".$alternative_id
+            ."', `p` = '".$this->db->escape(json_encode($alternative['p']))
+            ."', `active_alternative_id` = '".$r['node']['active_alternative_id']
+            ."', `type` = '".$this->db->escape($r['node']['type'])
+            ."', `label` = '".$this->db->escape($alternative['label'])
+            ."', `text` = '".$this->db->escape($alternative['text'])
+            ."', `reliability` = ".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
+            .", `importance` = ".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0).", created_at = NOW()";
+        $this->logger->log($query);
+
+        $this->db->execute($query);
       }
-      $this->db->commitTransaction();
+
+      $this->db->execute("UNLOCK TABLES");
       return json_encode(array('nodeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id, $local_content_id)));
 
     }else if($r['type'] == 'addIcon'){

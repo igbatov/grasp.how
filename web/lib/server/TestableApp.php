@@ -43,14 +43,18 @@ class TestableApp{
     if($this->skipQuerySave) return;
 
     // we want to save only queries that modify data
-    if(strpos($query, 'INSERT') === false && strpos($query, 'UPDATE')  === false) return;
+    if(strpos($query, 'INSERT') !== false
+        || strpos($query, 'UPDATE')  !== false
+        || strpos($query, 'LOCK')  !== false
+        || strpos($query, 'ALTER')  !== false
+    ){
+      // we do not want to save log requests
+      $request_log_starter = "INSERT INTO request_log";
+      if(substr($query, 0, strlen($request_log_starter)) == $request_log_starter) return;
 
-    // we do not want to save log requests
-    $request_log_starter = "INSERT INTO request_log";
-    if(substr($query, 0, strlen($request_log_starter)) == $request_log_starter) return;
-
-    $q = 'INSERT INTO `testableapp_queries` SET name = "'.$this->app->getDB()->escape($this->testname).'", query = "'.$this->app->getDB()->escape($query).'"';
-    $this->testConn->execute($q);
+      $q = 'INSERT INTO `testableapp_queries` SET name = "'.$this->app->getDB()->escape($this->testname).'", query = "'.$this->app->getDB()->escape($query).'"';
+      $this->testConn->execute($q);
+    }
   }
 
   private function switchDB($dbname){

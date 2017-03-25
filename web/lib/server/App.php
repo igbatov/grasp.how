@@ -45,18 +45,6 @@ abstract class App
     return $this->logger;
   }
 
-  protected function error($msg){
-    $this->logger->error($msg);
-  }
-
-  protected function dbLog($type,$msg,$data=null){
-    $this->logger->dbLog($type,$msg,$data);
-  }
-
-  protected function log(){
-    call_user_func_array(array($this->logger, "log"), func_get_args());
-  }
-
   public function postAccessLog(){
     $this->logger->postAccessLog();
   }
@@ -131,9 +119,6 @@ abstract class App
     // get request params
     $vars = $this->getRoute();
 
-    // log request to db
-    if($this->config && $this->config->isDebugOn()) $this->dbLog('request', $_SERVER["REQUEST_URI"], var_export($_REQUEST, true));
-
     switch($vars[0]){
       case 'logout':
         $this->session->logout();
@@ -154,7 +139,7 @@ abstract class App
     return $this->auth_id;
   }
 
-  public function showRawData($data){
+  public function showRawData($data=""){
     echo $data;
     return true;
   }

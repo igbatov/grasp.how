@@ -1,5 +1,5 @@
 TEST_NAME='testBackend';
-SUBTEST_NAME='testGraphRemove'
+SUBTEST_NAME='testGraphRemove';
 /**
  * Test graph (id=1) removal
  */
