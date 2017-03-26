@@ -23,7 +23,6 @@ class AppUserPkb extends App
     parent::showView();
 
     $vars = $this->getRoute();
-    $this->log('REQUEST ', $this->getRoute(), $this->getRequest());
 
     /**** SPECIAL ACTIONS ***/
     // send email to admin on signup
@@ -192,7 +191,7 @@ class AppUserPkb extends App
 
         // if we have a non-empty class error, output all errors to client
         foreach($imperfect_nodes as $class) if(count($class) != 0){
-          $this->log('query_grain: imperfect_nodes is not empty '
+          $this->logger->log('query_grain: imperfect_nodes is not empty '
               .'graph = {"nodes":{localContentId:[alternative_id1, alternative_id2, ...], ...}, "edges":{edgeLocalContentId:[nodelocalContentId1, nodelocalContentId2], ..}} '.print_r($graph, true)
               .'$graph = '.print_r($graph, true)
               .'$probabilities = '.print_r($probabilities, true)
@@ -260,7 +259,7 @@ class AppUserPkb extends App
           }
         }
 
-        $this->log('getGraphNodeContent', $nodes);
+        $this->logger->log('getGraphNodeContent', $nodes);
         return $this->showRawData(json_encode($nodes));
         break;
 
@@ -538,7 +537,7 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
         $q = "SELECT id, source_title, snip_2014 FROM scopus_title_list WHERE source_title LIKE '".$substring."'";
-        $this->log($q);
+        $this->logger->log($q);
         $rows = $this->db->execute($q);
         $items = array();
         foreach($rows as $k=>$row){
@@ -571,7 +570,7 @@ class AppUserPkb extends App
         if(strlen($r['substring']) == 0) break;
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
         $q = "SELECT * FROM source WHERE auth_id = '".$this->getAuthId()."' AND name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
-        $this->log($q);
+        $this->logger->log($q);
         $rows = $this->db->execute($q);
         $items = array();
         if(count($rows) > 30) return $this->showRawData(json_encode(false));
@@ -704,7 +703,7 @@ class AppUserPkb extends App
     if(!file_exists($new_user_dir)){
       $success = mkdir($new_user_dir, 0777, true);
       if(!$success){
-       $this->log('Cannot create directory '.$new_user_dir);
+       $this->logger->log('Cannot create directory '.$new_user_dir);
        return false;
       }
     }
@@ -745,7 +744,7 @@ class AppUserPkb extends App
   private function getGraphLastStep($graph_id){
     $query = "SELECT step FROM `graph_history` WHERE graph_id = '".$graph_id."' ORDER BY step DESC LIMIT 1";
     $rows = $this->db->execute($query);
-    if(!$rows) $this->error("returned no rows on query: ".$query);
+    if(!$rows) $this->logger->error("returned no rows on query: ".$query);
     return $rows[0]['step'];
   }
 
@@ -844,7 +843,7 @@ class AppUserPkb extends App
     $query = "SELECT local_content_id, alternative_id, type FROM node_content WHERE graph_id = '".$graph_id
         ."' AND type IN ('fact','proposition')"
         ." AND local_content_id IN ('".implode("','",$node_local_content_ids)."') ORDER BY local_content_id, alternative_id";
-    $this->log($query);
+    $this->logger->log($query);
     $graph = array('nodes'=>array(), 'edges'=>array());
     $rows = $this->db->execute($query);
     foreach($rows as $row){
@@ -923,11 +922,11 @@ class AppUserPkb extends App
       }
 
       if(count($alternatives) == 1 && $alternatives[0]['type'] != 'fact'){
-        $this->log('Error: only one alternative for graph = '.$graph_id.', node = '.$local_content_id.' and it\'s type is not "fact"');
+        $this->logger->log('Error: only one alternative for graph = '.$graph_id.', node = '.$local_content_id.' and it\'s type is not "fact"');
       }
 
       if(count($alternatives) == 1 && $alternatives[0]['type'] == 'fact' && $alternatives[0]['alternative_id']!=0){
-        $this->log('Error: fact for graph = '.$graph_id.', node = '.$local_content_id.' has only one alternative, but its alternative_id != 0');
+        $this->logger->log('Error: fact for graph = '.$graph_id.', node = '.$local_content_id.' has only one alternative, but its alternative_id != 0');
       }
 
       // "fact" must have only two alternatives, probability of the second is calculated automatically as (1 - first alternative)

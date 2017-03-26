@@ -31,16 +31,26 @@ GRASP.Repository = function (publisher, transport, imageLoader) {
   this.publisher = publisher;
   this.transport = transport;
   this.imageLoader = imageLoader;
-  // We want all requests to reach server in  exactly the same order as they were given us
+  // We want all requests to reach server in  exactly the same order as they were given to us
   // So we keep queue of all requests to send
   this.pendingRequests = [];
   // and variable that indicate that last send request successfully reached the server
   this.isLastRequestDone = true;
+
+  // promise that is created when empty queue gets first request
+  // and resolved when queue is empty
+  this._queueIsEmptyPromise = null;
 };
 
 GRASP.Repository.prototype = {
   eventListener: function(e){
     var name = e.getName(), that = this;
+
+    if(this.pendingRequests.length == 0){
+      if (this._queueIsEmptyPromise !== null) this._queueIsEmptyPromise.setResponse('queueIsEmpty');
+      this._queueIsEmptyPromise = this.publisher.createEvent('repositoryRequestsDonePromise');
+    }
+
     if(name == 'graph_history_item_added'){
       this.pendingRequests.push({url:'addGraphHistoryItem', data:e.getData()['item'], callback:function(){}});
       this.sendPendingRequests();
@@ -240,16 +250,22 @@ GRASP.Repository.prototype = {
     if(dataType=='STRING')  e.setResponse(data);
   },
 
+  getQueueIsEmptyPromise: function(){
+    return this._queueIsEmptyPromise;
+  },
+
   sendPendingRequests: function(){
     // if previous request still has no answer or there is nothing to send, do nothing
     if(!this.isLastRequestDone) return;
+
     if(this.pendingRequests.length === 0){
-      this.publisher.publish(["repository_requests_send", {}]);
+      this.publisher.publish(["repository_requests_send", {}, true]);
+      this._queueIsEmptyPromise.setResponse('queueIsEmpty');
       return;
     }
 
     var that = this, r = that.pendingRequests[0];
-    this.publisher.publish(["repository_processing", {}]);
+    this.publisher.publish(["repository_processing", {}, true]);
 
     this.isLastRequestDone = false;
     var formData = new FormData();

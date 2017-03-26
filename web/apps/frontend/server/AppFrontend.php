@@ -12,7 +12,7 @@ class AppFrontend extends App{
       case 'share_track':
         $urlArr=parse_url($_SERVER['REQUEST_URI']);
         parse_str($urlArr['query'], $output);
-        $this->log(var_export($output, true));
+        $this->logger->log(var_export($output, true));
         $from = $this->db->escape($output['from']);
         $type = $this->db->escape($output['type']);
         $graph_id = $this->db->escape($output['graph_id']);
@@ -23,7 +23,7 @@ class AppFrontend extends App{
       case 'subscribe':
         $urlArr=parse_url($_SERVER['REQUEST_URI']);
         parse_str($urlArr['query'], $output);
-        $this->log(var_export($output, true));
+        $this->logger->log(var_export($output, true));
 
         $email = $output['email'];
         $query = "INSERT INTO subscribe_email SET email = '".$this->db->escape($email)."'";
@@ -69,7 +69,7 @@ class AppFrontend extends App{
         $image = new Imagick();
         $svg = $this->getRequest()['svg'];
         $svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'.$svg;
-        $this->log($svg);
+        $this->logger->log($svg);
         $image->readImageBlob($svg);
         $image->setImageFormat('jpeg');
         $image->setImageCompressionQuality(90);

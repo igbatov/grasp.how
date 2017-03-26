@@ -178,7 +178,9 @@ GRASP.ModelChangeController.prototype = {
 
           // If node mapping module actually changed nodeMappingHint, then save it in repository
           // (so next time we will not make node mapping module working again)
-          if(!GRASP.deepCompare(nodeMapping, nodeMappingHint)) that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping}]);
+          if(!GRASP.deepCompare(nodeMapping, nodeMappingHint)){
+            that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: nodeMapping}, true]);
+          }
 
           // Create from graphNode and graphNodeAttributes nodes that GraphView is waiting from us - see implementation of GRASP.iGraphViewModel
           var graphViewSettings = {
@@ -193,7 +195,7 @@ GRASP.ModelChangeController.prototype = {
               dragMode:'move'
           };
 
-          that.publisher.publish(["draw_graph_view", graphViewSettings]);
+          that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
 
           // hide ajax loader
           that.viewManager.hideAjaxLoader();
@@ -269,7 +271,7 @@ GRASP.ModelChangeController.prototype = {
         nnGraphViewSettings.decoration.nodeLabels[i].size = 2*size;
       }
 
-      that.publisher.publish(["draw_graph_view", nnGraphViewSettings]);
+      that.publisher.publish(["draw_graph_view", nnGraphViewSettings, true]);
     });
 
   }

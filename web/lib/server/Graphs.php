@@ -395,23 +395,24 @@ class Graphs {
       $this->db->execute($query);
 
     }else if($r['type'] == 'addEdge'){
-      $this->db->execute('LOCK TABLES edge_content WRITE');
+      $lockName = $this->db->getCurrentDB().'.edge_content';
+      $this->db->execute('SELECT GET_LOCK("'.$lockName.'",10)');
       $query = "SELECT MAX(local_content_id) as max_id FROM edge_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
       $rows = $this->db->execute($query);
       $local_content_id = (int)$rows[0]['max_id'] + 1;
       $query = "INSERT INTO edge_content SET `graph_id` = '".$this->db->escape($graph_id)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['edge']['type'])."', `label` = '".$this->db->escape($r['edge']['label'])."', created_at = NOW()";
       $this->db->execute($query);
-      $this->db->execute("UNLOCK TABLES");
+      $this->db->execute('SELECT RELEASE_LOCK("'.$lockName.'")');
       return json_encode(array('edgeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id,$local_content_id)));
 
     }else if($r['type'] == 'addNode'){
-      $this->db->execute('LOCK TABLES node_content WRITE');
+      $lockName = $this->db->getCurrentDB().'.node_content';
+      $this->db->execute('SELECT GET_LOCK("'.$lockName.'",10)');
 
       $query = "SELECT MAX(local_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
       $rows = $this->db->execute($query);
       $local_content_id = $rows[0]['max_id'] + 1;
       foreach($r['node']['alternatives'] as $alternative_id => $alternative){
-
         // mysql_real_escape(0) gives '' so check this numeric fields here
         if(!is_numeric($alternative_id)) $this->logger->log('Error: alternative_id '.var_export($alternative_id, true).' is not numeric');
         if(!is_numeric($local_content_id)) $this->logger->log('Error: local_content_id '.var_export($local_content_id, true).' is not numeric');
@@ -432,7 +433,7 @@ class Graphs {
         $this->db->execute($query);
       }
 
-      $this->db->execute("UNLOCK TABLES");
+      $this->db->execute('SELECT RELEASE_LOCK("'.$lockName.'")');
       return json_encode(array('nodeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id, $local_content_id)));
 
     }else if($r['type'] == 'addIcon'){

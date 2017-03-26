@@ -45,5 +45,6 @@ GRASP.StatusString.prototype = {
     if(e.getName() === 'set_drag_mode'){
       this.dragModeStatusContainer.html('Drag mode: '+ e.getData()['drag_mode']+'; ');
     }
+    e.setResponse();
   }
 };

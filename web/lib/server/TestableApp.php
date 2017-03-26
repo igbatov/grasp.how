@@ -42,11 +42,34 @@ class TestableApp{
   public function saveAppQuery($query){
     if($this->skipQuerySave) return;
 
+    /**
+     * the following SQL commands break a transaction that we are going to rollback
+     * So filter out them here
+     */
+    $exceptionTransactionBreakers = [
+        'LOCK TABLES',
+        'UNLOCK TABLES',
+        'SET AUTOCOMMIT = 1',
+        'BEGIN',
+        'START TRANSACTION',
+        'ALTER TABLE',
+        'CREATE INDEX',
+        'DROP DATABASE',
+        'DROP INDEX',
+        'DROP TABLE',
+        'RENAME TABLE',
+        'TRUNCATE TABLE',
+    ];
+    foreach ($exceptionTransactionBreakers as $breaker) {
+      if (strpos($query, $breaker) !== false) {
+        throw new Exception('Cannot test request that makes query '.$query.' because it cannot be rollbacked!');
+      }
+    }
+
+
     // we want to save only queries that modify data
     if(strpos($query, 'INSERT') !== false
         || strpos($query, 'UPDATE')  !== false
-        || strpos($query, 'LOCK')  !== false
-        || strpos($query, 'ALTER')  !== false
     ){
       // we do not want to save log requests
       $request_log_starter = "INSERT INTO request_log";

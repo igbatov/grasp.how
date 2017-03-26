@@ -78,7 +78,7 @@ GRASP.GraphElementsContent.prototype = {
               .then(function(updateAnswer){
                 if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
                 event.setResponse(updateAnswer);
-                that.publisher.publish(["graph_element_content_changed",  event.getData()]);
+                that.publisher.publish(["graph_element_content_changed",  event.getData(), true]);
               });
 
         }else if(event.getData()['type'] == 'node_list_remove_request'){
@@ -92,7 +92,7 @@ GRASP.GraphElementsContent.prototype = {
               .then(function(updateAnswer){
                 if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
                 event.setResponse(updateAnswer);
-                that.publisher.publish(["graph_element_content_changed",  event.getData()]);
+                that.publisher.publish(["graph_element_content_changed",  event.getData(), true]);
               });
 
         }else if(event.getData()['type'] == 'node_list_add_request'){
@@ -106,7 +106,7 @@ GRASP.GraphElementsContent.prototype = {
                 if(typeof(updateAnswer.reliability) != 'undefined') alternative.reliability = updateAnswer.reliability;
                 list[item.id] = item;
                 event.setResponse(updateAnswer);
-                that.publisher.publish(["graph_element_content_changed",  event.getData()]);
+                that.publisher.publish(["graph_element_content_changed",  event.getData(), true]);
               });
 
         }else if(event.getData()['type'] == 'removeAlternative'){
@@ -163,7 +163,7 @@ GRASP.GraphElementsContent.prototype = {
             this.publisher.publish(["repository_request_for_graph_element_content_change",  event.getData()]).then(function(){
                 event.setResponse({});
                 // server is updated, now we can fire 'graph_element_content_changed'
-                that.publisher.publish(["graph_element_content_changed",  event.getData()])
+                that.publisher.publish(["graph_element_content_changed",  event.getData(), true])
               });
 
           }else if(event.getData().nodeAttribute.name == 'reliability' && e.type == 'fact'){
@@ -179,8 +179,8 @@ GRASP.GraphElementsContent.prototype = {
               return that.publisher.publish(["repository_request_for_graph_element_content_change",  secondAlternativeEvent]);
             }).then(function(){
               event.setResponse({});
-              that.publisher.publish(["graph_element_content_changed",  event.getData()]);
-              that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent]);
+              that.publisher.publish(["graph_element_content_changed",  event.getData(), true]);
+              that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent, true]);
             })
 
           }else{
@@ -207,7 +207,11 @@ GRASP.GraphElementsContent.prototype = {
             .then(function(answer){
               newEdge.edgeContentId = answer.edgeContentId;
               that.cacheContent.add({elementType:'edge', contentId:newEdge.edgeContentId, content:newEdge});
-              that.publisher.publish(["graph_element_content_changed",  {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge}]);
+              that.publisher.publish([
+                "graph_element_content_changed",
+                {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge}],
+                true
+              );
               event.setResponse(newEdge);
             });
 
@@ -247,7 +251,11 @@ GRASP.GraphElementsContent.prototype = {
               .then(function(answer){
                 newNode.nodeContentId = answer.nodeContentId;
                 that.cacheContent.add({elementType:'node', contentId:answer.nodeContentId, content:newNode});
-                that.publisher.publish(["graph_element_content_changed",  {graphId:graphId, type:'addNode', node:newNode}]);
+                that.publisher.publish([
+                  "graph_element_content_changed",
+                  {graphId:graphId, type:'addNode', node:newNode},
+                  true
+                ]);
                 event.setResponse(newNode);
               });
           };
@@ -290,7 +298,7 @@ GRASP.GraphElementsContent.prototype = {
           reader.onload = function () {
             icon.src = reader.result;
             that.publisher.publish(["repository_request_for_graph_element_content_change", event.getData()]);
-            that.publisher.publish(["graph_element_content_changed", event.getData()]);
+            that.publisher.publish(["graph_element_content_changed", event.getData(), true]);
             event.setResponse({});
           };
           reader.readAsDataURL(event.getData().file);
@@ -300,7 +308,7 @@ GRASP.GraphElementsContent.prototype = {
 
         if(ed){
           this.publisher.publish(["repository_request_for_graph_element_content_change", ed]);
-          this.publisher.publish(["graph_element_content_changed", ed]);
+          this.publisher.publish(["graph_element_content_changed", ed, true]);
         }
         if(er) event.setResponse(er);
         break;

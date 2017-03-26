@@ -50,12 +50,12 @@ GRASP.MappingChangeController.prototype = {
         nodeMapping: m,
         nodeLabelMapping: m
       };
-      that.publisher.publish(["draw_graph_view", graphViewSettings]);
+      that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
     }
 
     if(eventName == 'dragendnode'){
       m = this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId});
-      that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: m}]);
+      that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: m}, true]);
     }
   }
 };

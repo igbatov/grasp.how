@@ -13,6 +13,8 @@
 GRASP.Publisher = function(mediator, promise){
   this._mediator = mediator;
   this._promise = promise;
+  // track all events in this array
+  this._allEvents = [];
 };
 
 GRASP.Publisher.prototype = {
@@ -20,10 +22,15 @@ GRASP.Publisher.prototype = {
    *
    * @param name
    * @param {Object=} data
+   * @param {boolean=} resolveImmediately - if true promise is resolved after creation
    * @returns {GRASP.Event}
    */
-  createEvent: function(name,data){
-    return new GRASP.Event(name, data, this._promise.getDefer())
+  createEvent: function(name, data, resolveImmediately){
+    if(typeof(resolveImmediately)=='undefined') resolveImmediately = false;
+    var e = new GRASP.Event(name, data, this._promise.getDefer())
+    if(resolveImmediately) e.setResponse('resolveImmediately=true');
+    this._allEvents.push(e);
+    return e;
   },
 
   /**
@@ -58,11 +65,19 @@ GRASP.Publisher.prototype = {
    */
   publish: function(events){
     for(var i in arguments){
-      if(GRASP.typeof(arguments[i]) == 'array') arguments[i] = this.createEvent(arguments[i][0], arguments[i][1]);
+      if(GRASP.typeof(arguments[i]) == 'array') arguments[i] = this.createEvent(arguments[i][0], arguments[i][1], arguments[i][2]);
       else if(GRASP.typeof(arguments[i]) == 'string') arguments[i] = this.createEvent(arguments[i]);
     }
     var promise = this._promise.when.apply(this._promise, arguments);
     this.publishEvent.apply(this, arguments);
     return promise;
+  },
+
+  allEventsDone: function(){
+    return this._promise.when.apply(this._promise, this._allEvents);
+  },
+
+  getAllEvents: function(){
+    return this._allEvents;
   }
 };

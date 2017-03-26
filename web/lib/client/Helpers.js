@@ -330,9 +330,11 @@ GRASP.debug = (function(Table){
    * @param eventName
    * @param eventData
    * @param eventId
+   * @param fullStackTrace
    */
-  logger.printEvent = function(currentEvent,moduleName,codeLine,direction,eventName,eventData,eventId){
+  logger.printEvent = function(currentEvent,moduleName,codeLine,direction,eventName,eventData,eventId, fullStackTrace){
     if(typeof(currentEvent) == 'undefined') currentEvent = '';
+    if(typeof(fullStackTrace) == 'undefined') fullStackTrace = '';
     logger.printCounter++;
     var data = GRASP.clone(eventData);
     var hhmmss = (new Date()).toLocaleTimeString();
@@ -340,13 +342,13 @@ GRASP.debug = (function(Table){
     var eventCSS = 'color:hsl(60, 2%, 22%);background-color:hsl(56, 100%, 91%);';
     var currentEventCSS = 'color:hsl(60, 2%, 22%);background-color:hsl(60, 7%, 51%);';
     if(direction == 'fire'){
-      console.log(logger.printCounter+' '+hhmmss+' %c'+currentEvent+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,currentEventCSS,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' %c'+currentEvent+' %c'+moduleName+":"+codeLine+' ---- %c'+eventName,currentEventCSS,moduleCSS,eventCSS, data, eventId, fullStackTrace);
     }
     if(direction == 'receive'){
-      console.log(logger.printCounter+' '+hhmmss+' ----> '+' %c'+currentEvent+'%c'+moduleName+' %c'+eventName,currentEventCSS,moduleCSS,eventCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' ----> '+' %c'+currentEvent+'%c'+moduleName+' %c'+eventName,currentEventCSS,moduleCSS,eventCSS, data, eventId, fullStackTrace);
     }
     if(direction == 'response'){
-      console.log(logger.printCounter+' '+hhmmss+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId);
+      console.log(logger.printCounter+' '+hhmmss+' <----'+' %c'+eventName+"(Response) ---- "+'%c'+moduleName+":"+codeLine,eventCSS,moduleCSS, data, eventId, fullStackTrace);
     }
   };
   logger.log = function(moduleName,codeLine,direction,eventName,eventData,eventId){
@@ -981,6 +983,13 @@ GRASP.isJson = function(str) {
 };
 
 
+/**
+ * TODO: must move to bluebird promise, it is fast and have long stacktraces
+ * https://github.com/mknichel/javascript-errors
+ * http://bluebirdjs.com/docs/features.html#long-stack-traces
+ * @param jQuery
+ * @constructor
+ */
 GRASP.Promise = function(jQuery){
   this._jQuery = jQuery;
 };

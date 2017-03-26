@@ -55,7 +55,11 @@ GRASP.GraphHistory.prototype = {
       if(cnt == 0) GRASP.errorHandler.throwError('cache has no items for graphId '+graphId+', step '+step);
 
       // save in repository
-      this.publisher.publish(['repository_update_node_mapping', {graphId: graphId, step: step, node_mapping: event.getData()['node_mapping']}]);
+      this.publisher.publish([
+        'repository_update_node_mapping',
+        {graphId: graphId, step: step, node_mapping: event.getData()['node_mapping']},
+        true
+      ]);
 
     }
     // create new history item from model modification
@@ -86,7 +90,7 @@ GRASP.GraphHistory.prototype = {
       this.historyTimeline[item.graphId][item.step] = item.timestamp;
       this.currentStep[item.graphId] = item.step;
 
-      this.publisher.publish(['graph_history_item_added', {item: item, changes: event.getData()['changes']}]);
+      this.publisher.publish(['graph_history_item_added', {item: item, changes: event.getData()['changes']}, true]);
 
     }else if(eventName === 'get_previous_graph_step'){
       var i, graphIds = event.getData(), previousStep = {};

@@ -1,27 +1,11 @@
 TEST_NAME='testBackend';
 SUBTEST_NAME='testEmptyGraphCreation'
+var p = Modules['Publisher'];
+if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
+
 /**
  * Test empty graph creation
  */
-
-// prepare test listeners (not every test needs this)
-var p = Modules['Publisher'];
-GRASP[TEST_NAME] = function(publisher){
-  this.publisher = publisher;
-};
-GRASP[TEST_NAME].prototype = {
-  moduleName: 'tester',
-  eventListener: function(event){
-    var that = this;
-    var eventName = event.getName();
-    if(eventName == 'set_graph_attributes') {
-      console.log(event);
-    }
-  }
-};
-var tester = new GRASP[TEST_NAME](p);
-Modules['Mediator'].addListener('set_graph_attributes',tester);
-
 // test run function
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   var testGraphId = null;

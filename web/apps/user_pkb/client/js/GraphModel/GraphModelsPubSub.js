@@ -149,7 +149,11 @@ GRASP.GraphModelsPubSub.prototype = {
         if(!graphModel.getIsEditable()) return;
 
         graphModel.setGraphElements(event.getData().elements);
-        this.publisher.publish(["graph_model_changed", {type:'set_graph_model_elements', changes:null, graphModel:this._factoryReadOnyModel(graphModel)}]);
+        this.publisher.publish([
+          "graph_model_changed",
+          {type:'set_graph_model_elements', changes:null, graphModel:this._factoryReadOnyModel(graphModel)},
+          true
+        ]);
         break;
 
       case 'get_node_by_nodeContentId':
@@ -172,8 +176,13 @@ GRASP.GraphModelsPubSub.prototype = {
     var changes = graphModel.applyChanges(c);
 
     // if changes are not empty fire event that model was successfully changed
-    if(GRASP.compare(changes, GRASP.iGraphModelChanges) !== true) this.publisher.publish(["graph_model_changed", {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)}]);
-
+    if(GRASP.compare(changes, GRASP.iGraphModelChanges) !== true){
+      this.publisher.publish([
+        "graph_model_changed",
+        {type:type, changes:changes, graphModel:this._factoryReadOnyModel(graphModel)},
+        true
+      ]);
+    }
     return changes;
   },
 

@@ -28,6 +28,8 @@ GRASP.Event.prototype = GRASP.extend(GRASP.iEvent, {
     return this._data;
   },
   setResponse: function(v){
+    if(this._isResolved === true) return;
+
     // for debugging
     if(DEBUG_MODE){
       var stack = printStackTrace();

@@ -132,6 +132,34 @@ GRASP.Mediator.prototype = {
     if(typeof(DEBUG_MODE) != 'undefined' && DEBUG_MODE){
       var currentEvent = undefined;
       var stack = printStackTrace();
+
+      /**
+       * Prints full (but not async) trace with arguments
+       * For async maybe bluebird long traces will do?
+       * https://github.com/v8/v8/wiki/Stack%20Trace%20API
+       * @type {Number}
+       */
+      /*
+      Error.prepareStackTrace = function(error, callSites) {
+        var str = "";
+        for (var i in  callSites) {
+          var callSite = callSites[i];
+          //console.log(callSite)
+          var funcName = callSite.getFunctionName();
+          var file = callSite.getFileName();
+          var line = callSite.getLineNumber();
+          var that = callSite.getThis();
+          //console.log(funcName, );
+          var args = typeof that[funcName] !== 'undefined' ? that[funcName].arguments : {}
+          str += callSite.toString() + JSON.stringify(args) + "\n";
+        }
+        return str;
+      }
+       Error.stackTraceLimit = Infinity;
+       var err = new Error('MediatorDebug');
+       Error.captureStackTrace(err);
+      */
+
       for(i = 0; i < stack.length; i++){
         if(stack[i].indexOf("Publisher.js") > 0 && stack[i+1].indexOf("Publisher.js") < 0) break;
       }

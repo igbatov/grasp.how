@@ -1,5 +1,8 @@
 TEST_NAME='testBackend';
 SUBTEST_NAME='testGraphRemove';
+var p = Modules['Publisher'];
+if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
+
 /**
  * Test graph (id=1) removal
  */
