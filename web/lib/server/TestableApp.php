@@ -94,7 +94,7 @@ class TestableApp{
 
       // create db for this user if not exists
       $tdb = $this->getTestDBName($username);
-      $this->createTestDB($tdb);
+      $this->createTestDB($tdb, false);
 
       $this->switchDB($tdb);
 
@@ -212,8 +212,28 @@ class TestableApp{
     $this->testConn->execute($q);
   }
 
-  private function createTestDB($tdb){
+  private function createTestDB($tdb, $dropIfExists=true){
     if(!$this->testname) return false;
+
+    if($dropIfExists){
+      $q = "DROP DATABASE `".$tdb."`";
+      $this->testConn->execute($q);
+    }else{
+      // if database already exists then just truncate tables
+      $q = "SHOW DATABASES LIKE '".$tdb."'";
+      $rows = $this->testConn->execute($q);
+      if(count($rows)){
+        $tablenames = $this->app->getDB()->getTableNames();
+        foreach ($tablenames as $tablename){
+          StopWatch::start($tablename.'1');
+          $q = 'TRUNCATE TABLE '.$tdb.'.'.$tablename;
+          $this->testConn->execute($q);
+          error_log($tablename.' TRUNCATE TABLE got '.StopWatch::elapsed($tablename.'1'));
+        }
+        return true;
+      }
+    }
+
     $currentDB = $this->app->getDB()->getCurrentDB();
     $q = "CREATE DATABASE IF NOT EXISTS ".$tdb;
     $this->testConn->execute($q);

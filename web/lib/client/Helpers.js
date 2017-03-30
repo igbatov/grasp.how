@@ -881,25 +881,31 @@ GRASP.compare = (function() {
    */
   var deepEqual = function (actual, expected, usingTestDummies) {
     usingTestDummies = typeof(usingTestDummies) != 'undefined' ? usingTestDummies : false;
+    var isVerbose = usingTestDummies;
     // 7.1. All identical values are equivalent, as determined by ===.
     if (actual === expected) {
       return true;
 
     } else if (actual instanceof Date && expected instanceof Date) {
-      return actual.getTime() === expected.getTime();
+      return primitiveEquiv(actual.getTime(), expected.getTime(), true, isVerbose);
 
       // this is magic for grasp tests
     } else if (usingTestDummies && customTypeof(expected) === 'object' && /function (.{1,})\(/.exec(expected.constructor.toString())[1] === 'likeRegexp') {
       var regexp = new RegExp(expected.regexp);
-      return regexp.test(actual);
+      if (regexp.test(actual)){
+        return true;
+      } else {
+        console.log('GRASP.compare: ', actual, ' do not match regexp ', expected.regexp);
+        return false;
+      }
 
     } else if (customTypeof(actual) === 'function' && customTypeof(expected)  === 'function') {
-      return actual.toString() === expected.toString();
+      return primitiveEquiv(actual.toString(), expected.toString(), true, isVerbose);
 
       // 7.3. Other pairs that do not both pass typeof value == 'object',
       // equivalence is determined by ==.
     } else if (typeof actual != 'object' && typeof expected != 'object') {
-      return actual == expected;
+      return primitiveEquiv(actual, expected, false, isVerbose);
 
       // 7.4. For all other Object pairs, including Array objects, equivalence is
       // determined by having the same number of owned properties (as verified
@@ -961,6 +967,17 @@ GRASP.compare = (function() {
       if (!deepEqual(a[key], b[key], usingTestDummies)) return false;
     }
     return true;
+  }
+
+  function primitiveEquiv(a, b, isStrict, isVerbose){
+    if(isStrict && a === b){
+      return true;
+    } else if (!isStrict && a == b) {
+      return true;
+    } else if (isVerbose) {
+      console.log('GRASP.compare: ', a, ' not equal to ', b);
+    }
+    return false;
   }
 
   return deepEqual;

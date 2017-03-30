@@ -44,7 +44,8 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <!-- tests -->
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testEmptyGraphCreation.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testGraphRemove.js"></script>
-<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testAddGraphElements.js"></script>
+<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testAddNode.js"></script>
+<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testAddEdge.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testBackendData.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testBackend.js"></script>
 

@@ -2,6 +2,12 @@ GRASP_TEST_DATA = {
   // here tests will put their test data
 };
 GRASP.TestHelpers = {
+  likeTimestamp: function likeTimestamp(){
+    return new GRASP.TestHelpers.likeRegexp('[0-9]+');
+  },
+  likeYYYYMMDD_HHMMSS: function likeYYYYMMDD_HHMMSS(){
+    return new GRASP.TestHelpers.likeRegexp("^([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$");
+  },
   likeRegexp: function likeRegexp(regexp){
     this.regexp = regexp;
   },

@@ -14,15 +14,17 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         {graphId:1, isInTrash:true}
       )
       .then(function(){
-        return p.publish(['load_graph_models']);
-      }).then(function(){
-        return p.publish(["get_graph_models",[1]]);
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            '/getGraphsModelSettings',
+            {}
+        );
       })
       .then(function(e){
-        var graphModel = e[1];
+        var graphModel = JSON.parse(e)[1];
         GRASP.TestHelpers.cmp(
-            'load_graph_models, get_graph_models returns isInTrash = true',
-            graphModel.getAttribute('isInTrash'),
+            'getGraphsModelSettings returns isInTrash = true',
+            graphModel['attributes']['isInTrash'],
             true
         );
       });

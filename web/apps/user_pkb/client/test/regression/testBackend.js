@@ -53,7 +53,9 @@ GRASP.TestHelpers.fetch(
 }).then(function(){
    return GRASP[TEST_NAME]['testGraphRemove']();
 }).then(function(){
-   return GRASP[TEST_NAME]['testAddGraphElements']();
+   return GRASP[TEST_NAME]['testAddNode']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testAddEdge']();
 }).then(function(e){
   // return p.publish(['load_graph_models']);
   return Promise.resolve();
@@ -74,18 +76,11 @@ GRASP.TestHelpers.fetch(
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
-        window.location.origin+'/clearTest'
+        window.location.origin+'/rollbackTestChanges'
+       // window.location.origin+'/commitTestChanges'
     ).then(function(){
       console.log('all is done');
     });
   });
 });
 
-
-setTimeout(function(){
-  var events = p.getAllEvents();
-  for(var i in events){
-    var event = events[i];
-    if(!event.isResolved()) console.log(event.getName());
-  }
-}, 70*1000);
