@@ -56,6 +56,8 @@ GRASP.TestHelpers.fetch(
    return GRASP[TEST_NAME]['testAddNode']();
 }).then(function(){
    return GRASP[TEST_NAME]['testAddEdge']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testUpdateNode']();
 }).then(function(e){
   // return p.publish(['load_graph_models']);
   return Promise.resolve();
@@ -71,16 +73,23 @@ GRASP.TestHelpers.fetch(
   */
 }).then(function(){
   var allEvents = p.getAllEvents();
-  allEvents.push(Modules['Repository'].getQueueIsEmptyPromise());
+ // allEvents.push(Modules['Repository'].getQueueIsEmptyPromise());
   Modules['Promise'].when.apply(Modules['Promise'], allEvents).then(function(){
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
         window.location.origin+'/rollbackTestChanges'
-       // window.location.origin+'/commitTestChanges'
+      //  window.location.origin+'/commitTestChanges'
     ).then(function(){
       console.log('all is done');
     });
   });
 });
 
+setTimeout(function(){
+  var events = p.getAllEvents();
+  for(var i in events){
+    var event = events[i];
+    if(!event.isResolved()) console.log(event.getName());
+  }
+}, 70*1000)

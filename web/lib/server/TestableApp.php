@@ -94,8 +94,8 @@ class TestableApp{
 
       // create db for this user if not exists
       $tdb = $this->getTestDBName($username);
+      // TODO: in production second argument must be true (after implementation of multi-tenant scheme)
       $this->createTestDB($tdb, false);
-
       $this->switchDB($tdb);
 
       // create user in this db
@@ -107,17 +107,12 @@ class TestableApp{
       return;
 
     }elseif($vars[0] === 'clearTest'){
+      $tdb = $this->getTestDBName($this->app->session->getUsername());
+      $this->switchDB($tdb);
+
       // drop test databases
-      $q = 'SHOW DATABASES';
-      $rows = $this->testConn->execute($q);
-      foreach ($rows as $row){
-        $dbname = $row['Database'];
-        $testdbmask = 'test_'.$this->testname;
-        if(substr($dbname, 0, strlen($testdbmask)) == strtolower($testdbmask)){
-          $q = 'DROP DATABASE '.$dbname;
-          $this->testConn->execute($q);
-        }
-      }
+      $q = 'DROP DATABASE '. strtolower($tdb);
+      $this->testConn->execute($q);
       return;
 
     }elseif($vars[0] === 'loginTestUser'){
@@ -125,8 +120,10 @@ class TestableApp{
         error_log('loginTestUser request without username parameter. Exiting... '.var_export($_REQUEST, true));
         return;
       }
+
       $tdb = $this->getTestDBName($_REQUEST['username']);
       $this->switchDB($tdb);
+
       // check that this user exists  in this db
       $q = "SELECT username FROM ".$tdb.".auth WHERE username = '".$this->app->getDB()->escape($_REQUEST['username'])."'";
       $rows = $this->app->getDB()->execute($q);
@@ -138,11 +135,32 @@ class TestableApp{
       return;
 
     }elseif($vars[0] === 'rollbackTestChanges'){
+      $tdb = $this->getTestDBName($this->app->session->getUsername());
+      $this->switchDB($tdb);
+
       $this->cleanTestableappQueries();
+
+      // truncate all tables
+      $q = "SHOW DATABASES LIKE '".$tdb."'";
+      $rows = $this->testConn->execute($q);
+      if(count($rows)) {
+        $tablenames = $this->app->getDB()->getTableNames();
+        foreach ($tablenames as $tablename) {
+          StopWatch::start($tablename . '1');
+          $q = 'TRUNCATE TABLE ' . $tdb . '.' . $tablename;
+          $this->testConn->execute($q);
+          error_log($tablename . ' TRUNCATE TABLE got ' . StopWatch::elapsed($tablename . '1'));
+        }
+      }
+
       return;
 
     }elseif($vars[0] === 'commitTestChanges'){
+      $tdb = $this->getTestDBName($this->app->session->getUsername());
+      $this->switchDB($tdb);
+
       $this->replayPreviousQueries();
+
       return;
 
     }
@@ -219,19 +237,10 @@ class TestableApp{
       $q = "DROP DATABASE `".$tdb."`";
       $this->testConn->execute($q);
     }else{
-      // if database already exists then just truncate tables
+      // if database already exists do nothing
       $q = "SHOW DATABASES LIKE '".$tdb."'";
       $rows = $this->testConn->execute($q);
-      if(count($rows)){
-        $tablenames = $this->app->getDB()->getTableNames();
-        foreach ($tablenames as $tablename){
-          StopWatch::start($tablename.'1');
-          $q = 'TRUNCATE TABLE '.$tdb.'.'.$tablename;
-          $this->testConn->execute($q);
-          error_log($tablename.' TRUNCATE TABLE got '.StopWatch::elapsed($tablename.'1'));
-        }
-        return true;
-      }
+      if(count($rows)) return true;
     }
 
     $currentDB = $this->app->getDB()->getCurrentDB();

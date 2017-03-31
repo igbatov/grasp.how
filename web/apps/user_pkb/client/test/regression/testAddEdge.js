@@ -133,7 +133,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           '/addGraphHistoryItem',
           {
             "graphId": graphId,
-            "step": 1,
+            "step": 2,
             "timestamp": Math.round((new Date).getTime() / 1000),
             "elements": {
               "nodes": {
@@ -181,7 +181,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       })
       .then(function(e){
         var data = {};
-        data[graphId]=1;
+        data[graphId]=2;
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/getGraphsHistoryChunk',
@@ -195,17 +195,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           [
             {
               "graphId":2,
-              "step":1,
-              "timestamp":GRASP.TestHelpers.likeTimestamp(),
-              "elements":{
-                "nodes":[],
-                "edges":[]
-              },
-              "node_mapping":null
-            },
-            {
-              "graphId":2,
-              "step":1,
+              "step":2,
               "timestamp":GRASP.TestHelpers.likeTimestamp(),
               "elements":{
                 "nodes":[

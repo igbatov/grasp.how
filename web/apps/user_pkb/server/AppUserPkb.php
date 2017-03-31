@@ -805,6 +805,7 @@ class AppUserPkb extends App
         }
 
         $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$graph_id."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
+        $this->logger->log($query);
         $rows = $this->db->execute($query);
         foreach($rows as $row){
           $graphs_history[] = array(
