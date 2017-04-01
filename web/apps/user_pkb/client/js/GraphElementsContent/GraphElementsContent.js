@@ -209,9 +209,9 @@ GRASP.GraphElementsContent.prototype = {
               that.cacheContent.add({elementType:'edge', contentId:newEdge.edgeContentId, content:newEdge});
               that.publisher.publish([
                 "graph_element_content_changed",
-                {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge}],
+                {graphId:event.getData()['graphId'], type:'addEdge',  edge:newEdge},
                 true
-              );
+              ]);
               event.setResponse(newEdge);
             });
 

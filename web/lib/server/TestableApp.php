@@ -14,6 +14,7 @@ class TestableApp{
   private $testname;
   private $skipQuerySave;
   private $autoincrements;
+  private $catalog_tables = ['scopus_title_list', 'asjc_code_list'];
 
   /**
    * TestableApp constructor.
@@ -70,6 +71,7 @@ class TestableApp{
     // we want to save only queries that modify data
     if(strpos($query, 'INSERT') !== false
         || strpos($query, 'UPDATE')  !== false
+        || strpos($query, 'DELETE')  !== false
     ){
       // we do not want to save log requests
       $request_log_starter = "INSERT INTO request_log";
@@ -146,6 +148,7 @@ class TestableApp{
       if(count($rows)) {
         $tablenames = $this->app->getDB()->getTableNames();
         foreach ($tablenames as $tablename) {
+          if(in_array($tablenames, $this->catalog_tables)) continue;
           StopWatch::start($tablename . '1');
           $q = 'TRUNCATE TABLE ' . $tdb . '.' . $tablename;
           $this->testConn->execute($q);
@@ -230,6 +233,15 @@ class TestableApp{
     $this->testConn->execute($q);
   }
 
+  /**
+   * Creating clean clone of current database.
+   * Name of the clone is $tdb.
+   * If such database exists and $dropIfExists==false - do nothing
+   * Also copy contents of catalog tables - scopus_title_list and asjc_code_list
+   * @param $tdb
+   * @param bool $dropIfExists
+   * @return bool
+   */
   private function createTestDB($tdb, $dropIfExists=true){
     if(!$this->testname) return false;
 
@@ -258,6 +270,15 @@ class TestableApp{
       $this->testConn->execute($q);
       error_log($tablename.' AUTO_INCREMENT got '.StopWatch::elapsed($tablename.'2'));
     }
+
+    foreach ($this->catalog_tables as $catalog_table){
+      $this->copyTableContents($currentDB, $tdb, $catalog_table);
+    }
+  }
+
+  private function copyTableContents($fromDB, $toDB, $tableName){
+    $q = "INSERT INTO ".$toDB.".".$tableName." SELECT * FROM ".$fromDB.".".$tableName;
+    $this->testConn->execute($q);
   }
 
   public function preAccessLog(){

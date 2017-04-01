@@ -41,6 +41,11 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       })
       .then(function(e){
         var response = JSON.parse(e);
+        GRASP.TestHelpers.cmp(
+            'response from addNode should have nodeContentId',
+            response['nodeContentId'],
+            '2-1'
+        );
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/getGraphElementsAttributes',

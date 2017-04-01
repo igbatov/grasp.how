@@ -378,7 +378,13 @@ class AppUserPkb extends App
         }else if($r['type'] == 'updateEdgeAttribute'){
           $graph_id = $this->contentIdConverter->getGraphId($r['edgeContentId']);
           $local_content_id = $this->contentIdConverter->getLocalContentId($r['edgeContentId']);
-        }else if($r['type'] == 'addEdge' || $r['type'] == 'addNode' || $r['type'] == 'updateNodesReliabilities' || $r['type'] == 'node_stickers_add_request' || $r['type'] == 'node_stickers_remove_request'){
+        }else if(
+            $r['type'] == 'addEdge'
+            || $r['type'] == 'addNode'
+            || $r['type'] == 'updateNodesReliabilities'
+            || $r['type'] == 'node_stickers_add_request'
+            || $r['type'] == 'node_stickers_remove_request'
+        ){
           $graph_id = $r['graphId'];
           $local_content_id = null;
         }
