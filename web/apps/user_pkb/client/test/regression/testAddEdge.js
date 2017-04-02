@@ -6,7 +6,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test graph (id=2) adding two nodes and edge between them
  */
 // test run
-var graphId=2;
+var graphId=1;
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   return GRASP.TestHelpers.fetch(
       TEST_NAME,
@@ -67,7 +67,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             JSON.parse(e),
             {
               "nodes":{
-                "2-1":{
+                "1-1":{
                   "type":"fact",
                   "importance":"50",
                   "has_icon":"0",
@@ -90,7 +90,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                     }
                   ]
                 },
-                "2-2":{
+                "1-2":{
                   "type":"proposition",
                   "importance":"50",
                   "has_icon":"0",
@@ -115,8 +115,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                 }
               },
               "edges":{
-                "2-1":{
-                  "edgeContentId":"2-1",
+                "1-1":{
+                  "edgeContentId":graphId+"-1",
                   "type":"causal",
                   "label":"causal",
                   "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
@@ -194,18 +194,18 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           JSON.parse(e),
           [
             {
-              "graphId":2,
+              "graphId":graphId,
               "step":2,
               "timestamp":GRASP.TestHelpers.likeTimestamp(),
               "elements":{
                 "nodes":[
                   {
                     "id":0,
-                    "nodeContentId":"2-1"
+                    "nodeContentId":graphId+"-1"
                   },
                   {
                     "id":1,
-                    "nodeContentId":"2-2"
+                    "nodeContentId":graphId+"-2"
                   }
                 ],
                 "edges":[
@@ -213,7 +213,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                     "id":0,
                     "source":1,
                     "target":0,
-                    "edgeContentId":"2-1"
+                    "edgeContentId":graphId+"-1"
                   }
                 ]
               },

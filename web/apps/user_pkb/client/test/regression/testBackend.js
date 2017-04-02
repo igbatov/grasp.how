@@ -1,6 +1,7 @@
 // name test
 TEST_NAME='testBackend';
 DEBUG_MODE = true;
+dbSchemaFromUserId = 1;
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 // prepare test listeners (not every test needs this)
@@ -39,7 +40,7 @@ var USERNAME = '';
 // create new DB for this test and switch on it
 GRASP.TestHelpers.fetch(
     TEST_NAME,
-    window.location.origin+'/createTestUser?dbSchemaFromUserId=1'
+    window.location.origin+'/createTestUser?dbSchemaFromUserId='+dbSchemaFromUserId
 ).then(function(loginData){
   console.log(loginData)
   loginData = JSON.parse(loginData);
@@ -51,15 +52,15 @@ GRASP.TestHelpers.fetch(
 }).then(function(){
    return GRASP[TEST_NAME]['testEmptyGraphCreation']();
 }).then(function(){
-   return GRASP[TEST_NAME]['testGraphRemove']();
-}).then(function(){
    return GRASP[TEST_NAME]['testAddNode']();
 }).then(function(){
    return GRASP[TEST_NAME]['testAddEdge']();
 }).then(function(){
    return GRASP[TEST_NAME]['testUpdateNode']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testGraphClone']();
 }).then(function(e){
-  // return p.publish(['load_graph_models']);
+  // return GRASP[TEST_NAME]['testGraphRemove']();
   return Promise.resolve();
 }).then(function(e){
   // rollbackTestChanges will clear testableapp_queries for this test,
@@ -78,8 +79,8 @@ GRASP.TestHelpers.fetch(
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
-        window.location.origin+'/rollbackTestChanges'
-      //  window.location.origin+'/commitTestChanges'
+       // window.location.origin+'/rollbackTestChanges'
+        window.location.origin+'/commitTestChanges'
     ).then(function(){
       console.log('all is done');
     });

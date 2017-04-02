@@ -29,7 +29,7 @@ GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME] = {
   },
   'repository_get_graphs_model_elements':[
     {
-      "graphId": 2,
+      "graphId": 1,
       "step": 1,
       "timestamp": new GRASP.TestHelpers.likeRegexp('[0-9]+'),
       "elements": {

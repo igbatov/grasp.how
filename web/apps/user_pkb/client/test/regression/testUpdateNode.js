@@ -3,10 +3,10 @@ SUBTEST_NAME='testUpdateNode';
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 /**
- * Test graph (id=2) changing node
+ * Test graph (id=1) changing node
  */
 // test run
-var graphId=2;
+var graphId=1;
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   return testTextChange('123')
       .then(function(){
@@ -44,12 +44,12 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           "nodeContentId":graphId + "-1",
           "alternatives":{
             "0":{
-              "{\"200-2\":\"0\"}":"1",
-              "{\"200-2\":\"1\"}":"0.3"
+              "{\"1-2\":\"0\"}":"1",
+              "{\"1-2\":\"1\"}":"0.3"
             },
             "1":{
-              "{\"200-2\":\"0\"}":"0",
-              "{\"200-2\":\"1\"}":"0.7"
+              "{\"1-2\":\"0\"}":"0",
+              "{\"1-2\":\"1\"}":"0.7"
             }
           }
         }
@@ -63,19 +63,19 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         .then(function(e){
           GRASP.TestHelpers.cmp(
               'testRemoveSource: node alternative 0 should contain valid p',
-              JSON.parse(e)['2-1']['alternatives'][0]['p'],
+              JSON.parse(e)[graphId+'-1']['alternatives'][0]['p'],
               {
-                "{\"200-2\":\"0\"}":"1",
-                "{\"200-2\":\"1\"}":"0.3"
+                "{\"1-2\":\"0\"}":"1",
+                "{\"1-2\":\"1\"}":"0.3"
               }
           );
 
           GRASP.TestHelpers.cmp(
               'testRemoveSource: node alternative 1 should contain valid p',
-              JSON.parse(e)['2-1']['alternatives'][1]['p'],
+              JSON.parse(e)[graphId+'-1']['alternatives'][1]['p'],
               {
-                "{\"200-2\":\"0\"}":"0",
-                "{\"200-2\":\"1\"}":"0.7"
+                "{\"1-2\":\"0\"}":"0",
+                "{\"1-2\":\"1\"}":"0.7"
               }
           );
 
@@ -110,7 +110,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         .then(function(e){
           GRASP.TestHelpers.cmp(
               'testRemoveSource: node alternative list should contain updated source',
-              JSON.parse(e)['2-1']['alternatives'][0]['list'],
+              JSON.parse(e)[graphId+'-1']['alternatives'][0]['list'],
               []
           );
 
@@ -164,7 +164,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         .then(function(e){
           GRASP.TestHelpers.cmp(
               'node alternative list should contain updated source',
-              JSON.parse(e)['2-1']['alternatives'][0]['list'],
+              JSON.parse(e)[graphId+'-1']['alternatives'][0]['list'],
               {
                 "1":{
                   "id":"1",
@@ -246,12 +246,12 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "created_at":null,
                   "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
                   "usedIn":{
-                    "2":{
-                      "graphId":"2",
+                    "1":{
+                      "graphId":graphId,
                       "graphName":"testGraph",
                       "usedInNodes":[
                         {
-                          "nodeId":"2-1",
+                          "nodeId":graphId+"-1",
                           "label":"fact"
                         }
                       ]
@@ -305,7 +305,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         .then(function(e){
           GRASP.TestHelpers.cmp(
               'node alternative list should contain source',
-              JSON.parse(e)['2-1']['alternatives'][0]['list'],
+              JSON.parse(e)[graphId+'-1']['alternatives'][0]['list'],
               {
                 "1":{
                   "id":"1",
@@ -365,12 +365,12 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "created_at":null,
                   "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
                   "usedIn":{
-                    "2":{
-                      "graphId":"2",
+                    "1":{
+                      "graphId":graphId,
                       "graphName":"testGraph",
                       "usedInNodes":[
                         {
-                          "nodeId":"2-1",
+                          "nodeId":graphId+"-1",
                           "label":"fact"
                         }
                       ]
@@ -403,7 +403,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         .then(function(e){
           return GRASP.TestHelpers.cmp(
               'node text should be updated',
-              JSON.parse(e)['2-1']['alternatives'][0]['text'],
+              JSON.parse(e)[graphId+'-1']['alternatives'][0]['text'],
               value
           );
         });
@@ -432,7 +432,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         })
         .then(function(e){
           var field = ['p','label','reliability'].indexOf(name) !== -1 ?
-              JSON.parse(e)['nodes']['2-1']['alternatives'][0] : JSON.parse(e)['nodes']['2-1'];
+              JSON.parse(e)['nodes'][graphId+'-1']['alternatives'][0] : JSON.parse(e)['nodes'][graphId+'-1'];
           return GRASP.TestHelpers.cmp(
               'node '+name+' should be updated',
               field[name],

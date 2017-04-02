@@ -3,10 +3,10 @@ SUBTEST_NAME='testAddNode';
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 /**
- * Test graph (id=2) adding two nodes and edge between them
+ * Test graph (id=1) adding two nodes and edge between them
  */
 // test run
-var graphId=2;
+var graphId=1;
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   return  GRASP.TestHelpers.fetch(
       TEST_NAME,
@@ -44,7 +44,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         GRASP.TestHelpers.cmp(
             'response from addNode should have nodeContentId',
             response['nodeContentId'],
-            '2-1'
+            graphId+'-1'
         );
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
@@ -58,7 +58,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
              JSON.parse(e),
              {
                "nodes":{
-                 "2-1":{
+                 "1-1":{
                    "type":"fact",
                    "importance":"50",
                    "has_icon":"0",

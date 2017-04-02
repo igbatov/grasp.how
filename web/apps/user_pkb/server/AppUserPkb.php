@@ -37,7 +37,8 @@ class AppUserPkb extends App
     // create new user: my.grasp.how/createNewUser/<login>/<password>/<admin secret>
     }elseif($vars[0] === 'createNewUser'){
       if($vars[3] != $this->getAdminSecret()) return $this->showRawData('wrong secret!');
-      $this->createNewUser($vars[1], $vars[2]);
+      $new_user_id = $this->createNewUser($vars[1], $vars[2]);
+      $this->graphs->createNewGraph($new_user_id, 'newGraph');
       return $this->showRawData();
 
     //remove user: my.grasp.how/removeUser/<login>/<admin secret>
@@ -82,7 +83,8 @@ class AppUserPkb extends App
 
       // search user with this email, if not found create him
       if($this->getUserId($info['email']) === null){
-        $this->createNewUser($info['email'], bin2hex(openssl_random_pseudo_bytes(10)));
+        $new_user_id = $this->createNewUser($info['email'], bin2hex(openssl_random_pseudo_bytes(10)));
+        $this->graphs->createNewGraph($new_user_id, 'newGraph');
       }
       // authorize him
       $this->session->setAuth($info['email']);
@@ -714,7 +716,7 @@ class AppUserPkb extends App
       }
     }
 
-    return $this->graphs->createNewGraph($new_user_id, 'newGraph');
+    return $new_user_id;
   }
 
   private function isUserOwnGraph($graph_id){

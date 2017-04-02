@@ -733,6 +733,29 @@ class Graphs {
     $this->logger->log($q);
     $this->db->execute($q);
 
+    // transform conditional probabilities to respect new nodeContentIds
+    $q = "SELECT local_content_id, alternative_id, p FROM node_content WHERE graph_id = '".$new_graph_id."'";
+    $rows = $this->db->execute($q);
+    foreach ($rows as $row) {
+      if($row['p'] && $row['p'] !== '' && json_decode($row['p'], true)){
+        $newP = [];
+        foreach (json_decode($row['p'], true) as $parentAlternativesSet => $probability){
+          $parentAlternativesSet = json_decode($parentAlternativesSet, true);
+          $newParentAlternativesSet = [];
+          foreach ($parentAlternativesSet as $parentGlobalNodeId=>$parentAlternativeId) {
+            $local_content_id = $this->contentIdConverter->decodeContentId($parentGlobalNodeId)['local_content_id'];
+            $newGlobalContentId = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
+            $newParentAlternativesSet[$newGlobalContentId] = $parentAlternativeId;
+          }
+          $newParentAlternativesSet = json_encode($newParentAlternativesSet);
+          $newP[$newParentAlternativesSet] = $probability;
+        }
+        $q = "UPDATE node_content SET p = '".$this->db->escape(json_encode($newP))."'"
+            ." WHERE graph_id = '".$new_graph_id."' AND local_content_id='".$row['local_content_id']."' AND alternative_id='".$row['alternative_id']."'";
+        $this->db->execute($q);
+      }
+    }
+
     // Copy node_content_sources
     $q = "SELECT * FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $rows = $this->db->execute($q);
