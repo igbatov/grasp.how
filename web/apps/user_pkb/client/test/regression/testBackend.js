@@ -59,6 +59,8 @@ GRASP.TestHelpers.fetch(
    return GRASP[TEST_NAME]['testUpdateNode']();
 }).then(function(){
    return GRASP[TEST_NAME]['testGraphClone']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testCloneUpdate']();
 }).then(function(e){
   // return GRASP[TEST_NAME]['testGraphRemove']();
   return Promise.resolve();

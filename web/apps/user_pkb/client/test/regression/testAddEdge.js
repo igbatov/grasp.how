@@ -52,7 +52,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                 "type":"causal"
               }
             }
-        )
+        );
       })
       .then(function(e){
         return GRASP.TestHelpers.fetch(
