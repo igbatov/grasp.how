@@ -9,6 +9,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   var graphId=1;
   var cloneGraphId=2;
+  var diffGraphId="diff_"+graphId+"_"+cloneGraphId;
   var newNodeContentId=null;
   var newEdgeContentId=null;
   var currentHistoryStep=1;
@@ -198,14 +199,34 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         });
       })
       .then(function(){
-        /** check diff graph */
+        /** check diff graph settings*/
+        var originalGraphSettings;
+        var cloneGraphSettings;
         return GRASP.TestHelpers.fetch(
           TEST_NAME,
           window.location.origin+'/getGraphsModelSettings',
-          {"graphIds":["diff_"+graphId+"_"+cloneGraphId]}
+          {"graphIds":[graphId]}
         ).then(function(e){
+          originalGraphSettings = JSON.parse(e);
           console.log(e);
           console.log(JSON.parse(e));
+        }).then(function(){
+          return GRASP.TestHelpers.fetch(
+              TEST_NAME,
+              window.location.origin+'/getGraphsModelSettings',
+              {"graphIds":[diffGraphId]}
+          )
+        }).then(function(e){
+          cloneGraphSettings = JSON.parse(e);
+          var original = GRASP.clone(originalGraphSettings);
+          original[graphId].name = diffGraphId;
+          original[graphId].isEditable = false;
+          GRASP.TestHelpers.cmp(
+              'clone graph settings must be equal to original graph settings',
+               cloneGraphSettings[diffGraphId],
+               original[graphId]
+          );
+          return Promise.resolve();
         });
       })
       .then(function(){

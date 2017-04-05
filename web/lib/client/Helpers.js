@@ -914,7 +914,7 @@ GRASP.compare = (function() {
       // corresponding key, and an identical 'prototype' property. Note: this
       // accounts for both named and indexed properties on Arrays.
     } else {
-      return objEquiv(actual, expected, usingTestDummies);
+      return objEquiv(actual, expected, usingTestDummies, isVerbose);
     }
   }
 
@@ -926,7 +926,7 @@ GRASP.compare = (function() {
     return Object.prototype.toString.call(object) == '[object Arguments]';
   }
 
-  function objEquiv(a, b, usingTestDummies) {
+  function objEquiv(a, b, usingTestDummies, isVerbose) {
     if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
       return false;
     // an identical 'prototype' property.
@@ -964,7 +964,10 @@ GRASP.compare = (function() {
     //~~~possibly expensive deep test
     for (i = ka.length - 1; i >= 0; i--) {
       key = ka[i];
-      if (!deepEqual(a[key], b[key], usingTestDummies)) return false;
+      if (!deepEqual(a[key], b[key], usingTestDummies)) {
+        if (isVerbose) console.log("key: " + key);
+        return false;
+      }
     }
     return true;
   }

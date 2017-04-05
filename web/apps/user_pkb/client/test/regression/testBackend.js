@@ -81,8 +81,8 @@ GRASP.TestHelpers.fetch(
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
-       // window.location.origin+'/rollbackTestChanges'
-        window.location.origin+'/commitTestChanges'
+        window.location.origin+'/rollbackTestChanges'
+       // window.location.origin+'/commitTestChanges'
     ).then(function(){
       console.log('all is done');
     });

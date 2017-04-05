@@ -23,7 +23,8 @@ GRASP.TestHelpers = {
         }
       }
     }
-  },  /**
+  },
+  /**
    * Recursively substitutes keys (field names) in fieldNames array with corresponding
    * element in replacement array
    * @param obj - object
