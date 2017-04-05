@@ -6,8 +6,8 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test graph (id=1) adding two nodes and edge between them
  */
 // test run
-var graphId=1;
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+  var graphId=1;
   return  GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/updateGraphElementContent',

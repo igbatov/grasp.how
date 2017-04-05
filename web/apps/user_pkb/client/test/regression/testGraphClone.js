@@ -6,10 +6,10 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test graph cloning
  */
 // test run
-var graphId=1;
-var cloneGraphId=2;
-var original={};
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+  var graphId=1;
+  var cloneGraphId=2;
+  var original={};
   return  addSource()
       /** first of all retrieve original graph to compare it then with cloned one */
       .then(function(){

@@ -6,25 +6,26 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test graph (id=1) adding two nodes and edge between them
  */
 // test run
-var graphId=2;
-var newNodeContentId=null;
-var newEdgeContentId=null;
-var currentHistoryStep=1;
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+  var graphId=1;
+  var cloneGraphId=2;
+  var newNodeContentId=null;
+  var newEdgeContentId=null;
+  var currentHistoryStep=1;
   /** remove node with nodeId=2 */
   currentHistoryStep++;
   return  GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/addGraphHistoryItem',
       {
-        "graphId":graphId,
+        "graphId":cloneGraphId,
         "step":currentHistoryStep,
         "timestamp":Math.round((new Date).getTime() / 1000),
         "elements":{
           "nodes":{
             "0":{
               "id":0,
-              "nodeContentId":graphId+"-1"
+              "nodeContentId":cloneGraphId+"-1"
             }
           },
           "edges":{
@@ -54,20 +55,20 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             TEST_NAME,
             '/updateGraphElementContent',
             {
-              "graphId":graphId,
+              "graphId":cloneGraphId,
               "type":"updateNodeAttribute",
-              "nodeContentId":graphId + "-1",
+              "nodeContentId":cloneGraphId + "-1",
               "node_alternative_id":"0",
               "text":"bbb"
             });
       })
       .then(function(e){
         /** add new node */
-        GRASP.TestHelpers.fetch(
+        return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/updateGraphElementContent',
             {
-              "graphId":graphId,
+              "graphId":cloneGraphId,
               "type":"addNode",
               "node":{
                 "nodeContentId":"",
@@ -97,13 +98,14 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         );
       })
       .then(function(e){
+        console.log(e);
         newNodeContentId = JSON.parse(e)['nodeContentId'];
         /** add new edge */
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/updateGraphElementContent',
             {
-              "graphId":graphId,
+              "graphId":cloneGraphId,
               "type":"addEdge",
               "edge":{
                 "edgeContentId":"",
@@ -121,14 +123,14 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             TEST_NAME,
             '/addGraphHistoryItem',
             {
-              "graphId": graphId,
+              "graphId": cloneGraphId,
               "step": currentHistoryStep,
               "timestamp": Math.round((new Date).getTime() / 1000),
               "elements": {
                 "nodes": {
                   "0": {
                     "id": 0,
-                    "nodeContentId": graphId + "-1"
+                    "nodeContentId": cloneGraphId + "-1"
                   },
                   "1": {
                     "id": 1,
@@ -170,12 +172,41 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       })
       .then(function(){
         /** login under user #1 */
+        return GRASP.TestHelpers.fetch(
+          TEST_NAME,
+          window.location.origin+'/loginTestUser?username='+USERNAME
+        );
       })
       .then(function(){
-        /** check clones */
+        /** check clones list */
+        return GRASP.TestHelpers.fetch(
+          TEST_NAME,
+          window.location.origin+'/getGraphsCloneList'
+        ).then(function(e){
+          console.log(JSON.parse(e));
+          GRASP.TestHelpers.cmp(
+            'clones list must have cloned graph',
+            JSON.parse(e),{
+            "1": {
+              "cloned_from": [],
+              "cloned_to": {
+                "2": new GRASP.TestHelpers.likeRegexp("^testuser_[a-z0-9]*: testGraph$")
+              }
+            }
+          });
+          return Promise.resolve();
+        });
       })
       .then(function(){
         /** check diff graph */
+        return GRASP.TestHelpers.fetch(
+          TEST_NAME,
+          window.location.origin+'/getGraphsModelSettings',
+          {"graphIds":["diff_"+graphId+"_"+cloneGraphId]}
+        ).then(function(e){
+          console.log(e);
+          console.log(JSON.parse(e));
+        });
       })
       .then(function(){
         /** check nodeId=1 diff text */

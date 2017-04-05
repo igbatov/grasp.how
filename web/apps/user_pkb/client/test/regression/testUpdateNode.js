@@ -6,8 +6,8 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test graph (id=1) changing node
  */
 // test run
-var graphId=1;
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+  var graphId=1;
   return testTextChange('123')
       .then(function(){
         return testAddSource();
