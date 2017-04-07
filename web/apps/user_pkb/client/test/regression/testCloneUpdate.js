@@ -7,12 +7,13 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  */
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
-  var graphId=1;
-  var cloneGraphId=2;
-  var diffGraphId="diff_"+graphId+"_"+cloneGraphId;
-  var newNodeContentId=null;
-  var newEdgeContentId=null;
-  var currentHistoryStep=1;
+  var graphId = 1;
+  var cloneGraphId = 2;
+  var diffGraphId = "diff_"+graphId+"_"+cloneGraphId;
+  var newNodeContentId = null;
+  var newEdgeContentId = null;
+  var currentHistoryStep = 1;
+  var originalSettings = null;
   /** remove node with nodeId=2 */
   currentHistoryStep++;
   return  GRASP.TestHelpers.fetch(
@@ -230,7 +231,252 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         });
       })
       .then(function(){
-        /** check nodeId=1 diff text */
+        /** check diff graph timeline */
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            window.location.origin+'/getGraphsHistoryTimeline',
+            {"ids":[diffGraphId]}
+        )
+      })
+      .then(function(e){
+        var standard={};
+        standard[diffGraphId] = [GRASP.TestHelpers.likeTimestamp()];
+        GRASP.TestHelpers.cmp(
+            'diff graph history timeline',
+            JSON.parse(e),
+            standard
+        );
+        return Promise.resolve();
+      })
+      .then(function(){
+        /** check diff graph history chunk */
+        var r = {};
+        r[diffGraphId] = 0;
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            window.location.origin+'/getGraphsHistoryChunk',
+            r
+        )
+      })
+      .then(function(e){
+        GRASP.TestHelpers.cmp(
+            'diff graph history chunk',
+            JSON.parse(e),
+            [
+              {
+                "graphId": diffGraphId,
+                "step": 0,
+                "timestamp": GRASP.TestHelpers.likeTimestamp(),
+                "elements": {
+                  "nodes": {
+                    "1": {
+                      "id": 1,
+                      "nodeContentId": "1-2/-"
+                    },
+                    "2": {
+                      "id": 2,
+                      "nodeContentId": "-/2-3"
+                    },
+                    "3": {
+                      "id": 3,
+                      "nodeContentId": "1-1/2-1"
+                    }
+                  },
+                  "edges": {
+                    "1": {
+                      "source": 1,
+                      "target": 3,
+                      "edgeContentId": "1-1/-",
+                      "id": 1
+                    },
+                    "2": {
+                      "source": 2,
+                      "target": 3,
+                      "edgeContentId": "-/2-2",
+                      "id": 2
+                    }
+                  }
+                },
+                "node_mapping": {
+                  "area": {
+                    "id": "graphViews",
+                    "centerX": 167,
+                    "centerY": 349,
+                    "width": 335,
+                    "height": 571
+                  },
+                  "mapping": {
+                    "1": {
+                      "id": 1,
+                      "x": 216,
+                      "y": 321
+                    },
+                    "2": {
+                      "id": 2,
+                      "x": 216,
+                      "y": 221
+                    },
+                    "3": {
+                      "id": 3,
+                      "x": 165,
+                      "y": 406
+                    }
+                  }
+                }
+              }
+            ]
+        );
+        return Promise.resolve();
+      })
+      .then(function(){
+        /** check diff graph history chunk */
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            window.location.origin+'/getGraphSettings',
+            [graphId]
+        );
+      })
+      .then(function(e){
+        originalSettings = JSON.parse(e)[graphId];
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            window.location.origin+'/getGraphSettings',
+            [diffGraphId]
+        );
+      })
+      .then(function(e){
+        console.log(e);
+        originalSettings['skin']['node']['attr']['stickers'] = {
+          "bayes_error": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
+          "absent": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
+          "added": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
+          "modified": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
+          "unmodified": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
+        };
+        originalSettings['position'] = 'rightGraphView';
+            GRASP.TestHelpers.cmp(
+          'diff graph settings',
+          JSON.parse(e)[diffGraphId],
+          originalSettings
+        );
+        return Promise.resolve();
+      })
+      .then(function(e){
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            window.location.origin+'/getGraphElementsAttributes',
+            {nodes:["1-2/-", "-/2-3", "1-1/2-1"], edges:["1-1/-", "-/2-2"]}
+        );
+      })
+      .then(function(e){
+        return GRASP.TestHelpers.cmp(
+            'diff graph element attributes',
+            JSON.parse(e),
+            {
+              "nodes": {
+                "1-2/-": {
+                  "type": "proposition",
+                  "importance": "50",
+                  "has_icon": "0",
+                  "active_alternative_id": "0",
+                  "stickers": [
+                    "absent"
+                  ],
+                  "alternatives": [
+                    {
+                      "label": "proposition",
+                      "reliability": "50",
+                      "p": "",
+                      "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                      "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                    },
+                    {
+                      "label": "NOT TRUE: proposition",
+                      "reliability": "50",
+                      "p": "",
+                      "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                      "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                    }
+                  ],
+                  "nodeContentId": "1-2/-"
+                },
+                "-/2-3": {
+                  "type": "proposition",
+                  "importance": "50",
+                  "has_icon": "0",
+                  "active_alternative_id": "0",
+                  "alternatives": [
+                    {
+                      "label": "proposition",
+                      "reliability": "50",
+                      "p": "",
+                      "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                      "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                    },
+                    {
+                      "label": "NOT TRUE: proposition",
+                      "reliability": "50",
+                      "p": "",
+                      "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                      "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                    }
+                  ],
+                  "nodeContentId": "-/2-3",
+                  "stickers": [
+                    "added"
+                  ]
+                },
+                "1-1/2-1": {
+                  "type": "fact",
+                  "importance": "32",
+                  "has_icon": "0",
+                  "active_alternative_id": "1",
+                  "stickers": [
+                    "unmodified"
+                  ],
+                  "alternatives": [
+                    {
+                      "label": "123",
+                      "reliability": "1",
+                      "p": {
+                        "{\"2-2\":\"0\"}": "1",
+                        "{\"2-2\":\"1\"}": "0.3"
+                      },
+                      "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                      "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                    },
+                    {
+                      "label": "NOT TRUE: fact",
+                      "reliability": "50",
+                      "p": {
+                        "{\"2-2\":\"0\"}": "0",
+                        "{\"2-2\":\"1\"}": "0.7"
+                      },
+                      "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                      "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                    }
+                  ],
+                  "nodeContentId": "1-1/2-1"
+                }
+              },
+              "edges": {
+                "1-1/-": {
+                  "edgeContentId": "1-1/-",
+                  "type": "causal",
+                  "label": "causal",
+                  "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                  "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                },
+                "-/2-2": {
+                  "edgeContentId": "-/2-2",
+                  "type": "causal",
+                  "label": "causal",
+                  "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                  "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+                }
+              }
+            }
+        );
       });
 
 
