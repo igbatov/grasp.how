@@ -1749,3 +1749,15 @@ GRASP.getURLParameters = function(url){
     return params;
   }
 }
+
+GRASP.stopWatch = function(timerName){
+  var startTime = (new Date()).getTime();
+
+  var elapsed = function(){
+    return (new Date()).getTime() - startTime;
+  }
+
+  return {
+    elapsed: elapsed
+  }
+}

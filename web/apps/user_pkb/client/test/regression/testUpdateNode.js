@@ -388,7 +388,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         '/updateGraphElementContent',
         {
           "graphId":graphId,
-          "type":"updateNodeAttribute",
+          "type":"updateNodeText",
           "nodeContentId":graphId + "-1",
           "node_alternative_id":"0",
           "text":value

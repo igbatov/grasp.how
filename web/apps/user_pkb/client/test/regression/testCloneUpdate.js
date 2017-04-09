@@ -58,7 +58,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             '/updateGraphElementContent',
             {
               "graphId":cloneGraphId,
-              "type":"updateNodeAttribute",
+              "type":"updateNodeText",
               "nodeContentId":cloneGraphId + "-1",
               "node_alternative_id":"0",
               "text":"bbb"
@@ -100,7 +100,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         );
       })
       .then(function(e){
-        console.log(e);
         newNodeContentId = JSON.parse(e)['nodeContentId'];
         /** add new edge */
         return GRASP.TestHelpers.fetch(
@@ -185,7 +184,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           TEST_NAME,
           window.location.origin+'/getGraphsCloneList'
         ).then(function(e){
-          console.log(JSON.parse(e));
           GRASP.TestHelpers.cmp(
             'clones list must have cloned graph',
             JSON.parse(e),{
@@ -209,8 +207,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           {"graphIds":[graphId]}
         ).then(function(e){
           originalGraphSettings = JSON.parse(e);
-          console.log(e);
-          console.log(JSON.parse(e));
         }).then(function(){
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
@@ -271,28 +267,28 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "nodes": {
                     "1": {
                       "id": 1,
-                      "nodeContentId": "1-2/-"
+                      "nodeContentId": graphId + "-2/-"
                     },
                     "2": {
                       "id": 2,
-                      "nodeContentId": "-/2-3"
+                      "nodeContentId": "-/" + cloneGraphId + "-3"
                     },
                     "3": {
                       "id": 3,
-                      "nodeContentId": "1-1/2-1"
+                      "nodeContentId": graphId + "-1/" + cloneGraphId + "-1"
                     }
                   },
                   "edges": {
                     "1": {
                       "source": 1,
                       "target": 3,
-                      "edgeContentId": "1-1/-",
+                      "edgeContentId": graphId + "-1/-",
                       "id": 1
                     },
                     "2": {
                       "source": 2,
                       "target": 3,
-                      "edgeContentId": "-/2-2",
+                      "edgeContentId": "-/" + cloneGraphId + "-2",
                       "id": 2
                     }
                   }
@@ -345,7 +341,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         );
       })
       .then(function(e){
-        console.log(e);
         originalSettings['skin']['node']['attr']['stickers'] = {
           "bayes_error": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
           "absent": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
@@ -362,14 +357,18 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         return Promise.resolve();
       })
       .then(function(e){
+        var diffNodeIds = [graphId + "-2/-", "-/" + cloneGraphId + "-3", graphId + "-1/" + cloneGraphId + "-1"];
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             window.location.origin+'/getGraphElementsAttributes',
-            {nodes:["1-2/-", "-/2-3", "1-1/2-1"], edges:["1-1/-", "-/2-2"]}
+            {
+              nodes:diffNodeIds,
+              edges:[graphId + "-1/-", "-/" + cloneGraphId + "-2"]
+            }
         );
       })
       .then(function(e){
-        return GRASP.TestHelpers.cmp(
+        GRASP.TestHelpers.cmp(
             'diff graph element attributes',
             JSON.parse(e),
             {
@@ -432,7 +431,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "has_icon": "0",
                   "active_alternative_id": "1",
                   "stickers": [
-                    "unmodified"
+                    "modified"
                   ],
                   "alternatives": [
                     {
@@ -477,6 +476,51 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
               }
             }
         );
+        return Promise.resolve();
+      })
+      .then(function(){
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            window.location.origin+'/getGraphNodeContent',
+            {"graphId":diffGraphId,"nodeContentIds":[graphId + "-1/" + cloneGraphId + "-1"]}
+        );
+      })
+      .then(function (e) {
+        GRASP.TestHelpers.cmp(
+            'diff graph node content text',
+            JSON.parse(e)[graphId + "-1/" + cloneGraphId + "-1"]['alternatives'][0]['text'],
+            "- 123\n+ bbb\n"
+        );
+
+        GRASP.TestHelpers.cmp(
+            'diff graph node content list',
+            JSON.parse(e)[graphId + "-1/" + cloneGraphId + "-1"]['alternatives'][0]['list'],
+            {
+              "3": {
+                "id": "3",
+                "auth_id": "2",
+                "source_type": "article",
+                "field_type": "",
+                "name": "123",
+                "url": "qwe",
+                "author": "asd",
+                "editor": "zxc",
+                "publisher": "Science",
+                "publisher_reliability": "6",
+                "scopus_title_list_id": "30069",
+                "publish_date": "1982-01-01",
+                "comment": "fgh",
+                "cloned_from_id": "3",
+                "cloned_from_auth_id": "1",
+                "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+                "source_id": "4",
+                "pages": "rty"
+              }
+            }
+        );
+
+        return Promise.resolve();
       });
 
 

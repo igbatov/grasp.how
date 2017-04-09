@@ -203,24 +203,70 @@ class GraphDiffCreator{
     return strpos($contentId, '/') !== false;
   }
 
-  public static function isCloneModified($nodeAlternatives){
+  public static function isCloneModified($db, $nodeAlternatives){
     foreach($nodeAlternatives as $row){
-       if(GraphDiffCreator::isCloneAlternativeModified($row)) return true;
+       if(GraphDiffCreator::isCloneAlternativeModified($db, $row)) return true;
     }
     return false;
   }
 
   /**
    *
+   * @param $db
    * @param $alternative - alternative row from node_content table
    * @return bool
    */
-  public static function isCloneAlternativeModified($alternative){
+  public static function isCloneAlternativeModified(DB $db, $alternative){
+    if($alternative['cloned_from_graph_id'] === null || $alternative['cloned_from_local_content_id'] === null) {
+      return false;
+    }
+
     if($alternative['updated_at'] > $alternative['created_at']) return true;
-    else return false;
+
+    $q = 'SELECT * FROM node_content WHERE graph_id="'.$alternative['cloned_from_graph_id'].'" AND cloned_from_local_content_id="'.$alternative['cloned_from_local_content_id'].'" AND alternative_id="'.$alternative['alternative_id'].'"';
+    $rows = $db->execute($q);
+    if(!self::isClonePEqual($rows[0], $alternative)) return true;
+    if(
+        $rows[0]['type'] != $alternative['type']
+        || $rows[0]['reliability'] != $alternative['reliability']
+        || $rows[0]['importance'] != $alternative['importance']
+        || $rows[0]['label'] != $alternative['label']
+        || $rows[0]['text'] != $alternative['text']
+        || $rows[0]['has_icon'] != $alternative['has_icon']
+        || $rows[0]['stickers'] != $alternative['stickers']
+    )
+    {
+      return true;
+    }
+
+    return false;
   }
 
-  public  static function getDiffText($db, $graphId1, $localContentId1, $alternativeId1, $graphId2, $localContentId2, $alternativeId2){
+  /**
+   * Check that conditional probabilities of node alternative and its clone are equal
+   * @param $original
+   * @param $clone
+   * @return bool
+   */
+  public static function isClonePEqual($original, $clone)
+  {
+    if(
+        $original['graph_id'] !== $clone['cloned_from_graph_id']
+        || $original['local_content_id'] !== $clone['cloned_from_local_content_id']
+    ){
+      return false;
+    }
+
+    $originalP = json_decode($original['p'], true);
+    $cloneP = json_decode($clone['p'], true);
+
+    $contentIdConverter = new ContentIdConverter();
+    $mustBe = Graphs::convertPforClone($originalP, $clone['graph_id'], $contentIdConverter);
+
+    return $mustBe == $cloneP;
+  }
+
+  public static function getDiffText($db, $graphId1, $localContentId1, $alternativeId1, $graphId2, $localContentId2, $alternativeId2){
     // new node in $graph2 - return its text
     if(!$graphId1){
       $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
@@ -256,13 +302,13 @@ class GraphDiffCreator{
     $localContentId = $localContentId1;
     $alternativeId = $alternativeId1;
 
-    $q = "SELECT updated_at, created_at FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
+    $q = "SELECT * FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
     $rows = $db->execute($q);
-    $is_modified = GraphDiffCreator::isCloneAlternativeModified($rows[0]);
+    $is_modified = GraphDiffCreator::isCloneAlternativeModified($db, $rows[0]);
 
     // if it is cloned node and alternative content was not modified
     if(!$is_modified){
-      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
       $rows = $db->execute($q);
       // in case clone removed one of alternatives we will find nothing in $contentId['graphId1']
       if($rows && count($rows)) return $rows[0]['text'];

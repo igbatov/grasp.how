@@ -135,9 +135,9 @@ class Graphs {
         if($contentId['graphId1'] && !$contentId['graphId2']) $status = 'absent';
         elseif(!$contentId['graphId1'] && $contentId['graphId2']) $status = 'added';
         elseif($contentId['graphId1'] && $contentId['graphId2']){
-          $q = "SELECT created_at, updated_at FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
+          $q = "SELECT * FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
           $rows = $this->db->execute($q);
-          if(GraphDiffCreator::isCloneModified($rows)) $status = 'modified';
+          if(GraphDiffCreator::isCloneModified($this->db, $rows)) $status = 'modified';
         }
         $nodes[$content_id]['stickers'][] = $status;
 
@@ -300,7 +300,7 @@ class Graphs {
 
   public function updateGraphElementContent($graph_id, $local_content_id, $r, $auth_id){
     if($r['type'] == 'updateNodeText'){
-      $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
+      $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."', updated_at = NOW() WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
       $this->db->execute($query);
     }else if($r['type'] == 'node_list_add_request'){
       return $this->addNodeContentList($r, $auth_id);
@@ -675,6 +675,29 @@ class Graphs {
   }
 
   /**
+   * @param $originalP
+   * @param $new_graph_id
+   * @param ContentIdConverter $contentIdConverter
+   * @return mixed
+   */
+  public static function convertPforClone($originalP, $new_graph_id, ContentIdConverter $contentIdConverter)
+  {
+    $newP = [];
+    foreach ($originalP as $parentAlternativesSet => $probability){
+      $parentAlternativesSet = json_decode($parentAlternativesSet, true);
+      $newParentAlternativesSet = [];
+      foreach ($parentAlternativesSet as $parentGlobalNodeId=>$parentAlternativeId) {
+        $local_content_id = $contentIdConverter->decodeContentId($parentGlobalNodeId)['local_content_id'];
+        $newGlobalContentId = $contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
+        $newParentAlternativesSet[$newGlobalContentId] = $parentAlternativeId;
+      }
+      $newParentAlternativesSet = json_encode($newParentAlternativesSet);
+      $newP[$newParentAlternativesSet] = $probability;
+    }
+    return $newP;
+  }
+
+  /**
    * Clone graph from specific step. All text and attributes are copied
    * - this preserve text on clone from modification by clonee and
    * simplify process of cloning from clones itself
@@ -738,18 +761,7 @@ class Graphs {
     $rows = $this->db->execute($q);
     foreach ($rows as $row) {
       if($row['p'] && $row['p'] !== '' && json_decode($row['p'], true)){
-        $newP = [];
-        foreach (json_decode($row['p'], true) as $parentAlternativesSet => $probability){
-          $parentAlternativesSet = json_decode($parentAlternativesSet, true);
-          $newParentAlternativesSet = [];
-          foreach ($parentAlternativesSet as $parentGlobalNodeId=>$parentAlternativeId) {
-            $local_content_id = $this->contentIdConverter->decodeContentId($parentGlobalNodeId)['local_content_id'];
-            $newGlobalContentId = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
-            $newParentAlternativesSet[$newGlobalContentId] = $parentAlternativeId;
-          }
-          $newParentAlternativesSet = json_encode($newParentAlternativesSet);
-          $newP[$newParentAlternativesSet] = $probability;
-        }
+        $newP = Graphs::convertPforClone(json_decode($row['p'], true), $new_graph_id, $this->contentIdConverter);
         $q = "UPDATE node_content SET p = '".$this->db->escape(json_encode($newP))."'"
             ." WHERE graph_id = '".$new_graph_id."' AND local_content_id='".$row['local_content_id']."' AND alternative_id='".$row['alternative_id']."'";
         $this->db->execute($q);

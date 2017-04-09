@@ -36,7 +36,8 @@ var tester = new GRASP[TEST_NAME](p);
 
 // start
 var USERNAME = '';
-
+console.log('start', new Date());
+var sw = new GRASP.stopWatch(TEST_NAME);
 // create new DB for this test and switch on it
 GRASP.TestHelpers.fetch(
     TEST_NAME,
@@ -82,9 +83,11 @@ GRASP.TestHelpers.fetch(
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
         window.location.origin+'/rollbackTestChanges'
-       // window.location.origin+'/commitTestChanges'
+        //window.location.origin+'/commitTestChanges'
     ).then(function(){
       console.log('all is done');
+      console.log('finished at', new Date());
+      console.log('total time', sw.elapsed()/1000);
     });
   });
 });

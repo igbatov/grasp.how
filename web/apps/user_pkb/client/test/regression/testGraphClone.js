@@ -91,7 +91,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         data
     )
     .then(function(e){
-      console.log(e);
       graph.elements = JSON.parse(e)[0]['elements'];
       graph.node_mapping = JSON.parse(e)[0]['node_mapping'];
       return Promise.resolve();
@@ -104,7 +103,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       );
     })
     .then(function(e){
-      console.log(e);
       nodeContent = JSON.parse(e);
       return GRASP.TestHelpers.fetch(
           TEST_NAME,
@@ -113,7 +111,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       );
     })
     .then(function(e){
-      console.log(e);
       elementAttributes = JSON.parse(e);
       return Promise.resolve();
     })

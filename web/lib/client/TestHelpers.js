@@ -90,11 +90,9 @@ GRASP.TestHelpers = {
       return false;
     }
 
-    if(GRASP.typeof(standard) == 'object' || GRASP.typeof(standard) == 'array'){
-      if(!GRASP.compare(result, standard, true)){
+    if(!GRASP.compare(result, standard, true)){
         console.log("%c"+testname+' - NOT OK! result must be ', errorCSS, standard, ' but got ', result);
         return false;
-      }
     }
 
     console.log("%c"+testname+" - is OK", successCSS);
