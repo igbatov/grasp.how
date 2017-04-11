@@ -62,9 +62,12 @@ GRASP.TestHelpers.fetch(
    return GRASP[TEST_NAME]['testGraphClone']();
 }).then(function(){
    return GRASP[TEST_NAME]['testCloneUpdate']();
-}).then(function(e){
-  // return GRASP[TEST_NAME]['testGraphRemove']();
-  return Promise.resolve();
+}).then(function(){
+   return GRASP[TEST_NAME]['testFindPublishers']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testSources']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testGraphRemove']();
 }).then(function(e){
   // rollbackTestChanges will clear testableapp_queries for this test,
   // commitTestChanges will execute all testableapp_queries
@@ -88,6 +91,7 @@ GRASP.TestHelpers.fetch(
       console.log('all is done');
       console.log('finished at', new Date());
       console.log('total time', sw.elapsed()/1000);
+      console.log('fetchStat: ', GRASP.TestHelpers.getFetchStat());
     });
   });
 });

@@ -2,6 +2,7 @@ GRASP_TEST_DATA = {
   // here tests will put their test data
 };
 GRASP.TestHelpers = {
+  fetchStat: {}, // statistics of fetches
   /**
    * Recursively substitutes values with corresponding element in replacement array
    * @param obj - object
@@ -99,6 +100,11 @@ GRASP.TestHelpers = {
     return true;
   },
   fetch: function(testName, url, obj){
+    if (typeof this.fetchStat[url] === 'undefined') {
+      this.fetchStat[url] = 0;
+    } else {
+      this.fetchStat[url]++;
+    }
     if (typeof obj === 'undefined') obj = {}
     var formData = new FormData();
     formData.append('TEST_NAME',testName);
@@ -113,5 +119,8 @@ GRASP.TestHelpers = {
     ).then(function(response){
       return response.text();
     });
+  },
+  getFetchStat: function(){
+    return this.fetchStat;
   }
 };
