@@ -306,7 +306,6 @@ Modules['Mediator'].setSubscriptions(
       'repository_get_user_sources':[Modules['Repository']],
       'repository_remove_user_sources':[Modules['Repository']],
       'repository_update_node_mapping':[Modules['Repository']],
-      'get_graph_diff':[Modules['Repository']],
       'find_publishers':[Modules['Repository']],
       'find_sources':[Modules['Repository']],
       'query_grain':[Modules['Repository']],

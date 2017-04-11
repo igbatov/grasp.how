@@ -59,12 +59,6 @@ GRASP.Repository.prototype = {
       this.pendingRequests.push({url:'updateNodeMapping', data:e.getData(), callback:function(){}});
       this.sendPendingRequests();
 
-    }else if(name == 'get_graph_diff'){
-      this.pendingRequests.push({url:'getGraphDiff', data:e.getData(), callback:function(data){
-        that.setEventResponse(e, data, 'JSON');
-      }});
-      this.sendPendingRequests();
-
     }
     // 'repository_request_for_graph_element_content_change' is for cases when we need first to update server
     // and only after that fire 'graph_element_content_changed' (see use cases in code)
