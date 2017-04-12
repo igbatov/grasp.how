@@ -67,6 +67,8 @@ GRASP.TestHelpers.fetch(
 }).then(function(){
    return GRASP[TEST_NAME]['testSources']();
 }).then(function(){
+   return GRASP[TEST_NAME]['testQueryGrain']();
+}).then(function(){
    return GRASP[TEST_NAME]['testGraphRemove']();
 }).then(function(e){
   // rollbackTestChanges will clear testableapp_queries for this test,
@@ -85,8 +87,8 @@ GRASP.TestHelpers.fetch(
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
-        window.location.origin+'/rollbackTestChanges'
-        //window.location.origin+'/commitTestChanges'
+        //window.location.origin+'/rollbackTestChanges'
+        window.location.origin+'/commitTestChanges'
     ).then(function(){
       console.log('all is done');
       console.log('finished at', new Date());

@@ -45,6 +45,7 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testEmptyGraphCreation.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testAddNode.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testAddEdge.js"></script>
+<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testQueryGrain.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testUpdateNode.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testGraphClone.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testCloneUpdate.js"></script>

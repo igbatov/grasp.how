@@ -436,7 +436,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "alternatives": [
                     {
                       "label": "123",
-                      "reliability": "1",
+                      "reliability": "100",
                       "p": {
                         "{\"2-2\":\"0\"}": "1",
                         "{\"2-2\":\"1\"}": "0.3"
@@ -446,7 +446,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                     },
                     {
                       "label": "NOT TRUE: fact",
-                      "reliability": "50",
+                      "reliability": "0",
                       "p": {
                         "{\"2-2\":\"0\"}": "0",
                         "{\"2-2\":\"1\"}": "0.7"

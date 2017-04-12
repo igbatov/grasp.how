@@ -22,7 +22,22 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       }).then(function(){
         return testAttributeChange('active_alternative_id', '1');
       }).then(function(){
-        return testAttributeChange('reliability', '1');
+        return testAttributeChange('reliability', '100');
+      }).then(function(){
+        // change reliability of second alternative to be consistent
+        GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            '/updateGraphElementContent',
+            {
+              "graphId":graphId,
+              "type":"updateNodeAttribute",
+              "nodeContentId":graphId + "-1",
+              "node_alternative_id":"1",
+              "nodeAttribute":{
+                "name":'reliability',
+                "value":0
+              }
+            })
       }).then(function(){
         return testAttributeChange('type', 'proposition');
       }).then(function(){
@@ -148,8 +163,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             "pages":"aaa",
           },
           "nodeType":"fact"
-        }
-        ).then(function(e){
+        })
+        .then(function(e){
            GRASP.TestHelpers.cmp(
               'response from node_list_add_request should have alternative new reliability',
               JSON.parse(e),
