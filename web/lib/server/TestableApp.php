@@ -148,7 +148,7 @@ class TestableApp{
       if(count($rows)) {
         $tablenames = $this->app->getDB()->getTableNames();
         foreach ($tablenames as $tablename) {
-          if(in_array($tablenames, $this->catalog_tables)) continue;
+          if(in_array($tablename, $this->catalog_tables)) continue;
           StopWatch::start($tablename . '1');
           $q = 'TRUNCATE TABLE ' . $tdb . '.' . $tablename;
           $this->testConn->execute($q);

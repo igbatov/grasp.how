@@ -59,13 +59,15 @@ GRASP.TestHelpers.fetch(
 }).then(function(){
    return GRASP[TEST_NAME]['testUpdateNode']();
 }).then(function(){
+   return GRASP[TEST_NAME]['testSources']();
+}).then(function(){
+  return GRASP.TestHelpers.exit(TEST_NAME);
+}).then(function(){
    return GRASP[TEST_NAME]['testGraphClone']();
 }).then(function(){
    return GRASP[TEST_NAME]['testCloneUpdate']();
 }).then(function(){
    return GRASP[TEST_NAME]['testFindPublishers']();
-}).then(function(){
-   return GRASP[TEST_NAME]['testSources']();
 }).then(function(){
    return GRASP[TEST_NAME]['testQueryGrain']();
 }).then(function(){

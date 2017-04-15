@@ -120,6 +120,14 @@ GRASP.TestHelpers = {
       return response.text();
     });
   },
+  exit: function(testName){
+    return GRASP.TestHelpers.fetch(
+        testName,
+        window.location.origin+'/commitTestChanges'
+    ).then(function(){
+      throw 'test exit';
+    });
+  },
   getFetchStat: function(){
     return this.fetchStat;
   }
