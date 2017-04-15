@@ -59,9 +59,9 @@ GRASP.TestHelpers.fetch(
 }).then(function(){
    return GRASP[TEST_NAME]['testUpdateNode']();
 }).then(function(){
-   return GRASP[TEST_NAME]['testSources']();
+   return GRASP.TestHelpers.exit(TEST_NAME);
 }).then(function(){
-  return GRASP.TestHelpers.exit(TEST_NAME);
+   return GRASP[TEST_NAME]['testSources']();
 }).then(function(){
    return GRASP[TEST_NAME]['testGraphClone']();
 }).then(function(){
@@ -70,6 +70,8 @@ GRASP.TestHelpers.fetch(
    return GRASP[TEST_NAME]['testFindPublishers']();
 }).then(function(){
    return GRASP[TEST_NAME]['testQueryGrain']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testUpdateGraph']();
 }).then(function(){
    return GRASP[TEST_NAME]['testGraphRemove']();
 }).then(function(e){
