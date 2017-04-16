@@ -59,8 +59,6 @@ GRASP.TestHelpers.fetch(
 }).then(function(){
    return GRASP[TEST_NAME]['testUpdateNode']();
 }).then(function(){
-   return GRASP.TestHelpers.exit(TEST_NAME);
-}).then(function(){
    return GRASP[TEST_NAME]['testSources']();
 }).then(function(){
    return GRASP[TEST_NAME]['testGraphClone']();
@@ -72,6 +70,8 @@ GRASP.TestHelpers.fetch(
    return GRASP[TEST_NAME]['testQueryGrain']();
 }).then(function(){
    return GRASP[TEST_NAME]['testUpdateGraph']();
+}).then(function(){
+   return GRASP[TEST_NAME]['testUser']();
 }).then(function(){
    return GRASP[TEST_NAME]['testGraphRemove']();
 }).then(function(e){

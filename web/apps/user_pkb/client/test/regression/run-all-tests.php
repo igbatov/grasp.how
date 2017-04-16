@@ -52,6 +52,7 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testCloneUpdate.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testFindPublishers.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testSources.js"></script>
+<script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testUser.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testGraphRemove.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testBackendData.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testBackend.js"></script>
