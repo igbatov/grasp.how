@@ -12,7 +12,10 @@
 
 Запуск тестов:
 http://grasp.local/lib/client/jasmine/jasmin.php
-http://grasp.local/apps/user_pkb/client/test/regression/run-all-tests.php
+Регресионные тесты:
+Запуск - http://grasp.local/apps/user_pkb/client/test/regression/run-all-tests.php
+Чистка тестовой базы перед следующим запуском - http://grasp.local/rollbackTestChanges?TEST_NAME=testBackend
+Удаление тестовой базы - http://grasp.local/clearTest?TEST_NAME=testBackend
 
 Изменение типа узлов
 1. Редактируем список типов в таблице graph

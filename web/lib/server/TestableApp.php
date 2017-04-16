@@ -113,7 +113,7 @@ class TestableApp{
       $this->switchDB($tdb);
 
       // drop test databases
-      $q = 'DROP DATABASE '. strtolower($tdb);
+      $q = 'DROP DATABASE '. $tdb;
       $this->testConn->execute($q);
       return;
 
