@@ -4,35 +4,6 @@ DEBUG_MODE = true;
 dbSchemaFromUserId = 1;
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
-// prepare test listeners (not every test needs this)
-/*
-GRASP[TEST_NAME] = function(publisher){
-  this.publisher = publisher;
-};
-GRASP[TEST_NAME].prototype = {
-  moduleName: 'tester',
-  eventListener: function(event){
-    var that = this;
-    var eventName = event.getName();
-    if(eventName == 'repository_requests_send') {
-      this.clearTest();
-    }
-  },
-  clearTest: function(){
-    p.allEventsDone().then(function(){
-      console.log('clearing test DB');
-      return GRASP.TestHelpers.fetch(
-          TEST_NAME,
-          window.location.origin+'/clearTest'
-      );
-    }).then(function(){
-      console.log('all is done');
-    });
-  }
-};
-
-var tester = new GRASP[TEST_NAME](p);
-*/
 
 // start
 var USERNAME = '';
@@ -74,19 +45,8 @@ GRASP.TestHelpers.fetch(
    return GRASP[TEST_NAME]['testUser']();
 }).then(function(){
    return GRASP[TEST_NAME]['testGraphRemove']();
-}).then(function(e){
-  // rollbackTestChanges will clear testableapp_queries for this test,
-  // commitTestChanges will execute all testableapp_queries
-  return Promise.resolve();
-  /*
-  return GRASP.TestHelpers.fetch(
-    TEST_NAME,
-    window.location.origin+'/rollbackTestChanges'
-  );
-  */
 }).then(function(){
   var allEvents = p.getAllEvents();
- // allEvents.push(Modules['Repository'].getQueueIsEmptyPromise());
   Modules['Promise'].when.apply(Modules['Promise'], allEvents).then(function(){
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(

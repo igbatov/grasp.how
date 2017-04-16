@@ -12,6 +12,7 @@
 
 Запуск тестов:
 http://grasp.local/lib/client/jasmine/jasmin.php
+http://grasp.local/apps/user_pkb/client/test/regression/run-all-tests.php
 
 Изменение типа узлов
 1. Редактируем список типов в таблице graph
