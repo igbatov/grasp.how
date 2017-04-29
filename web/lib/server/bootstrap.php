@@ -73,6 +73,7 @@ require_once ($path.'/'.'Session.php');
 require_once ($path.'/'.'App.php');
 require_once ($path.'/'.'TestableApp.php');
 require_once ($path.'/'.'ContentIdConverter.php');
+require_once ($path.'/'.'GraphIdConverter.php');
 require_once ($path.'/'.'GraphDiffCreator.php');
 require_once ($path.'/'.'Graphs.php');
 require_once ($path.'/'.'OAuthUser.php');
@@ -108,7 +109,7 @@ $s = new Session($a);
 $s->start();
 
 // init helper modules
-$db = new NestedDB($c->getDbConf());
+$db = new MultiTenantDB(new EscapeDB(new NestedDB($c->getDbConf())), $c->get('userDBPrefix'), $c->getDbConf()->dbName);
 $eh = new ErrorHandler();
 $logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());
 $i18n = new I18N($s, $logger);

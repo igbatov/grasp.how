@@ -11,12 +11,17 @@ class AppUserPkb extends App
 {
   const HISTORY_CHUNK = 3; // number of graph in history chunk
   private $contentIdConverter;
+  private $graphIdConverter;
   private $graphs;
 
-  function __construct(Config $c, Session $s, DB $db, Logger $logger, I18N $i18n, OAuthUser $oauth=null) {
+  function __construct(
+      Config $c, Session $s, MultiTenantDB $db,
+      Logger $logger, I18N $i18n, OAuthUser $oauth=null
+  ) {
     parent::__construct($c, $s, $db, $logger, $i18n, $oauth);
     $this->contentIdConverter = new ContentIdConverter();
-    $this->graphs = new Graphs($this->db, $this->contentIdConverter, $this->getLogger());
+    $this->graphIdConverter = new GraphIdConverter($this->logger);
+    $this->graphs = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
   }
 
   public function showView(){
@@ -60,10 +65,14 @@ class AppUserPkb extends App
     }elseif($vars[0] === 'cloneGraph'){
       if(!$this->getAuthId()) $this->redirect('/');
 
-      $graph_id = $vars[1];
+      $fromGraphId = $vars[1];
+      if(!$this->graphIdConverter->isGraphIdGlobal($fromGraphId)){
+        $this->logger->log("Error: graphId=".$fromGraphId." but must be in a global format. Exiting...");
+        return false;
+      }
       $history_step = isset($vars[2]) ? $vars[2] : null;
-      if(!$history_step) $history_step = $this->getGraphLastStep($graph_id);
-      $new_graph_id = $this->graphs->cloneGraph($graph_id, $history_step, $this->getAuthId());
+      if(!$history_step) $history_step = $this->getGraphLastStep($fromGraphId);
+      $new_graph_id = $this->graphs->cloneGraph($fromGraphId, $history_step, $this->getAuthId());
       $user_graph_ids = $this->getGraphIds($this->getAuthId());
       $this->graphs->changeGraphPosition($new_graph_id, 'leftGraphView', $user_graph_ids);
       $this->redirect('/');
@@ -132,7 +141,10 @@ class AppUserPkb extends App
       }
       if($action == 'removeGraph') $graphId = $r['graphId'];
 
-      if(!$this->isUserOwnGraph($graphId))  $access_level = 'read';
+      if(!$this->isUserOwnGraph($graphId)){
+        $access_level = 'read';
+        $this->logger->log('User '.$this->$this->getAuthId().' tries to change the graph '.$graphId.' that he does not own!');
+      }
     }
 
     if(isset($this->getRequest()['graphId']) && GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId'])) $access_level = 'read';
@@ -186,7 +198,7 @@ class AppUserPkb extends App
 
         // Note: GRain can han handle graph that actually consists from several independent, splittered subgraphs
         $graph = $this->getBayesGraph($graph_id);
-        $probabilities = $this->getBayesProbabilities($graph_id, $graph);
+        $probabilities = $this->getBayesProbabilities($graph_id, $graph, $this->contentIdConverter);
 
         // check for errors
         $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
@@ -200,17 +212,15 @@ class AppUserPkb extends App
               .'$imperfect_nodes = '.print_r($imperfect_nodes, true
               ));
           return $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'error', 'data'=>$imperfect_nodes)));
-          return false;
         }
 
         $grain_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
         $probabilities = $grain_querier->queryGrain($graph, $probabilities);
 
         // reformat local_node_ids to global ids
-        $converter = new ContentIdConverter();
         $data = array();
         foreach($probabilities as $local_node_id => $probability){
-          $data[$converter->createGlobalContentId($graph_id, $local_node_id)] = $probability;
+          $data[$this->contentIdConverter->createGlobalContentId($graph_id, $local_node_id)] = $probability;
         }
         return $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'success', 'data'=>$data)));
         break;
@@ -220,6 +230,7 @@ class AppUserPkb extends App
        */
       case 'getGraphsModelSettings':
         if($vars[0] === 'showGraph'){
+          $this->graphIdConverter->throwIfNowGlobal($showGraphId);
           $graphs_settings = $this->getGraphs(array($showGraphId));
           $graphs_settings[$showGraphId]['isEditable'] = false;
         }else{
@@ -250,6 +261,7 @@ class AppUserPkb extends App
             foreach($node['alternatives'] as $alternative_id => $alternative){
               $nodes[$content_id]['alternatives'][$alternative_id]['text'] = GraphDiffCreator::getDiffText(
                   $this->db,
+                  $this->graphIdConverter,
                   $contentId['graphId1'],
                   $contentId['localContentId1'],
                   $alternative_id,
@@ -268,10 +280,7 @@ class AppUserPkb extends App
       case 'getIcon':
         $r = $this->getRequest();
         // get auth_id of this content_id
-        $graph_id = $this->contentIdConverter->getGraphId($r);
-        $node_rows = $this->db->execute("SELECT auth_id FROM graph WHERE id = '".$graph_id."'");
-        $auth_id = $node_rows[0]['auth_id'];
-        $img_path = $this->getAppDir('uploads', false)."/".$auth_id."/".$r.".png";
+        $img_path = $this->getAppDir('uploads', false)."/".$this->getAuthId()."/".$r.".png";
         if(file_exists($img_path)) $this->showImage($img_path);
         else $this->showImage($this->getAppDir('img', false)."/default_icon.png");
         break;
@@ -293,8 +302,8 @@ class AppUserPkb extends App
             $timeline[$graph_id][0] = time();
           }else{
             $timeline[$graph_id] = array();
-            $query = "SELECT step, timestamp FROM graph_history WHERE graph_id = '".$graph_id."'";
-            foreach($this->db->execute($query) as $row){
+            $query = "SELECT step, timestamp FROM graph_history WHERE graph_id = '".$this->graphIdConverter->getLocalGraphId($graph_id)."'";
+            foreach($this->db->exec($this->getAuthId(),$query) as $row){
               $timeline[$graph_id][$row['step']] = (int)$row['timestamp'];
             }
           }
@@ -340,8 +349,17 @@ class AppUserPkb extends App
 
       case 'addGraphHistoryItem':
         $r = $this->getRequest();
-        $query = 'INSERT INTO graph_history SET graph_id = "'.$r['graphId'].'", step = "'.$r['step'].'", timestamp = "'.$r['timestamp'].'", elements = "'.$this->db->escape(json_encode($r['elements'], JSON_FORCE_OBJECT)).'", node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
-        if($this->db->execute($query)){
+        $graphId = $r['graphId'];
+        $this->graphIdConverter->throwIfNowGlobal($graphId);
+        $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
+        $authId = $this->graphIdConverter->getAuthId($graphId);
+        $query = 'INSERT INTO graph_history SET '
+          .'graph_id = "'.$localGraphId.'", '
+          .'step = "'.$r['step'].'", '
+          .'timestamp = "'.$r['timestamp'].'", '
+          .'elements = "'.$this->db->escape(json_encode($r['elements'], JSON_FORCE_OBJECT)).'", '
+          .'node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'])).'"';
+        if($this->db->exec($authId, $query)){
           return $this->showRawData('success');
         }else{
           return $this->showRawData('error');
@@ -350,9 +368,15 @@ class AppUserPkb extends App
 
       case 'updateNodeMapping':
         $r = $this->getRequest();
+        $graphId = $r['graphId'];
+        $this->graphIdConverter->throwIfNowGlobal($graphId);
+        $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
+        $authId = $this->graphIdConverter->getAuthId($graphId);
         if(!isset($r['node_mapping'])) return 'no node_mapping';
-        $query = 'UPDATE graph_history SET node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'], JSON_FORCE_OBJECT)).'" WHERE graph_id = "'.$r['graphId'].'" AND step = "'.$r['step'].'"';
-        if($this->db->execute($query)){
+        $query = 'UPDATE graph_history SET '
+            .'node_mapping = "'.$this->db->escape(json_encode($r['node_mapping'], JSON_FORCE_OBJECT)).'" '
+            .'WHERE graph_id = "'.$localGraphId.'" AND step = "'.$r['step'].'"';
+        if($this->db->exec($authId, $query)){
           return $this->showRawData('success');
         }else{
           return $this->showRawData('error');
@@ -391,6 +415,7 @@ class AppUserPkb extends App
           $local_content_id = null;
         }
 
+        $this->graphIdConverter->throwIfNowGlobal($graph_id);
         // check that graph_id owned by user
         if(!$this->isUserOwnGraph($graph_id)) return false;
 
@@ -406,7 +431,7 @@ class AppUserPkb extends App
           }
         }
 
-        $result = $this->graphs->updateGraphElementContent($graph_id, $local_content_id, $r, $this->getAuthId());
+        $result = $this->graphs->updateGraphElementContent($graph_id, $local_content_id, $r);
         return $this->showRawData($result);
         break;
 
@@ -440,25 +465,28 @@ class AppUserPkb extends App
             "scopus_title_list_id = ".$scopus_title_list_id.",  ".
             "publish_date = '".$this->db->escape($r['publish_date'])."',  ".
             "publish_date = '".$this->db->escape($r['publish_date'])."'  ".
-            "WHERE auth_id = '".$this->getAuthId()."' AND id = '".$this->db->escape($r['id'])."'";
-        $this->db->execute($q);
+            "WHERE id = '".$this->db->escape($r['id'])."'";
+        $this->db->exec($this->getAuthId(),$q);
         return $this->showRawData(json_encode(['result'=>'success']));
         break;
 
       case 'getUserSources':
         $user_graph_ids = $this->getGraphIds($this->getAuthId());
+        foreach ($user_graph_ids as $k => $user_graph_id) {
+          $user_graph_ids[$k] = $this->graphIdConverter->createGlobalGraphId($this->getAuthId(), $user_graph_id);
+        }
         $graphs = $this->getGraphs($user_graph_ids);
         $node_attributes = $this->graphs->getGraphNodeAttributes($user_graph_ids);
 
         $sources = [];
-        $q = "SELECT * FROM source WHERE auth_id = '".$this->getAuthId()."'";
-        $rows = $this->db->execute($q);
+        $q = "SELECT * FROM source";
+        $rows = $this->db->exec($this->getAuthId(),$q);
         foreach ($rows as $row) $sources[$row['id']] = $row;
 
         foreach($sources as $source_id => $source){
           $source_graphs = [];
-          $q = "SELECT * FROM node_content_source WHERE source_id = '".$source['id']."' AND auth_id = '".$this->getAuthId()."'";
-          $source_node_contents = $this->db->execute($q);
+          $q = "SELECT * FROM node_content_source WHERE source_id = '".$source['id']."'";
+          $source_node_contents = $this->db->exec($this->getAuthId(),$q);
           foreach ($source_node_contents as $source_node_content){
             if(!isset($source_graphs[$source_node_content['graph_id']])) {
               $source_graphs[$source_node_content['graph_id']] = [
@@ -491,14 +519,14 @@ class AppUserPkb extends App
         $report = ['removed'=>[], 'cannot_remove'=>[]];
         foreach ($r as $source_id){
           // check that source is not used somewhere
-          $q = "SELECT * FROM node_content_source WHERE source_id = '".$source_id."' AND auth_id = '".$this->getAuthId()."'";
-          if(count($this->db->execute($q))){
+          $q = "SELECT * FROM node_content_source WHERE source_id = '".$source_id."'";
+          if(count($this->db->exec($this->getAuthId(),$q))){
             $report['cannot_remove'][] = $source_id;
             continue;
           }
 
-          $q = "DELETE FROM source WHERE id = '".$source_id."' AND auth_id = '".$this->getAuthId()."'";
-          if($this->db->execute($q)){
+          $q = "DELETE FROM source WHERE id = '".$source_id."'";
+          if($this->db->exec($this->getAuthId(),$q)){
             $report['removed'][] = $source_id;
             $this->logger->log('Source with id = '.$source_id.' removed');
           }
@@ -514,27 +542,25 @@ class AppUserPkb extends App
           $clone_list[$graph_id] = array('cloned_from'=>array(), 'cloned_to'=>array());
 
           // get cloned from graph name and username
-          $q = "SELECT cloned_from_graph_id FROM graph WHERE id = '".$graph_id."'";
-          $rows = $this->db->execute($q);
+          $q = "SELECT cloned_from_graph_id, cloned_from_auth_id FROM graph WHERE id = '".$graph_id."'";
+          $rows = $this->db->exec($this->getAuthId(),$q);
           if(!count($rows)) continue;
 
           $cloned_from_graph_id = $rows[0]['cloned_from_graph_id'];
-          if(is_numeric($cloned_from_graph_id)){
-            $q = "SELECT auth_id, graph FROM graph WHERE id = '".$cloned_from_graph_id."'";
-            $cloned_from_graphname = json_decode($this->db->execute($q)[0]['graph'], true)['name'];
-            $cloned_from_auth_id = $this->db->execute($q)[0]['auth_id'];
+          $cloned_from_auth_id = $rows[0]['cloned_from_auth_id'];
+          if(is_numeric($cloned_from_graph_id) && is_numeric($cloned_from_auth_id)) {
+            $q = "SELECT graph FROM graph WHERE id = '".$cloned_from_graph_id."'";
+            $cloned_from_graphname = json_decode($this->db->exec($cloned_from_auth_id, $q)[0]['graph'], true)['name'];
             $q = "SELECT username FROM auth WHERE id = '".$cloned_from_auth_id."'";
-            $cloned_from_username = $this->db->execute($q)[0]['username'];
+            $cloned_from_username = $this->db->exec(null, $q)[0]['username'];
             $clone_list[$graph_id]['cloned_from'][$cloned_from_graph_id] = $cloned_from_username.": ".$cloned_from_graphname;
           }
 
           // now get list of cloned to graph name and username
-          $q = "SELECT id, auth_id, graph FROM graph WHERE cloned_from_graph_id = '".$graph_id."'";
-          $rows = $this->db->execute($q);
-          foreach($rows as $row){
-            $q = "SELECT username FROM auth WHERE id = '".$row['auth_id']."'";
-            $username = $this->db->execute($q)[0]['username'];
-            $clone_list[$graph_id]['cloned_to'][$row['id']] = $username.": ".json_decode($row['graph'], true)['name'];
+          $q = "SELECT cloned_to FROM graph WHERE id = '".$graph_id."'";
+          $rows = $this->db->exec($this->getAuthId(),$q);
+          foreach(json_decode($rows[0]['cloned_to'], true) as $globalGraphId => $data) {
+            $clone_list[$graph_id]['cloned_to'][$globalGraphId] = $data['username'].": ".$data['graphName'];
           }
         }
 
@@ -546,7 +572,7 @@ class AppUserPkb extends App
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
         $q = "SELECT id, source_title, snip_2014 FROM scopus_title_list WHERE source_title LIKE '".$substring."'";
         $this->logger->log($q);
-        $rows = $this->db->execute($q);
+        $rows = $this->db->exec($this->getAuthId(), $q);
         $items = array();
         foreach($rows as $k=>$row){
           $items[] = array(
@@ -577,9 +603,10 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         if(strlen($r['substring']) == 0) break;
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
-        $q = "SELECT * FROM source WHERE auth_id = '".$this->getAuthId()."' AND name LIKE '".$substring."'".(isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
+        $q = "SELECT * FROM source WHERE name LIKE '".$substring."'";
+        $q .= (isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
         $this->logger->log($q);
-        $rows = $this->db->execute($q);
+        $rows = $this->db->exec($this->getAuthId(), $q);
         $items = array();
         if(count($rows) > 30) return $this->showRawData(json_encode(false));
         foreach($rows as $k=>$row){
@@ -617,8 +644,9 @@ class AppUserPkb extends App
     foreach($graph_ids as $graph_id){
       if(GraphDiffCreator::isDiffGraphId($graph_id)){
         $t = GraphDiffCreator::decodeDiffGraphId($graph_id);
-        $s[$graph_id] = GraphDiffCreator::getGraphSettings($this->db, $t['graphId1'], $t['graphId2']);
+        $s[$graph_id] = GraphDiffCreator::getGraphSettings($this->db, $this->graphIdConverter, $t['graphId1'], $t['graphId2']);
       }else{
+        $this->graphIdConverter->throwIfNowGlobal($graph_id);
         $s[$graph_id] = $this->graphs->getGraphSettings($graph_id);
       }
     }
@@ -627,20 +655,33 @@ class AppUserPkb extends App
   }
 
   protected function getGraphDiff($graphId1, $graphId2){
+    $this->graphIdConverter->throwIfNowGlobal($graphId1);
+    $this->graphIdConverter->throwIfNowGlobal($graphId2);
+    $localGraphId1 = $this->graphIdConverter->getLocalGraphId($graphId1);
+    $authId1 = $this->graphIdConverter->getAuthId($graphId1);
+    $localGraphId2 = $this->graphIdConverter->getLocalGraphId($graphId2);
+    $authId2 = $this->graphIdConverter->getAuthId($graphId2);
     $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$graphId2."'";
-    $rows = $this->db->execute($q);
+    $rows = $this->db->exec($authId2, $q);
     $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
     $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
 
     $graph_diff_creator = new GraphDiffCreator(
       $graph1,
       $graph2,
-      $this->contentIdConverter
+      $this->contentIdConverter,
+      $this->graphIdConverter,
+      $this->logger
     );
     $graphModel = $graph_diff_creator->getDiffGraph();
 
     // get graph model settings
-    $graphModelSettings = GraphDiffCreator::getGraphModelSettings($this->db, $graphId1, $graphId2);
+    $graphModelSettings = GraphDiffCreator::getGraphModelSettings(
+        $this->db,
+        $this->graphIdConverter,
+        $graphId1,
+        $graphId2
+    );
 
     // == create graphViewSettings ==
     $diffGraphId = GraphDiffCreator::encodeDiffGraphId($graphId1, $graphId2);
@@ -684,27 +725,15 @@ class AppUserPkb extends App
 
   protected function removeUser($login){
     $r = array();
-    $q = "SELECT id FROM auth WHERE username = '".$login."'";
-    $rows = $this->db->execute($q);
-
-    if(count($rows) == 0) return false;
-
-    $user_id = $rows[0]['id'];
-    $graph_ids = $this->getGraphIds($user_id);
-    foreach($graph_ids as $graph_id) array_push($r, $this->graphs->removeGraph($graph_id));
-
-    $q = "DELETE FROM auth WHERE id = '".$user_id."'";
-    array_push($r, $this->db->execute($q));
-
+    $user_id = $this->getUserId($login);
+    if(!$user_id) return false;
+    $this->removeUser($login);
     return $r;
   }
 
   public function createNewUser($login, $password){
-    if(!parent::createNewUser($login, $password)) return false;
-
-    $q = "SELECT id FROM auth WHERE username = '".$login."'";
-    $rows = $this->db->execute($q);
-    $new_user_id = $rows[0]['id'];
+    $new_user_id = parent::createNewUser($login, $password);
+    if($new_user_id === false) return false;
 
     // create directory for the user
     $new_user_dir = $this->getAppDir('uploads', false).'/'.$new_user_id;
@@ -721,27 +750,33 @@ class AppUserPkb extends App
 
   private function isUserOwnGraph($graph_id){
     if($graph_id == 'none') return true;
-    $q = "SELECT auth_id FROM graph WHERE id = '".$graph_id."'";
-    $rows = $this->db->execute($q);
-    return isset($rows[0]) ? $rows[0]['auth_id'] == $this->getAuthId() : false;
+    if(!$this->graphIdConverter->isGraphIdGlobal($graph_id)) return true;
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    return $authId == $this->getAuthId();
   }
 
   private function getGraphIds($auth_id){
     $graph_query = "SELECT id FROM graph WHERE auth_id = '".$auth_id."'";
-    $rows = $this->db->execute($graph_query);
+    $rows = $this->db->exec($auth_id, $graph_query);
     $s = array();
     foreach($rows as $row){
-      $s[] = $row['id'];
+      $s[] = $this->graphIdConverter->createGlobalGraphId($auth_id,$row['id']);
     }
     return $s;
   }
 
+  /**
+   * @param $graph_ids - array of graphIds in a global format
+   * @return array
+   */
   public function getGraphs($graph_ids){
     $s = array();
     foreach($graph_ids as $graph_id){
       if(GraphDiffCreator::isDiffGraphId($graph_id)){
         $graphId = GraphDiffCreator::decodeDiffGraphId($graph_id);
-        $s[$graph_id] = GraphDiffCreator::getGraphModelSettings($this->db, $graphId['graphId1'], $graphId['graphId2']);
+        $graphId1 = $graphId['graphId1'];
+        $graphId2 = $graphId['graphId2'];
+        $s[$graph_id] = GraphDiffCreator::getGraphModelSettings($this->db, $this->graphIdConverter, $graphId1, $graphId2);
       }else{
         $s[$graph_id] = $this->graphs->getGraphProps($graph_id);
       }
@@ -750,26 +785,43 @@ class AppUserPkb extends App
   }
 
   private function getGraphLastStep($graph_id){
-    $query = "SELECT step FROM `graph_history` WHERE graph_id = '".$graph_id."' ORDER BY step DESC LIMIT 1";
-    $rows = $this->db->execute($query);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $query = "SELECT step FROM `graph_history` WHERE graph_id = '".$localGraphId."' ORDER BY step DESC LIMIT 1";
+    $rows = $this->db->exec($authId, $query);
     if(!$rows) $this->logger->error("returned no rows on query: ".$query);
     return $rows[0]['step'];
   }
 
+  /**
+   * @param $request
+   * @return array
+   * @throws Exception
+   */
   private function getGraphsHistoryChunk($request){
     $graphs_history = array();
     foreach($request as $graph_id => $step){
       if(GraphDiffCreator::isDiffGraphId($graph_id)){
+
         $graphId1 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId1'];
+        $this->graphIdConverter->throwIfNowGlobal($graphId1);
+        $authId1 = $this->graphIdConverter->getAuthId($graphId1);
+
         $graphId2 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId2'];
-        $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$graphId2."'";
-        $rows = $this->db->execute($q);
+        $this->graphIdConverter->throwIfNowGlobal($graphId2);
+        $localGraphId2 = $this->graphIdConverter->getAuthId($graphId2);
+        $authId2 = $this->graphIdConverter->getAuthId($graphId2);
+
+        $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$localGraphId2."'";
+        $rows = $this->db->exec($authId2, $q);
         $graph1 = $this->getGraphsHistoryChunk(array($graphId1=>$rows[0]['cloned_from_graph_history_step']))[0];
         $graph2 = $this->getGraphsHistoryChunk(array($graphId2=>null))[0];
         $graph_diff_creator = new GraphDiffCreator(
             $graph1,
             $graph2,
-            $this->contentIdConverter
+            $this->contentIdConverter,
+            $this->graphIdConverter,
+            $this->logger
         );
         $graphModel = $graph_diff_creator->getDiffGraph();
         /**
@@ -806,15 +858,19 @@ class AppUserPkb extends App
             'elements'=>$graphModel,
             'node_mapping'=>array('area'=>$graph1['node_mapping']['area'], 'mapping'=>$diff_node_mapping)
         );
-      }else{
+      }
+      /** It is not "diff graph" */
+      else{
         // if step is null we assume that they wanted the very last step
         if($step == null){
           $step = $this->getGraphLastStep($graph_id);
         }
-
-        $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$graph_id."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
+        $this->graphIdConverter->throwIfNowGlobal($graph_id);
+        $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+        $authId = $this->graphIdConverter->getAuthId($graph_id);
+        $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$localGraphId."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
         $this->logger->log($query);
-        $rows = $this->db->execute($query);
+        $rows = $this->db->exec($authId, $query);
         foreach($rows as $row){
           $graphs_history[] = array(
               'graphId'=>$graph_id,
@@ -838,23 +894,32 @@ class AppUserPkb extends App
   *   edges:[['h1','e1'],['e2','h1']] // first element is source, second is destination
   * };
   * where e1,e2,h1 are local_content_ids in our terminology
-  * @param $graph_id
+  * @param $graph_id - in global format
   * @return array|bool
+  * @throws Exception
   */
   private function getBayesGraph($graph_id){
+    if(!$this->graphIdConverter->isGraphIdGlobal($graph_id)) {
+      $msg = __CLASS__."::".__METHOD__." graph id must be in a global format! Got ".$graph_id;
+      $this->logger->log($msg);
+      throw new Exception($msg);
+    }
     $history = $this->getGraphsHistoryChunk(array($graph_id=>null));
     if(!count($history)) return false;
+
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
 
     // form nodes
     $node_local_content_ids = array();
     foreach($history[0]['elements']['nodes'] as $node) $node_local_content_ids[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
 
-    $query = "SELECT local_content_id, alternative_id, type FROM node_content WHERE graph_id = '".$graph_id
+    $query = "SELECT local_content_id, alternative_id, type FROM node_content WHERE graph_id = '".$localGraphId
         ."' AND type IN ('fact','proposition')"
         ." AND local_content_id IN ('".implode("','",$node_local_content_ids)."') ORDER BY local_content_id, alternative_id";
     $this->logger->log($query);
     $graph = array('nodes'=>array(), 'edges'=>array());
-    $rows = $this->db->execute($query);
+    $rows = $this->db->exec($authId, $query);
     foreach($rows as $row){
       if(!in_array($row['type'], array('fact','proposition'))) continue;
       if($row['type'] == 'fact') $graph['nodes'][$row['local_content_id']] = ['0','1']; // fact always has only two alternatives
@@ -899,15 +964,20 @@ class AppUserPkb extends App
   * e2: 1 - only 1 of 10000 has HIV, 2 - 1 is not true
   * @param $graph_id
   * @param $bayes_graph - graph returned by $this->getBayesGraph()
+  * @param ContentIdConverter $contentIdConverter
   * @return array|bool
+  * @throws Exception
   */
-  private function getBayesProbabilities($graph_id, $bayes_graph){
-    $conv = new ContentIdConverter();
+  private function getBayesProbabilities($graph_id, $bayes_graph, ContentIdConverter $contentIdConverter){
+    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $conv = $contentIdConverter;
     $probabilities = array();
     foreach(array_keys($bayes_graph['nodes']) as $local_content_id){
-      $query = "SELECT alternative_id, p, type, reliability FROM node_content WHERE graph_id = '".$graph_id
+      $query = "SELECT alternative_id, p, type, reliability FROM node_content WHERE graph_id = '".$localGraphId
           ."' AND local_content_id = '".$local_content_id."'";
-      $alternatives = $this->db->execute($query);
+      $alternatives = $this->db->exec($authId, $query);
 
       $probabilities[$local_content_id] = array();
       foreach($alternatives as $alternative){
@@ -963,7 +1033,10 @@ class AppUserPkb extends App
    * @return array
    */
   private function getImperfectNodes($graph_id, $bayes_graph, $probabilities){
-    $converter = new ContentIdConverter();
+    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $converter = $this->contentIdConverter;
     $imperfect_nodes = array(
         'wrong_number_of_rows'=>array(),
         'wrong_number_of_cells_in_a_row'=>array(),
@@ -1000,8 +1073,8 @@ class AppUserPkb extends App
 
     foreach(array_keys($bayes_graph['nodes']) as $node_local_id){
       // if node is a fact it must has soft evidence with two alternatives in it
-      $query = "SELECT type FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$node_local_id."' LIMIT 1";
-      $alternatives = $this->db->execute($query);
+      $query = "SELECT type FROM node_content WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$node_local_id."' LIMIT 1";
+      $alternatives = $this->db->exec($authId, $query);
       if($alternatives[0]['type'] == 'fact' && !isset($probabilities[$node_local_id]['soft'])) $imperfect_nodes['fact_without_soft'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
     }
 

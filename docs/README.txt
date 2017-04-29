@@ -17,6 +17,12 @@ http://grasp.local/lib/client/jasmine/jasmin.php
 Чистка тестовой базы перед следующим запуском - http://grasp.local/rollbackTestChanges?TEST_NAME=testBackend
 Удаление тестовой базы - http://grasp.local/clearTest?TEST_NAME=testBackend
 
+Rollup/down migrations:
+scripts/migrations.php
+Debug migrations:
+php -dxdebug.remote_autostart=On  -dxdebug.remote_enable=1 -dxdebug.remote_mode=req -dxdebug.remote_port=9000 -dxdebug.remote_host=grasp.local  scripts/
+migrations.php -m=D20170423MultiTenant -d=up
+
 Изменение типа узлов
 1. Редактируем список типов в таблице graph
 2. Редактируем соответствие типов и цветов в таблице graph_settings

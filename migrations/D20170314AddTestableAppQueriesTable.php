@@ -6,9 +6,9 @@
  */
 class D20170314AddTestableAppQueriesTable extends Migration
 {
-  public function up()
+  public function up($authId)
   {
-    $this->db->execute(<<<'SQL'
+    $this->db->exec($authId,<<<'SQL'
 CREATE TABLE testableapp_queries (
         id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name varchar(255),
@@ -20,9 +20,9 @@ SQL
   }
 
 
-  public function down()
+  public function down($authId)
   {
-    $this->db->execute(<<<'SQL'
+    $this->db->exec($authId,<<<'SQL'
 DROP TABLE testableapp_queries;
 SQL
     );

@@ -13,8 +13,18 @@ ini_set('error_log', $c->getDefaultPath('log')."/error_log.log");
  * Include all our classes
  */
 require_once ($path.'/'.'DB.php');
+require_once ($path.'/'.'NestedDB.php');
+require_once ($path.'/'.'EscapeDB.php');
+require_once ($path.'/'.'MultiTenantDB.php');
 require_once ($path.'/'.'ErrorHandler.php');
 
 // init helper modules
-$db = new DB($c->getDbConf());
+$db = new MultiTenantDB(
+    new EscapeDB(
+        new NestedDB($c->getDbConf())
+    ),
+    $c->get('userDBPrefix'),
+    $c->getDbConf()->dbName
+);
 $eh = new ErrorHandler();
+$logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());

@@ -82,6 +82,10 @@ class Session{
     return $this->auth->addUser($login, $password);
   }
 
+  public function removeUser($login){
+    return $this->auth->removeUser($login);
+  }
+
   public function updateUserPassword($login, $password){
     return $this->auth->changePassword($login, $password);
   }

@@ -6,20 +6,14 @@
  */
 class D20170312MigrationTest extends Migration
 {
-  public function up()
+  public function up($authId)
   {
-    $this->db->execute(<<<'SQL'
-
-SQL
-    );
+    $this->db->exec($authId,"");
   }
 
 
-  public function down()
+  public function down($authId)
   {
-    $this->db->execute(<<<'SQL'
-
-SQL
-    );
+    $this->db->exec($authId,"");
   }
 }

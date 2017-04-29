@@ -12,7 +12,7 @@ abstract class App
   protected $auth_id;
   protected $oauth;
 
-  function __construct(Config $c, Session $s, DB $db, Logger $logger, I18N $i18n, OAuthUser $oauth=null) {
+  function __construct(Config $c, Session $s, MultiTenantDB $db, Logger $logger, I18N $i18n, OAuthUser $oauth=null) {
     $this->config = $c;
     $this->session = $s;
     $this->db = $db;
@@ -131,12 +131,17 @@ abstract class App
   }
 
   public function getUserId($username){
-    $rows = $this->db->execute("SELECT id FROM auth WHERE username = '".$username."'");
+    $rows = $this->db->exec(null, "SELECT id FROM auth WHERE username = '".$username."'");
     return count($rows)>0 ? $rows[0]['id'] : null;
   }
 
-  protected function getAuthId(){
-    return $this->auth_id;
+  public function getAuthId(){
+    if ($this->auth_id) {
+      return $this->auth_id;
+    } else {
+      $this->auth_id = $this->getUserId($this->session->getUsername());
+      return $this->auth_id;
+    }
   }
 
   public function showRawData($data=""){
@@ -152,8 +157,25 @@ abstract class App
     return;
   }
 
+  protected function removeUser($login){
+    // do we really want to remove anybody?
+    //$this->session->removeUser($login);
+  }
+
   protected function createNewUser($login, $password){
-    return $this->session->createNewUser($login, $password);
+    // if user already exists, return false;
+    if($this->getUserId($this->session->getUsername()) !== null){
+      throw new Exception('User with login '.$login.' already exist! Do nothing...');
+    }
+    if(true !== $this->session->createNewUser($login, $password)){
+      throw new Exception('Cannot create user with login '.$login.'.');
+    }
+
+    $auth_id = $this->getUserId($login);
+    $dbname = $this->db->getDBName($auth_id);
+
+    $this->db->copyDB($this->config->get('db_template'), $dbname);
+    return $auth_id;
   }
 
   protected function updateUserPassword($login, $password){
@@ -165,7 +187,7 @@ abstract class App
     if(!$username) return false;
 
     $query = "UPDATE auth SET info = '".json_encode($info)."' WHERE username = '".$username."'";
-    $this->db->execute($query);
+    $this->db->exec(null, $query);
   }
 
   protected function getUserInfo(){
@@ -173,7 +195,7 @@ abstract class App
     if(!$username) return false;
 
     $query = "SELECT info FROM auth WHERE username = '".$username."'";
-    $rows = $this->db->execute($query);
+    $rows = $this->db->exec(null, $query);
     return count($rows) ? json_decode($rows[0], true) : false;
   }
 

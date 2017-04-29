@@ -14,7 +14,7 @@ class DB
   }
 
   public function switchDB($dbname){
-    $this->execute("USE ".$dbname);
+    return $this->execute("USE ".$dbname);
   }
 
   public function execute($query)
@@ -29,7 +29,12 @@ class DB
       }
     }
 
-    $result = mysqli_query($this->mysqlLink, $query) or trigger_error("MysqlHelper::execute query='".$query."'\n".mysqli_error($this->mysqlLink));
+    $result = mysqli_query($this->mysqlLink, $query);
+    if($result === false){
+      $error_msg = "MysqlHelper::execute query='".$query."'\n".mysqli_error($this->mysqlLink);
+      trigger_error($error_msg);
+      throw new Exception($error_msg);
+    }
 
     if(strtoupper(substr($query, 0, 6)) == "DELETE") return $result;
     if(strtoupper(substr($query, 0, 6)) == "INSERT") return mysqli_insert_id($this->mysqlLink);
@@ -91,21 +96,22 @@ class DB
    */
   public function startTransaction()
   {
-    mysqli_query($this->mysqlLink, "BEGIN");
+   return mysqli_query($this->mysqlLink, "BEGIN");
   }
 
   public function commitTransaction()
   {
-    mysqli_query($this->mysqlLink, "COMMIT");
+    return mysqli_query($this->mysqlLink, "COMMIT");
   }
 
   public function rollbackTransaction()
   {
-    mysqli_query($this->mysqlLink, "ROLLBACK");
+    return mysqli_query($this->mysqlLink, "ROLLBACK");
   }
 
   public function addPreExecListener($obj, $method){
     $this->preExecListeners[] = ['obj'=>$obj, 'method'=>$method];
+    return true;
   }
 
   public function getCurrentDB(){
@@ -122,6 +128,12 @@ class DB
       $tablenames[] = reset($row);
     }
     return $tablenames;
+  }
+
+  public function isColumnExists($dbName, $tableName, $columnName)
+  {
+    $rows = $this->execute("SHOW COLUMNS FROM ".$dbName.".".$tableName." LIKE '".$columnName."'");
+    return count($rows)>0 ? TRUE : FALSE;
   }
 }
 ?>

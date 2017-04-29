@@ -9,9 +9,10 @@ class EmbGraph{
   private  $db;
   private  $graphs;
 
-  function __construct(DB $db, ContentIdConverter $contentIdConverter, Graphs $graphs) {
+  function __construct(MultiTenantDB $db, ContentIdConverter $contentIdConverter, GraphIdConverter $graphIdConverter, Graphs $graphs) {
     $this->db = $db;
     $this->contentIdConverter = $contentIdConverter;
+    $this->graphIdConverter = $graphIdConverter;
     $this->graphs = $graphs;
   }
 
@@ -21,38 +22,35 @@ class EmbGraph{
    * @return array
    */
   public function getGraphsData($graph_ids){
-    error_log('graph_ids = '.var_export($graph_ids, true));
-    $graph_settings_rows = $this->db->execute("SELECT * FROM graph_settings WHERE graph_id IN ('".implode("','", $graph_ids)."')");
+    $graph = array();
+    foreach ($graph_ids as $graph_id) {
+      $this->graphIdConverter->throwIfNowGlobal($graph_id);
+      $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+      $authId = $this->graphIdConverter->getAuthId($graph_id);
+      $graph_settings_row = $this->db->exec($authId, "SELECT * FROM graph_settings WHERE graph_id = '".$localGraphId."'")[0];
 
-    // get node types
-    foreach($graph_settings_rows as $graph_settings_row){
+      // get node types
       $graph_settings = json_decode($graph_settings_row['settings'], true);
       foreach($graph_settings['skin']['node']['attr']['typeColors'] as $type => $color){
         $nodeDecoration[$graph_settings_row['graph_id']][$type] = $color;
         $nodeTypes[$graph_settings_row['graph_id']][$type] = $type;
       }
-    }
 
-    // get edge types
-    foreach($graph_settings_rows as $graph_settings_row){
+      // get edge types
       $graph_settings = json_decode($graph_settings_row['settings'], true);
       foreach($graph_settings['skin']['edge']['attr']['typeColors'] as $type => $color){
         $edgeDecoration[$graph_settings_row['graph_id']][$type] = $color;
         $edgeTypes[$graph_settings_row['graph_id']][$type] = $type;
       }
-    }
 
-    $graph = array();
-
-    // get names and node types
-    $graph_rows = $this->db->execute("SELECT * FROM graph WHERE id IN ('".implode("','", $graph_ids)."')");
-    foreach($graph_rows as $graph_row){
+      // get names and node types
+      $graph_row = $this->db->exec($authId, "SELECT * FROM graph WHERE id = '".$localGraphId."'")[0];
       $graph_settings = json_decode($graph_row['graph'], true);
       $graph[$graph_row['id']] = array("name"=>$graph_settings["name"], "nodeTypes"=>$graph_settings["nodeTypes"], "edgeTypes"=>$graph_settings["edgeTypes"]);
 
       // get nodes and edges
       $local_content_ids = array();
-      $rows = $this->db->execute("SELECT * FROM graph_history WHERE graph_id = '".$graph_row['id']."' ORDER BY step DESC LIMIT 1");
+      $rows = $this->db->exec($authId, "SELECT * FROM graph_history WHERE graph_id = '".$graph_row['id']."' ORDER BY step DESC LIMIT 1");
       foreach($rows as $row){
         $elements = json_decode($row['elements'], true);
         $mapping = json_decode($row['node_mapping'], true);
@@ -73,7 +71,10 @@ class EmbGraph{
       // get nodes contents
       $graph[$graph_row['id']]["nodeContents"] = array();
       foreach(array_keys($local_content_ids) as $local_content_id){
-        $global_content_ids[] = $this->contentIdConverter->createGlobalContentId($graph_row['id'], $local_content_id);
+        $global_content_ids[] = $this->contentIdConverter->createGlobalContentId(
+          $this->graphIdConverter->createGlobalGraphId($authId, $graph_row['id']),
+          $local_content_id
+        );
       }
 
       foreach($this->graphs->getGraphNodeContent($global_content_ids) as $global_content_id => $content){
@@ -99,19 +100,6 @@ class EmbGraph{
       $graph[$graph_row['id']]["nodeTypes"] = $this->convertNodeTypes($graph[$graph_row['id']]["nodeTypes"], $nodeTypes[$graph_row['id']], $nodeDecoration[$graph_row['id']]);
       $graph[$graph_row['id']]["edgeTypes"] = $this->convertEdgeTypes($graph[$graph_row['id']]["edgeTypes"], $edgeDecoration[$graph_row['id']]);
 
-/*
-seems to be obsolete stuff
-      // remove root node with its edges
-      foreach($graph[$graph_row['id']]["nodes"] as $node){
-        if($graph[$graph_row['id']]["nodeContents"][$node["id"]]["label"] == "root"){
-          unset($graph[$graph_row['id']]["nodeContents"][$node["id"]]);
-          unset($graph[$graph_row['id']]["nodes"][$node["id"]]);
-          foreach($graph[$graph_row['id']]["edges"] as $edge){
-            if($edge["source"] == $node["id"]) unset($graph[$graph_row['id']]["edges"][$edge["id"]]);
-          }
-        }
-      }
-*/
       // add edge types
       $edgeContentIds = array();
       foreach($graph[$graph_row['id']]["edges"] as $edge) $edgeContentIds[] = $edge['edgeContentId'];
@@ -124,10 +112,12 @@ seems to be obsolete stuff
       // add nodeId - globalContentId correspondence (for js getCondPsInfo function)
       $node_id_global_content_id_map = array();
       foreach($local_content_ids as $local_content_id=>$node_id){
-        $node_id_global_content_id_map[$node_id] = $this->contentIdConverter->createGlobalContentId($graph_row['id'], $local_content_id);
+        $node_id_global_content_id_map[$node_id] = $this->contentIdConverter->createGlobalContentId(
+            $this->graphIdConverter->createGlobalGraphId($authId, $graph_row['id']),
+            $local_content_id
+        );
       }
       $graph[$graph_row['id']]["node_id_global_content_id_map"] = $node_id_global_content_id_map;
-
     }
     return $graph;
   }

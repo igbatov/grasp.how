@@ -28,7 +28,8 @@ class Config{
   public function get($key){
     $string = file_get_contents($this->getWebRootPath()."/../Config.json");
     $config_json = json_decode($string, true);
-    return isset($config_json[$key]) ? $config_json[$key] : false;
+    if(!isset($config_json[$key])) throw new Exception("Cannot find key ".$key." in Config.json");
+    return $config_json[$key];
   }
 
   public function getAdminSecret(){

@@ -9,9 +9,13 @@
  * - i.e. there was no edits in graph1 in the same time as graph2 was edited
  */
 class GraphDiffCreator{
+  private $authId1;
   private $graph1;
+  private $authId2;
   private $graph2;
   private $contentIdConverter;
+  private $graphIdConverter;
+  private $logger;
 
   /**
    * @param $graph1 - row from history of graph 1 in form (
@@ -22,13 +26,28 @@ class GraphDiffCreator{
    *  )
    * @param $graph2 - row from history of graph 2
    * @param ContentIdConverter $contentIdConverter
+   * @param GraphIdConverter $graphIdConverter
+   * @param Logger $logger
+   * @throws Exception
    */
   public function __construct(
     $graph1,
     $graph2,
-    ContentIdConverter $contentIdConverter
+    ContentIdConverter $contentIdConverter,
+    GraphIdConverter $graphIdConverter,
+    Logger $logger
   ){
+    $this->logger = $logger;
+    $this->graphIdConverter = $graphIdConverter;
+    if(!$this->graphIdConverter->isGraphIdGlobal($graph1)
+    || !$this->graphIdConverter->isGraphIdGlobal($graph2)){
+      $msg = __CLASS__."::".__METHOD__." error: Graph id must be in a global format, got ".$graph1." and ".$graph2;
+      $this->logger->log($msg);
+      throw new Exception($msg);
+    }
+    $this->authId1 = $this->graphIdConverter->getAuthId($graph1);
     $this->graph1 = $graph1;
+    $this->authId1 = $this->graphIdConverter->getAuthId($graph2);
     $this->graph2 = $graph2;
     $this->contentIdConverter = $contentIdConverter;
   }
@@ -203,9 +222,9 @@ class GraphDiffCreator{
     return strpos($contentId, '/') !== false;
   }
 
-  public static function isCloneModified($db, $nodeAlternatives){
+  public static function isCloneModified(MultiTenantDB $db, $authId, $nodeAlternatives){
     foreach($nodeAlternatives as $row){
-       if(GraphDiffCreator::isCloneAlternativeModified($db, $row)) return true;
+       if(GraphDiffCreator::isCloneAlternativeModified($db, $authId, $row)) return true;
     }
     return false;
   }
@@ -213,10 +232,11 @@ class GraphDiffCreator{
   /**
    *
    * @param $db
+   * @param $authId - $authId of clone owner
    * @param $alternative - alternative row from node_content table
    * @return bool
    */
-  public static function isCloneAlternativeModified(DB $db, $alternative){
+  public static function isCloneAlternativeModified(MultiTenantDB $db, $authId, $alternative){
     if($alternative['cloned_from_graph_id'] === null || $alternative['cloned_from_local_content_id'] === null) {
       return false;
     }
@@ -224,7 +244,7 @@ class GraphDiffCreator{
     if($alternative['updated_at'] > $alternative['created_at']) return true;
 
     $q = 'SELECT * FROM node_content WHERE graph_id="'.$alternative['cloned_from_graph_id'].'" AND cloned_from_local_content_id="'.$alternative['cloned_from_local_content_id'].'" AND alternative_id="'.$alternative['alternative_id'].'"';
-    $rows = $db->execute($q);
+    $rows = $db->exec($authId, $q);
     if(!self::isClonePEqual($rows[0], $alternative)) return true;
     if(
         $rows[0]['type'] != $alternative['type']
@@ -266,11 +286,23 @@ class GraphDiffCreator{
     return $mustBe == $cloneP;
   }
 
-  public static function getDiffText($db, $graphId1, $localContentId1, $alternativeId1, $graphId2, $localContentId2, $alternativeId2){
+  public static function getDiffText(
+      MultiTenantDB $db,
+      GraphIdConverter $graphIdConverter,
+      $graphId1,
+      $localContentId1,
+      $alternativeId1,
+      $graphId2,
+      $localContentId2,
+      $alternativeId2)
+  {
     // new node in $graph2 - return its text
     if(!$graphId1){
-      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
-      $rows = $db->execute($q);
+      $graphIdConverter->throwIfNowGlobal($graphId2);
+      $localGraphId2 = $graphIdConverter->getLocalGraphId($graphId2);
+      $authId2 = $graphIdConverter->getAuthId($graphId2);
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
+      $rows = $db->exec($authId2, $q);
       if($rows && count($rows)) return $rows[0]['text'];
 
       return false;
@@ -278,22 +310,32 @@ class GraphDiffCreator{
 
     // removed $graph1 node - return its text
     if(!$graphId2){
-      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId1."' AND alternative_id='".$alternativeId1."'";
-      $rows = $db->execute($q);
+      $graphIdConverter->throwIfNowGlobal($graphId1);
+      $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
+      $authId1 = $graphIdConverter->getAuthId($graphId1);
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$localGraphId1."' AND local_content_id = '".$localContentId1."' AND alternative_id='".$alternativeId1."'";
+      $rows = $db->exec($authId1, $q);
       if($rows && count($rows)) return $rows[0]['text'];
 
       return false;
     }
 
+    $graphIdConverter->throwIfNowGlobal($graphId1);
+    $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
+    $authId1 = $graphIdConverter->getAuthId($graphId1);
+    $graphIdConverter->throwIfNowGlobal($graphId2);
+    $localGraphId2 = $graphIdConverter->getLocalGraphId($graphId2);
+    $authId2 = $graphIdConverter->getAuthId($graphId2);
+
     // comparing different alternatives or different nodes, give text of node from $graphId2 if it exists, else give text of node from $graphId1
     if($alternativeId1 != $alternativeId2 || $localContentId1 != $localContentId2){
-      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
-      $rows = $db->execute($q);
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
+      $rows = $db->exec($authId2, $q);
       if($rows && count($rows)) return $rows[0]['text'];
 
       // not found text in $graphId2, try in $graphId1
-      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId1."' AND alternative_id='".$alternativeId1."'";
-      $rows = $db->execute($q);
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$localGraphId1."' AND local_content_id = '".$localContentId1."' AND alternative_id='".$alternativeId1."'";
+      $rows = $db->exec($authId1, $q);
       if($rows && count($rows)) return $rows[0]['text'];
 
       return false;
@@ -302,21 +344,21 @@ class GraphDiffCreator{
     $localContentId = $localContentId1;
     $alternativeId = $alternativeId1;
 
-    $q = "SELECT * FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
-    $rows = $db->execute($q);
-    $is_modified = GraphDiffCreator::isCloneAlternativeModified($db, $rows[0]);
+    $q = "SELECT * FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
+    $rows = $db->exec($authId2, $q);
+    $is_modified = GraphDiffCreator::isCloneAlternativeModified($db, $authId2, $rows[0]);
 
     // if it is cloned node and alternative content was not modified
     if(!$is_modified){
-      $q = "SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
-      $rows = $db->execute($q);
+      $q = "SELECT text FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
+      $rows = $db->exec($authId2, $q);
       // in case clone removed one of alternatives we will find nothing in $contentId['graphId1']
       if($rows && count($rows)) return $rows[0]['text'];
     }
     // it is cloned node and alternative was modified
     else{
-      $text1 = $db->execute("SELECT text FROM node_content WHERE graph_id = '".$graphId1."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
-      $text2 = $db->execute("SELECT text FROM node_content WHERE graph_id = '".$graphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
+      $text1 = $db->exec($authId1, "SELECT text FROM node_content WHERE graph_id = '".$localGraphId1."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
+      $text2 = $db->exec($authId2, "SELECT text FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
       $text1 = mb_convert_encoding($text1, 'HTML-ENTITIES', 'UTF-8');
       $text2 = mb_convert_encoding($text2, 'HTML-ENTITIES', 'UTF-8');
       return mb_convert_encoding(TextDiff::toString(TextDiff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
@@ -325,16 +367,22 @@ class GraphDiffCreator{
     return false;
   }
 
-  public static function getGraphSettings($db, $graphId1, $graphId2){
-    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$graphId1."'";
-    $graph1Settings = json_decode($db->execute($q)[0]['settings'], true);
-    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$graphId2."'";
-    $graph2Settings = json_decode($db->execute($q)[0]['settings'], true);
+  public static function getGraphSettings(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $graphId1, $graphId2){
+    $graphIdConverter->throwIfNowGlobal($graphId1);
+    $graphIdConverter->throwIfNowGlobal($graphId2);
+    $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
+    $authId1 = $graphIdConverter->getAuthId($graphId1);
+    $localGraphId2 = $graphIdConverter->getLocalGraphId($graphId2);
+    $authId2 = $graphIdConverter->getAuthId($graphId2);
+    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$localGraphId1."'";
+    $graph1Settings = json_decode($db->exec($authId1, $q)[0]['settings'], true);
+    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$localGraphId2."'";
+    $graph2Settings = json_decode($db->exec($authId2, $q)[0]['settings'], true);
 
 
     // check that settings for $graphId1 is the sane as for $graphId2
     if($graph1Settings['skin'] != $graph2Settings['skin']){
-      exit('Skins are different');
+      throw new Exception('Skins are different');
     }
 
     // add to skin modification stickers (icons from http://www.flaticon.com/)
@@ -348,11 +396,14 @@ class GraphDiffCreator{
     return $graph1Settings;
   }
 
-  public static function getGraphModelSettings($db, $graphId1, $graphId2){
-    $diffGraphId = GraphDiffCreator::encodeDiffGraphId($graphId1, $graphId2);
-    $q = "SELECT graph FROM graph WHERE id = '".$graphId1."'";
-    $graphModelSettings = json_decode($db->execute($q)[0]['graph'], true);
-    $graphModelSettings['name'] = $diffGraphId;
+  public static function getGraphModelSettings(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $graphId1, $graphId2){
+    $graphIdConverter->throwIfNowGlobal($graphId1);
+    $graphIdConverter->throwIfNowGlobal($graphId2);
+    $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
+    $authId1 = $graphIdConverter->getAuthId($graphId1);
+    $q = "SELECT graph FROM graph WHERE id = '".$localGraphId1."'";
+    $graphModelSettings = json_decode($db->exec($authId1, $q)[0]['graph'], true);
+    $graphModelSettings['name'] = GraphDiffCreator::encodeDiffGraphId($graphId1, $graphId2);
     $graphModelSettings['isEditable'] = false;
 
     return $graphModelSettings;

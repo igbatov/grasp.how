@@ -3,6 +3,7 @@
 class Graphs {
   private $db;
   private $contentIdConverter;
+  private $graphIdConverter;
   private $logger;
   private $node_basic_types;
 
@@ -10,12 +11,11 @@ class Graphs {
   private $node_alternative_attribute_names;
   private $edge_attribute_names;
 
-  private $auth_id;
-
-  public function __construct(DB $db, ContentIdConverter $contentIdConverter, $logger){
+  public function __construct(MultiTenantDB $db, ContentIdConverter $contentIdConverter, GraphIdConverter $graphIdConverter, Logger $logger){
     $this->db = $db;
     $this->logger = $logger;
     $this->contentIdConverter = $contentIdConverter;
+    $this->graphIdConverter = $graphIdConverter;
 
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
 
@@ -31,8 +31,11 @@ class Graphs {
    * @return array
    */
   public function getGraphProps($graph_id){
-    $graph_query = "SELECT id, graph FROM graph WHERE id = '".$graph_id."'";
-    $rows = $this->db->execute($graph_query);
+    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $graph_query = "SELECT id, graph FROM graph WHERE id = '".$localGraphId."'";
+    $rows = $this->db->exec($authId, $graph_query);
     return json_decode($rows[0]['graph'], true);
   }
 
@@ -42,8 +45,11 @@ class Graphs {
    * @return array|bool
    */
   public function getGraphSettings($graph_id){
-    $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
-    $rows = $this->db->execute($query);
+    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id = '".$localGraphId."'";
+    $rows = $this->db->exec($authId, $query);
     if(count($rows) == 0) return false;
     $row = $rows[0];
     return json_decode($row['settings'], true);
@@ -60,9 +66,12 @@ class Graphs {
     // add text
     foreach($nodes as $content_id=>$node){
       $graph_id = $this->contentIdConverter->decodeContentId($content_id)['graph_id'];
+      $this->graphIdConverter->throwIfNowGlobal($graph_id);
+      $graphAuthId = $this->graphIdConverter->getAuthId($graph_id);
+      $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
       $local_content_id = $this->contentIdConverter->decodeContentId($content_id)['local_content_id'];
 
-      $node_rows = $this->db->execute("SELECT * FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'");
+      $node_rows = $this->db->exec($graphAuthId, "SELECT * FROM node_content WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'");
 
       // alternatives
       foreach($node_rows as $node_row){
@@ -72,13 +81,13 @@ class Graphs {
         // get alternative lists
         $list_items = array();
         if($node['type'] == $this->node_basic_types['fact']){
-          $q = "SELECT id, source_id, comment, pages FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
+          $q = "SELECT id, source_id, comment, pages FROM node_content_source WHERE graph_id='".$localGraphId."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
           $this->logger->log($q);
-          $rows = $this->db->execute($q);
+          $rows = $this->db->exec($graphAuthId, $q);
           foreach($rows as $row){
             $q = "SELECT * FROM source WHERE id='".$row['source_id']."'";
             $this->logger->log($q);
-            $sources = $this->db->execute($q);
+            $sources = $this->db->exec($graphAuthId, $q);
             if($sources&&count($sources)){
               $list_items[$row['id']] = $sources[0];
               $list_items[$row['id']]['id'] = $row['id'];
@@ -89,9 +98,9 @@ class Graphs {
           }
         }else{
           $q = "SELECT * FROM node_content_falsification".
-              " WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
+              " WHERE graph_id='".$localGraphId."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
           $this->logger->log($q);
-          $rows = $this->db->execute($q);
+          $rows = $this->db->exec($graphAuthId, $q);
           foreach($rows as $row){
             $list_items[$row['id']] = $row;
           }
@@ -103,14 +112,15 @@ class Graphs {
   }
 
   /**
-   * get all node content except text (because text can be very long)
-   * @param $content_ids
+   * Get all node content except text (because text can be very long)
+   * @param $content_ids - content ids of nodes. If $authId is null, content id should contain graphId in a global format
    * @return array
+   * @throws Exception
    */
   public function getNodeAttributes($content_ids){
     $nodes = array();
     foreach($content_ids as $content_id){
-      // content_id is from for graph that shows difference between two graphs?
+      // is content_id is from graph that shows difference between two graphs?
       if(GraphDiffCreator::isDiffContentId($content_id)){
         $contentId = GraphDiffCreator::decodeContentId($content_id);
         if($contentId['graphId1']){
@@ -135,19 +145,30 @@ class Graphs {
         if($contentId['graphId1'] && !$contentId['graphId2']) $status = 'absent';
         elseif(!$contentId['graphId1'] && $contentId['graphId2']) $status = 'added';
         elseif($contentId['graphId1'] && $contentId['graphId2']){
-          $q = "SELECT * FROM node_content WHERE graph_id = '". $contentId['graphId2']."' AND local_content_id = '".$contentId['localContentId2']."'";
-          $rows = $this->db->execute($q);
-          if(GraphDiffCreator::isCloneModified($this->db, $rows)) $status = 'modified';
+          $authId2 = $this->graphIdConverter->getAuthId($contentId['graphId2']);
+          $localGraphId2 = $this->graphIdConverter->getLocalGraphId($contentId['graphId2']);
+          $q = "SELECT * FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$contentId['localContentId2']."'";
+          $rows = $this->db->exec($authId2, $q);
+          if(GraphDiffCreator::isCloneModified($this->db, $authId2, $rows)) $status = 'modified';
         }
         $nodes[$content_id]['stickers'][] = $status;
 
-      // $content_id is global content id from ordinary graph
+      // $content_id is global content id from ordinary (not diff) graph
       }else{
         $graph_id = $this->contentIdConverter->decodeContentId($content_id)['graph_id'];
+        $authId = $this->graphIdConverter->getAuthId($graph_id);
+        $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
         $local_content_id = $this->contentIdConverter->decodeContentId($content_id)['local_content_id'];
 
-        $query = "SELECT '".$content_id."' as nodeContentId, alternative_id, ".implode(',',$this->node_alternative_attribute_names).", ".implode(',',$this->node_attribute_names).", cloned_from_graph_id, cloned_from_local_content_id FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-        $node_rows = $this->db->execute($query);
+        $query = "SELECT '".$content_id."' as nodeContentId, "
+            ."alternative_id, "
+            .implode(',',$this->node_alternative_attribute_names).", "
+            .implode(',',$this->node_attribute_names).", "
+            ."cloned_from_graph_id, "
+            ."cloned_from_local_content_id FROM node_content "
+            ."WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
+
+        $node_rows = $this->db->exec($authId, $query);
 
         $node_attributes = array();
 
@@ -208,9 +229,11 @@ class Graphs {
 
       }else{
         $graph_id = $this->contentIdConverter->decodeContentId($content_id)['graph_id'];
+        $authId = $this->graphIdConverter->getAuthId($graph_id);
+        $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
         $local_content_id = $this->contentIdConverter->decodeContentId($content_id)['local_content_id'];
-        $query = "SELECT '".$content_id."' as edgeContentId, type, label, created_at, updated_at FROM edge_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-        $edge_rows = $this->db->execute($query);
+        $query = "SELECT '".$content_id."' as edgeContentId, type, label, created_at, updated_at FROM edge_content WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
+        $edge_rows = $this->db->exec($authId, $query);
         $edge_row = $edge_rows[0];
         $edges[$content_id] = $edge_row;
       }
@@ -219,9 +242,11 @@ class Graphs {
   }
 
   public function getGraphEdgeAttributes($graphId){
+    $authId = $this->graphIdConverter->getAuthId($graphId);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
     $attributes = array();
-    $q = "SELECT local_content_id FROM edge_content WHERE graph_id = '".$graphId."'";
-    $rows = $this->db->execute($q);
+    $q = "SELECT local_content_id FROM edge_content WHERE graph_id = '".$localGraphId."'";
+    $rows = $this->db->exec($authId, $q);
     $contentIds = array();
     foreach($rows as $row) $contentIds[] = $this->contentIdConverter->createGlobalContentId($graphId, $row['local_content_id']);
 
@@ -234,39 +259,49 @@ class Graphs {
 
   /**
    * Get node attributes - all node content except text
-   * @param null $graph_ids
+   * @param null $graph_ids - in a global format and not diffGraph
    * @return array|bool
    */
   public function getGraphNodeAttributes($graph_ids=null){
     $contentIds = array();
     if(!is_array($graph_ids)) return false;
 
-    $q = "SELECT graph_id, local_content_id FROM node_content WHERE graph_id IN ('".implode("','", $graph_ids)."')";
-
-    $rows = $this->db->execute($q);
-    foreach($rows as $row){
-      $contentIds[] = $this->contentIdConverter->createGlobalContentId($row['graph_id'], $row['local_content_id']);
+    foreach ($graph_ids as $graph_id) {
+      $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+      $authId = $this->graphIdConverter->getAuthId($graph_id);
+      $q = "SELECT graph_id, local_content_id FROM node_content WHERE graph_id = '".$localGraphId."'";
+      $row = $this->db->exec($authId, $q);
+      $contentIds[] = $this->contentIdConverter->createGlobalContentId(
+          $this->graphIdConverter->createGlobalGraphId($authId, $row['graph_id']),
+          $row['local_content_id']
+      );
     }
 
     return $this->getNodeAttributes($contentIds);
   }
 
   public function updateGraphName($graph_id, $name){
-    $query = "SELECT graph FROM `graph` WHERE id=".$graph_id;
-    $row = $this->db->execute($query)[0];
+    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $query = "SELECT graph FROM `graph` WHERE id=".$localGraphId;
+    $row = $this->db->exec($authId, $query)[0];
     $settings = json_decode($row['graph'], true);
     $settings['name'] = $name;
-    $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$graph_id;
-    $this->db->execute($update_query);
+    $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$localGraphId;
+    $this->db->exec($authId, $update_query);
   }
 
   public function setGraphAttributes($graphId, $attributes){
-    $query = "SELECT graph FROM `graph` WHERE id=".$graphId;
-    $row = $this->db->execute($query)[0];
+    $this->graphIdConverter->throwIfNowGlobal($graphId);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
+    $authId = $this->graphIdConverter->getAuthId($graphId);
+    $query = "SELECT graph FROM `graph` WHERE id=".$localGraphId;
+    $row = $this->db->exec($authId, $query)[0];
     $settings = json_decode($row['graph'], true);
     $settings['attributes'] = array_merge($settings['attributes'], $attributes);
-    $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$graphId;
-    $this->db->execute($update_query);
+    $update_query = "UPDATE graph SET graph = '".json_encode($settings, JSON_UNESCAPED_UNICODE)."' WHERE id = ".$localGraphId;
+    $this->db->exec($authId, $update_query);
     return true;
   }
 
@@ -278,45 +313,54 @@ class Graphs {
    * @return bool
    */
   public function changeGraphPosition($graphId, $position, $user_graph_ids){
+    $this->graphIdConverter->throwIfNowGlobal($graphId);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
+    $authId = $this->graphIdConverter->getAuthId($graphId);
+    $user_graph_ids = array_map(function($graphId) {
+      return $this->graphIdConverter->getLocalGraphId($graphId);
+    }, $user_graph_ids);
     if(!in_array($position, array('leftGraphView', 'rightGraphView'))) return false;
 
     $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id IN (".implode(',',$user_graph_ids).")";
-    $rows = $this->db->execute($query);
+    $rows = $this->db->exec($authId, $query);
     foreach($rows as $row){
       $settings = json_decode($row['settings'], true);
       if($settings['position'] == $position){
         $settings['position'] = 'not to be shown';
         $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
-        $this->db->execute($update_query);
+        $this->db->exec($authId, $update_query);
       }
-      if($row['graph_id'] == $graphId){
+      if($row['graph_id'] == $localGraphId){
         $settings['position'] = $position;
         $update_query = "UPDATE graph_settings SET settings = '".$this->db->escape(json_encode($settings, JSON_UNESCAPED_UNICODE))."' WHERE graph_id = '".$row['graph_id']."'";
-        $this->db->execute($update_query);
+        $this->db->exec($authId, $update_query);
       }
     }
     return true;
   }
 
-  public function updateGraphElementContent($graph_id, $local_content_id, $r, $auth_id){
+  public function updateGraphElementContent($graph_id, $local_content_id, $r){
+    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
     if($r['type'] == 'updateNodeText'){
-      $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."', updated_at = NOW() WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
-      $this->db->execute($query);
+      $query = "UPDATE node_content SET text = '".$this->db->escape($r['text'])."', updated_at = NOW() WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
+      $this->db->exec($authId, $query);
     }else if($r['type'] == 'node_list_add_request'){
-      return $this->addNodeContentList($r, $auth_id);
+      return $this->addNodeContentList($r);
     }else if($r['type'] == 'node_list_remove_request'){
       return $this->removeNodeContentList($r);
     }else if($r['type'] == 'node_list_update_request'){
-      return $this->updateNodeContentList($r, $auth_id);
+      return $this->updateNodeContentList($r);
     }else if($r['type'] == 'addAlternative'){
       // get type and importance of node
-      $query = "SELECT type, importance FROM node_content WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
-      $rows = $this->db->execute($query);
+      $query = "SELECT type, importance FROM node_content WHERE `graph_id` = '".$localGraphId."' AND  local_content_id = '".$local_content_id."'";
+      $rows = $this->db->exec($authId, $query);
       $type = $rows[0]['type'];
       $importance = $rows[0]['importance'];
       $alternative = $r['alternative'];
       $this->logger->log('$r='.var_export($r, true));
-      $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)
+      $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($localGraphId)
           ."', `local_content_id` = '".$this->db->escape($local_content_id)
           ."', `alternative_id` = '".$this->db->escape($r['new_alternative_id'])
           ."', `p` = '".$this->db->escape(json_encode($alternative['p']))
@@ -327,90 +371,90 @@ class Graphs {
           ."', `reliability` = ".(is_numeric($alternative['reliability']) ? $alternative['reliability'] : 0)
           .", `importance` = ".(is_numeric($importance) ? $importance : 0).", created_at = NOW()";
       $this->logger->log($query);
-      $this->db->execute($query);
+      $this->db->exec($authId, $query);
 
       // update all alternatives to have the same active_alternative_id
-      $query = "UPDATE node_content SET active_alternative_id = '".$this->db->escape($r['new_alternative_id'])."' WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
+      $query = "UPDATE node_content SET active_alternative_id = '".$this->db->escape($r['new_alternative_id'])."' WHERE `graph_id` = '".$localGraphId."' AND  local_content_id = '".$local_content_id."'";
       $this->logger->log($query);
-      $this->db->execute($query);
+      $this->db->exec($authId, $query);
 
     }else if($r['type'] == 'removeAlternative'){
-      $query = "DELETE FROM node_content WHERE alternative_id = '".$this->db->escape($r['node_alternative_id'])."' AND `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
+      $query = "DELETE FROM node_content WHERE alternative_id = '".$this->db->escape($r['node_alternative_id'])."' AND `graph_id` = '".$localGraphId."' AND  local_content_id = '".$local_content_id."'";
       $this->logger->log($query);
-      $this->db->execute($query);
+      $this->db->exec($authId, $query);
 
-      $query = "SELECT alternative_id FROM node_content WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."' ORDER BY alternative_id ASC";
-      $rows = $this->db->execute($query);
+      $query = "SELECT alternative_id FROM node_content WHERE `graph_id` = '".$localGraphId."' AND  local_content_id = '".$local_content_id."' ORDER BY alternative_id ASC";
+      $rows = $this->db->exec($authId, $query);
 
 
-      $query = "UPDATE node_content SET active_alternative_id = '".$rows[0]['alternative_id']."' WHERE `graph_id` = '".$graph_id."' AND  local_content_id = '".$local_content_id."'";
+      $query = "UPDATE node_content SET active_alternative_id = '".$rows[0]['alternative_id']."' WHERE `graph_id` = '".$localGraphId."' AND  local_content_id = '".$local_content_id."'";
       $this->logger->log($query);
-      $this->db->execute($query);
+      $this->db->exec($authId, $query);
 
     }else if($r['type'] == 'updateNodesReliabilities'){
       foreach($r['data'] as $node_content_id => $node){
         $local_content_id = $this->contentIdConverter->getLocalContentId($node_content_id);
         foreach($node as $alternative_id => $reliability){
           $value = $this->db->escape($reliability);
-          $query = "UPDATE node_content SET reliability = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
+          $query = "UPDATE node_content SET reliability = '".$value."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
           $this->logger->log($query);
-          $this->db->execute($query);
+          $this->db->exec($authId, $query);
         }
       }
 
     }else if($r['type'] == 'updateNodeAlternativesP'){
       foreach($r['alternatives'] as $alternative_id => $p){
         $value = $this->db->escape(json_encode($p));
-        $query = "UPDATE node_content SET p = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
-        $this->db->execute($query);
+        $query = "UPDATE node_content SET p = '".$value."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
+        $this->db->exec($authId, $query);
       }
 
       // we assume here that $r['alternatives'] contains _ALL_ alternatives of node
       // so we can safely remove other alternatives
-      $query = "DELETE FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id NOT IN ('".implode("','",array_keys($r['alternatives']))."')";
+      $query = "DELETE FROM node_content WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id NOT IN ('".implode("','",array_keys($r['alternatives']))."')";
       $this->logger->log($query);
-      $this->db->execute($query);
+      $this->db->exec($authId, $query);
 
     }else if($r['type'] == 'updateNodeAttribute'){
-      if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+      if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
       if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)){
         if($r['nodeAttribute']['name'] == 'p') $value = $this->db->escape(json_encode($r['nodeAttribute']['value']));
         else $value = $this->db->escape($r['nodeAttribute']['value']);
-        $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$value."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
+        $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$value."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
       }
-      $this->db->execute($query);
+      $this->db->exec($authId, $query);
       // if user changed type of node, drop nodes conditional probabilities
       if($r['nodeAttribute']['name'] == 'type'){
-        $query = "UPDATE node_content SET `p` = '[]' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-        $this->db->execute($query);
+        $query = "UPDATE node_content SET `p` = '[]' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
+        $this->db->exec($authId, $query);
       }
 
     }else if($r['type'] == 'updateEdgeAttribute'){
-      $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-      $this->db->execute($query);
+      $query = "UPDATE edge_content SET `".$r['edgeAttribute']['name']."` = '".$this->db->escape($r['edgeAttribute']['value'])."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
+      $this->db->exec($authId, $query);
 
     }else if($r['type'] == 'clear_node_conditionalPs'){
-      $query = "UPDATE node_content SET `p` = '[]' WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
+      $query = "UPDATE node_content SET `p` = '[]' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
       $this->logger->log($query);
-      $this->db->execute($query);
+      $this->db->exec($authId, $query);
 
     }else if($r['type'] == 'addEdge'){
       $lockName = $this->db->getCurrentDB().'.edge_content';
-      $this->db->execute('SELECT GET_LOCK("'.$lockName.'",10)');
-      $query = "SELECT MAX(local_content_id) as max_id FROM edge_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
-      $rows = $this->db->execute($query);
+      $this->db->exec(null, 'SELECT GET_LOCK("'.$lockName.'",10)');
+      $query = "SELECT MAX(local_content_id) as max_id FROM edge_content WHERE `graph_id` = '".$this->db->escape($localGraphId)."'";
+      $rows = $this->db->exec($authId, $query);
       $local_content_id = (int)$rows[0]['max_id'] + 1;
-      $query = "INSERT INTO edge_content SET `graph_id` = '".$this->db->escape($graph_id)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['edge']['type'])."', `label` = '".$this->db->escape($r['edge']['label'])."', created_at = NOW()";
-      $this->db->execute($query);
-      $this->db->execute('SELECT RELEASE_LOCK("'.$lockName.'")');
+      $query = "INSERT INTO edge_content SET `graph_id` = '".$this->db->escape($localGraphId)."', `local_content_id` = '".$this->db->escape($local_content_id)."', `type` = '".$this->db->escape($r['edge']['type'])."', `label` = '".$this->db->escape($r['edge']['label'])."', created_at = NOW()";
+      $this->db->exec($authId, $query);
+      $this->db->exec(null, 'SELECT RELEASE_LOCK("'.$lockName.'")');
       return json_encode(array('edgeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id,$local_content_id)));
 
     }else if($r['type'] == 'addNode'){
       $lockName = $this->db->getCurrentDB().'.node_content';
-      $this->db->execute('SELECT GET_LOCK("'.$lockName.'",10)');
+      $this->db->exec(null, 'SELECT GET_LOCK("'.$lockName.'",10)');
 
-      $query = "SELECT MAX(local_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($graph_id)."'";
-      $rows = $this->db->execute($query);
+      $query = "SELECT MAX(local_content_id) as max_id FROM node_content WHERE `graph_id` = '".$this->db->escape($localGraphId)."'";
+      $rows = $this->db->exec($authId, $query);
       $local_content_id = $rows[0]['max_id'] + 1;
       foreach($r['node']['alternatives'] as $alternative_id => $alternative){
         // mysql_real_escape(0) gives '' so check this numeric fields here
@@ -418,7 +462,7 @@ class Graphs {
         if(!is_numeric($local_content_id)) $this->logger->log('Error: local_content_id '.var_export($local_content_id, true).' is not numeric');
         if(!is_numeric($r['node']['active_alternative_id'])) $this->logger->log('Error: active_alternative_id '.var_export($r['node']['active_alternative_id'], true).' is not numeric');
 
-        $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($graph_id)
+        $query = "INSERT INTO node_content SET `graph_id` = '".$this->db->escape($localGraphId)
             ."', `local_content_id` = '".$local_content_id
             ."', `alternative_id` = '".$alternative_id
             ."', `p` = '".$this->db->escape(json_encode($alternative['p']))
@@ -430,7 +474,7 @@ class Graphs {
             .", `importance` = ".(is_numeric($r['node']['importance']) ? $r['node']['importance'] : 0).", created_at = NOW()";
         $this->logger->log($query);
 
-        $this->db->execute($query);
+        $this->db->exec($authId, $query);
       }
 
       $this->db->execute('SELECT RELEASE_LOCK("'.$lockName.'")');
@@ -438,8 +482,8 @@ class Graphs {
 
     }else if($r['type'] == 'addIcon'){
       // mark in db that now it has icon
-      $query = "UPDATE node_content SET has_icon = 1 WHERE graph_id = '".$graph_id."' AND local_content_id = '".$local_content_id."'";
-      $this->db->execute($query);
+      $query = "UPDATE node_content SET has_icon = 1 WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
+      $this->db->exec($authId, $query);
 
     }
     return true;
@@ -448,7 +492,6 @@ class Graphs {
   public function addSource($auth_id, $item){
     $q = "INSERT INTO source SET "
         ."source_type='".$item['source_type']
-        ."', `auth_id`='".$auth_id
         ."', `name`='".$this->db->escape($item['name'])
         ."', url='".$this->db->escape($item['url'])
         ."', author='".$this->db->escape($item['author'])
@@ -459,21 +502,23 @@ class Graphs {
         .",  publish_date='".$this->db->escape($item['publish_date'])
         ."', `comment`='".$this->db->escape($item['comment'])."' ";
     $this->logger->log($q);
-    return $this->db->execute($q);
+    return $this->db->exec($auth_id, $q);
   }
 
-  private function addNodeContentList($r, $auth_id){
+  private function addNodeContentList($r){
+    $graph_id = $r['graphId'];
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+
     if($r['nodeType'] == $this->node_basic_types['fact']){
       // if it is a new source - add it to the main list
       if(empty($r['item']['source_id'])){
         // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
-        $r['item']['source_id'] = $this->addSource($auth_id, $r['item']);
+        $r['item']['source_id'] = $this->addSource($authId, $r['item']);
       }
 
-      $graph_id = $r['graphId'];
       $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-      $q = "INSERT INTO node_content_source SET graph_id='".$graph_id
-          ."', `auth_id`='".$auth_id
+      $q = "INSERT INTO node_content_source SET graph_id='".$localGraphId
           ."', local_content_id='".$local_content_id
           ."', alternative_id='".$r['node_alternative_id']
           ."', comment='".$this->db->escape($r['item']['comment'])
@@ -481,7 +526,7 @@ class Graphs {
           ."', `pages`='".$this->db->escape($r['item']['pages'])."' ";
 
       $this->logger->log($q);
-      $item_id = $this->db->execute($q);
+      $item_id = $this->db->exec($authId, $q);
       // calculate fact reliability
       $reliability = $this->getFactReliability($graph_id,$local_content_id);
       return json_encode(array('result'=>'SUCCESS','id'=>$item_id,'reliability'=>$reliability));
@@ -489,26 +534,28 @@ class Graphs {
     }elseif($r['nodeType'] == $this->node_basic_types['proposition']){
       $graph_id = $r['graphId'];
       $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-      $q = "INSERT INTO node_content_falsification SET graph_id='".$graph_id
+      $q = "INSERT INTO node_content_falsification SET graph_id='".$localGraphId
           ."', local_content_id='".$local_content_id
           ."', alternative_id='".$r['node_alternative_id']
           ."', `name`='".$this->db->escape($r['item']['name'])
           ."', comment='".$this->db->escape($r['item']['comment'])."' ";
 
       $this->logger->log($q);
-      $item_id = $this->db->execute($q);
+      $item_id = $this->db->exec($authId, $q);
       return json_encode(array('result'=>'SUCCESS','id'=>$item_id));
     }
   }
 
-  private function updateNodeContentList($r, $auth_id){
+  private function updateNodeContentList($r){
     $graph_id = $r['graphId'];
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
     $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
     if($r['nodeType'] == $this->node_basic_types['fact']) {
       // Client sets $r['item']['source_id'] as empty if user modified fields of source
       // We treat it here as signal for new source creation
       if(empty($r['item']['source_id'])){
-        $source_id = $this->addSource($auth_id, $r['item']);
+        $source_id = $this->addSource($authId, $r['item']);
       }else{
         // TODO: check that this source_id is ours
         $source_id = $r['item']['source_id'];
@@ -519,7 +566,7 @@ class Graphs {
           . "', `pages`='" . $this->db->escape($r['item']['pages'])
           . "' WHERE id = '" . $this->db->escape($r['item']['id']) . "'";
       $this->logger->log($q);
-      $this->db->execute($q);
+      $this->db->exec($authId, $q);
       // calculate fact reliability
       $reliability = $this->getFactReliability($graph_id, $local_content_id);
 
@@ -531,7 +578,7 @@ class Graphs {
           . "', comment = '" . $this->db->escape($r['item']['comment'])
           . "' WHERE id = '" . $this->db->escape($r['item']['id']) . "'";
       $this->logger->log($q);
-      $this->db->execute($q);
+      $this->db->exec($authId, $q);
 
      return json_encode(array('result' => 'SUCCESS'));
     }
@@ -539,65 +586,63 @@ class Graphs {
 
   private function removeNodeContentList($r){
     $graph_id = $r['graphId'];
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
     $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
     if($r['nodeType'] == $this->node_basic_types['fact']) {
-      $q = "DELETE FROM node_content_source WHERE graph_id='".$graph_id
+      $q = "DELETE FROM node_content_source WHERE graph_id='".$localGraphId
           ."' AND local_content_id='".$local_content_id
           ."' AND alternative_id='".$r['node_alternative_id']
           ."' AND id='".$this->db->escape($r['itemId'])."'";
       $this->logger->log($q);
-      $this->db->execute($q);
+      $this->db->exec($authId, $q);
       // calculate fact reliability
       $reliability = $this->getFactReliability($graph_id,$local_content_id);
       return json_encode(array('result'=>'SUCCESS','reliability'=>$reliability));
     }else{
-      $q = "DELETE FROM node_content_falsification WHERE graph_id='".$graph_id
+      $q = "DELETE FROM node_content_falsification WHERE graph_id='".$localGraphId
           ."' AND local_content_id='".$local_content_id
           ."' AND alternative_id='".$r['node_alternative_id']
           ."' AND id='".$this->db->escape($r['itemId'])."'";
       $this->logger->log($q);
-      $this->db->execute($q);
+      $this->db->exec($authId, $q);
       return json_encode(array('result'=>'SUCCESS'));
     }
   }
 
   public function getFactReliability($graph_id,$local_content_id){
-    $q = "SELECT source_id FROM node_content_source WHERE graph_id='".$graph_id."' AND local_content_id='".$local_content_id."'";
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $q = "SELECT source_id FROM node_content_source WHERE graph_id='".$localGraphId."' AND local_content_id='".$local_content_id."'";
     $this->logger->log($q);
-    $rows = $this->db->execute($q);
+    $rows = $this->db->exec($authId, $q);
 
     $reliability_array = array();
     foreach($rows as $row){
       $q = "SELECT publisher_reliability FROM source WHERE id='".$row['source_id']."'";
       $this->logger->log($q);
-      $rs = $this->db->execute($q);
+      $rs = $this->db->exec($authId, $q);
       $reliability_array[] = $rs[0]['publisher_reliability'];
     }
 
     return min(array_sum($reliability_array)*10,100);
   }
 
-  public function removeGraph($graph_id, $auth_id=null){
+  public function removeGraph($graph_id){
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+
     $tables = array('graph_history','graph_settings','node_content','edge_content','node_content_source','node_content_falsification');
     $result = array();
 
-    // check permission
-    if($auth_id !== null){
-      $q = "SELECT auth_id FROM graph WHERE id = '".$graph_id."'";
-      if($this->db->execute($q)[0]['auth_id'] != $auth_id){
-        foreach($tables as $table) $result[$table] = 'no permission';
-        return $result;
-      }
-    }
-
-    $q = "DELETE FROM graph WHERE id = '".$graph_id."'".($auth_id !== null ? " AND auth_id = '".$auth_id."'" : "");
-    $r = $this->db->execute($q);
+    $q = "DELETE FROM graph WHERE id = '".$localGraphId."'";
+    $r = $this->db->exec($authId, $q);
     if($r == true) $result['graph'] = 'success';
     else $result['graph'] = print_r($r, true);
 
     foreach($tables as $table){
-      $q = "DELETE FROM ".$table." WHERE graph_id = '".$graph_id."'";
-      $r = $this->db->execute($q);
+      $q = "DELETE FROM ".$table." WHERE graph_id = '".$localGraphId."'";
+      $r = $this->db->exec($authId, $q);
       if($r == true) $result[$table] = 'success';
       else $result[$table] = print_r($r, true);
     }
@@ -612,17 +657,17 @@ class Graphs {
 
     $graph = '{"name":"'.$name.'","isEditable":true, "attributes":{"isInTrash":false}, "edgeTypes":["link","causal","conditional"],"nodeTypes":["fact","proposition","illustration","question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"causal"}';
     $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."', created_at = NOW()";
-    $graph_id = $this->db->execute($q);
+    $graph_id = $this->db->exec($auth_id, $q);
 
     $elements = '{"nodes":{},"edges":{}}';
     $q = "INSERT INTO graph_history SET graph_id = '".$graph_id."', step = '1', timestamp = unix_timestamp(NOW()), elements = '".$elements."'";
-    $this->db->execute($q);
+    $this->db->exec($auth_id, $q);
 
     $default_skin = '{"node":{"constr":{"withoutIcon":"GraphViewNode","withIcon":"GraphViewNodeImage"},"attr":{"typeColors":{"fact":"#00BFFF","proposition":"#3CB371","illustration":"#FF69B4","question":"#FFFFE0","to_read":"#FFFF00","best_known_practice":"#FFA500"},"stickers":{"bayes_error":"<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'><g id=\'alert\' fill=\'yellow\'><rect id=\'point\' x=\'11\' y=\'16\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' width=\'2\' height=\'2\'/><polygon id=\'stroke\' style=\'fill-rule:evenodd;clip-rule:evenodd;\' points=\'13.516,10 10.516,10 11,15 13,15\'/><g id=\'triangle\'><path d=\'M12.017,5.974L19.536,19H4.496L12.017,5.974 M12.017,3.5c-0.544,0-1.088,0.357-1.5,1.071L2.532,18.402C1.707,19.831,2.382,21,4.032,21H20c1.65,0,2.325-1.169,1.5-2.599L13.517,4.572C13.104,3.857,12.561,3.5,12.017,3.5L12.017,3.5z\'/></g></g></svg>"}}},"edge":{"constr":"GraphViewEdge","attr":{"typeColors":{"link":"#00BFFF","causal":"#87CEFA","conditional":"#3CB371"},"typeDirection":{"link":"bi","causal":"uni","conditional":"uni"}}},"nodeLabel":{"constr":"GraphViewNodeLabel","attr":{"font":"Calibri","fill":"#BBBBBB","maxSize":24}}}';
     $settings = '{"skin":'.$default_skin.',"layout":"basicLayout","position":"leftGraphView"}';
     $q = "INSERT INTO graph_settings SET graph_id = '".$graph_id."', settings = '".$this->db->escape($settings)."'";
     $this->logger->log($q);
-    $this->db->execute($q);
+    $this->db->exec($auth_id, $q);
 
     return true;
   }
@@ -634,16 +679,19 @@ class Graphs {
    * @param $graph_id
    */
   public function copyGraph($auth_id, $name, $graph_id){
-    $q = "SELECT graph FROM graph WHERE id = '".$graph_id."'";
-    $rows = $this->db->execute($q);
+    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $authId = $this->graphIdConverter->getAuthId($graph_id);
+    $q = "SELECT graph FROM graph WHERE id = '".$localGraphId."'";
+    $rows = $this->db->exec($authId, $q);
     $graph = json_decode($rows[0]['graph'], true);
     $graph['name'] = $name;
     $graph = json_encode($graph, JSON_UNESCAPED_UNICODE);
-    $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."'";
-    $new_graph_id = $this->db->execute($q);
+    $q = "INSERT INTO graph SET graph = '".$graph."'";
+    $new_graph_id = $this->db->exec($auth_id, $q);
 
     $q = "SELECT * FROM graph_history WHERE graph_id = '".$graph_id."'";
-    $rows = $this->db->execute($q);
+    $rows = $this->db->exec($authId, $q);
     foreach($rows as $row){
       $nodes = array();
       $edges = array();
@@ -661,17 +709,36 @@ class Graphs {
       }
       $elements = json_encode(array("nodes"=>$nodes, "edges"=>$edges), JSON_FORCE_OBJECT);
       $q = "INSERT INTO graph_history SET graph_id = '".$new_graph_id."', step = '".$row['step']."', timestamp = '".$row['timestamp']."', elements = '".$elements."'";
-      $this->db->execute($q);
+      $this->db->exec($auth_id, $q);
     }
 
-    $q = "INSERT INTO graph_settings (graph_id, settings) SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
-    $this->db->execute($q);
+    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
+    $rows = $this->db->exec($authId, $q);
+    foreach ($rows as $row) {
+      $q = "INSERT INTO graph_settings SET graph_id = '".$new_graph_id."', settings = '".$row['settings']."'";
+      $this->db->exec($auth_id, $q);
+    }
 
-    $q = "INSERT INTO node_content (graph_id, local_content_id, 	type,	label, reliability, importance, text, has_icon, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, reliability, importance, text, has_icon, NOW(), NOW() FROM node_content WHERE graph_id = '".$graph_id."'";
-    $this->db->execute($q);
+    $q = "SELECT local_content_id, type, label, reliability, importance, text, has_icon FROM node_content WHERE graph_id = '".$graph_id."'";
+    $rows = $this->db->exec($authId, $q);
+    foreach ($rows as $row) {
+      $q = "INSERT INTO node_content SET ".
+          "graph_id = '".$new_graph_id."', local_content_id = '".$row['local_content_id']."', ".
+          "type = '".$row['type']."',	label = '".$row['label']."', ".
+          "reliability = '".$row['reliability']."', importance = '".$row['importance']."', ".
+          "text = '".$row['local_content_id']."', has_icon = '".$row['local_content_id']."', updated_at = NOW(), created_at = NOW()";
+      $this->db->exec($auth_id, $q);
+    }
 
-    $q = "INSERT INTO edge_content (graph_id, local_content_id, 	type,	label, updated_at, created_at) SELECT '".$new_graph_id."', local_content_id,	type,	label, NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
-    $this->db->execute($q);
+    $q = "SELECT local_content_id,	type,	label FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $rows = $this->db->exec($authId, $q);
+    foreach ($rows as $row) {
+      $q = "INSERT INTO edge_content SET ".
+      "graph_id='".$new_graph_id."', ".
+      "local_content_id='".$row['local_content_id']."', ".
+      "`type`='".$row['type']."',	label='".$row['label']."', updated_at=NOW(), created_at=NOW()";
+      $this->db->exec($auth_id, $q);
+    }
   }
 
   /**
@@ -697,28 +764,44 @@ class Graphs {
     return $newP;
   }
 
+  private function getQueryPart($names, $values){
+    $str = "";
+    foreach ($names as $name) {
+      $str .= ", `".$name."` = '".$this->db->escape($values[$name])."'";
+    }
+    return substr($str,1);
+  }
+
   /**
    * Clone graph from specific step. All text and attributes are copied
    * - this preserve text on clone from modification by clonee and
    * simplify process of cloning from clones itself
-   * @param $graph_id - original graph id
+   * @param $graph_id - original graph id in a global format
    * @param $graph_history_step - step in history of original graph
-   * @param $auth_id - user which clones graph
-   * @return boolean
+   * @param $auth_id - user who clones graph
+   * @return array|bool|int|mysqli_result|string
+   * @throws Exception
+   *
    */
   public function cloneGraph($graph_id, $graph_history_step, $auth_id){
+    if(!$this->graphIdConverter->isGraphIdGlobal($graph_id)){
+      throw new Exception("Error in ".__CLASS__."::".__METHOD__.": graph_id must be in a global format, but got ".$graph_id);
+    }
+    $graph_id = $this->graphIdConverter->getLocalGraphId($graph_id);
+    $fromAuthId = $this->graphIdConverter->getAuthId($graph_id);
+
     // copy row in graph table
     $q = "SELECT graph FROM graph WHERE id = '".$graph_id."'";
     $this->logger->log($q);
-    $rows = $this->db->execute($q);
+    $rows = $this->db->exec($fromAuthId, $q);
     if(!count($rows)) return false;
 
-    $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', auth_id = '".$auth_id."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."', created_at = NOW()";
-    $new_graph_id = $this->db->execute($q);
+    $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."', cloned_from_auth_id = '".$fromAuthId."', created_at = NOW()";
+    $new_graph_id = $this->db->exec($auth_id, $q);
 
     // change nodeContentId, edgeContentId in graph_history table for new graph
     $q = "SELECT elements, node_mapping FROM graph_history WHERE graph_id = '".$graph_id."' AND step = '".$graph_history_step."'";
-    $rows = $this->db->execute($q);
+    $rows = $this->db->exec($fromAuthId, $q);
     $nodes = array();
     $edges = array();
     $local_content_ids = array();
@@ -738,52 +821,58 @@ class Graphs {
     $elements = json_encode(array("nodes"=>$nodes, "edges"=>$edges), JSON_FORCE_OBJECT);
     $q = "INSERT INTO graph_history SET graph_id = '".$new_graph_id."', step = '1', timestamp = '".time()."', elements = '".$elements."', node_mapping = '".$rows[0]['node_mapping']."'";
     $this->logger->log($q);
-    $this->db->execute($q);
+    $this->db->exec($auth_id, $q);
 
     // Copy node_contents
     $node_alternative_attr_names_without_time = $this->node_alternative_attribute_names;
     unset($node_alternative_attr_names_without_time[array_search('created_at', $this->node_alternative_attribute_names)]);
     unset($node_alternative_attr_names_without_time[array_search('updated_at', $this->node_alternative_attribute_names)]);
-    $q = "INSERT INTO node_content (graph_id, local_content_id, alternative_id, "
+    $q ="SELECT local_content_id, alternative_id,	"
         .implode(',', $this->node_attribute_names).", "
         .implode(',', $node_alternative_attr_names_without_time)
-        .",	text, cloned_from_graph_id, cloned_from_local_content_id, updated_at, created_at) "
-        ."SELECT '".$new_graph_id."', local_content_id, alternative_id,	"
-        .implode(',', $this->node_attribute_names).", "
-        .implode(',', $node_alternative_attr_names_without_time)
-        .", text, '".$graph_id."', local_content_id, NOW(), NOW() "
+        .", text, local_content_id"
         ." FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
-    $this->logger->log($q);
-    $this->db->execute($q);
+    $rows = $this->db->exec($fromAuthId, $q);
+    foreach ($rows as $row) {
+      $q = "INSERT INTO node_content SET graph_id=".$new_graph_id.","
+          ."local_content_id=".$row['local_content_id'].","
+          ."alternative_id=".$row['alternative_id'].", "
+          .$this->getQueryPart($this->node_attribute_names, $row).","
+          .$this->getQueryPart($node_alternative_attr_names_without_time, $row).","
+          ." text=".$this->db->escape($row['text']).","
+          ." cloned_from_graph_id=".$graph_id.","
+          ." cloned_from_local_content_id=".$row['cloned_from_local_content_id'].","
+          ." updated_at=NOW(), created_at=NOW()";
+      $this->db->exec($auth_id, $q);
+    }
 
     // transform conditional probabilities to respect new nodeContentIds
     $q = "SELECT local_content_id, alternative_id, p FROM node_content WHERE graph_id = '".$new_graph_id."'";
-    $rows = $this->db->execute($q);
+    $rows = $this->db->exec($auth_id, $q);
     foreach ($rows as $row) {
       if($row['p'] && $row['p'] !== '' && json_decode($row['p'], true)){
         $newP = Graphs::convertPforClone(json_decode($row['p'], true), $new_graph_id, $this->contentIdConverter);
         $q = "UPDATE node_content SET p = '".$this->db->escape(json_encode($newP))."'"
             ." WHERE graph_id = '".$new_graph_id."' AND local_content_id='".$row['local_content_id']."' AND alternative_id='".$row['alternative_id']."'";
-        $this->db->execute($q);
+        $this->db->exec($auth_id, $q);
       }
     }
 
     // Copy node_content_sources
     $q = "SELECT * FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
-    $rows = $this->db->execute($q);
+    $rows = $this->db->exec($fromAuthId, $q);
     foreach ($rows as $row){
-      $q = "SELECT id FROM source WHERE auth_id = '".$auth_id."' AND cloned_from_id = '".$row['source_id']."'";
-      $cloned_sources = $this->db->execute($q);
+      $q = "SELECT id FROM source WHERE cloned_from_id = '".$row['source_id']."' AND cloned_from_auth_id='".$fromAuthId."'";
+      $cloned_sources = $this->db->exec($auth_id, $q);
       // if we have already duplicated source for this node_content_source, just use its id
       if(count($cloned_sources)){
         $id = $cloned_sources[0]['id'];
       }else{
         // duplicate source for clonee user
-        $q = "SELECT * FROM source WHERE auth_id = '".$row['auth_id']."' AND id = '".$row['source_id']."'";
-        $source = $this->db->execute($q)[0];
+        $q = "SELECT * FROM source WHERE id = '".$row['source_id']."'";
+        $source = $this->db->exec($fromAuthId, $q)[0];
 
         $q = "INSERT INTO source SET ".
-            " auth_id = '".$auth_id."',".
             " source_type = '".$source['source_type']."',".
             " field_type = '".$source['field_type']."',".
             " `name` = '".$source['name']."',".
@@ -796,16 +885,15 @@ class Graphs {
             " publish_date = '".$source['publish_date']."', ".
             " comment = '".$source['comment']."', ".
             " cloned_from_id = '".$source['id']."', ".
-            " cloned_from_auth_id = '".$source['auth_id']."', ".
+            " cloned_from_auth_id = '".$fromAuthId."', ".
             " created_at = NOW(), ".
             " updated_at = NOW()";
-        $id = $this->db->execute($q);
+        $id = $this->db->exec($auth_id, $q);
         $this->logger->log($q);
       }
 
       $q = "INSERT INTO node_content_source SET ".
           "graph_id = '".$new_graph_id."',".
-          "auth_id = '".$auth_id."',".
           "local_content_id = '".$row['local_content_id']."',".
           "alternative_id = '".$row['alternative_id']."',".
           "pages = '".$row['pages']."',".
@@ -813,28 +901,74 @@ class Graphs {
           "source_id = '".$id."',".
           "created_at = NOW(), ".
           "updated_at = NOW()";
-      $this->db->execute($q);
+      $this->db->exec($auth_id, $q);
       $this->logger->log($q);
     }
 
     // Copy node_content_falsification
-    $q = "INSERT INTO node_content_falsification (graph_id, local_content_id, alternative_id, `name`, comment,	created_at, updated_at) "
-        ."SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment, NOW(), NOW() FROM node_content_falsification "
+    $q = "SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment FROM node_content_falsification "
         ."WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
-    $this->logger->log($q);
-    $this->db->execute($q);
+    $rows = $this->db->exec($fromAuthId, $q);
+
+    foreach ($rows as $row) {
+      $q = "INSERT INTO node_content_falsification SET ".
+          "`graph_id` = ".$row['graph_id'].", ".
+          "`local_content_id` = ".$row['local_content_id'].", ".
+          "`alternative_id` = ".$row['alternative_id'].", ".
+          "`name` = ".$row['name'].", ".
+          "`comment` = ".$row['comment'].", ".
+          "`created_at` = NOW(), ".
+          "`updated_at` = NOW()";
+      $this->db->exec($auth_id, $q);
+    }
 
     // just copy edges as is
-    $q = "INSERT INTO edge_content (graph_id, local_content_id,	".implode(',', $this->edge_attribute_names).", updated_at, created_at) "
-        ."SELECT '".$new_graph_id."', local_content_id, ".implode(',', $this->edge_attribute_names).", NOW(), NOW() FROM edge_content WHERE graph_id = '".$graph_id."'";
-    $this->logger->log($q);
-    $this->db->execute($q);
+    $q = "SELECT `local_content_id`, `type`, `label` FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $rows = $this->db->exec($fromAuthId, $q);
+    foreach ($rows as $row) {
+      $q = "INSERT INTO edge_content SET ".
+          "`graph_id` = '".$new_graph_id."', ".
+          "`local_content_id` = '".$row['local_content_id']."', ".
+          $this->getQueryPart($this->edge_attribute_names, $row).", ".
+          "`updated_at` = NOW(), `created_at` = NOW()";
+      $this->db->exec($auth_id, $q);
+    }
 
-    $q = "INSERT INTO graph_settings (graph_id, settings) "
-        ."SELECT '".$new_graph_id."', settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
-    $this->logger->log($q);
-    $this->db->execute($q);
+    // copy graph settings
+    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
+    $rows = $this->db->exec($fromAuthId, $q);
+    foreach ($rows as $row) {
+      $q = "INSERT INTO  graph_settings SET graph_id = ".$new_graph_id.", settings = '".$this->db->escape($row['graph_settings'])."'";
+      $this->db->exec($auth_id, $q);
+    }
 
-    return $new_graph_id;
+    // add cloned graph info to original graph.cloned_to
+    $q = "SELECT cloned_to FROM graph WHERE graph_id = '".$graph_id."'";
+    $rows = $this->db->exec($fromAuthId, $q);
+    $cloned_to = json_decode($rows[0]['cloned_to'], true);
+    $cloned_to[$this->graphIdConverter->createGlobalGraphId($auth_id, $new_graph_id)] = $this->getClonedToRecord($auth_id, $new_graph_id);
+
+    return $this->graphIdConverter->createGlobalGraphId($auth_id, $new_graph_id);
+  }
+
+  /**
+   * Get value that must be added into json of cloned_to column
+   * @param $auth_id
+   * @param $new_graph_id
+   * @return array
+   */
+  private function getClonedToRecord($auth_id, $new_graph_id) {
+    $q = "SELECT username FROM auth WHERE id = '".$auth_id."'";
+    $rows = $this->db->exec(null, $q);
+    $username = $rows[0]['username'];
+    $q = "SELECT graph FROM graph WHERE graph_id = '".$new_graph_id."'";
+    $rows = $this->db->exec($auth_id, $q);
+    $name = json_decode($rows[0]['graph'], true)['name'];
+    return [
+        'graphId'=>$new_graph_id,
+        'graphName'=>$name,
+        'authId'=>$auth_id,
+        'username'=>$username
+    ];
   }
 }

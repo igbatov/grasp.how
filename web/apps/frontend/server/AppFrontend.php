@@ -17,7 +17,7 @@ class AppFrontend extends App{
         $type = $this->db->escape($output['type']);
         $graph_id = $this->db->escape($output['graph_id']);
         $q = "INSERT INTO share_track SET `from` = '".$from."', `type` = '".$type."', `graph_id` = '".$graph_id."'";
-        $this->db->execute($q);
+        $this->db->exec(null, $q);
         break;
 
       case 'subscribe':
@@ -27,7 +27,7 @@ class AppFrontend extends App{
 
         $email = $output['email'];
         $query = "INSERT INTO subscribe_email SET email = '".$this->db->escape($email)."'";
-        $this->db->execute($query);
+        $this->db->exec(null, $query);
         $msg = 'Email '.$email.' wants to recieve new maps';
         $this->sendMail("info@grasp.how", "igbatov@gmail.com", $msg, $msg);
         break;
@@ -56,8 +56,9 @@ class AppFrontend extends App{
         foreach($graph_ids as $graph_id) if(!is_numeric($graph_id)) exit('Bad graph_id '.$graph_id);
 
         $contentIdConverter = new ContentIdConverter();
-        $graphs = new Graphs($this->db, $contentIdConverter, $this->getLogger());
-        $emb_graph = new EmbGraph($this->db, $contentIdConverter, $graphs);
+        $graphIdConverter = new GraphIdConverter($this->logger);
+        $graphs = new Graphs($this->db, $contentIdConverter, $graphIdConverter, $this->getLogger());
+        $emb_graph = new EmbGraph($this->db, $contentIdConverter, $graphIdConverter, $graphs);
         $graph = $emb_graph->getGraphsData($graph_ids);
         //var_dump($graph); exit();
         $url = 'http://www.grasp.how/show/['.$graph_ids[0].']';

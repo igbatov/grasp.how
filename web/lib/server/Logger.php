@@ -36,10 +36,9 @@ class Logger{
     // try to log error in request_log table
     if($this->db){
       $username = $this->username ? $this->username : 'null';
-      $q = "INSERT INTO request_log SET user_login = '".$username."', user_id = NULL, type='".$type."', msg = '".$this->db->escape($msg)."', data = '".$this->db->escape($data)."'";
-      //error_log($q);
+      $q = "INSERT INTO request_log SET user_login = :user_login, user_id = NULL, type=:type, msg = :msg, data = :data";
       try{
-        $this->db->execute($q);
+        $this->db->exec(null, $q, ['user_login'=>$username, 'type'=>$type, 'msg'=>$msg, 'data'=>$data]);
       }catch (Exception $e) {
         error_log($e->getMessage());
       }

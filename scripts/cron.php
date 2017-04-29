@@ -27,6 +27,5 @@ foreach(scandir($rootpath."/web/apps") as $app_dir){
 if($type == 'daily'){
   // clear old rows from request_log
   $q = 'DELETE FROM request_log WHERE created_at < "'.date('Y-m-d H:i:s', strtotime(' -7 day')).'" ';
-  $db->execute($q);
-
+  $db->exec(null, $q);
 }
