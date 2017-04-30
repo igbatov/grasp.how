@@ -12,11 +12,16 @@ ini_set('error_log', $c->getDefaultPath('log')."/error_log.log");
 /**
  * Include all our classes
  */
+require_once ($path.'/'.'StopWatch.php');
+require_once ($path.'/'.'GraphDiffCreator.php');
 require_once ($path.'/'.'DB.php');
 require_once ($path.'/'.'NestedDB.php');
 require_once ($path.'/'.'EscapeDB.php');
 require_once ($path.'/'.'MultiTenantDB.php');
 require_once ($path.'/'.'ErrorHandler.php');
+require_once ($path.'/'.'Logger.php');
+require_once ($path.'/'.'GraphIdConverter.php');
+require_once ($path.'/'.'ContentIdConverter.php');
 
 // init helper modules
 $db = new MultiTenantDB(
@@ -27,4 +32,4 @@ $db = new MultiTenantDB(
     $c->getDbConf()->dbName
 );
 $eh = new ErrorHandler();
-$logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());
+$logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", "cli.bootstrap.php");

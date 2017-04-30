@@ -146,7 +146,7 @@ class MigrationRoller{
     $this->db->commitTransaction();
     $timestamp = $this->getFileRevisionDate($migrationName.'.php');
     $this->updateMigrationStatus($authId, $migrationName, $direction, $timestamp);
-    $this->mylog('successfully rolled '.$direction.' '.$migrationName);
+    $this->mylog(($authId ? 'authId = '.$authId : 'general db').': successfully rolled '.$direction.' '.$migrationName);
   }
 
   function updateMigrationStatus($authId, $migrationName, $status, $timestamp){

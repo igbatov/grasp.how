@@ -9,6 +9,9 @@
  *
  * If -m=MigrationFileName -d=up is given then roll up only this file
  * If -m=MigrationFileName -d=down is given then roll down only this file
+ *
+ * Example:
+ * php scripts/migrations.php -m=D20170423MultiTenant -d=up
  */
 $rootpath = dirname(dirname(__FILE__));
 include($rootpath."/web/lib/server/cli.bootstrap.php");
@@ -32,7 +35,13 @@ foreach ($authIds as $authId) {
   $roller->checkMigrationStatusTable($authId);
 
   if(isset($keys['-m']) && isset($keys['-d'])){
-    $roller->roll($authId, $keys['-m'], $keys['-d']);
+    // sanity check
+    $classname = explode('.php',$keys['-m'])[0]; // remove '.php' if any
+    if(!in_array($keys['-d'], ['up','down'])) {
+      throw new Exception('-d can be only "up" or "down", but '.$keys['-d'].' given.');
+    }
+    // roll migration
+    $roller->roll($authId, $classname, $keys['-d']);
   }else{
     if($roller->hasNullMigrations($authId)){
       $roller->mylog('Cannot autoroll until there are exist migration_status rows with null migration_timestamp column. Exiting...');

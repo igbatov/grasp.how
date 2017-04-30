@@ -42,20 +42,15 @@ class D20170423MultiTenant extends Migration
   {
     // we only want to change general db (one and only for not-multi-tenant architecture)
     if($authId !== null) return;
-
     $this->addChannelToAuth();
     $this->addDomainToAuth();
     $this->transformClones();
-
     $this->createTemplateDatabase();
-
     $this->splitUsers();
     $this->rebuildGraphHistoryGraphIds();
     $this->rebuildNodeContentPGraphIds();
-
     $this->removeUserTablesFromGeneral();
     $this->removeObsoleteColumns();
-
   }
 
   /**
@@ -68,6 +63,7 @@ class D20170423MultiTenant extends Migration
 
     foreach($auths as $auth) {
       $q = "ALTER TABLE graph DROP COLUMN auth_id";
+      $this->db->exec($auth['id'], $q);
       $q = "ALTER TABLE source DROP COLUMN auth_id";
       $this->db->exec($auth['id'], $q);
     }
@@ -79,6 +75,7 @@ class D20170423MultiTenant extends Migration
   private function removeUserTablesFromGeneral()
   {
     foreach ($this->userTables as $userTable) {
+      if($userTable === 'migration_status') continue;
       $q = "DROP TABLE ".$userTable;
       $this->db->exec(null, $q);
     }
@@ -90,7 +87,7 @@ class D20170423MultiTenant extends Migration
     $auths = $this->db->exec(null, $q);
 
     foreach($auths as $auth) {
-      $q = "SELECT p FROM node_content";
+      $q = "SELECT id, p FROM node_content";
       $rows = $this->db->exec($auth['id'], $q);
       foreach ($rows as $row) {
         if(strlen($row['p']) === 0) continue;
@@ -108,7 +105,7 @@ class D20170423MultiTenant extends Migration
           }
           $newP[json_encode($newParentAlternativeSet)] = $probability;
         }
-        $q = "UPDATE node_content SET p = '".$this->db->escape(json_encode($newP))."'";
+        $q = "UPDATE node_content SET p = '".$this->db->escape(json_encode($newP))."' WHERE id = '".$row['id']."'";
         $this->db->exec($auth['id'], $q);
       }
     }
@@ -123,7 +120,7 @@ class D20170423MultiTenant extends Migration
     $auths = $this->db->exec(null, $q);
 
     foreach($auths as $auth) {
-      $q = "SELECT elements FROM graph_history";
+      $q = "SELECT id, elements FROM graph_history";
       $rows = $this->db->exec($auth['id'], $q);
       foreach ($rows as $row) {
         if(strlen($row['elements']) === 0) continue;
@@ -165,7 +162,7 @@ class D20170423MultiTenant extends Migration
       // create user database without data
       $this->db->copyDB(
           $this->config->get('db_template'),
-          $this->config->get('userDbPrefix').$auth['id'],
+          $this->config->get('userDBPrefix').$auth['id'],
           array()
       );
 
@@ -177,7 +174,7 @@ class D20170423MultiTenant extends Migration
 
       // copy data of this user
       $fromDB = $this->config->getDbConf()->dbName;
-      $toDB = $this->config->get('userDbPrefix');
+      $toDB = $this->config->get('userDBPrefix').$auth['id'];
       foreach ($this->userTables as $tableName){
         $q = "INSERT INTO ".$toDB.".".$tableName." SELECT * FROM ".$fromDB.".".$tableName." ";
         if(in_array($tableName, ['migration_status'])){
