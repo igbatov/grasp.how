@@ -143,7 +143,7 @@ class AppUserPkb extends App
 
       if(!$this->isUserOwnGraph($graphId)){
         $access_level = 'read';
-        $this->logger->log('User '.$this->$this->getAuthId().' tries to change the graph '.$graphId.' that he does not own!');
+        $this->logger->log('User '.$this->getAuthId().' tries to change the graph '.$graphId.' that he does not own!');
       }
     }
 
@@ -243,7 +243,8 @@ class AppUserPkb extends App
         }
 
         foreach($graphs_settings as $id=>$settings){
-          if(!$this->isUserOwnGraph($id)) $graphs_settings[$id]['isEditable'] = false;
+          if(GraphDiffCreator::isDiffGraphId($id)) $graphs_settings[$id]['isEditable'] = false;
+          else if(!$this->isUserOwnGraph($id)) $graphs_settings[$id]['isEditable'] = false;
         }
 
         return $this->showRawData(json_encode($graphs_settings));
@@ -755,6 +756,7 @@ class AppUserPkb extends App
 
   private function isUserOwnGraph($graph_id){
     if($graph_id == 'none') return true;
+    if(GraphDiffCreator::isDiffGraphId($graph_id)) return false;
     if(!$this->graphIdConverter->isGraphIdGlobal($graph_id)) return true;
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     return $authId == $this->getAuthId();
@@ -814,7 +816,7 @@ class AppUserPkb extends App
 
         $graphId2 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId2'];
         $this->graphIdConverter->throwIfNowGlobal($graphId2);
-        $localGraphId2 = $this->graphIdConverter->getAuthId($graphId2);
+        $localGraphId2 = $this->graphIdConverter->getLocalGraphId($graphId2);
         $authId2 = $this->graphIdConverter->getAuthId($graphId2);
 
         $q = "SELECT cloned_from_graph_history_step FROM graph WHERE id = '".$localGraphId2."'";

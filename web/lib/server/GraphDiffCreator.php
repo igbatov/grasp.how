@@ -39,15 +39,15 @@ class GraphDiffCreator{
   ){
     $this->logger = $logger;
     $this->graphIdConverter = $graphIdConverter;
-    if(!$this->graphIdConverter->isGraphIdGlobal($graph1)
-    || !$this->graphIdConverter->isGraphIdGlobal($graph2)){
-      $msg = __CLASS__."::".__METHOD__." error: Graph id must be in a global format, got ".$graph1." and ".$graph2;
+    if(!$this->graphIdConverter->isGraphIdGlobal($graph1['graphId'])
+    || !$this->graphIdConverter->isGraphIdGlobal($graph2['graphId'])){
+      $msg = __CLASS__."::".__METHOD__." error: Graph id must be in a global format, got ".$graph1['graphId']." and ".$graph2['graphId'];
       $this->logger->log($msg);
       throw new Exception($msg);
     }
-    $this->authId1 = $this->graphIdConverter->getAuthId($graph1);
+    $this->authId1 = $this->graphIdConverter->getAuthId($graph1['graphId']);
     $this->graph1 = $graph1;
-    $this->authId1 = $this->graphIdConverter->getAuthId($graph2);
+    $this->authId1 = $this->graphIdConverter->getAuthId($graph2['graphId']);
     $this->graph2 = $graph2;
     $this->contentIdConverter = $contentIdConverter;
   }
@@ -222,9 +222,17 @@ class GraphDiffCreator{
     return strpos($contentId, '/') !== false;
   }
 
-  public static function isCloneModified(MultiTenantDB $db, $authId, $nodeAlternatives){
+  /**
+   *
+   * @param MultiTenantDB $db
+   * @param $authId
+   * @param GraphIdConverter $graphIdConverter
+   * @param $nodeAlternatives - alternatives of clone node
+   * @return bool
+   */
+  public static function isCloneModified(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $authId, $nodeAlternatives){
     foreach($nodeAlternatives as $row){
-       if(GraphDiffCreator::isCloneAlternativeModified($db, $authId, $row)) return true;
+       if(GraphDiffCreator::isCloneAlternativeModified($db, $graphIdConverter, $authId, $row)) return true;
     }
     return false;
   }
@@ -232,20 +240,21 @@ class GraphDiffCreator{
   /**
    *
    * @param $db
+   * @param GraphIdConverter $graphIdConverter
    * @param $authId - $authId of clone owner
    * @param $alternative - alternative row from node_content table
    * @return bool
    */
-  public static function isCloneAlternativeModified(MultiTenantDB $db, $authId, $alternative){
+  public static function isCloneAlternativeModified(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $authId, $alternative){
     if($alternative['cloned_from_graph_id'] === null || $alternative['cloned_from_local_content_id'] === null) {
       return false;
     }
 
-    if($alternative['updated_at'] > $alternative['created_at']) return true;
+    //if($alternative['updated_at'] > $alternative['created_at']) return true;
 
-    $q = 'SELECT * FROM node_content WHERE graph_id="'.$alternative['cloned_from_graph_id'].'" AND cloned_from_local_content_id="'.$alternative['cloned_from_local_content_id'].'" AND alternative_id="'.$alternative['alternative_id'].'"';
-    $rows = $db->exec($authId, $q);
-    if(!self::isClonePEqual($rows[0], $alternative)) return true;
+    $q = 'SELECT * FROM node_content WHERE graph_id="'.$alternative['cloned_from_graph_id'].'" AND local_content_id="'.$alternative['cloned_from_local_content_id'].'" AND alternative_id="'.$alternative['alternative_id'].'"';
+    $rows = $db->exec($alternative['cloned_from_auth_id'], $q);
+    if(!self::isClonePEqual($graphIdConverter, $rows[0], $alternative)) return true;
     if(
         $rows[0]['type'] != $alternative['type']
         || $rows[0]['reliability'] != $alternative['reliability']
@@ -264,11 +273,12 @@ class GraphDiffCreator{
 
   /**
    * Check that conditional probabilities of node alternative and its clone are equal
+   * @param GraphIdConverter $graphIdConverter
    * @param $original
    * @param $clone
    * @return bool
    */
-  public static function isClonePEqual($original, $clone)
+  public static function isClonePEqual(GraphIdConverter $graphIdConverter, $original, $clone)
   {
     if(
         $original['graph_id'] !== $clone['cloned_from_graph_id']
@@ -280,10 +290,15 @@ class GraphDiffCreator{
     $originalP = json_decode($original['p'], true);
     $cloneP = json_decode($clone['p'], true);
 
-    $contentIdConverter = new ContentIdConverter();
-    $mustBe = Graphs::convertPforClone($originalP, $clone['graph_id'], $contentIdConverter);
+    $globalOriginalGraphId = $graphIdConverter->createGlobalGraphId(
+        $clone['cloned_from_auth_id'],
+        $clone['cloned_from_graph_id']
+    );
 
-    return $mustBe == $cloneP;
+    $contentIdConverter = new ContentIdConverter();
+    $mustBe = Graphs::convertPforClone($cloneP, $globalOriginalGraphId, $contentIdConverter);
+
+    return $mustBe == $originalP;
   }
 
   public static function getDiffText(
@@ -346,7 +361,7 @@ class GraphDiffCreator{
 
     $q = "SELECT * FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'";
     $rows = $db->exec($authId2, $q);
-    $is_modified = GraphDiffCreator::isCloneAlternativeModified($db, $authId2, $rows[0]);
+    $is_modified = GraphDiffCreator::isCloneAlternativeModified($db, $graphIdConverter, $authId2, $rows[0]);
 
     // if it is cloned node and alternative content was not modified
     if(!$is_modified){

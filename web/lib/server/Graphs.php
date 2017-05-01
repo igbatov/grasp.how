@@ -149,7 +149,7 @@ class Graphs {
           $localGraphId2 = $this->graphIdConverter->getLocalGraphId($contentId['graphId2']);
           $q = "SELECT * FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$contentId['localContentId2']."'";
           $rows = $this->db->exec($authId2, $q);
-          if(GraphDiffCreator::isCloneModified($this->db, $authId2, $rows)) $status = 'modified';
+          if(GraphDiffCreator::isCloneModified($this->db, $this->graphIdConverter, $authId2, $rows)) $status = 'modified';
         }
         $nodes[$content_id]['stickers'][] = $status;
 
