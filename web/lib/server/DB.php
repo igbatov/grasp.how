@@ -31,7 +31,7 @@ class DB
 
     $result = mysqli_query($this->mysqlLink, $query);
     if($result === false){
-      $error_msg = "MysqlHelper::execute query='".$query."'\n".mysqli_error($this->mysqlLink);
+      $error_msg = "MysqlHelper::execute ".mysqli_error($this->mysqlLink)."\n"." query='".$query."'\n";
       trigger_error($error_msg);
       throw new Exception($error_msg);
     }

@@ -7,7 +7,7 @@
     var iframe = document.createElement('iframe');
     iframe.scrolling = "no";
     iframe.class = 'grasphow-iframe';
-    iframe.src = 'http://www.grasp.how/embed/<?php echo "[".implode(',',$graphIds)."]"; ?>';
+    iframe.src = '/embed/<?php echo "[".implode(',',$graphIds)."]"; ?>';
     iframe.style = 'border: 0; width: '+width+'; height: '+height;
     iframe.onload = function(){
       this.contentWindow.postMessage({from:document.location.href}, "http://www.grasp.how/embed/<?php echo "[".implode(',',$graphIds)."]"; ?>");

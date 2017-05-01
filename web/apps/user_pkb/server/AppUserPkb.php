@@ -539,27 +539,32 @@ class AppUserPkb extends App
         $graph_ids = $this->getGraphIds($this->getAuthId());
 
         foreach($graph_ids as $graph_id){
+          $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
           $clone_list[$graph_id] = array('cloned_from'=>array(), 'cloned_to'=>array());
 
           // get cloned from graph name and username
-          $q = "SELECT cloned_from_graph_id, cloned_from_auth_id FROM graph WHERE id = '".$graph_id."'";
+          $q = "SELECT cloned_from_graph_id, cloned_from_auth_id FROM graph WHERE id = '".$localGraphId."'";
           $rows = $this->db->exec($this->getAuthId(),$q);
           if(!count($rows)) continue;
 
           $cloned_from_graph_id = $rows[0]['cloned_from_graph_id'];
           $cloned_from_auth_id = $rows[0]['cloned_from_auth_id'];
+          $global_cloned_from_graph_id = $this->graphIdConverter->createGlobalGraphId($cloned_from_auth_id, $cloned_from_graph_id);
           if(is_numeric($cloned_from_graph_id) && is_numeric($cloned_from_auth_id)) {
             $q = "SELECT graph FROM graph WHERE id = '".$cloned_from_graph_id."'";
             $cloned_from_graphname = json_decode($this->db->exec($cloned_from_auth_id, $q)[0]['graph'], true)['name'];
             $q = "SELECT username FROM auth WHERE id = '".$cloned_from_auth_id."'";
             $cloned_from_username = $this->db->exec(null, $q)[0]['username'];
-            $clone_list[$graph_id]['cloned_from'][$cloned_from_graph_id] = $cloned_from_username.": ".$cloned_from_graphname;
+            $clone_list[$graph_id]['cloned_from'][$global_cloned_from_graph_id] = $cloned_from_username.": ".$cloned_from_graphname;
           }
 
           // now get list of cloned to graph name and username
-          $q = "SELECT cloned_to FROM graph WHERE id = '".$graph_id."'";
+          $q = "SELECT cloned_to FROM graph WHERE id = '".$localGraphId."'";
           $rows = $this->db->exec($this->getAuthId(),$q);
-          foreach(json_decode($rows[0]['cloned_to'], true) as $globalGraphId => $data) {
+          $cloned_to = json_decode($rows[0]['cloned_to'], true);
+          if(!is_array($cloned_to)) $cloned_to = [];
+          //$this->logger->log($rows[0]['cloned_to'],$cloned_to);
+          foreach($cloned_to as $globalGraphId => $data) {
             $clone_list[$graph_id]['cloned_to'][$globalGraphId] = $data['username'].": ".$data['graphName'];
           }
         }
@@ -756,7 +761,7 @@ class AppUserPkb extends App
   }
 
   private function getGraphIds($auth_id){
-    $graph_query = "SELECT id FROM graph WHERE auth_id = '".$auth_id."'";
+    $graph_query = "SELECT id FROM graph";
     $rows = $this->db->exec($auth_id, $graph_query);
     $s = array();
     foreach($rows as $row){

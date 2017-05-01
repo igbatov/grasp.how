@@ -67,6 +67,8 @@ require_once ($path.'/'.'StopWatch.php');
 require_once ($path.'/'.'I18N.php');
 require_once ($path.'/'.'DB.php');
 require_once ($path.'/'.'NestedDB.php');
+require_once ($path.'/'.'EscapeDB.php');
+require_once ($path.'/'.'MultiTenantDB.php');
 require_once ($path.'/'.'ErrorHandler.php');
 require_once ($path.'/'.'Logger.php');
 require_once ($path.'/'.'Session.php');

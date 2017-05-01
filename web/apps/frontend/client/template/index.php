@@ -35,7 +35,7 @@
   </div>
 
   <div id="grasp-how-8866" style="height: 600px;">
-    <script src='http://www.grasp.how/embed.js?data={"graphIds":[155],"uniqId":"grasp-how-8866"}'></script>
+    <script src='/embed.js?data={"graphIds":[1.155],"uniqId":"grasp-how-8866"}'></script>
   </div>
 
   <div id="quote" class="description">

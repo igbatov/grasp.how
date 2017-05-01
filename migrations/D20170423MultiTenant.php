@@ -266,7 +266,10 @@ class D20170423MultiTenant extends Migration
       $clonedTo = [];
       foreach ($cloneRows as $cloneRow) {
         $clonedTo[$graphAuthMap[$cloneRow['id']].".".$cloneRow['id']] = [
-            'graphId'=>$cloneRow['id'],
+            'graphId'=>$this->graphIdConverter->createGlobalGraphId(
+                $graphAuthMap[$cloneRow['id']]['authId'],
+                $cloneRow['id']
+            ),
             'graphName'=>$graphs[$cloneRow['id']]['name'],
             'authId'=>$graphAuthMap[$cloneRow['id']],
             'username'=>$auths[$graphAuthMap[$cloneRow['id']]]['username']

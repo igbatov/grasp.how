@@ -3,6 +3,17 @@
 include("EmbGraph.php");
 
 class AppFrontend extends App{
+  private $contentIdConverter;
+  private $graphIdConverter;
+  function __construct(
+      Config $c, Session $s, MultiTenantDB $db,
+      Logger $logger, I18N $i18n, OAuthUser $oauth=null
+  ) {
+    parent::__construct($c, $s, $db, $logger, $i18n, $oauth);
+    $this->contentIdConverter = new ContentIdConverter();
+    $this->graphIdConverter = new GraphIdConverter($this->logger);
+  }
+
   public function showView(){
     $vars = $this->getRoute();
     $action = $vars[0];
@@ -40,7 +51,7 @@ class AppFrontend extends App{
         $uniqId = $r['uniqId'];
 
         // sanity check
-        if(count($graphIds)>50 || strlen($uniqId)>255) exit('Too long params');
+        if(count($graphIds)>50 || strlen($uniqId)>255) throw new Exception('Too long params');
 
         include($this->getAppDir("template", false)."/embedjs.php");
         break;
@@ -53,12 +64,10 @@ class AppFrontend extends App{
         $graph_ids = json_decode($vars[1],true);
         if(!is_array($graph_ids)) exit('Bad JSON');
 
-        foreach($graph_ids as $graph_id) if(!is_numeric($graph_id)) exit('Bad graph_id '.$graph_id);
+        foreach($graph_ids as $graph_id) $this->graphIdConverter->throwIfNowGlobal($graph_id);
 
-        $contentIdConverter = new ContentIdConverter();
-        $graphIdConverter = new GraphIdConverter($this->logger);
-        $graphs = new Graphs($this->db, $contentIdConverter, $graphIdConverter, $this->getLogger());
-        $emb_graph = new EmbGraph($this->db, $contentIdConverter, $graphIdConverter, $graphs);
+        $graphs = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
+        $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $graphs);
         $graph = $emb_graph->getGraphsData($graph_ids);
         //var_dump($graph); exit();
         $url = 'http://www.grasp.how/show/['.$graph_ids[0].']';

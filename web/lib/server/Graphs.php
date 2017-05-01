@@ -787,20 +787,21 @@ class Graphs {
     if(!$this->graphIdConverter->isGraphIdGlobal($graph_id)){
       throw new Exception("Error in ".__CLASS__."::".__METHOD__.": graph_id must be in a global format, but got ".$graph_id);
     }
-    $graph_id = $this->graphIdConverter->getLocalGraphId($graph_id);
+
     $fromAuthId = $this->graphIdConverter->getAuthId($graph_id);
+    $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
 
     // copy row in graph table
-    $q = "SELECT graph FROM graph WHERE id = '".$graph_id."'";
+    $q = "SELECT graph FROM graph WHERE id = '".$localGraphId."'";
     $this->logger->log($q);
     $rows = $this->db->exec($fromAuthId, $q);
     if(!count($rows)) return false;
 
-    $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', cloned_from_graph_id = '".$graph_id."', cloned_from_graph_history_step = '".$graph_history_step."', cloned_from_auth_id = '".$fromAuthId."', created_at = NOW()";
+    $q = "INSERT INTO graph SET graph = '".$rows[0]['graph']."', cloned_from_graph_id = '".$localGraphId."', cloned_from_graph_history_step = '".$graph_history_step."', cloned_from_auth_id = '".$fromAuthId."', created_at = NOW()";
     $new_graph_id = $this->db->exec($auth_id, $q);
-
+    $global_new_graph_id = $this->graphIdConverter->createGlobalGraphId($auth_id, $new_graph_id);
     // change nodeContentId, edgeContentId in graph_history table for new graph
-    $q = "SELECT elements, node_mapping FROM graph_history WHERE graph_id = '".$graph_id."' AND step = '".$graph_history_step."'";
+    $q = "SELECT elements, node_mapping FROM graph_history WHERE graph_id = '".$localGraphId."' AND step = '".$graph_history_step."'";
     $rows = $this->db->exec($fromAuthId, $q);
     $nodes = array();
     $edges = array();
@@ -809,13 +810,13 @@ class Graphs {
 
     foreach($elements['nodes'] as $k => $node){
       $local_content_id = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
-      $node['nodeContentId'] = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
+      $node['nodeContentId'] = $this->contentIdConverter->createGlobalContentId($global_new_graph_id, $local_content_id);
       $local_content_ids[] = $local_content_id;
       $nodes[$k] = $node;
     }
     foreach($elements['edges'] as $k => $edge){
       $local_content_id = $this->contentIdConverter->getLocalContentId($edge['edgeContentId']);
-      $edge['edgeContentId'] = $this->contentIdConverter->createGlobalContentId($new_graph_id, $local_content_id);
+      $edge['edgeContentId'] = $this->contentIdConverter->createGlobalContentId($global_new_graph_id, $local_content_id);
       $edges[$k] = $edge;
     }
     $elements = json_encode(array("nodes"=>$nodes, "edges"=>$edges), JSON_FORCE_OBJECT);
@@ -827,11 +828,11 @@ class Graphs {
     $node_alternative_attr_names_without_time = $this->node_alternative_attribute_names;
     unset($node_alternative_attr_names_without_time[array_search('created_at', $this->node_alternative_attribute_names)]);
     unset($node_alternative_attr_names_without_time[array_search('updated_at', $this->node_alternative_attribute_names)]);
-    $q ="SELECT local_content_id, alternative_id,	"
+    $q ="SELECT id, local_content_id, alternative_id,	"
         .implode(',', $this->node_attribute_names).", "
         .implode(',', $node_alternative_attr_names_without_time)
-        .", text, local_content_id"
-        ." FROM node_content WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+        .", text"
+        ." FROM node_content WHERE graph_id = '".$localGraphId."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $rows = $this->db->exec($fromAuthId, $q);
     foreach ($rows as $row) {
       $q = "INSERT INTO node_content SET graph_id=".$new_graph_id.","
@@ -839,9 +840,10 @@ class Graphs {
           ."alternative_id=".$row['alternative_id'].", "
           .$this->getQueryPart($this->node_attribute_names, $row).","
           .$this->getQueryPart($node_alternative_attr_names_without_time, $row).","
-          ." text=".$this->db->escape($row['text']).","
-          ." cloned_from_graph_id=".$graph_id.","
-          ." cloned_from_local_content_id=".$row['cloned_from_local_content_id'].","
+          ." `text`='".$this->db->escape($row['text'])."',"
+          ." cloned_from_graph_id='".$localGraphId."',"
+          ." cloned_from_local_content_id='".$row['local_content_id']."',"
+          ." cloned_from_auth_id='".$fromAuthId."',"
           ." updated_at=NOW(), created_at=NOW()";
       $this->db->exec($auth_id, $q);
     }
@@ -851,7 +853,7 @@ class Graphs {
     $rows = $this->db->exec($auth_id, $q);
     foreach ($rows as $row) {
       if($row['p'] && $row['p'] !== '' && json_decode($row['p'], true)){
-        $newP = Graphs::convertPforClone(json_decode($row['p'], true), $new_graph_id, $this->contentIdConverter);
+        $newP = Graphs::convertPforClone(json_decode($row['p'], true), $global_new_graph_id, $this->contentIdConverter);
         $q = "UPDATE node_content SET p = '".$this->db->escape(json_encode($newP))."'"
             ." WHERE graph_id = '".$new_graph_id."' AND local_content_id='".$row['local_content_id']."' AND alternative_id='".$row['alternative_id']."'";
         $this->db->exec($auth_id, $q);
@@ -859,7 +861,7 @@ class Graphs {
     }
 
     // Copy node_content_sources
-    $q = "SELECT * FROM node_content_source WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+    $q = "SELECT * FROM node_content_source WHERE graph_id = '".$localGraphId."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $rows = $this->db->exec($fromAuthId, $q);
     foreach ($rows as $row){
       $q = "SELECT id FROM source WHERE cloned_from_id = '".$row['source_id']."' AND cloned_from_auth_id='".$fromAuthId."'";
@@ -875,29 +877,29 @@ class Graphs {
         $q = "INSERT INTO source SET ".
             " source_type = '".$source['source_type']."',".
             " field_type = '".$source['field_type']."',".
-            " `name` = '".$source['name']."',".
-            " url = '".$source['url']."',".
-            " author = '".$source['author']."',".
-            " editor = '".$source['editor']."',".
-            " publisher = '".$source['publisher']."',".
+            " `name` = '".$this->db->escape($source['name'])."',".
+            " url = '".$this->db->escape($source['url'])."',".
+            " author = '".$this->db->escape($source['author'])."',".
+            " editor = '".$this->db->escape($source['editor'])."',".
+            " publisher = '".$this->db->escape($source['publisher'])."',".
             " publisher_reliability = '".$source['publisher_reliability']."', ".
             " scopus_title_list_id = ".($source['scopus_title_list_id'] ? "'".$source['scopus_title_list_id']."'" : 'NULL').", ".
             " publish_date = '".$source['publish_date']."', ".
-            " comment = '".$source['comment']."', ".
+            " `comment` = '".$this->db->escape($source['comment'])."', ".
             " cloned_from_id = '".$source['id']."', ".
             " cloned_from_auth_id = '".$fromAuthId."', ".
             " created_at = NOW(), ".
             " updated_at = NOW()";
-        $id = $this->db->exec($auth_id, $q);
         $this->logger->log($q);
+        $id = $this->db->exec($auth_id, $q);
       }
 
       $q = "INSERT INTO node_content_source SET ".
           "graph_id = '".$new_graph_id."',".
           "local_content_id = '".$row['local_content_id']."',".
           "alternative_id = '".$row['alternative_id']."',".
-          "pages = '".$row['pages']."',".
-          "comment = '".$row['comment']."',".
+          "pages = '".$this->db->escape($row['pages'])."',".
+          "`comment` = '".$this->db->escape($row['comment'])."',".
           "source_id = '".$id."',".
           "created_at = NOW(), ".
           "updated_at = NOW()";
@@ -907,7 +909,7 @@ class Graphs {
 
     // Copy node_content_falsification
     $q = "SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment FROM node_content_falsification "
-        ."WHERE graph_id = '".$graph_id."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
+        ."WHERE graph_id = '".$localGraphId."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $rows = $this->db->exec($fromAuthId, $q);
 
     foreach ($rows as $row) {
@@ -915,15 +917,15 @@ class Graphs {
           "`graph_id` = ".$row['graph_id'].", ".
           "`local_content_id` = ".$row['local_content_id'].", ".
           "`alternative_id` = ".$row['alternative_id'].", ".
-          "`name` = ".$row['name'].", ".
-          "`comment` = ".$row['comment'].", ".
+          "`name` = ".$this->db->escape($row['name']).", ".
+          "`comment` = ".$this->db->escape($row['comment']).", ".
           "`created_at` = NOW(), ".
           "`updated_at` = NOW()";
       $this->db->exec($auth_id, $q);
     }
 
     // just copy edges as is
-    $q = "SELECT `local_content_id`, `type`, `label` FROM edge_content WHERE graph_id = '".$graph_id."'";
+    $q = "SELECT `local_content_id`, `type`, `label` FROM edge_content WHERE graph_id = '".$localGraphId."'";
     $rows = $this->db->exec($fromAuthId, $q);
     foreach ($rows as $row) {
       $q = "INSERT INTO edge_content SET ".
@@ -935,18 +937,20 @@ class Graphs {
     }
 
     // copy graph settings
-    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$graph_id."'";
+    $q = "SELECT settings FROM graph_settings WHERE graph_id = '".$localGraphId."'";
     $rows = $this->db->exec($fromAuthId, $q);
     foreach ($rows as $row) {
-      $q = "INSERT INTO  graph_settings SET graph_id = ".$new_graph_id.", settings = '".$this->db->escape($row['graph_settings'])."'";
+      $q = "INSERT INTO  graph_settings SET graph_id = ".$new_graph_id.", settings = '".$this->db->escape($row['settings'])."'";
       $this->db->exec($auth_id, $q);
     }
 
     // add cloned graph info to original graph.cloned_to
-    $q = "SELECT cloned_to FROM graph WHERE graph_id = '".$graph_id."'";
+    $q = "SELECT cloned_to FROM graph WHERE id = '".$localGraphId."'";
     $rows = $this->db->exec($fromAuthId, $q);
     $cloned_to = json_decode($rows[0]['cloned_to'], true);
     $cloned_to[$this->graphIdConverter->createGlobalGraphId($auth_id, $new_graph_id)] = $this->getClonedToRecord($auth_id, $new_graph_id);
+    $q = "UPDATE graph SET cloned_to='".$this->db->escape(json_encode($cloned_to))."' WHERE id = '".$localGraphId."'";
+    $this->db->exec($fromAuthId, $q);
 
     return $this->graphIdConverter->createGlobalGraphId($auth_id, $new_graph_id);
   }
@@ -961,7 +965,7 @@ class Graphs {
     $q = "SELECT username FROM auth WHERE id = '".$auth_id."'";
     $rows = $this->db->exec(null, $q);
     $username = $rows[0]['username'];
-    $q = "SELECT graph FROM graph WHERE graph_id = '".$new_graph_id."'";
+    $q = "SELECT graph FROM graph WHERE id = '".$new_graph_id."'";
     $rows = $this->db->exec($auth_id, $q);
     $name = json_decode($rows[0]['graph'], true)['name'];
     return [

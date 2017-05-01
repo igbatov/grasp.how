@@ -78,7 +78,7 @@ class Logger{
       $msg .= "\n";
     }
     error_log($msg);
-    $this->dbLog('log',$msg);
+    //$this->dbLog('log',$msg);
   }
 
   public function preAccessLog(){
