@@ -302,9 +302,12 @@ class AppUserPkb extends App
           if(GraphDiffCreator::isDiffGraphId($graph_id)){
             $timeline[$graph_id][0] = time();
           }else{
+            $this->graphIdConverter->throwIfNowGlobal($graph_id);
             $timeline[$graph_id] = array();
-            $query = "SELECT step, timestamp FROM graph_history WHERE graph_id = '".$this->graphIdConverter->getLocalGraphId($graph_id)."'";
-            foreach($this->db->exec($this->getAuthId(),$query) as $row){
+            $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
+            $authId = $this->graphIdConverter->getAuthId($graph_id);
+            $query = "SELECT step, timestamp FROM graph_history WHERE graph_id = '".$localGraphId."'";
+            foreach($this->db->exec($authId,$query) as $row){
               $timeline[$graph_id][$row['step']] = (int)$row['timestamp'];
             }
           }
@@ -342,6 +345,9 @@ class AppUserPkb extends App
 
       case 'changeGraphPosition':
         $graphId = $this->getRequest()['graphId'];
+        if($graphId === 'none'){
+          $graphId = $this->graphIdConverter->createGlobalGraphId($this->getAuthId(), $graphId);
+        }
         $position = $this->getRequest()['position'];
         $user_graph_ids = $this->getGraphIds($this->getAuthId());
         $this->graphs->changeGraphPosition($graphId, $position, $user_graph_ids);
@@ -490,20 +496,21 @@ class AppUserPkb extends App
           $source_node_contents = $this->db->exec($this->getAuthId(),$q);
           foreach ($source_node_contents as $source_node_content){
             if(!isset($source_graphs[$source_node_content['graph_id']])) {
-              $source_graphs[$source_node_content['graph_id']] = [
-                  'graphId' => $source_node_content['graph_id'],
-                  'graphName' => $graphs[$source_node_content['graph_id']]['name'],
+              $globalGraphId = $this->graphIdConverter->createGlobalGraphId($this->getAuthId(), $source_node_content['graph_id']);
+              $source_graphs[$globalGraphId] = [
+                  'graphId' => $globalGraphId,
+                  'graphName' => $graphs[$globalGraphId]['name'],
                   'usedInNodes' => []
               ];
             }
 
             $global_content_id = $this->contentIdConverter->createGlobalContentId(
-                $source_node_content['graph_id'],
+                $globalGraphId,
                 $source_node_content['local_content_id']
             );
 
             $active_alternative_id = $node_attributes[$global_content_id]['active_alternative_id'];
-            $source_graphs[$source_node_content['graph_id']]['usedInNodes'][] = [
+            $source_graphs[$globalGraphId]['usedInNodes'][] = [
                 'nodeId'=>$global_content_id,
                 'label'=>$node_attributes[$global_content_id]['alternatives'][$active_alternative_id]['label']
             ];
@@ -1144,6 +1151,7 @@ class AppUserPkb extends App
       'GraphController/AddRemoveElementController.js',
       'GraphController/HistoryController.js',
       'GraphController/SelectElementController.js',
+      'GraphController/NewNodesGraphHelper.js',
       'GraphController/ModelChangeController.js',
       'GraphController/MappingChangeController.js',
       'GraphController/ShowEditorController.js',

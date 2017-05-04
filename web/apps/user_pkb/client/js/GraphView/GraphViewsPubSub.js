@@ -129,7 +129,8 @@ GRASP.GraphViewsPubSub.prototype = {
 
       case 'set_drag_mode':
         for(var i in this.graphViewList){
-          if(!this.isNewNodeGraph(this.graphViewList[i].getId())){
+          var isNewNodeGraph = this.publisher.getInstant("is_new_node_graph_id", {'graphId':this.graphViewList[i].getId()});
+          if(!isNewNodeGraph){
             this.graphViewList[this.graphViewList[i].getId()].setDragMode(event.getData()['drag_mode']);
           }
         }
@@ -139,10 +140,6 @@ GRASP.GraphViewsPubSub.prototype = {
         break;
     }
     return true;
-  },
-
-  isNewNodeGraph: function(graphId){
-    return graphId.indexOf('newNodes') != -1;
   },
 
   /**

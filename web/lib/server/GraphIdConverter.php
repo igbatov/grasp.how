@@ -77,4 +77,14 @@ class GraphIdConverter{
       throw new Exception($msg);
     }
   }
+
+  /**
+   * NewNodesGraph is utility graph - it is used only as a source from which we can drag nodes to create new nodes on real graph.
+   * It contains node of every type without edges
+   * @param $globalGraphId
+   * @return bool
+   */
+  public function isNewNodesGraph($globalGraphId){
+    return substr($globalGraphId,0,strlen('newNodes:')) === 'newNodes:';
+  }
 }

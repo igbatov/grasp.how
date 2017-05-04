@@ -26,6 +26,7 @@ var Modules = {
 
   HistoryController: GRASP.HistoryController,
   AddRemoveElementController: GRASP.AddRemoveElementController,
+  NewNodesGraphHelper: GRASP.NewNodesGraphHelper,
   ModelChangeController: GRASP.ModelChangeController,
   MappingChangeController: GRASP.MappingChangeController,
   SelectElementController: GRASP.SelectElementController,
@@ -108,6 +109,7 @@ var DI = {
 
   AddRemoveElementController:['Publisher'],
   HistoryController:['Publisher'],
+  NewNodesGraphHelper:['Publisher'],
   ModelChangeController:['Publisher','ViewManager'],
   MappingChangeController:['Publisher'],
   SelectElementController:['Publisher'],
@@ -190,6 +192,9 @@ GRASP.wireModules(Modules, DI);
 // Link modules with event subscriptions
 Modules['Mediator'].setSubscriptions(
     {
+      'get_new_nodes_graph_view_settings':[Modules['NewNodesGraphHelper']],
+      'is_new_node_graph_id':[Modules['NewNodesGraphHelper']],
+
       'show_graphs':[Modules['GraphControllerPubSub']],
 
       // model events
@@ -320,6 +325,6 @@ Modules['Mediator'].setSubscriptions(
       'repository_error':[Modules['StatusString']],
       'repository_requests_send':[Modules['StatusString']],
 
-      'repository_processing':[Modules['StatusString']]
+      'repository_processing':[Modules['StatusString']],
     }
 );

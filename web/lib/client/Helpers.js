@@ -1444,7 +1444,7 @@ GRASP.createElement = function(tag, attrs, text, callback, isText){
 
   if(GRASP.typeof(text) == 'number') text = String(text);
 
-  if(typeof(text) != 'undefined' && text.length > 0){
+  if(typeof(text) != 'undefined' && text !== null && text.length > 0){
     if(!isText) el.innerHTML = text;
     else{
       // break text into paragraphs

@@ -32,7 +32,7 @@ GRASP.FormFields.prototype = {
 
     // define which source type has which fields visible
     var typeFields = {
-      'personal experience':{'name':'text','comment':'text','publisher_reliability':'text'}
+      'personal experience':['source_type', 'name', 'comment', 'publisher_reliability', 'button']
     };
 
     var selectSourceType = function(name, value){
@@ -40,9 +40,9 @@ GRASP.FormFields.prototype = {
 
       // show only fields that is valid for 'personal experience'
       if(value == 'personal experience'){
-        for(fieldname in typeFields['all']){
-          if(GRASP.getObjectKeys(typeFields['personal experience']).indexOf(fieldname) == -1){
-            that.UI.updateForm(form,fieldname,{type:'hidden'});
+        for(fieldname in formFields){
+          if(typeFields['personal experience'].indexOf(fieldname) == -1){
+            that.UI.updateForm(form, fieldname, {type:'hidden'});
           }
         }
       }

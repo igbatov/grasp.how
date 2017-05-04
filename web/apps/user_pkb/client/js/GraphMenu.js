@@ -28,8 +28,15 @@ GRASP.GraphMenu.prototype = {
 
         // determine graph id which is not in this.selectedPosition yet
         for(i in graphIds){
-          if(typeof(this.selectedPosition[graphIds[i]]) == 'undefined') unknownGraphIds.push(graphIds[i]);
-          else knownGraphIds.push(graphIds[i]);
+          var isNewNodesGraph = this.publisher.getInstant("is_new_node_graph_id", {'graphId':graphIds[i]});
+          if(
+              typeof(this.selectedPosition[graphIds[i]]) == 'undefined'
+              && !isNewNodesGraph // we do not want to process aux NewNodesGraph
+          ) {
+            unknownGraphIds.push(graphIds[i]);
+          } else {
+            knownGraphIds.push(graphIds[i]);
+          }
         }
 
         // request positions of unknown graphs

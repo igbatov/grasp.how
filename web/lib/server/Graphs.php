@@ -45,6 +45,7 @@ class Graphs {
    * @return array|bool
    */
   public function getGraphSettings($graph_id){
+    if($this->graphIdConverter->isNewNodesGraph($graph_id)) return false;
     $this->graphIdConverter->throwIfNowGlobal($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
@@ -270,11 +271,13 @@ class Graphs {
       $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
       $authId = $this->graphIdConverter->getAuthId($graph_id);
       $q = "SELECT graph_id, local_content_id FROM node_content WHERE graph_id = '".$localGraphId."'";
-      $row = $this->db->exec($authId, $q);
-      $contentIds[] = $this->contentIdConverter->createGlobalContentId(
-          $this->graphIdConverter->createGlobalGraphId($authId, $row['graph_id']),
-          $row['local_content_id']
-      );
+      $rows = $this->db->exec($authId, $q);
+      foreach ($rows as $row){
+        $contentIds[] = $this->contentIdConverter->createGlobalContentId(
+            $this->graphIdConverter->createGlobalGraphId($authId, $row['graph_id']),
+            $row['local_content_id']
+        );
+      }
     }
 
     return $this->getNodeAttributes($contentIds);
@@ -477,7 +480,7 @@ class Graphs {
         $this->db->exec($authId, $query);
       }
 
-      $this->db->execute('SELECT RELEASE_LOCK("'.$lockName.'")');
+      $this->db->exec(null, 'SELECT RELEASE_LOCK("'.$lockName.'")');
       return json_encode(array('nodeContentId'=>$this->contentIdConverter->createGlobalContentId($graph_id, $local_content_id)));
 
     }else if($r['type'] == 'addIcon'){

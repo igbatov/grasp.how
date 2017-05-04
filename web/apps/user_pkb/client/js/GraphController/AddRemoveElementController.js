@@ -47,8 +47,9 @@ GRASP.AddRemoveElementController.prototype = {
 
         if(typeof(graphId) == 'undefined') GRASP.errorHandler.throwError('no droppedOnGraphId');
 
-        if(this.isNewNodeGraph(data['fromGraphId'])) data['draggedModelElement'].element.nodeContentId = null;
-
+        if(that.publisher.getInstant("is_new_node_graph_id", {'graphId':data['fromGraphId']})) {
+          data['draggedModelElement'].element.nodeContentId = null;
+        }
         this.publisher
           .publish(["get_graph_models", [data['droppedOnGraphId']]],
             ["request_for_graph_element_content_change", {type: 'addNode', graphId: data['droppedOnGraphId'], element: data['draggedModelElement'].element}]
@@ -65,9 +66,5 @@ GRASP.AddRemoveElementController.prototype = {
       this.isElementEditorFocused = false;
 
     }
-  },
-
-  isNewNodeGraph: function(graphId){
-    return graphId.indexOf('newNodes') != -1;
   }
 };
