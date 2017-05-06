@@ -157,14 +157,18 @@ abstract class App
     return;
   }
 
-  protected function removeUser($login){
-    // do we really want to remove anybody?
-    //$this->session->removeUser($login);
+  public function removeUser($login){
+    $user_id = $this->getUserId($login);
+    if(!$user_id){
+      throw new Exception("User with login ".$login." not found");
+    }
+    $this->session->removeUser($login);
+    $this->db->exec(null, 'DROP database '.$this->db->getDBName($user_id));
   }
 
   protected function createNewUser($login, $password){
     // if user already exists, return false;
-    if($this->getUserId($this->session->getUsername()) !== null){
+    if($this->getUserId($login) !== null){
       throw new Exception('User with login '.$login.' already exist! Do nothing...');
     }
     if(true !== $this->session->createNewUser($login, $password)){

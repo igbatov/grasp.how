@@ -15,9 +15,8 @@ class TestableApp{
   private $originalDBNamePrefix;
   private $skipQuerySave;
   private $autoincrements;
-  private $catalog_tables = ['scopus_title_list', 'asjc_code_list'];
   const TEST_USER_PREFIX = 'testuser_';
-
+  const DO_ROLLBACK = false;
   /**
    * TestableApp constructor.
    * @param MultiTenantDB $testConn
@@ -38,13 +37,13 @@ class TestableApp{
   }
 
   public static function getTestDBNamePrefix($testname){
-    return 'test_'.$testname;
+    return 'test_'.$testname.'_';
   }
 
-  public static function getTestDBName($testname, $username){
-    return self::getTestDBNamePrefix($testname).'_'.$username;
-  }
-
+  /**
+   * @param $query
+   * @throws Exception
+   */
   public function saveAppQuery($query){
     if($this->skipQuerySave) return;
 
@@ -77,9 +76,10 @@ class TestableApp{
     if(strpos($query, 'INSERT') !== false
         || strpos($query, 'UPDATE')  !== false
         || strpos($query, 'DELETE')  !== false
+        || strpos($query, 'USE')  !== false
     ){
       // we do not want to save log requests
-      $request_log_starter = "INSERT INTO request_log";
+      $request_log_starter = 'INSERT INTO request_log';
       if(substr($query, 0, strlen($request_log_starter)) == $request_log_starter) return;
 
       $q = 'INSERT INTO `testableapp_queries` SET name = "'.$this->app->getDB()->escape($this->testname).'", query = "'.$this->app->getDB()->escape($query).'"';
@@ -87,121 +87,100 @@ class TestableApp{
     }
   }
 
-  private function switchDB($dbname){
-    $this->testConn->switchDB($dbname);
-    $this->app->switchDB($dbname);
-  }
-
   public function showView(){
     $vars = $this->app->getRoute();
 
-    if($vars[0] === 'createTestUser'){
+    if ($vars[0] === 'createTestUser') {
       $username = uniqid(self::TEST_USER_PREFIX);
       $password = '123';
 
-      // create db for this user if not exists
-      $tdb = self::getTestDBName($this->testname, $username);
-      // TODO: in production second argument must be true
-      $this->createTestDB($tdb, $_REQUEST['dbSchemaFromUserId'], false);
-
-      // create user in this db
-      $this->app->createNewUser($username, $password);
+      $userId = $this->app->createNewUser($username, $password, true);
 
       $this->app->showRawData(json_encode([
-          'username'=>$username
+          'username'=>$username,
+          'id'=>$userId
       ]));
       return;
 
-    }elseif($vars[0] === 'clearTest'){
-      $tdb = self::getTestDBName($this->testname, $this->app->session->getUsername());
+    } elseif($vars[0] === 'loginTestUser') {
 
-      // drop test databases
-      $q = 'DROP DATABASE '. $tdb;
-      $this->testConn->exec(null, $q);
-      return;
-
-    }elseif($vars[0] === 'loginTestUser'){
       if(!isset($_REQUEST['username'])){
         error_log('loginTestUser request without username parameter. Exiting... '.var_export($_REQUEST, true));
         return;
       }
 
-      $tdb = self::getTestDBName($this->testname, $_REQUEST['username']);
-
+      $login = $this->app->getDB()->escape($_REQUEST['username']);
       // check that user has our prefix
-      if(substr($_REQUEST['username'], 0, strlen(self::TEST_USER_PREFIX)) !== self::TEST_USER_PREFIX) {
-        error_log($_REQUEST['username'].' not found in '.$tdb.'. Exiting...');
+      if(substr($login, 0, strlen(self::TEST_USER_PREFIX)) !== self::TEST_USER_PREFIX) {
+        error_log($login.' must have prefix '.self::TEST_USER_PREFIX.'. Exiting...');
         return;
       }
+
       // check that this user exists in db
-      $q = "SELECT username FROM ".$tdb.".auth WHERE username = '".$this->app->getDB()->escape($_REQUEST['username'])."'";
+      $q = "SELECT username FROM auth WHERE username = '".$login."'";
       $rows = $this->app->getDB()->exec(null, $q);
       if(count($rows) && $rows[0]['username'] == $_REQUEST['username']){
         $this->app->session->setAuth($_REQUEST['username']);
       } else{
-        error_log($_REQUEST['username'].' not found in '.$tdb.'. Exiting...');
+        error_log($login.' not found in auth. Exiting...');
       }
       return;
 
-    }elseif($vars[0] === 'rollbackTestChanges'){
-      $tdb = self::getTestDBName($this->testname, $this->app->session->getUsername());
-      $this->switchDB($tdb);
-
+    } elseif($vars[0] === 'rollbackTestChanges') {
       $this->cleanTestableappQueries();
+      return;
 
-      // truncate all tables
-      $q = "SHOW DATABASES LIKE '".$tdb."'";
-      $rows = $this->testConn->exec(null, $q);
-      if(count($rows)) {
-        $tablenames = $this->app->getDB()->getTableNames();
-        foreach ($tablenames as $tablename) {
-          if(in_array($tablename, $this->catalog_tables)) continue;
-          StopWatch::start($tablename . '1');
-          $q = 'TRUNCATE TABLE ' . $tdb . '.' . $tablename;
-          $this->testConn->exec(null, $q);
-          error_log($tablename . ' TRUNCATE TABLE got ' . StopWatch::elapsed($tablename . '1'));
-        }
+    } elseif($vars[0] === 'commitTestChanges') {
+      if (self::DO_ROLLBACK) {
+        $this->replayPreviousQueries();
+        $this->cleanTestableappQueries();
       }
-
       return;
-    }elseif($vars[0] === 'commitTestChanges'){
-      $tdb = self::getTestDBName($this->testname, $this->app->session->getUsername());
-      $this->switchDB($tdb);
 
-      $this->replayPreviousQueries();
-
+    } elseif($vars[0] === 'clearTest') {
+      $this->app->removeUser($this->app->session->getUsername());
+      // TODO: update yovalue.auth Autoincrement here, so that tests do not exhaust ids
       return;
+
     }
 
 
     $username = $this->app->session->getUsername();
     if(!$username){
-      error_log("use\n/createTestUser?dbSchemaFromUserId=1&TEST_NAME=<testName>\n"+
-      +"and\n"+"/loginTestUser?username=<username>&TEST_NAME=<testName>\n to create and login for test");
+      error_log("use\n/createTestUser?TEST_NAME=<testName>\n"
+      ."and\n/loginTestUser?username=<username>&TEST_NAME=<testName>\n to create and login for test");
     };
 
-    $this->app->getDB()->addPreExecListener($this,'saveAppQuery');
-    $this->saveAutoIncrement();
-    $this->app->getDB()->startTransaction();
-    $this->replayPreviousQueries();
+    /**
+     * TODO: It ois better for DO_ROLLBACK value to be in a request.
+     * Something like ?TEST={"name":"testBackend","DO_ROLLBACK":false}
+     */
+    if (self::DO_ROLLBACK) {
+      $this->app->getDB()->addPreExecListener($this,'saveAppQuery');
+      $this->saveAutoIncrement();
+      $this->app->getDB()->startTransaction();
+      $this->replayPreviousQueries();
+    }
     $this->app->showView();
-    $this->app->getDB()->rollbackTransaction();
-    $this->rollbackAutoIncrement();
+    if (self::DO_ROLLBACK) {
+      $this->app->getDB()->rollbackTransaction();
+      $this->rollbackAutoIncrement();
+    }
   }
 
   /**
    * DB Rollback does not rollback autoincrements, so do it manually here
    */
   private function saveAutoIncrement(){
-    $dbname = self::getTestDBName($this->testname, $this->app->session->getUsername());
-    $tablenames = $this->app->getDB()->getTableNames();
+    $dbname = $this->testConn->getDBName($this->app->getAuthId());
+    $tablenames = $this->app->getDB()->getTableNames($dbname);
     foreach($tablenames as $tablename){
       $this->autoincrements[$tablename] = $this->getAutoIncrement($dbname, $tablename);
     }
   }
 
   private function rollbackAutoIncrement(){
-    $dbname = self::getTestDBName($this->testname, $this->app->session->getUsername());
+    $dbname = $this->testConn->getDBName($this->app->getAuthId());
     foreach ($this->autoincrements as $tablename => $autoincrement){
       if($this->getAutoIncrement($dbname, $tablename) == $autoincrement) continue;
       $q = "ALTER TABLE ".$dbname.".".$tablename." AUTO_INCREMENT = ".$autoincrement;
@@ -230,34 +209,6 @@ class TestableApp{
   private function cleanTestableappQueries(){
     $q = 'DELETE FROM `testableapp_queries` WHERE name = "'.$this->app->getDB()->escape($this->testname).'"';
     $this->testConn->exec($this->app->getAuthId(), $q);
-  }
-
-  /**
-   * Creating clean clone of current database.
-   * Name of the clone is $tdb.
-   * If such database exists and $dropIfExists==false - do nothing
-   * Also copy contents of catalog tables - scopus_title_list and asjc_code_list
-   * @param $tdb
-   * @param bool $dbSchemaFromUserId
-   * @param bool $dropIfExists
-   * @return bool
-   */
-  private function createTestDB($tdb, $dbSchemaFromUserId, $dropIfExists=true)
-  {
-    if (!$this->testname) return false;
-
-    if ($dropIfExists) {
-      $q = "DROP DATABASE `" . $tdb . "`";
-      $this->testConn->exec(null, $q);
-    } else {
-      // if database already exists do nothing
-      $q = "SHOW DATABASES LIKE '" . $tdb . "'";
-      $rows = $this->testConn->exec(null, $q);
-      if (count($rows)) return true;
-    }
-
-    $cloneFromDB = $this->originalDBNamePrefix . $dbSchemaFromUserId;
-    $this->testConn->copyDB($cloneFromDB, $tdb, $this->catalog_tables);
   }
 
   public function preAccessLog(){

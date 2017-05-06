@@ -3,16 +3,15 @@ SUBTEST_NAME='testAddNode';
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 /**
- * Test graph (id=1) adding two nodes and edge between them
+ * Test graph adding two nodes and edge between them
  */
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
-  var graphId=1;
   return  GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/updateGraphElementContent',
       {
-        "graphId": graphId,
+        "graphId": GRAPH_ID,
         "type": "addNode",
         "node": {
           "nodeContentId": "",
@@ -44,7 +43,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         GRASP.TestHelpers.cmp(
             'response from addNode should have nodeContentId',
             response['nodeContentId'],
-            graphId+'-1'
+            GRAPH_ID+'-1'
         );
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
@@ -53,37 +52,34 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         );
       })
       .then(function(e){
-         return GRASP.TestHelpers.cmp(
-             'graph should have new graph node',
-             JSON.parse(e),
-             {
-               "nodes":{
-                 "1-1":{
-                   "type":"fact",
-                   "importance":"50",
-                   "has_icon":"0",
-                   "active_alternative_id":"0",
-                   "stickers":null,
-                   "alternatives":[
-                     {
-                       "label":"fact",
-                       "reliability":"50",
-                       "p":"",
-                       "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                       "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
-                     },
-                     {
-                       "label":"NOT TRUE: fact",
-                       "reliability":"50",
-                       "p":"",
-                       "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                       "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
-                     }
-                   ]
-                 }
-               },
-               "edges":[]
-             }
+        var expected = {nodes:{}, edges:{}};
+        expected['nodes'][GRAPH_ID+"-1"] = {
+          "type":"fact",
+          "importance":"50",
+          "has_icon":"0",
+          "active_alternative_id":"0",
+          "stickers":null,
+          "alternatives":[
+            {
+              "label":"fact",
+              "reliability":"50",
+              "p":"",
+              "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+              "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+            },
+            {
+              "label":"NOT TRUE: fact",
+              "reliability":"50",
+              "p":"",
+              "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+              "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+            }
+          ]
+        };
+        return GRASP.TestHelpers.cmp(
+          'graph should have new graph node',
+          JSON.parse(e),
+          expected
         );
       });
 };

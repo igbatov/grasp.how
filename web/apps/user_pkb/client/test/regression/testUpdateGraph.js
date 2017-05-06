@@ -7,7 +7,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  */
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(){
-  var graphId = 1;
+  var graphId = GRAPH_ID;
   var historyStep = 2;
   var nodeMapping = {
     "area":{

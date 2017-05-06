@@ -111,7 +111,11 @@ $s = new Session($a);
 $s->start();
 
 // init helper modules
-$db = new MultiTenantDB(new EscapeDB(new NestedDB($c->getDbConf())), $c->get('userDBPrefix'), $c->getDbConf()->dbName);
+$db = new MultiTenantDB(
+    new EscapeDB(new NestedDB($c->getDbConf())),
+    $c->get('userDBPrefix'),
+    $c->getDbConf()->dbName
+);
 $eh = new ErrorHandler();
 $logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());
 $i18n = new I18N($s, $logger);

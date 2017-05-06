@@ -1,22 +1,27 @@
 // name test
 TEST_NAME='testBackend';
 DEBUG_MODE = true;
-dbSchemaFromUserId = 1;
+
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 
+// globals that test can use and modify
+var USERNAME = null;
+var USER_ID = null;
+var GRAPH_ID = null;
+
 // start
-var USERNAME = '';
 console.log('start', new Date());
 var sw = new GRASP.stopWatch(TEST_NAME);
 // create new DB for this test and switch on it
 GRASP.TestHelpers.fetch(
     TEST_NAME,
-    window.location.origin+'/createTestUser?dbSchemaFromUserId='+dbSchemaFromUserId
+    window.location.origin+'/createTestUser'
 ).then(function(loginData){
   console.log(loginData)
   loginData = JSON.parse(loginData);
   USERNAME = loginData['username'];
+  USER_ID = loginData['id'];
   return GRASP.TestHelpers.fetch(
       TEST_NAME,
       window.location.origin+'/loginTestUser?username='+USERNAME
@@ -51,8 +56,7 @@ GRASP.TestHelpers.fetch(
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
-        //window.location.origin+'/rollbackTestChanges'
-        window.location.origin+'/commitTestChanges'
+        window.location.origin+'/clearTest'
     ).then(function(){
       console.log('all is done');
       console.log('finished at', new Date());

@@ -67,6 +67,11 @@ class D20170423MultiTenant extends Migration
       $q = "ALTER TABLE source DROP COLUMN auth_id";
       $this->db->exec($auth['id'], $q);
     }
+
+    $q = "ALTER TABLE ".$this->config->get('db_template').".graph DROP COLUMN auth_id";
+    $this->db->exec(null, $q);
+    $q = "ALTER TABLE ".$this->config->get('db_template').".source DROP COLUMN auth_id";
+    $this->db->exec(null, $q);
   }
 
   /**

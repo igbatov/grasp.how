@@ -7,7 +7,6 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  */
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(){
-  var graphId = 1;
   return GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/get_username',
@@ -16,7 +15,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(){
   .then(function(e){
     var response = JSON.parse(e);
     GRASP.TestHelpers.cmp(
-        'response from findSources',
+        'response from get_username',
         response,
         {"username": new GRASP.TestHelpers.likeRegexp('testuser_(.+)')}
     );

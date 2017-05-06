@@ -4,14 +4,14 @@ var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 
 /**
- * Test graph (id=1) removal
+ * Test graph removal
  */
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   return  GRASP.TestHelpers.fetch(
         TEST_NAME,
         '/setGraphAttributes',
-        {graphId:1, isInTrash:true}
+        {graphId:GRAPH_ID, isInTrash:true}
       )
       .then(function(){
         return GRASP.TestHelpers.fetch(
@@ -21,7 +21,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         );
       })
       .then(function(e){
-        var graphModel = JSON.parse(e)[1];
+        var graphModel = JSON.parse(e)[GRAPH_ID];
         GRASP.TestHelpers.cmp(
             'getGraphsModelSettings returns isInTrash = true',
             graphModel['attributes']['isInTrash'],

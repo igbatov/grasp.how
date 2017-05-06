@@ -3,29 +3,26 @@ SUBTEST_NAME='testQueryGrain';
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 
-/**
- * Test graph (id=1) removal
- */
+
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
-  var graphId = 1;
   var sourceItemId = null;
+  var p1 = {};
+  p1["{\""+GRAPH_ID+"-2\":\"0\"}"] = "0.2";
+  p1["{\""+GRAPH_ID+"-2\":\"1\"}"] = "0.9";
+  var p2 = {};
+  p2["{\""+GRAPH_ID+"-2\":\"0\"}"] = "0.8";
+  p2["{\""+GRAPH_ID+"-2\":\"1\"}"] = "0.1";
   return  GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/updateGraphElementContent',
       {
-        "graphId":graphId,
+        "graphId":GRAPH_ID,
         "type":"updateNodeAlternativesP",
-        "nodeContentId":graphId+"-1",
+        "nodeContentId":GRAPH_ID+"-1",
         "alternatives":{
-          "0":{
-            "{\"1-2\":\"0\"}":"0.2",
-            "{\"1-2\":\"1\"}":"0.9"
-          },
-          "1":{
-            "{\"1-2\":\"0\"}":"0.8",
-            "{\"1-2\":\"1\"}":"0.1"
-          }
+          "0":p1,
+          "1":p2
         }
       }
   )
@@ -35,8 +32,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         '/updateGraphElementContent',
         {
           "type":"updateNodeAttribute",
-          "graphId":graphId,
-          "nodeContentId":graphId + "-1",
+          "graphId":GRAPH_ID,
+          "nodeContentId":GRAPH_ID + "-1",
           "node_alternative_id":0,
           "nodeAttribute":{"name":"reliability","value":100}
         })
@@ -46,8 +43,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             '/updateGraphElementContent',
             {
               "type":"updateNodeAttribute",
-              "graphId":graphId,
-              "nodeContentId":graphId + "-1",
+              "graphId":GRAPH_ID,
+              "nodeContentId":GRAPH_ID + "-1",
               "node_alternative_id":1,
               "nodeAttribute":{"name":"reliability","value":0}
             })
@@ -57,23 +54,23 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
         '/query_grain',
-        {"graphId":graphId}
+        {"graphId":GRAPH_ID}
     )
     .then(function(e){
       console.log(e);
       console.log(JSON.parse(e));
+      var data = {};
+      data[GRAPH_ID+"-2"] = [
+        "0.1818182",
+        "0.8181818"
+      ];
       GRASP.TestHelpers.cmp(
         'grain response',
         JSON.parse(e),
         {
-          "graphId": graphId,
+          "graphId": GRAPH_ID,
           "result": "success",
-          "data": {
-            "1-2": [
-              "0.1818182",
-              "0.8181818"
-            ]
-          }
+          "data": data
         }
       );
     });
@@ -83,8 +80,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       '/updateGraphElementContent',
       {
         "type":"node_list_remove_request",
-        "graphId":graphId,
-        "nodeContentId":graphId+"-1",
+        "graphId":GRAPH_ID,
+        "nodeContentId":GRAPH_ID+"-1",
         "node_alternative_id":"0",
         "nodeType":"fact",
         "itemId":sourceItemId

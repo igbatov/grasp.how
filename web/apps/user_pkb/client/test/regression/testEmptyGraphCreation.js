@@ -17,39 +17,82 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         return p.publish(['repository_get_graphs_model_settings']);
       })
       .then(function(e){
-        testGraphId = Math.max.apply(null, GRASP.getObjectKeys(e));
+        testGraphId = Math.max.apply(null, GRASP.getObjectKeys(e))+"";
+        GRAPH_ID = testGraphId;
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_model_settings',
-            e[testGraphId],
-            GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME]['repository_get_graphs_model_settings']
+            e[GRAPH_ID],
+            getData('repository_get_graphs_model_settings')
         );
       })
       /**
        *  Check that repository_get_graphs_history_timeline is OK
        */
       .then(function(){
-        return p.publish(['repository_get_graphs_history_timeline',{ids:[testGraphId]}]);
+        return p.publish(['repository_get_graphs_history_timeline',{ids:[GRAPH_ID]}]);
       })
       .then(function(e){
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_history_timeline',
-            e[testGraphId],
-            GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME]['repository_get_graphs_history_timeline']
+            e[GRAPH_ID],
+            getData('repository_get_graphs_history_timeline')
         );
       })
       /**
        *  Check that repository_get_graphs_model_elements is OK
        */
       .then(function(){
-        var data = {}; data[testGraphId]=1;
+        var data = {}; data[GRAPH_ID]=1;
         return p.publish(['repository_get_graphs_model_elements',data]);
       })
       .then(function(e){
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_model_elements',
             e ,
-            GRASP_TEST_DATA[TEST_NAME][SUBTEST_NAME]['repository_get_graphs_model_elements']
+           getData('repository_get_graphs_model_elements', {graphId:GRAPH_ID})
         );
       });
-
+  function getData(name, params) {
+    if(name === "repository_get_graphs_model_settings"){
+      return {
+        "name": "testGraph",
+        "isEditable": true,
+        "attributes": {
+          "isInTrash": false
+        },
+        "edgeTypes": [
+          "link",
+          "causal",
+          "conditional"
+        ],
+        "nodeTypes": [
+          "fact",
+          "proposition",
+          "illustration",
+          "question",
+          "to_read",
+          "best_known_practice"
+        ],
+        "nodeDefaultType": "text",
+        "edgeDefaultType": "causal"
+      }
+    } else if (name === 'repository_get_graphs_history_timeline') {
+      return {
+        "1": new GRASP.TestHelpers.likeRegexp('[0-9]+')
+      }
+    } else if (name === "repository_get_graphs_model_elements") {
+      return [
+        {
+          "graphId": params['graphId'],
+          "step": 1,
+          "timestamp": new GRASP.TestHelpers.likeRegexp('[0-9]+'),
+          "elements": {
+            "nodes": [],
+            "edges": []
+          },
+          "node_mapping": null
+        }
+      ]
+    }
+  }
 }

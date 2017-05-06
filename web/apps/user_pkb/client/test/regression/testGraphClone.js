@@ -5,67 +5,92 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 /**
  * Test graph cloning
  */
+
+// this will be used in testCloneUpdate
+var originalGraphId;
+var cloneGraphId;
+var originalUserName;
+var originalUserId;
+var cloneUserName;
+var cloneUserId;
+
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
-  var graphId=1;
-  var cloneGraphId=2;
-  var original={};
+  originalGraphId = GRAPH_ID;
+  cloneGraphId = null;
+  originalUserName = USERNAME;
+  originalUserId = USER_ID;
+  cloneUserName = null;
+  cloneUserId = null;
+  var original = {};
   return  addSource()
       /** first of all retrieve original graph to compare it then with cloned one */
       .then(function(){
-        return getGraphData(graphId, 2);
+        return getGraphData(originalGraphId, 2);
       })
       .then(function(e){
         original = e;
         return Promise.resolve();
       })
       .then(function(){
+        // save changes in db, because otherwise they will be rollbacked
+        // and there will be nothing to clone
         return GRASP.TestHelpers.fetch(
-            TEST_NAME,
-            window.location.origin+'/logout'
+          TEST_NAME,
+          window.location.origin+'/commitTestChanges'
         );
       })
       .then(function(){
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
-            window.location.origin+'/createTestUser?dbSchemaFromUserId='+dbSchemaFromUserId
+            window.location.origin+'/createTestUser'
         )
         .then(function(loginData){
           console.log(loginData)
           loginData = JSON.parse(loginData);
-          var userName = loginData['username'];
+          cloneUserName = loginData['username'];
+          cloneUserId = loginData['id'];
+          cloneGraphId = cloneUserId + '.' + originalGraphId.split('.')[1];
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
-              window.location.origin+'/loginTestUser?username='+userName
+              window.location.origin+'/loginTestUser?username='+cloneUserName
           ).then(function(){
             return GRASP.TestHelpers.fetch(
                 TEST_NAME,
-                window.location.origin+'/cloneGraph/'+graphId
+                window.location.origin+'/cloneGraph/'+originalGraphId
             );
           }).then(function(){
             return getGraphData(cloneGraphId, 1);
           }).then(function(e){
             var clone = e;
             // substitute nodeContentId with respect to new graphId
-            GRASP.TestHelpers.substituteKeys(original, [graphId+'-1', graphId+'-2'], [cloneGraphId+"-1",cloneGraphId+"-2"]);
             GRASP.TestHelpers.substituteKeys(
                 original,
-                ['{\"'+graphId+'-1\":\"0\"}', '{\"'+graphId+'-1\":\"1\"}'],
+                [originalGraphId+'-1', originalGraphId+'-2'],
+                [cloneGraphId+"-1", cloneGraphId+"-2"]
+            );
+            GRASP.TestHelpers.substituteKeys(
+                original,
+                ['{\"'+originalGraphId+'-1\":\"0\"}', '{\"'+originalGraphId+'-1\":\"1\"}'],
                 ['{\"'+cloneGraphId+'-1\":\"0\"}', '{\"'+cloneGraphId+'-1\":\"1\"}']
             );
             GRASP.TestHelpers.substituteKeys(
                 original,
-                ['{\"'+graphId+'-2\":\"0\"}', '{\"'+graphId+'-2\":\"1\"}'],
+                ['{\"'+originalGraphId+'-2\":\"0\"}', '{\"'+originalGraphId+'-2\":\"1\"}'],
                 ['{\"'+cloneGraphId+'-2\":\"0\"}', '{\"'+cloneGraphId+'-2\":\"1\"}']
             );
-            GRASP.TestHelpers.substituteValues(original, [graphId+'-1', graphId+'-2'], [cloneGraphId+"-1",cloneGraphId+"-2"]);
+            GRASP.TestHelpers.substituteValues(
+                original,
+                [originalGraphId+'-1', originalGraphId+'-2'],
+                [cloneGraphId+"-1",cloneGraphId+"-2"]
+            );
             GRASP.TestHelpers.substituteFields(original, ['created_at', 'updated_at'], ["",""]);
             var list = original.nodeContent[cloneGraphId+'-1'].alternatives[0].list;
-            GRASP.TestHelpers.substituteKeys(list, ['2'], ['3']);
+            GRASP.TestHelpers.substituteKeys(list, ['2'], ['1']);
             GRASP.TestHelpers.substituteFields(
-                list['3'],
-                ['auth_id','id', 'source_id','cloned_from_auth_id','cloned_from_id'],
-                ['2','3','4','1','3']
+                list['1'],
+                ['id', 'source_id','cloned_from_auth_id','cloned_from_id'],
+                ['1','1',originalUserId,'3']
             );
             GRASP.TestHelpers.substituteFields(clone, ['created_at', 'updated_at'], ["",""]);
             GRASP.TestHelpers.cmp(
@@ -107,7 +132,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       return GRASP.TestHelpers.fetch(
           TEST_NAME,
           '/getGraphElementsAttributes',
-          {"nodes":[graphId+"-1",graphId+"-2"],"edges":graphId+["-1"]}
+          {"nodes":[graphId+"-1",graphId+"-2"],"edges":[graphId+["-1"]]}
       );
     })
     .then(function(e){
@@ -129,8 +154,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         '/updateGraphElementContent',
         {
           "type": "node_list_add_request",
-          "graphId": graphId,
-          "nodeContentId": graphId + "-1",
+          "graphId": originalGraphId,
+          "nodeContentId": originalGraphId + "-1",
           "node_alternative_id": "0",
           "nodeType": "fact",
           "item": {

@@ -3,11 +3,9 @@ SUBTEST_NAME='testUpdateNode';
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 /**
- * Test graph (id=1) changing node
+ * Test graph changing node
  */
-// test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
-  var graphId=1;
   return testTextChange('123')
       .then(function(){
         return testAddSource();
@@ -29,9 +27,9 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             TEST_NAME,
             '/updateGraphElementContent',
             {
-              "graphId":graphId,
+              "graphId":GRAPH_ID,
               "type":"updateNodeAttribute",
-              "nodeContentId":graphId + "-1",
+              "nodeContentId":GRAPH_ID + "-1",
               "node_alternative_id":"1",
               "nodeAttribute":{
                 "name":'reliability',
@@ -50,48 +48,43 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       });
 
   function testUpdateNodeAlternativesP(){
+    var alternatives = {0:{},1:{}};
+    alternatives['0']["{\""+GRAPH_ID+"-2\":\"0\"}"] = "1";
+    alternatives['0']["{\""+GRAPH_ID+"-2\":\"1\"}"] = "0.3";
+    alternatives['1']["{\""+GRAPH_ID+"-2\":\"0\"}"] = "0";
+    alternatives['1']["{\""+GRAPH_ID+"-2\":\"1\"}"] = "0.7";
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
         '/updateGraphElementContent',
         {
-          "graphId":graphId,
+          "graphId":GRAPH_ID,
           "type":"updateNodeAlternativesP",
-          "nodeContentId":graphId + "-1",
-          "alternatives":{
-            "0":{
-              "{\"1-2\":\"0\"}":"1",
-              "{\"1-2\":\"1\"}":"0.3"
-            },
-            "1":{
-              "{\"1-2\":\"0\"}":"0",
-              "{\"1-2\":\"1\"}":"0.7"
-            }
-          }
-        }
-        ).then(function(e){
+          "nodeContentId":GRAPH_ID + "-1",
+          "alternatives":alternatives
+        })
+        .then(function(e){
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
               '/getGraphNodeContent',
-              {"graphId":graphId,"nodeContentIds":[graphId + "-1"]}
+              {"graphId":GRAPH_ID,"nodeContentIds":[GRAPH_ID + "-1"]}
           );
         })
         .then(function(e){
+          var expected = {};
+          expected["{\""+GRAPH_ID+"-2\":\"0\"}"] = "1";
+          expected["{\""+GRAPH_ID+"-2\":\"1\"}"] = "0.3";
           GRASP.TestHelpers.cmp(
               'testRemoveSource: node alternative 0 should contain valid p',
-              JSON.parse(e)[graphId+'-1']['alternatives'][0]['p'],
-              {
-                "{\"1-2\":\"0\"}":"1",
-                "{\"1-2\":\"1\"}":"0.3"
-              }
+              JSON.parse(e)[GRAPH_ID+'-1']['alternatives'][0]['p'],
+              expected
           );
 
+          expected["{\""+GRAPH_ID+"-2\":\"0\"}"] = "0";
+          expected["{\""+GRAPH_ID+"-2\":\"1\"}"] = "0.7";
           GRASP.TestHelpers.cmp(
               'testRemoveSource: node alternative 1 should contain valid p',
-              JSON.parse(e)[graphId+'-1']['alternatives'][1]['p'],
-              {
-                "{\"1-2\":\"0\"}":"0",
-                "{\"1-2\":\"1\"}":"0.7"
-              }
+              JSON.parse(e)[GRAPH_ID+'-1']['alternatives'][1]['p'],
+              expected
           );
 
           return Promise.resolve();
@@ -104,8 +97,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         '/updateGraphElementContent',
         {
           "type":"node_list_remove_request",
-          "graphId":graphId,
-          "nodeContentId":graphId+"-1",
+          "graphId":GRAPH_ID,
+          "nodeContentId":GRAPH_ID+"-1",
           "node_alternative_id":"0",
           "nodeType":"fact",
           "itemId":"1"
@@ -119,13 +112,13 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
               '/getGraphNodeContent',
-              {"graphId":graphId,"nodeContentIds":[graphId + "-1"]}
+              {"graphId":GRAPH_ID,"nodeContentIds":[GRAPH_ID + "-1"]}
           );
         })
         .then(function(e){
           GRASP.TestHelpers.cmp(
               'testRemoveSource: node alternative list should contain updated source',
-              JSON.parse(e)[graphId+'-1']['alternatives'][0]['list'],
+              JSON.parse(e)[GRAPH_ID+'-1']['alternatives'][0]['list'],
               []
           );
 
@@ -139,8 +132,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         '/updateGraphElementContent',
         {
           "type":"node_list_update_request",
-          "graphId":graphId,
-          "nodeContentId":graphId + "-1",
+          "graphId":GRAPH_ID,
+          "nodeContentId":GRAPH_ID + "-1",
           "node_alternative_id":"0",
           "item":{
             "id":"1",
@@ -173,17 +166,16 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
               '/getGraphNodeContent',
-              {"graphId":graphId,"nodeContentIds":[graphId + "-1"]}
+              {"graphId":GRAPH_ID,"nodeContentIds":[GRAPH_ID + "-1"]}
           );
         })
         .then(function(e){
           GRASP.TestHelpers.cmp(
               'node alternative list should contain updated source',
-              JSON.parse(e)[graphId+'-1']['alternatives'][0]['list'],
+              JSON.parse(e)[GRAPH_ID+'-1']['alternatives'][0]['list'],
               {
                 "1":{
                   "id":"1",
-                  "auth_id":"1",
                   "source_type":"meta-article",
                   "field_type":"",
                   "name":"qqq",
@@ -216,13 +208,23 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
 
         })
         .then(function(e){
+          var usedIn = {};
+          usedIn[GRAPH_ID] = {
+            "graphId":GRAPH_ID,
+            "graphName":"testGraph",
+            "usedInNodes":[
+              {
+                "nodeId":GRAPH_ID+"-1",
+                "label":"fact"
+              }
+            ]
+          };
           GRASP.TestHelpers.cmp(
               'user sources should contain two items',
               JSON.parse(e),
               {
                 "1":{
                   "id":"1",
-                  "auth_id":"1",
                   "source_type":"article",
                   "field_type":"",
                   "name":"123",
@@ -244,7 +246,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                 },
                 "2":{
                   "id":"2",
-                  "auth_id":"1",
                   "source_type":"meta-article",
                   "field_type":"",
                   "name":"qqq",
@@ -260,18 +261,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "cloned_from_auth_id":null,
                   "created_at":null,
                   "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                  "usedIn":{
-                    "1":{
-                      "graphId":graphId,
-                      "graphName":"testGraph",
-                      "usedInNodes":[
-                        {
-                          "nodeId":graphId+"-1",
-                          "label":"fact"
-                        }
-                      ]
-                    }
-                  }
+                  "usedIn":usedIn
                 }
               }
           );
@@ -285,8 +275,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         '/updateGraphElementContent',
         {
           "type": "node_list_add_request",
-          "graphId": graphId,
-          "nodeContentId": graphId + "-1",
+          "graphId": GRAPH_ID,
+          "nodeContentId": GRAPH_ID + "-1",
           "node_alternative_id": "0",
           "nodeType": "fact",
           "item": {
@@ -314,17 +304,16 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
               '/getGraphNodeContent',
-              {"graphId":graphId,"nodeContentIds":[graphId + "-1"]}
+              {"graphId":GRAPH_ID,"nodeContentIds":[GRAPH_ID + "-1"]}
           );
         })
         .then(function(e){
           GRASP.TestHelpers.cmp(
               'node alternative list should contain source',
-              JSON.parse(e)[graphId+'-1']['alternatives'][0]['list'],
+              JSON.parse(e)[GRAPH_ID+'-1']['alternatives'][0]['list'],
               {
                 "1":{
                   "id":"1",
-                  "auth_id":"1",
                   "source_type":"article",
                   "field_type":"",
                   "name":"123",
@@ -357,13 +346,23 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
 
         })
         .then(function(e){
+          var usedIn = {};
+          usedIn[GRAPH_ID] = {
+            "graphId":GRAPH_ID,
+            "graphName":"testGraph",
+            "usedInNodes":[
+              {
+                "nodeId":GRAPH_ID+"-1",
+                "label":"fact"
+              }
+            ]
+          };
           GRASP.TestHelpers.cmp(
               'user sources should contain one item',
               JSON.parse(e),
               {
                 "1":{
                   "id":"1",
-                  "auth_id":"1",
                   "source_type":"article",
                   "field_type":"",
                   "name":"123",
@@ -379,18 +378,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "cloned_from_auth_id":null,
                   "created_at":null,
                   "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                  "usedIn":{
-                    "1":{
-                      "graphId":graphId,
-                      "graphName":"testGraph",
-                      "usedInNodes":[
-                        {
-                          "nodeId":graphId+"-1",
-                          "label":"fact"
-                        }
-                      ]
-                    }
-                  }
+                  "usedIn":usedIn
                 }
               }
           );
@@ -402,9 +390,9 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         TEST_NAME,
         '/updateGraphElementContent',
         {
-          "graphId":graphId,
+          "graphId":GRAPH_ID,
           "type":"updateNodeText",
-          "nodeContentId":graphId + "-1",
+          "nodeContentId":GRAPH_ID + "-1",
           "node_alternative_id":"0",
           "text":value
         })
@@ -412,13 +400,13 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
               '/getGraphNodeContent',
-              {"graphId":graphId,"nodeContentIds":[graphId + "-1"]}
+              {"graphId":GRAPH_ID,"nodeContentIds":[GRAPH_ID + "-1"]}
           );
         })
         .then(function(e){
           return GRASP.TestHelpers.cmp(
               'node text should be updated',
-              JSON.parse(e)[graphId+'-1']['alternatives'][0]['text'],
+              JSON.parse(e)[GRAPH_ID+'-1']['alternatives'][0]['text'],
               value
           );
         });
@@ -429,9 +417,9 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         TEST_NAME,
         '/updateGraphElementContent',
         {
-          "graphId":graphId,
+          "graphId":GRAPH_ID,
           "type":"updateNodeAttribute",
-          "nodeContentId":graphId + "-1",
+          "nodeContentId":GRAPH_ID + "-1",
           "node_alternative_id":"0",
           "nodeAttribute":{
             "name":name,
@@ -442,12 +430,12 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
               '/getGraphElementsAttributes',
-              {'nodes':[graphId + "-1"]}
+              {'nodes':[GRAPH_ID + "-1"]}
           );
         })
         .then(function(e){
           var field = ['p','label','reliability'].indexOf(name) !== -1 ?
-              JSON.parse(e)['nodes'][graphId+'-1']['alternatives'][0] : JSON.parse(e)['nodes'][graphId+'-1'];
+              JSON.parse(e)['nodes'][GRAPH_ID+'-1']['alternatives'][0] : JSON.parse(e)['nodes'][GRAPH_ID+'-1'];
           return GRASP.TestHelpers.cmp(
               'node '+name+' should be updated',
               field[name],

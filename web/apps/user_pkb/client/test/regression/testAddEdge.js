@@ -3,16 +3,15 @@ SUBTEST_NAME='testAddEdge';
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 /**
- * Test graph (id=1) adding two nodes and edge between them
+ * Test graph adding two nodes and edge between them
  */
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
-  var graphId=1;
   return GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/updateGraphElementContent',
       {
-        "graphId":graphId,
+        "graphId":GRAPH_ID,
         "type":"addNode",
         "node":{
           "nodeContentId":"",
@@ -44,7 +43,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             TEST_NAME,
             '/updateGraphElementContent',
             {
-              "graphId":graphId,
+              "graphId":GRAPH_ID,
               "type":"addEdge",
               "edge":{
                 "edgeContentId":"",
@@ -58,72 +57,68 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/getGraphElementsAttributes',
-            {'nodes':[graphId + "-1", graphId + "-2"],'edges':[graphId + "-1"]}
+            {'nodes':[GRAPH_ID + "-1", GRAPH_ID + "-2"],'edges':[GRAPH_ID + "-1"]}
         );
       })
       .then(function(e){
+        var expected = {nodes:{},edges:{}};
+        expected['nodes'][GRAPH_ID + '-1'] = {
+          "type":"fact",
+          "importance":"50",
+          "has_icon":"0",
+          "active_alternative_id":"0",
+          "stickers":null,
+          "alternatives":[
+            {
+              "label":"fact",
+              "reliability":"50",
+              "p":"",
+              "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+              "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+            },
+            {
+              "label":"NOT TRUE: fact",
+              "reliability":"50",
+              "p":"",
+              "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+              "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+            }
+          ]
+        };
+        expected['nodes'][GRAPH_ID + '-2'] = {
+          "type":"proposition",
+          "importance":"50",
+          "has_icon":"0",
+          "active_alternative_id":"0",
+          "stickers":null,
+          "alternatives":[
+            {
+              "label":"proposition",
+              "reliability":"50",
+              "p":"",
+              "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+              "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+            },
+            {
+              "label":"NOT TRUE: proposition",
+              "reliability":"50",
+              "p":"",
+              "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+              "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+            }
+          ]
+        };
+        expected['edges'][GRAPH_ID + '-1'] = {
+          "edgeContentId":GRAPH_ID+"-1",
+          "type":"causal",
+          "label":"causal",
+          "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
+          "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
+        };
         GRASP.TestHelpers.cmp(
             'element attributes should have both nodes and edge',
             JSON.parse(e),
-            {
-              "nodes":{
-                "1-1":{
-                  "type":"fact",
-                  "importance":"50",
-                  "has_icon":"0",
-                  "active_alternative_id":"0",
-                  "stickers":null,
-                  "alternatives":[
-                    {
-                      "label":"fact",
-                      "reliability":"50",
-                      "p":"",
-                      "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                      "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
-                    },
-                    {
-                      "label":"NOT TRUE: fact",
-                      "reliability":"50",
-                      "p":"",
-                      "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                      "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
-                    }
-                  ]
-                },
-                "1-2":{
-                  "type":"proposition",
-                  "importance":"50",
-                  "has_icon":"0",
-                  "active_alternative_id":"0",
-                  "stickers":null,
-                  "alternatives":[
-                    {
-                      "label":"proposition",
-                      "reliability":"50",
-                      "p":"",
-                      "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                      "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
-                    },
-                    {
-                      "label":"NOT TRUE: proposition",
-                      "reliability":"50",
-                      "p":"",
-                      "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                      "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
-                    }
-                  ]
-                }
-              },
-              "edges":{
-                "1-1":{
-                  "edgeContentId":graphId+"-1",
-                  "type":"causal",
-                  "label":"causal",
-                  "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
-                  "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
-                }
-              }
-            }
+            expected
         );
         return Promise.resolve();
       })
@@ -132,18 +127,18 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           TEST_NAME,
           '/addGraphHistoryItem',
           {
-            "graphId": graphId,
+            "graphId": GRAPH_ID,
             "step": 2,
             "timestamp": Math.round((new Date).getTime() / 1000),
             "elements": {
               "nodes": {
                 "0": {
                   "id": 0,
-                  "nodeContentId": graphId + "-1"
+                  "nodeContentId": GRAPH_ID + "-1"
                 },
                 "1": {
                   "id": 1,
-                  "nodeContentId": graphId + "-2"
+                  "nodeContentId": GRAPH_ID + "-2"
                 }
               },
               "edges": {
@@ -151,7 +146,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "id": 0,
                   "source": 1,
                   "target": 0,
-                  "edgeContentId": graphId + "-1"
+                  "edgeContentId": GRAPH_ID + "-1"
                 }
               }
             },
@@ -181,7 +176,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       })
       .then(function(e){
         var data = {};
-        data[graphId]=2;
+        data[GRAPH_ID]=2;
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/getGraphsHistoryChunk',
@@ -194,18 +189,18 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           JSON.parse(e),
           [
             {
-              "graphId":graphId,
+              "graphId":GRAPH_ID,
               "step":2,
               "timestamp":GRASP.TestHelpers.likeTimestamp(),
               "elements":{
                 "nodes":[
                   {
                     "id":0,
-                    "nodeContentId":graphId+"-1"
+                    "nodeContentId":GRAPH_ID+"-1"
                   },
                   {
                     "id":1,
-                    "nodeContentId":graphId+"-2"
+                    "nodeContentId":GRAPH_ID+"-2"
                   }
                 ],
                 "edges":[
@@ -213,7 +208,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                     "id":0,
                     "source":1,
                     "target":0,
-                    "edgeContentId":graphId+"-1"
+                    "edgeContentId":GRAPH_ID+"-1"
                   }
                 ]
               },

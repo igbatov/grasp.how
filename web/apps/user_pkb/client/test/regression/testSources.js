@@ -8,7 +8,6 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 // test run
 (function(SUBTEST_NAME){
   GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(){
-    var graphId = 1;
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
         '/findSources',
@@ -22,7 +21,6 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
               response,
               [
                 {
-                  "auth_id": "1",
                   "source_type": "article",
                   "field_type": "",
                   "name": "123",
@@ -75,7 +73,6 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
                       JSON.parse(e)["1"],
                       {
                         "id": "1",
-                        "auth_id": "1",
                         "source_type": "meta-article",
                         "field_type": "",
                         "name": "new source name",

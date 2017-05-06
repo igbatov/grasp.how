@@ -288,8 +288,8 @@ class AppUserPkb extends App
 
       case 'getGraphElementsAttributes':
         $r = $this->getRequest();
-        $nodes = $this->graphs->getNodeAttributes($r['nodes']);
-        $edges = $this->graphs->getEdgeAttributes($r['edges']);
+        $nodes = isset($r['nodes']) ? $this->graphs->getNodeAttributes($r['nodes']) : [];
+        $edges = isset($r['edges']) ? $this->graphs->getEdgeAttributes($r['edges']) : [];
         $graphs_elements = array('nodes'=>$nodes, 'edges'=>$edges);
         return $this->showRawData(json_encode($graphs_elements));
         break;
@@ -299,6 +299,7 @@ class AppUserPkb extends App
         $timeline = array();
 
         foreach($r['ids'] as $graph_id){
+          $graph_id = (string)$graph_id;
           if(GraphDiffCreator::isDiffGraphId($graph_id)){
             $timeline[$graph_id][0] = time();
           }else{
@@ -585,7 +586,7 @@ class AppUserPkb extends App
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
         $q = "SELECT id, source_title, snip_2014 FROM scopus_title_list WHERE source_title LIKE '".$substring."'";
         $this->logger->log($q);
-        $rows = $this->db->exec($this->getAuthId(), $q);
+        $rows = $this->db->exec(null, $q);
         $items = array();
         foreach($rows as $k=>$row){
           $items[] = array(
@@ -736,15 +737,18 @@ class AppUserPkb extends App
     return null;
   }
 
-  protected function removeUser($login){
-    $r = array();
-    $user_id = $this->getUserId($login);
-    if(!$user_id) return false;
-    $this->removeUser($login);
-    return $r;
+  public function removeUser($login){
+    return parent::removeUser($login);
   }
 
-  public function createNewUser($login, $password){
+  public function createNewUser($login, $password, $isTestUser=false){
+    if(
+        !$isTestUser &&
+        strpos($login,0,strlen(TestableApp::TEST_USER_PREFIX)) == TestableApp::TEST_USER_PREFIX
+      ){
+      throw new Exception('Cannot create non-test user with login beginning from '.TestableApp::TEST_USER_PREFIX);
+    }
+
     $new_user_id = parent::createNewUser($login, $password);
     if($new_user_id === false) return false;
 

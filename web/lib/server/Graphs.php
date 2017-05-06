@@ -61,10 +61,10 @@ class Graphs {
    * @return array
    */
   public function getGraphNodeContent($content_ids){
-    // get all except text
+    // get all except text and source list
     $nodes = $this->getNodeAttributes($content_ids);
 
-    // add text
+    // add text and source list
     foreach($nodes as $content_id=>$node){
       $graph_id = $this->contentIdConverter->decodeContentId($content_id)['graph_id'];
       $this->graphIdConverter->throwIfNowGlobal($graph_id);
@@ -659,7 +659,7 @@ class Graphs {
     }
 
     $graph = '{"name":"'.$name.'","isEditable":true, "attributes":{"isInTrash":false}, "edgeTypes":["link","causal","conditional"],"nodeTypes":["fact","proposition","illustration","question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"causal"}';
-    $q = "INSERT INTO graph SET graph = '".$graph."', auth_id = '".$auth_id."', created_at = NOW()";
+    $q = "INSERT INTO graph SET graph = '".$graph."', created_at = NOW()";
     $graph_id = $this->db->exec($auth_id, $q);
 
     $elements = '{"nodes":{},"edges":{}}';
@@ -770,7 +770,7 @@ class Graphs {
   private function getQueryPart($names, $values){
     $str = "";
     foreach ($names as $name) {
-      $str .= ", `".$name."` = '".$this->db->escape($values[$name])."'";
+      $str .= ", `".$name."` = ".($values[$name] === null ? "null" : "'".$this->db->escape($values[$name])."'");
     }
     return substr($str,1);
   }
