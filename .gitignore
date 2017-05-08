@@ -7,4 +7,6 @@
 /web/.htaccess
 /yovalue.sql
 /scripts/client_secret.json
-/graph_shots/*
+/web/img/graph_shots
+/scripts/graphImageGenerator/generator.log
+/scripts/graphImageGenerator/graph.json
