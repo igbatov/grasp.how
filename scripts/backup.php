@@ -15,7 +15,7 @@ $dbnames = [$dbconf->dbName];
 $q = "SELECT id FROM auth";
 $auths = $db->exec(null, $q);
 foreach ($auths as $auth) {
-  $dbnames[] = $c->get('userDBPrefix').$row['id'];
+  $dbnames[] = $c->get('userDBPrefix').$auth['id'];
 }
 
 foreach ($dbnames as $dbname) {
