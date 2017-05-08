@@ -30,7 +30,7 @@ var_dump(shell_exec($command));
 
 // external script to copy backup file somewhere
 foreach ($dbnames as $dbname) {
-  $command = '/root/google/upload.php '.$rootpath.'/backups/'.$dbname.'.sql-'.date('Y-m-d').'.gz';
+  $command = $rootpath.'/scripts/google/upload.php '.$rootpath.'/backups/'.$dbname.'.sql-'.date('Y-m-d').'.gz';
   echo $command."\n";
   var_dump(shell_exec($command));
 }
