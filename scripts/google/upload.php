@@ -33,11 +33,10 @@ try
 	$file = new Google_Service_Drive_DriveFile($client);
 
 	$file->setName($fileName);
-
+        $file->setParents(array($generalUploadDirId));
 	$createdFile = $service->files->create($file, array(
 		'data' => $data,
-		'uploadType' => 'media',
-    'parents' => array($generalUploadDirId)
+		'uploadType' => 'media'
 	));
 
 //	deleteOldest($service);

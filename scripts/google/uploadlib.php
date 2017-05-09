@@ -72,11 +72,11 @@ function deleteOldest(Google_Service_Drive $service){
 function getFolderExistsCreate($service, $folderName, $parentFolderId=null) {
   $folderDesc = $folderName;
   // List all user files (and folders) at Drive root
-  $files = $service->files->listFiles();
+  $files = $service->files->listFiles()->getFiles();  
   $found = false;
   // Go through each one to see if there is already a folder with the specified name
-  foreach ($files['items'] as $item) {
-    if ($item['title'] == $folderName) {
+  foreach ($files as $item) {
+    if ($item['name'] == $folderName) {
       $found = true;
       return $item['id'];
       break;
@@ -89,14 +89,11 @@ function getFolderExistsCreate($service, $folderName, $parentFolderId=null) {
     $folder->setName($folderName);
     if(!empty($folderDesc)) $folder->setDescription($folderDesc);
     $folder->setMimeType('application/vnd.google-apps.folder');
+    if($parentFolderId !== null) {
+      $folder->setParents(array($parentFolderId));
+    }
     //Create the Folder
     try {
-      $params = array(
-          'mimeType' => 'application/vnd.google-apps.folder',
-      );
-      if($parentFolderId !== null) {
-        $params['parents'] = array($parentFolderId);
-      }
       $createdFile = $service->files->create($folder, $params);
       // Return the created folder's id
       return $createdFile->id;
