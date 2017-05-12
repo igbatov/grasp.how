@@ -55,10 +55,28 @@ function expandHomeDirectory($path) {
   return str_replace('~', realpath($homeDirectory), $path);
 }
 
-function deleteOldest(Google_Service_Drive $service){
-  $files = $service->files->listFiles(array('orderBy'=>'createdTime asc'));
-  echo 'removed '.$files->getFiles()[0]['name'].' (id='.$files->getFiles()[0]['id'].")\n";
-  $service->files->delete($files->getFiles()[0]['id']);
+function deleteOld(Google_Service_Drive $service, $dir, $offset){
+  $parentId = getFolderExistsCreate($service, $dir);
+  $files = $service->files->listFiles(array('q' => "'".$parentId."' in parents"));
+  $days = [];
+  foreach($files->getFiles() as $file) {
+    $day = substr($file->getName(), -13, 10);
+    if(!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/",$day)) {
+     throw new Exception('File name must be in a format filename.sql-YYYY-MM-DD.gz, but got '.$file->getName());
+    }
+    $days[] = $day;
+  }
+  $days = array_unique($days);
+  sort($days);
+  if(count($days)<$offset) return true;
+  for($i=0; $i<count($days)-$offset; $i++) {
+    foreach($files->getFiles() as $file) {
+      if(substr($file->getName(), -13, 10) === $days[$i]){
+        $service->files->delete($file->getId());
+        echo 'removed '.$file->getName().' (id='.$file->getId().")\n";
+      }
+    }
+  }
 }
 
 /**

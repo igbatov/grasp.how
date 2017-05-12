@@ -3,6 +3,7 @@
 /**
  * Backup DB in /backups
  */
+define('BACKUP_DIR_NAME', 'GRASP_BACKUP');
 echo date('Y-m-d H:i:s').' ';
 $rootpath = dirname(dirname(__FILE__));
 include($rootpath."/web/lib/server/cli.bootstrap.php");
@@ -30,7 +31,11 @@ var_dump(shell_exec($command));
 
 // external script to copy backup file somewhere
 foreach ($dbnames as $dbname) {
-  $command = $rootpath.'/scripts/google/upload.php '.$rootpath.'/backups/'.$dbname.'.sql-'.date('Y-m-d').'.gz';
+  $command = $rootpath.'/scripts/google/upload.php '.$rootpath.'/backups/'.$dbname.'.sql-'.date('Y-m-d').'.gz '.BACKUP_DIR_NAME;
   echo $command."\n";
   var_dump(shell_exec($command));
 }
+
+$command = $rootpath.'/scripts/google/rotate.php 7 '.BACKUP_DIR_NAME;
+echo $command."\n";
+var_dump(shell_exec($command));
