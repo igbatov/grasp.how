@@ -100,8 +100,8 @@ class AppUserPkb extends App
       // authorize him
       $this->session->setAuth($info['email']);
       // update his info
-      $this->updateUserInfo(array('type'=>$type, 'info'=>$info));
-      $fromUrl = json_decode($_REQUEST['state'], true)['fromUrl'];
+      $this->updateUserInfo(array('type'=>$type, 'info'=>$info));   
+      $fromUrl = json_decode(base64_decode($_REQUEST['state']), true)['fromUrl'];
       if($fromUrl) {
         return $this->redirect($fromUrl);
       } else {
