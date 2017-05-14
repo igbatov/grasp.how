@@ -1,8 +1,11 @@
 var fs = require('fs');
 var d3 = require('d3');
 var jsdom = require('jsdom');
-filedata = fs.readFileSync('../../web/apps/frontend/client/js/graph.js','utf8');
-eval(filedata);
+var graphDrawer = require('/var/www/html/grasp.how/web/apps/frontend/client/js/embed/graph.js');
+//filedata = fs.readFileSync('../../web/apps/frontend/client/js/graph.js','utf8');
+//filedata = fs.readFileSync('/var/www/html/grasp.how/web/apps/frontend/client/js/embed/graph.js','utf8')+"";
+//console.log(filedata);
+//eval(filedata);
 
 var arg1 = process.argv[2];
 var arg2 = process.argv[3];
@@ -28,7 +31,7 @@ fs.readFile(arg1, (err, data) => {
                 var wrapper = window.d3.select("body").append("div").attr("id", "mainSVG").attr('style','background: #2C3338;');
 
                 // draw graph SVG in wrapper
-                var svg = showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
+                var svg = graphDrawer.showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
 
                 svg.attr({xmlns:'http://www.w3.org/2000/svg'});
 

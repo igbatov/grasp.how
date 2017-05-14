@@ -12,6 +12,9 @@ else $graph_id = null;
 
 include($root.'/web/lib/server/Config.php');
 include($root.'/web/lib/server/DB.php');
+include($root.'/web/lib/server/NestedDB.php');
+include($root.'/web/lib/server/EscapeDB.php');
+include($root.'/web/lib/server/MultiTenantDB.php');
 include($root.'/web/lib/server/GraphDiffCreator.php');
 include($root.'/web/lib/server/ContentIdConverter.php');
 include($root.'/web/lib/server/GraphIdConverter.php');

@@ -1,3 +1,4 @@
+
 /**
  * Draws SVG given graph nodes, edges, labels
  */
@@ -293,3 +294,5 @@ var graphDrawer = (function(){
     }( obj )));
   };
 })();
+
+module.exports = graphDrawer;
