@@ -76,7 +76,7 @@ class OAuthUser{
     return $info;
   }
 
-  public function getOauthProviders(){
+  public function getOauthProviders($state){
     $providers = array();
     foreach($this->config->get('OAuthUser') as $type => $o){
       $url = $o['auth_url'];
@@ -85,6 +85,7 @@ class OAuthUser{
           "redirect_uri"=>$this->config->getWebDomainURL()."/oauth/".$type,
           "response_type"=>$o['response_type'],
           'scope'=>$o['scope'],
+          'state'=>$state
       );
       $uri = $url . '?' . urldecode(http_build_query($params));
       $providers[$type] = array(

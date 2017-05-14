@@ -17,6 +17,14 @@ class Session{
   }
 
   /**
+   * Check if we are in request for authorization
+   * @return bool
+   */
+  public function isAuthRequest(){
+    return isset($_POST['username']) && isset($_POST['password']);
+  }
+
+  /**
    * Set session variable
    * @param $key
    * @param $value

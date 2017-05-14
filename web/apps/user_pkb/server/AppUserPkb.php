@@ -63,7 +63,9 @@ class AppUserPkb extends App
       return $this->showRawData();
 
     }elseif($vars[0] === 'cloneGraph'){
-      if(!$this->getAuthId()) $this->redirect('/');
+      if(!$this->getAuthId()){
+        return $this->redirect('/?fromUrl=/cloneGraph/'.$vars[1]);
+      }
 
       $fromGraphId = $vars[1];
       if(!$this->graphIdConverter->isGraphIdGlobal($fromGraphId)){
@@ -75,7 +77,7 @@ class AppUserPkb extends App
       $new_graph_id = $this->graphs->cloneGraph($fromGraphId, $history_step, $this->getAuthId());
       $user_graph_ids = $this->getGraphIds($this->getAuthId());
       $this->graphs->changeGraphPosition($new_graph_id, 'leftGraphView', $user_graph_ids);
-      $this->redirect('/');
+      return $this->redirect('/');
 
     }elseif($vars[0] === 'oauth'){
       $type = $vars[1];
@@ -99,8 +101,13 @@ class AppUserPkb extends App
       $this->session->setAuth($info['email']);
       // update his info
       $this->updateUserInfo(array('type'=>$type, 'info'=>$info));
-      // redirect to homepage
-      $this->redirect("/");
+      $fromUrl = json_decode($_REQUEST['state'], true)['fromUrl'];
+      if($fromUrl) {
+        return $this->redirect($fromUrl);
+      } else {
+        // redirect to homepage
+        $this->redirect("/");
+      }
     }
 
     /************** SET READ-ONLY MODE FOR SPECIAL CASES **********************/
@@ -644,9 +651,11 @@ class AppUserPkb extends App
         break;
 
       default:
-        if($access_level == 'read'){
+        if($access_level == 'read') {
           include($this->getAppDir("template", false)."/showGraph.php");
-        }else{
+        } elseif(isset($_REQUEST['fromUrl'])) {
+          return $this->redirect($_REQUEST['fromUrl']);
+        } else {
           include($this->getAppDir("template", false)."/index.php");
         }
         break;

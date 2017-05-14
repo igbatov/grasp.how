@@ -128,6 +128,10 @@ abstract class App
         exit();
         break;
     }
+
+    if ($this->session->isAuthRequest() && isset($_REQUEST['fromUrl'])) {
+      $this->redirect($_REQUEST['fromUrl']);
+    }
   }
 
   public function getUserId($username){
@@ -237,11 +241,16 @@ abstract class App
     return mail("$to", '=?UTF-8?B?'.base64_encode($subj).'?=', $zag, $head);
   }
 
+  protected function getUrl()
+  {
+    return (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+  }
+
   protected function redirect($url, $permanent = false)
   {
     header('Location: ' . $url, true, $permanent ? 301 : 302);
     $this->postAccessLog();
-    return;
+    return true;
   }
 
   public function getDB(){
