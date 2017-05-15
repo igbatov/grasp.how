@@ -672,7 +672,7 @@ class Graphs {
     $this->logger->log($q);
     $this->db->exec($auth_id, $q);
 
-    return true;
+    return $this->graphIdConverter->createGlobalGraphId($auth_id, $graph_id);
   }
 
   /**

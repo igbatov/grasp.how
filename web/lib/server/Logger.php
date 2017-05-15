@@ -62,7 +62,7 @@ class Logger{
         $msg .= " ";
       }
     }
-    error_log($msg."\n", 3, $this->log_dir."/".$filename);
+    error_log($this->username." ".$this->id." ".$msg."\n", 3, $this->log_dir."/".$filename);
     return true;
   }
 
@@ -77,6 +77,7 @@ class Logger{
       else $msg .= $arg;
       $msg .= "\n";
     }
+    $msg = $this->username." ".$this->id." ".$msg;
     error_log($msg);
     //$this->dbLog('log',$msg);
   }

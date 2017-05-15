@@ -106,6 +106,7 @@ GRASP.GraphMenu.prototype = {
 
       var showNew = function(){
         var m = that.UI.createModal();
+        var newGraphId = null;
         that.UI.setModalContent(
           m,
           that.UI.createForm({
@@ -113,12 +114,14 @@ GRASP.GraphMenu.prototype = {
             'submit':{type:'button', label:'Создать'}
           },
           function(form){
-            that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(){
+            that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(data){
+              newGraphId = data['graphId'];
               // reload graphs models
               return that.publisher.publish(['load_graph_models']);
             }).then(function(){
               // redraw menu
               that._createView();
+              leftGraphViewSelect.selectItem(newGraphId);
             });
             that.UI.closeModal(m);
           })
@@ -240,8 +243,10 @@ GRASP.GraphMenu.prototype = {
       $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
 
       // create left and right select box
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createSelectBox({name:'leftGraphView', items:items, defaultValue:leftGraphId, callback:onSelect}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createSelectBox({name:'rightGraphView', items:items, defaultValue:rightGraphId, callback:onSelect}));
+      var leftGraphViewSelect = that.UI.createSelectBox({name:'leftGraphView', items:items, defaultValue:leftGraphId, callback:onSelect});
+      document.getElementById('leftSelectContainer').appendChild(leftGraphViewSelect);
+      var rightGraphViewSelect = that.UI.createSelectBox({name:'rightGraphView', items:items, defaultValue:rightGraphId, callback:onSelect});
+      document.getElementById('rightSelectContainer').appendChild(rightGraphViewSelect);
 
       // add edit and remove buttons to the right of select boxes
       document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'EditName',label:'Edit name', callback:function(){onEdit('leftGraphView')}}));

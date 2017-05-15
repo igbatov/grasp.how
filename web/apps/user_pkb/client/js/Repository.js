@@ -77,7 +77,7 @@ GRASP.Repository.prototype = {
 
     }else if(name == 'create_new_graph'){
       this.pendingRequests.push({url:'createNewGraph', data:e.getData(),  callback:function(data){
-        that.setEventResponse(e, data);
+        that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();
 

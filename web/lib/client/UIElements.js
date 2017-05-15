@@ -138,20 +138,30 @@ GRASP.UIElements.prototype = {
       }
     });
 
+    // add select API function
+    selectBox.selectItem = function(value){
+      GRASP.updateElement(inputHidden, {value:value});
+      if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
+      if(attrs.nodrop){
+        // select item in no drop select list (aka 'select multiple')
+        var selectedLi = null;
+        lis.forEach(function(li){
+          li.classList.remove('nodrop_selected')
+          if(li.value === value) selectedLi = li;
+        });
+        selectedLi.classList.add('nodrop_selected');
+      } else {
+        GRASP.removeChilds(selectedItem);
+        selectedItem.appendChild(createDOMElement(attrs.items[value]));
+        GRASP.setDisplay(ul,'none');
+      }
+    };
+
     // behaviour: click on item - select new one
     lis.forEach(function(li){
       li.addEventListener('click', function(evt){
         var value = li.getAttribute('value');
-        GRASP.updateElement(inputHidden, {value:value});
-        if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
-        if(attrs.nodrop){
-          lis.forEach(function(li){ li.classList.remove('nodrop_selected') });
-          li.classList.add('nodrop_selected');
-        } else {
-          GRASP.removeChilds(selectedItem);
-          selectedItem.appendChild(createDOMElement(attrs.items[value]));
-          GRASP.setDisplay(ul,'none');
-        }
+        selectBox.selectItem(value);
       });
     });
 

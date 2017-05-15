@@ -452,7 +452,8 @@ class AppUserPkb extends App
 
       case 'createNewGraph':
         $r = $this->getRequest();
-        $this->graphs->createNewGraph($this->getAuthId(), $r['name']);
+        $graph_id = $this->graphs->createNewGraph($this->getAuthId(), $r['name']);
+        return $this->showRawData(json_encode(['graphId'=>$graph_id]));
         break;
 
       case 'copyGraph':
