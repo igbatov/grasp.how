@@ -15,7 +15,7 @@
 
     <title><?php echo $graph[$graph_ids[0]]['name']; ?></title>
 
-    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
+    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/embed.css">
 
     <!-- fork ribbon -->
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/gh-fork-ribbon.css">

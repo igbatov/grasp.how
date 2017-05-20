@@ -6,7 +6,7 @@ var uielements = uielements || new GRASP.UIElements();
 var globalState = typeof(globalState) == 'undefined' ? {probabilitiesOpened: true} : globalState;
 
 /**
- * Implements window that appears when mouseover circle
+ * Implements window that appears when mouseover circle (= node text box description)
  * @param GRASP
  * @param UI
  * @param extState - type of {probabilitiesOpened: true}

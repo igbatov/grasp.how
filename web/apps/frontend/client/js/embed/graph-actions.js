@@ -1,34 +1,32 @@
-var graphActions = (function($,d3){
+var publisher = publisher || new GRASP.Publisher(mediator, promise);
+
+var graphActions = (function($,d3,publisher){
   // global variable for current selected (clicked) node
   var selectedNodeId = null;
 
   return {
-    addActions: addActions
+    addActions: addActions // hang actions on given nodes
   };
 
   function addActions(nodes, nodeContents, condPInfo, nodeContentView){
     createTextBoxes(nodes);
-    menuCirclesActions(nodes, selectedNodeId)
 
     // graph node actions
     d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; })
         .on("mouseover", function(){
           if(selectedNodeId !== null) return;
 
+          var circle = d3.select(this);
           // hide all other nodes
-          var selfNodeId = d3.select(this).attr('nodeId');
-          d3.selectAll('circle').filter(function (x) { return selfNodeId != d3.select(this).attr('nodeId') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.1);
-          d3.selectAll('text').filter(function (x) { return selfNodeId != d3.select(this).attr('nodeId') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.1);
-          d3.selectAll('path').attr('stroke-opacity', 0.1);
-          d3.selectAll('marker').attr('fill-opacity', 0.1);
+          var selfNodeId = circle.attr('nodeId');
+          publisher.publish(['pick_out_nodes',{nodeIds:[selfNodeId]}]);
 
           // show text box with node content
-          var circle = d3.select(this);
           showNodeContent(circle, nodeContents[selfNodeId], condPInfo[selfNodeId], nodeContentView);
         })
         .on("mouseout", function(){
           if(selectedNodeId !== null) return;
-          restoreOpacity(nodes);
+          publisher.publish(['remove_pick_outs',{}]);
 
           // hide all textBoxes
           $('.textBox').hide();
@@ -36,9 +34,12 @@ var graphActions = (function($,d3){
         .on("click", function() {
           if(selectedNodeId != null) return;
           selectedNodeId = d3.select(this).attr('nodeId');
+          var circle = d3.select(this);
+
+          // change graph offset
+          publisher.publish(['change_options',{'graphAreaSidePadding':isLeftNode(circle) ? -50 : 50}]);
 
           // show text box with node content
-          var circle = d3.select(this);
           showNodeContent(circle, nodeContents[selectedNodeId], condPInfo[selectedNodeId], nodeContentView);
 
           // stop propagation
@@ -82,13 +83,15 @@ var graphActions = (function($,d3){
     });
     document.body.appendChild(rightTextBox);
 
-    // unset selectedNodeId when clicked somewhere
+    // unset selectedNodeId when clicked somewhere on the background
     $(document).click(function(e){
       if(e.target != rightTextBox && e.target != leftTextBox
           && (rightTextBox.contains(e.target) || leftTextBox.contains(e.target))) return;
 
       selectedNodeId = null;
-      restoreOpacity(nodes);
+      publisher.publish(['remove_pick_outs',{}]);
+      // change graph offset
+      publisher.publish(['change_options',{'graphAreaSidePadding':0}]);
 
       // hide all textBoxes
       $(rightTextBox).hide();
@@ -96,60 +99,23 @@ var graphActions = (function($,d3){
     });
   }
 
-  function hideAllTypesExcept(type){
-    d3.selectAll('circle').filter(function (x) { return type != d3.select(this).attr('nodeType') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.2);
-    d3.selectAll('text').filter(function (x) { return type != d3.select(this).attr('nodeType') && d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 0.2);
-    d3.selectAll('path').attr('fill-opacity', 0.2);
+  /**
+   * Determine where node is - on the left part or on the right
+   * @param circle
+   * @returns boolean
+   */
+  function isLeftNode(circle){
+    var w = $("#graphContainer").width();
+
+    return circle.attr('cx') < w/2;
   }
 
   function showNodeContent(circle, content, condPInfo, nodeContentView){
-    var w = $("#graphContainer").width(),
-        textBoxId;
-
-    // determine where node is - on the left part or on the right
-    if(circle.attr('cx') > w/2) textBoxId = 'leftTextBox';
-    else  textBoxId = 'rightTextBox';
+    var textBoxId = isLeftNode(circle) ? 'rightTextBox' : 'leftTextBox';
 
     // set node content to textBox and show it
     $('#'+textBoxId).html(nodeContentView.getView(content, condPInfo));
     $('#'+textBoxId).show();
   }
 
-  function restoreOpacity(nodes){
-    // nodes
-    var circles = d3.selectAll('circle')[0];
-    for(var i in circles){
-      var circle = circles[i];
-      var nodeId = d3.select(circle).attr('nodeId');
-      var nodeType = d3.select(circle).attr('nodeType');
-      if(nodeId && nodes[nodeId] && nodeType != "nodeType") d3.select(circle).attr('fill-opacity', nodes[nodeId].opacity);
-    }
-
-    // edges
-    d3.selectAll('path').attr('stroke-opacity', 1);
-    d3.selectAll('marker').attr('fill-opacity', 1);
-
-    // labels
-    d3.selectAll('text').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; }).attr('fill-opacity', 1);
-  }
-
-  function menuCirclesActions(nodes, selectedNodeId){
-    // typeNodes actions
-    d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') == 'nodeType'; })
-        .on("mouseover", function(){
-          if(selectedNodeId !== null) return;
-          hideAllTypesExcept(d3.select(this).attr('nodeId'));
-        })
-        .on("click", function(){
-          if(selectedNodeId != null) return;
-          selectedNodeId = d3.select(this).attr('nodeId');
-          hideAllTypesExcept(d3.select(this).attr('nodeId'));
-          // stop propagation
-          d3.event.stopPropagation();
-        })
-        .on("mouseout", function(){
-          if(selectedNodeId !== null) return;
-          restoreOpacity(nodes);
-        });
-  }
-})($,d3);
+})($,d3,publisher);

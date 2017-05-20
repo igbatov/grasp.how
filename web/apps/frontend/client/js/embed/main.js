@@ -8,6 +8,9 @@ var mediator = mediator || new GRASP.Mediator();
     'show_nodes':[graphDrawer],
     'add_labels':[graphDrawer],
     'remove_labels':[graphDrawer],
+    'change_options':[graphDrawer],
+    'pick_out_nodes':[graphDrawer],
+    'remove_pick_outs':[graphDrawer],
     'show_all_labels':[graphDrawer]
   });
 
@@ -47,12 +50,22 @@ var mediator = mediator || new GRASP.Mediator();
 
     var wrapper = createWrapper();
 
-
     // Lets use only global node ids
     graph = convertIdsToGlobal(graph);
 
     // draw graph SVG in wrapper
-    graphDrawer.showGraph(wrapper.div, wrapper.dims, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
+    graphDrawer.setOptions({
+      wrapper: wrapper.div,
+      wrapperArea: wrapper.dims,
+      mappingArea: graph["area"],
+      orig_nodes: graph["nodes"],
+      edges: graph["edges"],
+      nodeContents: graph["nodeContents"],
+      nodeTypes: graph["nodeTypes"],
+      edgeTypes: graph["edgeTypes"],
+      graphAreaSidePadding: 0
+    });
+    graphDrawer.showGraph();
 
     // create text boxes
     var condPInfo = getCondPsInfo(graph["nodeContents"], graph["edges"]);

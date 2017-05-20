@@ -4,8 +4,6 @@
  */
 var graphDrawer = (function(){
   // CONSTANTS
-  var TYPE_NODES_AREA_WIDTH = 15; // in %
-
   var LABEL_FONT_FAMILY = "sans-serif";
   var LABEL_FONT_SIZE_FACTOR = 1.6;
   var NODE_SIZE_FACTOR = 1.6;
@@ -13,43 +11,156 @@ var graphDrawer = (function(){
   // private module vars
   var _svgc;
   var _nodes;
+  var _options;
 
   return {
+    setOptions: setOptions,
     eventListener: eventListener,
     showGraph: showGraph,
     moduleName: 'graphDrawer'
   };
+
+  /**
+   * {
+   *   wrapper: wrapper,
+       wrapperArea: wrapperArea,
+       mappingArea: mappingArea,  - mapping area of original graph (will be resized to wrapperArea)
+       orig_nodes: orig_nodes,
+       edges: edges,
+       nodeContents: nodeContents,
+       nodeTypes: nodeTypes,
+       edgeTypes: edgeTypes,
+       graphAreaSidePadding: graphAreaSidePadding,
+   * }
+   */
+  function setOptions(options) {
+    _options = options;
+  }
 
   function eventListener(e){
     var eventName = e.getName();
     var eventData = e.getData();
     if(eventName == 'hide_all_labels'){
       d3.selectAll('.graphLabel').style("visibility", "hidden");
+
     }else if(eventName == 'show_all_labels'){
       d3.selectAll('.graphLabel').style("visibility", "visible");
+
     }else if(eventName == 'add_labels'){
       for(var i in eventData){
         addLabel(_nodes[eventData[i].nodeId], eventData[i].label, eventData[i].key)
       }
+      updateNodeXY();
+
     }else if(eventName == 'remove_labels'){
       for(var i in eventData){
         d3.selectAll('[key = "'+eventData[i]+'"]').remove();
       }
+      updateNodeXY();
+
+    }else if(eventName == 'pick_out_nodes'){
+      var pickOutNodes = eventData['nodeIds'];
+      d3.selectAll('circle').filter(function (x) {
+        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) === -1;
+      }).attr('fill-opacity', 0.1);
+      d3.selectAll('.graphLabel').filter(function (x) {
+        return pickOutNodes.indexOf(d3.select(this).attr('nodeId'))
+      }).attr('fill-opacity', 0.1);
+      d3.selectAll('path').attr('stroke-opacity', 0.1);
+      d3.selectAll('marker').attr('fill-opacity', 0.1);
+
+    }else if(eventName == 'remove_pick_outs'){
+      // nodes
+      var nodes = _options['orig_nodes'];
+      var circles = d3.selectAll('circle')[0];
+      for(var i in circles){
+        var circle = circles[i];
+        var nodeId = d3.select(circle).attr('nodeId');
+        if(nodeId && nodes[nodeId]) d3.select(circle).attr('fill-opacity', nodes[nodeId].opacity);
+      }
+
+      // edges
+      d3.selectAll('path').attr('stroke-opacity', 1);
+      d3.selectAll('marker').attr('fill-opacity', 1);
+
+      // labels
+      d3.selectAll('.graphLabel').attr('fill-opacity', 1);
+
+    }else if(eventName == 'change_options'){
+      for(var option in eventData) {
+        _options[option] = eventData[option];
+        if(option === 'graphAreaSidePadding') {
+          // update mapping
+          adjustNodeXY(_nodes, _options['wrapperArea'], _options['mappingArea'], _options['graphAreaSidePadding']);
+          updateNodeXY();
+        }
+      }
     }
   }
+
+  function updateNodeXY(){
+    // update nodes
+    var circles = d3.selectAll('circle')[0];
+    for(var i in circles){
+      var circle = circles[i];
+      var nodeId = d3.select(circle).attr('nodeId');
+      if(nodeId && _nodes[nodeId]) {
+        // update nodes
+        var node = _nodes[nodeId];
+        d3.select(circle)
+            .attr('cx', node.x)
+            .attr('cy', node.y);
+      }
+    }
+
+    // update labels
+    var labels = d3.selectAll('.graphLabel')[0];
+    for(var i in labels){
+      var label = d3.select(labels[i]);
+      var nodeId = label.attr('nodeId');
+      if(nodeId && _nodes[nodeId]) {
+        var node = _nodes[nodeId];
+        label.attr('transform', "translate(" + node.x + "," + node.y + ")");
+      }
+    }
+
+    // update edges
+    var edges = d3.selectAll('path')[0];
+    for(var i in edges) {
+      var edge = d3.select(edges[i]);
+      var source = edge.attr('source');
+      var target = edge.attr('target');
+      if(source && target && _nodes[source] && _nodes[source]) {
+        edge.attr("d", getQuadPathData(_nodes[source], _nodes[target], _nodes[target].size*NODE_SIZE_FACTOR));
+      }
+    }
+  }
+
+  function adjustNodeXY(_nodes, wrapperArea, mappingArea, graphAreaSidePadding){
+    var w = wrapperArea.width - Math.abs(graphAreaSidePadding)*wrapperArea.width/100;
+    var h = wrapperArea.height;
+    var graphArea = {width: w, height: h, centerX: (wrapperArea.width + graphAreaSidePadding*wrapperArea.width/100)/2, centerY: h/2};
+    var mapping = adjustMappingToArea({mapping:_nodes, area:mappingArea}, graphArea);
+    _options['mappingArea'] = graphArea;
+    for(var i  in mapping){
+      _nodes[i].x = mapping[i].x;
+      _nodes[i].y = mapping[i].y;
+    }
+  }
+
   /**
    * Draws SVG in wrapper
-   * @param wrapper
-   * @param wrapperArea
-   * @param mappingArea
-   * @param orig_nodes
-   * @param edges
-   * @param nodeContents
-   * @param nodeTypes
-   * @param edgeTypes
    * @returns {*|{}|{typeColors}|{typeColors, typeDirection}|{font, fill, maxSize}|{fill}}
    */
-  function showGraph(wrapper, wrapperArea, mappingArea, orig_nodes, edges, nodeContents, nodeTypes, edgeTypes){
+  function showGraph(){
+    var wrapper = _options['wrapper'];
+    var wrapperArea = _options['wrapperArea'];
+    var mappingArea = _options['mappingArea'];
+    var orig_nodes = _options['orig_nodes'];
+    var edges = _options['edges'];
+    var nodeContents = _options['nodeContents'];
+    var edgeTypes = _options['edgeTypes'];
+    var graphAreaSidePadding = _options['graphAreaSidePadding'];
     _nodes = clone(orig_nodes);
 
     _svgc = wrapper.append("svg")
@@ -77,65 +188,23 @@ var graphDrawer = (function(){
     _svgc.append("rect")
         .attr("x", 0)
         .attr("y", 0)
-        .attr("fill", '#2C3338')
+        .attr("fill", '#2b2f47')
         .attr("width", wrapperArea.width)
         .attr("height", wrapperArea.height);
 
     // adjust data to our svg container area
-    var w = wrapperArea.width - TYPE_NODES_AREA_WIDTH*wrapperArea.width/100;
-    var h = wrapperArea.height;
-    var graphArea = {width: w, height: h, centerX: w/2 + TYPE_NODES_AREA_WIDTH*wrapperArea.width/100, centerY: h/2};
-
-    var mapping = adjustMappingToArea({mapping:_nodes, area:mappingArea}, graphArea);
-    for(var i  in mapping){
-      _nodes[i].x = mapping[i].x;
-      _nodes[i].y = mapping[i].y;
-    }
-
-    // draw type nodes
-    var nodeTypeAreaWidth = TYPE_NODES_AREA_WIDTH*wrapperArea.width/100;
-    var verticalStep = wrapperArea.height/getObjectLength(nodeTypes);
-    var x, y=-verticalStep/2, size;
-    for(var i in nodeTypes){
-      x = nodeTypeAreaWidth/2;
-      size = nodeTypeAreaWidth/20;
-      y += verticalStep;
-      _svgc.append("circle")
-          .attr("class", 'typeNode')
-          .attr("nodeId", i)
-          .attr("nodeType", "nodeType")
-          .attr("cx", x)
-          .attr("cy", y)
-          .attr("r", size)
-          .style("stroke", nodeTypes[i].color)
-          .style("stroke-width", 2)
-          .style("fill", nodeTypes[i].color)
-          .style("fill-opacity", 0);
-
-      _svgc.append("text")
-          .attr("class", 'typeLabel')
-          .attr("nodeId", i)
-          .attr("nodeType", "nodeType")
-          .attr("style", "pointer-events: none;")
-          .attr("dx", x)
-          .attr("dy", y + size/2)
-          .style("fill", "#BBBBBB")
-          .style("fill-opacity", 0.5)
-          .style("font-family", LABEL_FONT_FAMILY)
-          .style("font-size", LABEL_FONT_SIZE_FACTOR*size)
-          .text(nodeTypes[i].label);
-    }
-
+    adjustNodeXY(_nodes, wrapperArea, mappingArea, graphAreaSidePadding);
 
     // draw edges
     for(var i in edges){
       var edge = _svgc.append("path")
-          .attr("d", getQuadPathData(_nodes[edges[i].source], _nodes[edges[i].target], _nodes[edges[i].target].size*NODE_SIZE_FACTOR))
           .attr("stroke", edgeTypes[edges[i].type].color)
           .attr("stroke-width", "1")
           .attr("stroke-opacity", "1")
           .style("fill", 'transparent')
           .style("fill-opacity", '0')
+          .attr("source", edges[i].source)
+          .attr("target", edges[i].target)
           .attr("class", "edges");
       if(edges[i].type == 'causal' || edges[i].type == 'conditional'){
         edge.attr("marker-end", "url(#triangle_"+edges[i].type+")");
@@ -149,8 +218,6 @@ var graphDrawer = (function(){
           .attr("class", 'graphNode')
           .attr("nodeId", node.id)
           .attr("nodeType", node.type)
-          .attr("cx", node.x)
-          .attr("cy", node.y)
           .attr("r", node.size*NODE_SIZE_FACTOR)
           .style("fill", node.color)
           .attr('fill-opacity', node.opacity);
@@ -164,22 +231,27 @@ var graphDrawer = (function(){
       addLabel(node, nodeContents[node.id]['alternatives'][active_alternative_id].label);
     }
 
+    updateNodeXY();
+
     return _svgc;
   }
 
   function addLabel(node, str, key){
+    var g = _svgc.append('g')
+        .attr("class", 'graphLabel')
+        .attr("key", key)
+        .attr("nodeId", node.id)
+        .attr("nodeType", node.type)
+        .attr("style", "pointer-events: none;");
+
     var strs = str.split("\n");
     var offset = 0;
     for(var j in strs){
       var str = strs[j];
-      _svgc.append("text")
-          .attr("class", 'graphLabel')
-          .attr("key", key)
-          .attr("nodeId", node.id)
-          .attr("nodeType", node.type)
-          .attr("style", "pointer-events: none;")
-          .attr("dx", node.x)
-          .attr("dy", node.y + node.size/2 + offset)
+      g.append("text")
+          .attr("class", 'graphLabelString')
+          .attr("dx", 0)
+          .attr("dy", offset)
           .style("font-family", LABEL_FONT_FAMILY)
           .style("font-size", LABEL_FONT_SIZE_FACTOR*node.size)
           .style("fill", "#BBBBBB")
@@ -187,7 +259,6 @@ var graphDrawer = (function(){
           .html(str);
       offset += LABEL_FONT_SIZE_FACTOR*node.size;
     }
-
   }
 
   /**
@@ -241,14 +312,6 @@ var graphDrawer = (function(){
     return adjustedMappingCoordinates;
   }
 
-  function getObjectLength(obj) {
-    var size = 0, key;
-    for (key in obj) {
-      if (obj.hasOwnProperty(key)) size++;
-    }
-    return size;
-  }
-
   /**
    * This will create clone from Object o (thanks to Rick Waldron)
    * @param o
@@ -295,4 +358,4 @@ var graphDrawer = (function(){
   };
 })();
 
-module.exports = graphDrawer;
+if(typeof module !== 'undefined') module.exports = graphDrawer;
