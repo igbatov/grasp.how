@@ -3,21 +3,23 @@ var mediator = mediator || new GRASP.Mediator();
 var promise = promise || new GRASP.Promise(jquery);
 var publisher = publisher || new GRASP.Publisher(mediator, promise);
 var uielements = uielements || new GRASP.UIElements();
+var i18n = i18n || new GRASP.I18n(GRASP.TRANSLATIONS, GRASP.LANGUAGE);
 var globalState = typeof(globalState) == 'undefined' ? {probabilitiesOpened: true} : globalState;
 
 /**
- * Implements window that appears when mouseover circle (= node text box description)
+ * Implements window (node text box description) that appears when user mouseover circle
  * @param GRASP
  * @param UI
- * @param extState - type of {probabilitiesOpened: true}
+ * @param globalState - {probabilitiesOpened: boolean}
  * @param publisher - instance of GRASP.Publisher
  */
-var nodeContentView = (function(GRASP, UI, globalState, publisher){
+var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
   // component props
   var _state = {active_alternative_id:null};
   // children components
-  var altContentList = [];
   var altLabelList = [];
+  var altContentList = [];
+  var altConditionalsList = [];
 
   return {
     getView: getView
@@ -28,12 +30,21 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
 
     var alt_id = _state['active_alternative_id'];
 
-    altContentList.forEach(function(el){ GRASP.setDisplay(el, 'none'); });
-    GRASP.setDisplay(altContentList[alt_id],'block');
-
+    // highlight appropriate alternative label
     altLabelList.forEach(function(el){ el.classList.remove('active') });
     altLabelList[alt_id].className += " active";
 
+    // show appropriate alternative content
+    altContentList.forEach(function(el){ GRASP.setDisplay(el, 'none'); });
+    GRASP.setDisplay(altContentList[alt_id],'block');
+
+    // show appropriate alternative conditional probabilities
+    altConditionalsList.forEach(function(el){ GRASP.setDisplay(el, 'none'); });
+    GRASP.setDisplay(altConditionalsList[alt_id],'block');
+  }
+
+  function getState(varname){
+    return _state[varname];
   }
 
   /**
@@ -67,50 +78,42 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
     }
 
     if(condPInfo){
-      var condPInfoDOM = createCondPInfoDOM(condPInfo);
-      for(var i=0; i<condPInfoDOM.childNodes.length; i++){
-        var el = condPInfoDOM.childNodes[i];
-        el.addEventListener('mouseover', function(evt){
-          // hide el parent
-          var clone = cloneToAbsolute(this);
-          clone.style.backgroundColor = 'blue';
-          view.style.opacity = 0.1;
+      altConditionalsList = createCondPInfoDOMList(condPInfo, GRASP.getObjectKeys(content['alternatives']));
+      for(var j in altConditionalsList){
+        var condPInfoDOM = altConditionalsList[j];
+        for(var i=0; i<condPInfoDOM.childNodes.length; i++){
+          var el = condPInfoDOM.childNodes[i];
+          el.addEventListener('mouseover', function(evt){
+            this.style.backgroundColor = '#b363d2';
 
-          // send event to graph drawer
-          publisher.publish(['hide_all_labels',{}]);
+            // send event to graph drawer to hide all labels
+            publisher.publish(['hide_all_labels',{}]);
 
-          var condBlock = condPInfo.fieldsObj[this.dataset.condPInfoBlockId];
-          var eventData = createConditionalPInfoNodeLabels(condBlock);
-          publisher.publish(['add_labels', eventData]);
+            // show custom labels
+            var condBlock = condPInfo.fieldsObj[this.dataset.condPInfoBlockId];
+            var eventData = createConditionalPInfoNodeLabels(condBlock);
+            publisher.publish(['add_labels', eventData]);
 
-          clone.addEventListener('mouseleave', function(evt){
-            view.style.opacity = 1;
+            // highlight edges on graph between nodes with labels
+            var edges = [];
+            for(var k in eventData) {
+              edges.push({source:eventData[k].nodeId, target:content.nodeId});
+            }
+            publisher.publish(['highlight_edges',{edges:edges}]);
+          });
+          el.addEventListener('mouseleave', function(evt){
+            var condBlock = condPInfo.fieldsObj[this.dataset.condPInfoBlockId];
+            var eventData = createConditionalPInfoNodeLabels(condBlock);
             publisher.publish(['show_all_labels',{}]);
             publisher.publish(['remove_labels',eventData.map(function(item){
               return item.key;
             })]);
-            // remove absolute clone
-            this.parentNode.removeChild(this);
+            publisher.publish(['highlight_nodes',{nodeIds:[content.nodeId]}]);
+            this.style.backgroundColor = '#FFFFFF';
           });
-        });
-
-
+        }
+        view.appendChild(condPInfoDOM);
       }
-      var toggle = UI.createToggle({
-        name: 'cond_prob_toggle',
-        label: UI.addToopltip(
-            GRASP.createElement('span',{class:'underlyingConditionalProbabilitiesAssumptionsLabel'}, 'Map author also assumes that:'),
-            'This numbers are the conditional probabilities assumptions of map author'
-        ),
-        content: condPInfoDOM,
-        is_default_hide: !globalState.probabilitiesOpened,
-        callback: function(opened){
-          globalState.probabilitiesOpened = opened;
-        },
-        contentClassName: 'underlyingConditionalProbabilitiesAssumptionsContent'
-      });
-      toggle.addEventListener('click', function(e){ e.stopPropagation(); });
-      view.appendChild(toggle);
     }
 
     // add content
@@ -131,7 +134,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
       eventData.push({
         key: 'condLabel',
         nodeId: j,
-        label: 'IF:\n"'+condBlock['IF'][j].alternativeLabel+'"'
+        label: i18n.__('IF')+':\n"'+condBlock['IF'][j].alternativeLabel+'"'
       });
     }
 
@@ -139,10 +142,9 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
     var thenNodeId = condBlock['THEN'][0]['nodeId'];
     // concat 'then' alternative labels
     var thenLabel = '';
-    for(var i in condBlock['THEN']){
-      thenLabel += 'THEN PROBABILITY OF\n"'+condBlock['THEN'][i].alternativeLabel+'"';
-      thenLabel += '\nIS '+condBlock['THEN'][i].probability+'\n';
-    }
+    thenLabel += i18n.__('THEN PROBABILITY OF')+'\n"'+condBlock['THEN'][getState('active_alternative_id')].alternativeLabel+'"\n';
+    thenLabel += i18n.__('IS')+' '+condBlock['THEN'][getState('active_alternative_id')].probability+'\n\n';
+
     eventData.push({
       key: 'condLabel',
       nodeId: thenNodeId,
@@ -152,93 +154,26 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
     return eventData;
   }
 
-  /**
-   * Clone element and make its position absolute with coordinates of cloned one
-   * Similar to https://www.impressivewebs.com/fixing-parent-child-opacity/
-   * @param el
-   */
-  function cloneToAbsolute(el){
-    var x, y, w, newParent, clonedChild;
-
-    clonedChild = el.cloneNode(true);
-    copyComputedStyle(el, clonedChild);
-    newParent = document.documentElement;
-
-    newParent.appendChild(clonedChild);
-
-    function doCoords () {
-      x = el.getBoundingClientRect().left;
-      y = el.getBoundingClientRect().top;
-      if (el.getBoundingClientRect().width) {
-        w = el.getBoundingClientRect().width; // for modern browsers
-      } else {
-        w = el.offsetWidth; // for oldIE
-      }
-
-      clonedChild.style.position = 'absolute';
-      clonedChild.style.left = x + 'px';
-      clonedChild.style.top = y + 'px';
-      clonedChild.style.width = w + 'px';
-    }
-
-    window.onresize = function () {
-      doCoords();
-    };
-
-    doCoords();
-
-    function realStyle(_elem, _style) {
-      var computedStyle;
-      if ( typeof _elem.currentStyle != 'undefined' ) {
-        computedStyle = _elem.currentStyle;
-      } else {
-        computedStyle = document.defaultView.getComputedStyle(_elem, null);
-      }
-
-      return _style ? computedStyle[_style] : computedStyle;
-    };
-
-    function copyComputedStyle(src, dest) {
-      var s = realStyle(src);
-      for ( var i in s ) {
-        // Do not use `hasOwnProperty`, nothing will get copied
-        if ( typeof i == "string" && i != "cssText" && !/\d/.test(i) ) {
-          // The try is for setter only properties
-          try {
-            dest.style[i] = s[i];
-            // `fontSize` comes before `font` If `font` is empty, `fontSize` gets
-            // overwritten.  So make sure to reset this property. (hackyhackhack)
-            // Other properties may need similar treatment
-            if ( i == "font" ) {
-              dest.style.fontSize = s.fontSize;
-            }
-          } catch (e) {}
+  function createCondPInfoDOMList(condPInfo, alternativeIds){
+    var conditionalsDOMList = [];
+    for(var i in alternativeIds) {
+      var alternativeId = alternativeIds[i];
+      var cont = GRASP.createElement('div',{},'');
+      // create decorated text string for each f.fields[i]
+      for(var j in condPInfo.fieldsObj){
+        var text = '';
+        var b = condPInfo.fieldsObj[j];
+        text += ' '+b['THEN'][alternativeId].probability;
+        for(var parentId in b['IF']){
+          text += '->' + b['IF'][parentId].alternativeLabel + '<br>';
         }
+        var el = GRASP.createElement('div',{},text);
+        el.dataset.condPInfoBlockId = j;
+        cont.appendChild(el);
       }
-    };
-
-    return clonedChild;
-  }
-
-  function createCondPInfoDOM(condPInfo){
-    var cont = GRASP.createElement('div',{},'');
-    // create decorated text string for each f.fields[i]
-    for(var j in condPInfo.fieldsObj){
-      var text = '';
-      var b = condPInfo.fieldsObj[j];
-      text += 'IF: <br>';
-      for(var parentId in b['IF']){
-        text += b['IF'][parentId].alternativeLabel + '<br>';
-      }
-      text += 'THEN: <br>';
-      for(var alternativeId in b['THEN']){
-        text += 'PROBABILITY THAT "'+b['THEN'][alternativeId].alternativeLabel + '" IS '+b['THEN'][alternativeId].probability+'<br>';
-      }
-      var el = GRASP.createElement('div',{},text);
-      el.dataset.condPInfoBlockId = j;
-      cont.appendChild(el);
+      conditionalsDOMList[alternativeId] = cont;
     }
-    return cont;
+    return conditionalsDOMList;
   }
 
   /**
@@ -268,4 +203,4 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher){
     }
     return c;
   }
-})(GRASP, uielements, globalState, publisher);
+})(GRASP, uielements, globalState, publisher, i18n);

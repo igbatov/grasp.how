@@ -1,10 +1,13 @@
 {
+  "IF": "ЕСЛИ",
+  "THEN PROBABILITY OF": "ТО ВЕРОЯТНОСТЬ",
+  "IS": "РАВНА",
   "full and reliable worldview":"обоснованное мировоззрение",
   "challenge your worldview":"проверь своё мировоззрение",
-  "GOAL":"ЦЕЛЬ",
-  "METHOD":"МЕТОД",
-  "CONTACTS":"КОНТАКТЫ",
-  "SIGN IN (UP)":"ВХОД",
+  "Goal":"Цель",
+  "Method":"Метод",
+  "Contacts":"Контакты",
+  "Create my own map":"Создать свою карту",
   "...availability heuristic helps explain why some issues are highly salient in the public’s mind while others are neglected. People tend to assess the relative importance of issues by the ease with which they are retrieved from memory—and this is largely determined by the extent of coverage in the media. Frequently mentioned topics populate the mind even as others slip away from awareness.":"...эвристика доступности позволяет объяснить почему некоторые мысли чрезвычайно сильно занимают умы людей, в то время как другими они пренебрегают. Люди склонны оценивать важность идеи в зависимости от того насколько легко она вспоминается. На последнее большое влияние имеет освещенность в СМИ. То что часто упоминается вытесняет остальные темы.",
   "As the WYSIATI (What You See is All There is) rule implies, neither the quantity nor the quality of the evidence counts for much in subjective confidence. The confidence that individuals have in their beliefs depends mostly on the quality of the story they can tell about what they see, even if they see little. We often fail to allow for the possibility that evidence that should be critical to our judgment is missing—what we see is all there is.":"Правило СТЧВ (Существует Только То, Что Видно) означает что ни количество ни качество информации не имеет большого значения в субъективной уверенности. Уверенность в своих убеждениях зависит, в большой степени, от связности истории которую вы можете рассказать о том что видите. Даже если вы видите немного. Мы обычно не допускаем что существуют какие-то критически важные не учтенные нами данные - существует только то, что видно.",
   "'Thinking, fast and slow', Daniel Kahneman, psychologist, Nobel Memorial Prize in Economic Sciences":"'Думая быстро и медленно', Даниэль Канеман, психолог, нобелевский лауреат 2002 года.",
@@ -19,7 +22,6 @@
   "How to share map, clone maps of others and get their modifications":"Как вставить карту на свой сайт, склонировать чужую и отслеживать изменения.",
   "Project objective":"Цель проекта",
   "An efficient instrument for clear visual representation of facts, their reliability, and the conclusions that can <span style='font-weight: bold'>actually</span> be drawn from such facts.":"Эффективный инструмент для наглядного отображения фактов, их достоверности а также выводов которые <span style='font-weight: bold'>на самом деле</span> можно сделать на основании этих фактов.",
-  "Method":"Метод",
   "Aims at subdividing all statements into the following categories:":"Заключается в том чтобы разделить все утверждения на следующие категории",
   "a fact":"факт",
   "a hypothesis":"гипотеза",
@@ -45,6 +47,5 @@
   "In case this service gets popular enough, it will be possible to get a range of outlooks from the whole world. To understand which groups these beliefs are subdivided into and how much weight each group has. To synchronize people’s beliefs simultaneously, to consolidate them to a “common denominator” so that they could unite under the auspices of a common goal.":"При достаточной популяризации сервиса можно получить срез мировоззрений по всему миру. Понять на какие группы делятся воззрения и каким весом обладает каждая группа. Одновременно синхронизировать мировоззрения людей, привести к общему знаменателю, так чтобы они могли объединится под эгидой общих целей.",
   "The grasp.how maps induce new structures of relations, value and reliability of documents in the Internet. This structure can be used for intellectual searching for documents, and it can compete with Page Rank algorithm.":"Карты grasp.how индуцируют новые струкутры отношений, значимости и достоверности документов в интернет. Эту структуру можно использовать для интеллектуального поиска документов и составить конкуренцию алгоритму Page Rank.",
   "If you can design a high-quality map on a topic that is interesting to you, e-mail to igbatov@grasp.how!":"Можете составить качественную карту на интересную вам тему? пишите на igbatov@grasp.how!",
-  "We pay good money for good maps and provide publications in most visited resources!":"Мы платим хорошие деньги за хорошие карты и обеспечиваем публикации на посещаемых ресурсах!",
-  "Contacts":"Контакты"
+  "We pay good money for good maps and provide publications in most visited resources!":"Мы платим хорошие деньги за хорошие карты и обеспечиваем публикации на посещаемых ресурсах!"
 }

@@ -61,4 +61,14 @@ class I18N{
       return $this->translation[$str];
     }
   }
+
+  public function showAllTranslations()
+  {
+    $translations = [];
+    $files = array_diff(scandir($this->getI18NDir()."/"), array('.', '..'));
+    foreach ($files as $file) {
+      $translations[pathinfo($file)['filename']] = json_decode(file_get_contents($this->getI18NDir()."/".$file), true);
+    }
+    return $translations;
+  }
 }

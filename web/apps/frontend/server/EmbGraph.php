@@ -81,6 +81,7 @@ class EmbGraph{
 
       foreach($this->graphs->getGraphNodeContent($global_content_ids) as $global_content_id => $content){
         $local_content_id = $this->contentIdConverter->decodeContentId($global_content_id)['local_content_id'];
+        $content['nodeId'] = $global_content_id;
         $graph[$graph_id]["nodeContents"][$local_content_ids[$local_content_id]] = $content;
       }
 

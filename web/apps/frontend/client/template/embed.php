@@ -35,8 +35,16 @@
     <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Mediator.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Publisher.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Subscriber.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js"></script>
 
     <!-- app specific js -->
+    <script>
+      <?php
+      /** @var I18N $i18n */
+      echo 'GRASP.TRANSLATIONS = '.json_encode($this->i18n->showAllTranslations()).';';
+      echo 'GRASP.LANGUAGE = "'.$this->i18n->getLang().'";';
+      ?>
+    </script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."d3.v3.min.js" ?>"></script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."node-content-view.js" ?>"></script>
@@ -46,7 +54,6 @@
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."share_track.js" ?>"></script>
   </head>
   <body>
-
   <?php  include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
 
   <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="Edit me on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>

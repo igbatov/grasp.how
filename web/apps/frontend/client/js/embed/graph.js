@@ -7,6 +7,7 @@ var graphDrawer = (function(){
   var LABEL_FONT_FAMILY = "sans-serif";
   var LABEL_FONT_SIZE_FACTOR = 1.6;
   var NODE_SIZE_FACTOR = 1.6;
+  var ANIMATION_TICK = 1; // in ms
 
   // private module vars
   var _svgc;
@@ -58,43 +59,110 @@ var graphDrawer = (function(){
       }
       updateNodeXY();
 
-    }else if(eventName == 'pick_out_nodes'){
+    }else if(eventName == 'highlight_edges'){
+      d3.selectAll('path').attr('stroke-opacity', 0.1);
+      var paths = d3.selectAll('path')[0];
+      for(var i in paths) {
+        var path = d3.select(paths[i]);
+        makePathTransparent(path, true);
+      }
+
+      for(var j in eventData['edges']){
+        var edge = eventData['edges'][j];
+        for(var i in paths) {
+          var path = d3.select(paths[i]);
+          // direction insensitive
+          if (
+              (edge.source === path.attr('source') && edge.target === path.attr('target'))
+              || (edge.source === path.attr('target') && edge.target === path.attr('source'))
+          ) {
+            makePathTransparent(path, false);
+          }
+        }
+      }
+
+    }else if(eventName == 'highlight_nodes'){
       var pickOutNodes = eventData['nodeIds'];
+
       d3.selectAll('circle').filter(function (x) {
         return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) === -1;
       }).attr('fill-opacity', 0.1);
-      d3.selectAll('.graphLabel').filter(function (x) {
-        return pickOutNodes.indexOf(d3.select(this).attr('nodeId'))
-      }).attr('fill-opacity', 0.1);
-      d3.selectAll('path').attr('stroke-opacity', 0.1);
-      d3.selectAll('marker').attr('fill-opacity', 0.1);
+      d3.selectAll('circle').filter(function (x) {
+        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) !== -1;
+      }).attr('fill-opacity', 1);
 
-    }else if(eventName == 'remove_pick_outs'){
+      d3.selectAll('.graphLabel').filter(function (x) {
+        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) === -1;
+      }).attr('fill-opacity', 0.1);
+      d3.selectAll('.graphLabel').filter(function (x) {
+        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) !== -1;
+      }).attr('fill-opacity', 1);
+
+      var paths = d3.selectAll('path')[0];
+      for(var i in paths) {
+        var path = d3.select(paths[i]);
+        makePathTransparent(d3.select(paths[i]), true);
+      }
+
+    }else if(eventName == 'remove_highlights'){
       // nodes
-      var nodes = _options['orig_nodes'];
-      var circles = d3.selectAll('circle')[0];
-      for(var i in circles){
-        var circle = circles[i];
-        var nodeId = d3.select(circle).attr('nodeId');
-        if(nodeId && nodes[nodeId]) d3.select(circle).attr('fill-opacity', nodes[nodeId].opacity);
+      if(eventData.indexOf('nodes') !== -1) {
+        var nodes = _options['orig_nodes'];
+        var circles = d3.selectAll('circle')[0];
+        for(var i in circles){
+          var circle = circles[i];
+          var nodeId = d3.select(circle).attr('nodeId');
+          if(nodeId && nodes[nodeId]) d3.select(circle).attr('fill-opacity', nodes[nodeId].opacity);
+        }
       }
 
       // edges
-      d3.selectAll('path').attr('stroke-opacity', 1);
-      d3.selectAll('marker').attr('fill-opacity', 1);
+      if(eventData.indexOf('edges') !== -1) {
+        var paths = d3.selectAll('path')[0];
+        for(var i in paths) {
+          makePathTransparent(d3.select(paths[i]), false);
+        }
+//        d3.selectAll('marker').attr('fill-opacity', 1);
+      }
 
       // labels
-      d3.selectAll('.graphLabel').attr('fill-opacity', 1);
+      if(eventData.indexOf('labels') !== -1) {
+        d3.selectAll('.graphLabel').attr('fill-opacity', 1);
+      }
 
     }else if(eventName == 'change_options'){
       for(var option in eventData) {
-        _options[option] = eventData[option];
         if(option === 'graphAreaSidePadding') {
+          var oldGraphAreaSidePadding = _options[option];
+          _options[option] = eventData[option];
           // update mapping
-          adjustNodeXY(_nodes, _options['wrapperArea'], _options['mappingArea'], _options['graphAreaSidePadding']);
-          updateNodeXY();
+          var step = oldGraphAreaSidePadding;
+          var isIncr = _options['graphAreaSidePadding'] - step > 0;
+          setTimeout(function tick(){
+            adjustNodeXY(_nodes, _options['mappingArea'], _options['wrapperArea'], step);
+            updateNodeXY();
+            if(isIncr) {
+              step += 5;
+              if(step<_options['graphAreaSidePadding'])  setTimeout(tick, ANIMATION_TICK)
+            } else {
+              step -= 5;
+              if(step>_options['graphAreaSidePadding'])  setTimeout(tick, ANIMATION_TICK)
+            }
+          }, ANIMATION_TICK);
+        } else {
+          _options[option] = eventData[option];
         }
       }
+    }
+  }
+
+  function makePathTransparent(path, doTransparent){
+    if (doTransparent) {
+      path.attr('stroke-opacity', 0.1);
+      path.attr("marker-end", "url(#triangle_"+path.attr('type')+"_transparent)");
+    } else {
+      path.attr('stroke-opacity', 1);
+      path.attr("marker-end", "url(#triangle_"+path.attr('type')+")");
     }
   }
 
@@ -136,7 +204,14 @@ var graphDrawer = (function(){
     }
   }
 
-  function adjustNodeXY(_nodes, wrapperArea, mappingArea, graphAreaSidePadding){
+  /**
+   *
+   * @param _nodes - [{x:x, y:y}, ...]
+   * @param mappingArea - area that corresponds to mapping _nodes
+   * @param wrapperArea - area for which we want to recalculate _nodes
+   * @param graphAreaSidePadding - padding on wrapperArea (>0 - left, <0 - right)
+   */
+  function adjustNodeXY(_nodes, mappingArea, wrapperArea, graphAreaSidePadding){
     var w = wrapperArea.width - Math.abs(graphAreaSidePadding)*wrapperArea.width/100;
     var h = wrapperArea.height;
     var graphArea = {width: w, height: h, centerX: (wrapperArea.width + graphAreaSidePadding*wrapperArea.width/100)/2, centerY: h/2};
@@ -170,6 +245,7 @@ var graphDrawer = (function(){
     // add definition for triangle arrow marker for every edge type
     var markerScale = 0.6;
     for(var type in edgeTypes){
+      // full-opacity version
       _svgc.append("svg:defs").append("svg:marker")
           .attr("id", "triangle_"+type)
           .attr("refX", 12*markerScale)
@@ -182,6 +258,21 @@ var graphDrawer = (function(){
           .attr("d", "M 0 0 12 6 0 12 3 6")
           .attr("transform", "scale("+markerScale+")")
           .style("fill", edgeTypes[type].color);
+
+      // and transparent version
+      _svgc.append("svg:defs").append("svg:marker")
+          .attr("id", "triangle_"+type+"_transparent")
+          .attr("refX", 12*markerScale)
+          .attr("refY", 6*markerScale)
+          .attr("markerWidth", 30*markerScale)
+          .attr("markerHeight", 30*markerScale)
+          .attr("markerUnits","userSpaceOnUse")
+          .attr("orient", "auto")
+          .append("path")
+          .attr("d", "M 0 0 12 6 0 12 3 6")
+          .attr("transform", "scale("+markerScale+")")
+          .attr('opacity', 0.1)
+          .style("fill", edgeTypes[type].color);
     }
 
     // append background
@@ -193,7 +284,7 @@ var graphDrawer = (function(){
         .attr("height", wrapperArea.height);
 
     // adjust data to our svg container area
-    adjustNodeXY(_nodes, wrapperArea, mappingArea, graphAreaSidePadding);
+    adjustNodeXY(_nodes, mappingArea, wrapperArea, graphAreaSidePadding);
 
     // draw edges
     for(var i in edges){
@@ -205,7 +296,8 @@ var graphDrawer = (function(){
           .style("fill-opacity", '0')
           .attr("source", edges[i].source)
           .attr("target", edges[i].target)
-          .attr("class", "edges");
+          .attr("class", "edges")
+          .attr("type", edges[i].type);
       if(edges[i].type == 'causal' || edges[i].type == 'conditional'){
         edge.attr("marker-end", "url(#triangle_"+edges[i].type+")");
       }

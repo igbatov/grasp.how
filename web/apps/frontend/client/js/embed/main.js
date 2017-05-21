@@ -9,8 +9,9 @@ var mediator = mediator || new GRASP.Mediator();
     'add_labels':[graphDrawer],
     'remove_labels':[graphDrawer],
     'change_options':[graphDrawer],
-    'pick_out_nodes':[graphDrawer],
-    'remove_pick_outs':[graphDrawer],
+    'highlight_nodes':[graphDrawer],
+    'highlight_edges':[graphDrawer],
+    'remove_highlights':[graphDrawer],
     'show_all_labels':[graphDrawer]
   });
 

@@ -1,46 +1,70 @@
 var publisher = publisher || new GRASP.Publisher(mediator, promise);
 
 var graphActions = (function($,d3,publisher){
+  // constants
+  var RIGHT_HALF = 'rightTextBox';
+  var LEFT_HALF = 'leftTextBox';
   // global variable for current selected (clicked) node
   var selectedNodeId = null;
+  var selectedNodeHalfName = null;
 
   return {
     addActions: addActions // hang actions on given nodes
   };
 
+  function getHalfName(circle) {
+    return isLeftNode(circle) ? RIGHT_HALF : LEFT_HALF;
+  }
+
   function addActions(nodes, nodeContents, condPInfo, nodeContentView){
     createTextBoxes(nodes);
 
     // graph node actions
-    d3.selectAll('circle').filter(function (x) { return d3.select(this).attr('nodeType') != 'nodeType'; })
+    d3.selectAll('circle')
         .on("mouseover", function(){
-          if(selectedNodeId !== null) return;
-
+          var halfName;
           var circle = d3.select(this);
+          if(selectedNodeId === null) halfName = getHalfName(circle);
+          else halfName = selectedNodeHalfName;
+
           // hide all other nodes
           var selfNodeId = circle.attr('nodeId');
-          publisher.publish(['pick_out_nodes',{nodeIds:[selfNodeId]}]);
+          publisher.publish(['highlight_nodes',{nodeIds:[selfNodeId]}]);
 
           // show text box with node content
-          showNodeContent(circle, nodeContents[selfNodeId], condPInfo[selfNodeId], nodeContentView);
+          showNodeContent(halfName, nodeContents[selfNodeId], condPInfo[selfNodeId], nodeContentView);
         })
         .on("mouseout", function(){
-          if(selectedNodeId !== null) return;
-          publisher.publish(['remove_pick_outs',{}]);
+          //if(selectedNodeId !== null) return;
+          publisher.publish(['remove_highlights',['edges','nodes','labels']]);
 
           // hide all textBoxes
           $('.textBox').hide();
+          if(selectedNodeId !== null) {
+            publisher.publish(['highlight_nodes',{nodeIds:[selectedNodeId]}]);
+            // show text box with node content
+            var circles = d3.selectAll('circle')[0];
+            for(var i in circles){
+              var circle = circles[i];
+              var nodeId = d3.select(circle).attr('nodeId');
+              if(nodeId === selectedNodeId) break;
+            }
+            showNodeContent(selectedNodeHalfName, nodeContents[selectedNodeId], condPInfo[selectedNodeId], nodeContentView);
+          }
         })
         .on("click", function() {
-          if(selectedNodeId != null) return;
-          selectedNodeId = d3.select(this).attr('nodeId');
+          //if(selectedNodeId != null) return;
           var circle = d3.select(this);
-
-          // change graph offset
-          publisher.publish(['change_options',{'graphAreaSidePadding':isLeftNode(circle) ? -50 : 50}]);
+          if(selectedNodeId === null) {
+            selectedNodeHalfName = getHalfName(circle);
+            // change graph offset
+            publisher.publish(['change_options',{'graphAreaSidePadding':isLeftNode(circle) ? -50 : 50}]);
+          }
+          selectedNodeId = circle.attr('nodeId');
+          var halfName = selectedNodeHalfName;
 
           // show text box with node content
-          showNodeContent(circle, nodeContents[selectedNodeId], condPInfo[selectedNodeId], nodeContentView);
+          showNodeContent(halfName, nodeContents[selectedNodeId], condPInfo[selectedNodeId], nodeContentView);
 
           // stop propagation
           d3.event.stopPropagation();
@@ -64,7 +88,7 @@ var graphActions = (function($,d3,publisher){
     };
 
     var leftTextBox = GRASP.createElement('div',{
-      id: 'leftTextBox',
+      id: LEFT_HALF,
       class: 'textBox', // TODO: this class is used somewhere to hide all textBoxes, better do it with events
       style: 'display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px'
     });
@@ -77,7 +101,7 @@ var graphActions = (function($,d3,publisher){
       height:graphContainerHeight - TEXT_BOX_WIDTH_BOTTOM_MARGIN*graphContainerHeight/100
     };
     var rightTextBox = GRASP.createElement('div',{
-      id: 'rightTextBox',
+      id: RIGHT_HALF,
       class: 'textBox', // TODO: this class is used somewhere to hide all textBoxes, better do it with events
       style: 'display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px'
     });
@@ -89,7 +113,8 @@ var graphActions = (function($,d3,publisher){
           && (rightTextBox.contains(e.target) || leftTextBox.contains(e.target))) return;
 
       selectedNodeId = null;
-      publisher.publish(['remove_pick_outs',{}]);
+      selectedNodeHalfName = null;
+      publisher.publish(['remove_highlights',['edges','nodes','labels']]);
       // change graph offset
       publisher.publish(['change_options',{'graphAreaSidePadding':0}]);
 
@@ -110,9 +135,7 @@ var graphActions = (function($,d3,publisher){
     return circle.attr('cx') < w/2;
   }
 
-  function showNodeContent(circle, content, condPInfo, nodeContentView){
-    var textBoxId = isLeftNode(circle) ? 'rightTextBox' : 'leftTextBox';
-
+  function showNodeContent(textBoxId, content, condPInfo, nodeContentView){
     // set node content to textBox and show it
     $('#'+textBoxId).html(nodeContentView.getView(content, condPInfo));
     $('#'+textBoxId).show();
