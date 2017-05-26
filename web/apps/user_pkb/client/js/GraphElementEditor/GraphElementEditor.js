@@ -400,7 +400,7 @@ GRASP.GraphElementEditor.prototype = {
             that.UI.updateForm(form, 'reliability', {type:'range',min:0,max:100,step:1,value:activeAlternative.reliability,callback:attrChange,disabled:true});
           }
 
-          that.UI.updateForm(form, 'type', {type:'select',items:types,defaultValue:node.type,callback:attrChange});
+          that.UI.updateForm(form, 'type', {type:'select',items:types,value:node.type,callback:attrChange});
           that.UI.updateForm(form, 'importance', {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange});
           that.UI.updateForm(form, 'label', {type:'textarea',value:activeAlternative.label,callback:attrChange});
           //  formDef['icon',      {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
@@ -488,7 +488,7 @@ GRASP.GraphElementEditor.prototype = {
       }
 
       // update alternatives select
-      that.UI.updateForm(form,'active_alternative_id',{items:alternativeLabels, defaultValue:contents[nodeContentId]['active_alternative_id']});
+      that.UI.updateForm(form,'active_alternative_id',{items:alternativeLabels, value:contents[nodeContentId]['active_alternative_id']});
     }
 
     // update node text
