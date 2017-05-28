@@ -18,6 +18,8 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
   var _state = {active_alternative_id:null};
   // children components
   var altContentList = [];
+  // cache of generated views
+  var cache = {};
 
   return {
     getView: getView
@@ -91,6 +93,9 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
    * @constructor
    */
   function getView(content, condPInfo){
+    // check if we have view in cache
+    if(cache[content.nodeId]) return cache[content.nodeId];
+
     var view = GRASP.createElement('div',{class:'textBoxContent', id:UI.generateId()});
 
     // add header with node type
@@ -211,7 +216,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
 
     // set initial state
     setState({active_alternative_id:content['active_alternative_id']});
-
+    cache[content.nodeId] = view;
     return view;
   }
 
