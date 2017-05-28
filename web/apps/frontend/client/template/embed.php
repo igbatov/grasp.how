@@ -40,9 +40,11 @@
     <!-- app specific js -->
     <script>
       <?php
-      /** @var I18N $i18n */
-      echo 'GRASP.TRANSLATIONS = '.json_encode($this->i18n->showAllTranslations()).';';
-      echo 'GRASP.LANGUAGE = "'.$this->i18n->getLang().'";';
+        /** @var I18N $i18n */
+        echo 'GRASP.TRANSLATIONS = '.json_encode($this->i18n->showAllTranslations()).';';
+        echo 'GRASP.LANGUAGE = "'.$this->i18n->getLang().'";';
+        /** show fbShareButton or not */
+        echo 'withFbShare = '.($withFbShare ? 'true' : 'false');
       ?>
     </script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
@@ -54,18 +56,21 @@
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."share_track.js" ?>"></script>
   </head>
   <body>
-  <?php  include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
+  <?php if($withFbShare) include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
 
-  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="Edit me on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
+  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="edit map on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
 
   <div id="graphContainer"></div>
 
+  <?php if($withFbShare): ?>
   <div style="float: right; margin-right: 7%;"  id="fb-share-btn-wrap" data-graph_id="<?php echo $graph_ids[0]; ?>">
     <div id="fb-share-btn" class="fb-share-button" data-href="<?php echo $url; ?>" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($url) ?>">Share</a></div>
   </div>
-
-  <div style="display: none;" id="graphsData"><?php echo $graph ? json_encode($graph) : ""; ?></div>
+  <?php endif ?>
+  <div style="display: none;" id="graphsData">
+    <?php echo $graph ? json_encode($graph) : ""; ?>
+  </div>
 
   </body>
 </html>

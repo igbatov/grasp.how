@@ -17,9 +17,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
   // component props
   var _state = {active_alternative_id:null};
   // children components
-  var altLabelList = [];
   var altContentList = [];
-  var altConditionalsList = [];
 
   return {
     getView: getView
@@ -30,21 +28,60 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
 
     var alt_id = _state['active_alternative_id'];
 
-    // highlight appropriate alternative label
-    altLabelList.forEach(function(el){ el.classList.remove('active') });
-    altLabelList[alt_id].className += " active";
-
     // show appropriate alternative content
     altContentList.forEach(function(el){ GRASP.setDisplay(el, 'none'); });
     GRASP.setDisplay(altContentList[alt_id],'block');
-
-    // show appropriate alternative conditional probabilities
-    altConditionalsList.forEach(function(el){ GRASP.setDisplay(el, 'none'); });
-    GRASP.setDisplay(altConditionalsList[alt_id],'block');
   }
 
   function getState(varname){
     return _state[varname];
+  }
+
+  /**
+   *
+   * @param item - {
+   *    alternative: {label:string, reliability: number}
+   *    type: string
+   * }
+   * @returns {HTMLElement}
+   */
+  function createLabelHTML(item){
+    var alternative = item['alternative'], type = item['type'];
+    var label =  GRASP.createElement('div', {class:'altLabel ' + type});
+    var title = GRASP.createElement('div', {class:'alternativeLabel'}, alternative.label);
+    var pr = GRASP.createElement('div', {class:'alternativePr'}, (alternative.reliability/100).toFixed(2));
+    label.appendChild(pr);
+    label.appendChild(title);
+    return label;
+
+  }
+
+  function createLabels(content){
+    if(content.type === 'fact'){
+      // create one label
+      return createLabelHTML({
+        alternative: content['alternatives'][0],
+        type: content.type
+      });
+
+    } else if (content.type === 'proposition') {
+      // create menu from labels
+      var items = content['alternatives'].map(function(v, k){
+        return {alternative:v, type:content.type};
+      });
+      var selectBox = UI.createSelectBox({
+        name:'labels',
+        items:items,
+        defaultValue:"0",
+        map:createLabelHTML,
+        callback:function(name, alt_id){
+          setState({active_alternative_id:alt_id});
+        }
+      });
+      var c = GRASP.createElement('div',{});
+      c.appendChild(selectBox);
+      return c;
+    }
   }
 
   /**
@@ -54,40 +91,88 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
    * @constructor
    */
   function getView(content, condPInfo){
-    var view = GRASP.createElement('div',{class:'textBoxContent'});
+    var view = GRASP.createElement('div',{class:'textBoxContent', id:UI.generateId()});
+
+    // add header with node type
+    var h = GRASP.createElement('div', {class:'header'}, i18n.__(content.type));
+    view.appendChild(h);
 
     // add labels
-    for(var alt_id in content['alternatives']){
+    var labels = createLabels(content);
+    view.appendChild(labels);
+
+    // add container for main content
+    var mainC = GRASP.createElement('div', {class:'mainC'});
+    view.appendChild(mainC);
+
+    // add alternative text and source list
+    for (var alt_id in content['alternatives']) {
+      var accordionItems = [];
+
       // creates alternative's content
       var text = content['alternatives'][alt_id].text.replace(/(?:\r\n|\r|\n)/g, '<br />');
-      var list = content['alternatives'][alt_id].list;
-
-      altContentList[alt_id] = new AltContent(alt_id, text, list);
-      altLabelList[alt_id] = GRASP.createElement('div',{class:'altLabel'}, content['alternatives'][alt_id].label + ' [probability '+(content['alternatives'][alt_id].reliability/100).toFixed(2)+']');
-
-      // add label actions that shows corresponding alternative text when clicked
-      (function(alt_id){
-        altLabelList[alt_id].addEventListener('click', function(e){
-          e.stopPropagation();
-          setState({active_alternative_id:alt_id})
+      if(text && text.length){
+        var altContentLabel = GRASP.createElement('div',{class:'titleH2'},i18n.__('Description'));
+        var altContentContent = GRASP.createElement('div',{},text);
+        accordionItems.push({
+          label: altContentLabel,
+          content: altContentContent
         });
-      })(alt_id);
+      }
 
-      // add label
-      view.appendChild(altLabelList[alt_id]);
-    }
+      // source list
+      var list = content['alternatives'][alt_id].list;
+      if(GRASP.getObjectLength(list)>0) {
+        // title
+        var altContentLabel = GRASP.createElement('div', {class: 'titleH2'}, i18n.__('Sources'));
+        // create source list
+        var altContentContent = GRASP.createElement('div', {});
+        for (var i in list) {
+          altContentContent.appendChild(
+              UI.addTooltip(
+                  GRASP.createElement(
+                      'span',
+                      {class: 'nodeListItemReliability'},
+                      '[Reliability - ' + list[i].publisher_reliability + '/10]'
+                  ),
+                  'This numbers are the assumptions of map author'
+              )
+          );
+          altContentContent.appendChild(GRASP.createElement('a', {
+            class: 'nodeListItem',
+            href: list[i].url,
+            target: '_blank'
+          }, list[i].author + ' // ' + list[i].name + ' // ' + list[i].publisher));
+        }
+        accordionItems.push({
+          label: altContentLabel,
+          content: altContentContent
+        });
+      }
 
-    if(condPInfo){
-      altConditionalsList = createCondPInfoDOMList(condPInfo, GRASP.getObjectKeys(content['alternatives']));
-      for(var j in altConditionalsList){
-        var condPInfoDOM = altConditionalsList[j];
-        for(var i=0; i<condPInfoDOM.childNodes.length; i++){
-          var el = condPInfoDOM.childNodes[i];
-          el.addEventListener('mouseover', function(evt){
+      if(condPInfo){
+        // title
+        var title = (content.type == 'fact' ? 'This fact' : 'This proposition') + ' is truthful with probability P in case:';
+        var altContentLabel = GRASP.createElement('div', {class: 'titleH2'}, i18n.__(title));
+        var altContentContent = GRASP.createElement('div',{},'');
+        // create decorated text string for each f.fields[i]
+        for(var j in condPInfo.fieldsObj){
+          var text = '';
+          var b = condPInfo.fieldsObj[j];
+          text += ' '+b['THEN'][alt_id].probability;
+          for(var parentId in b['IF']){
+            text += '->' + b['IF'][parentId].alternativeLabel + '<br>';
+          }
+          var el = GRASP.createElement('div',{},text);
+          el.dataset.condPInfoBlockId = j;
+          altContentContent.appendChild(el);
+
+          // hang listeners
+          el.addEventListener('mouseover', function (evt) {
             this.style.backgroundColor = '#b363d2';
 
             // send event to graph drawer to hide all labels
-            publisher.publish(['hide_all_labels',{}]);
+            publisher.publish(['hide_all_labels', {}]);
 
             // show custom labels
             var condBlock = condPInfo.fieldsObj[this.dataset.condPInfoBlockId];
@@ -96,35 +181,75 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
 
             // highlight edges on graph between nodes with labels
             var edges = [];
-            for(var k in eventData) {
-              edges.push({source:eventData[k].nodeId, target:content.nodeId});
+            for (var k in eventData) {
+              edges.push({source: eventData[k].nodeId, target: content.nodeId});
             }
-            publisher.publish(['highlight_edges',{edges:edges}]);
+            publisher.publish(['highlight_edges', {edges: edges}]);
           });
-          el.addEventListener('mouseleave', function(evt){
+          el.addEventListener('mouseleave', function (evt) {
             var condBlock = condPInfo.fieldsObj[this.dataset.condPInfoBlockId];
             var eventData = createConditionalPInfoNodeLabels(condBlock);
-            publisher.publish(['show_all_labels',{}]);
-            publisher.publish(['remove_labels',eventData.map(function(item){
+            publisher.publish(['show_all_labels', {}]);
+            publisher.publish(['remove_labels', eventData.map(function (item) {
               return item.key;
             })]);
-            publisher.publish(['highlight_nodes',{nodeIds:[content.nodeId]}]);
+            publisher.publish(['highlight_nodes', {nodeIds: [content.nodeId]}]);
             this.style.backgroundColor = '#FFFFFF';
           });
         }
-        view.appendChild(condPInfoDOM);
-      }
-    }
 
-    // add content
-    for(var alt_id in content['alternatives']){
-      view.appendChild(altContentList[alt_id]);
+        accordionItems.push({
+          label: altContentLabel,
+          content: altContentContent
+        });
+      }
+      var altAccordion = UI.createAccordion(accordionItems,{firstOpened:true});
+      mainC.appendChild(altAccordion);
+      altContentList[alt_id] = altAccordion;
+      updateAccordionMaxLength(altAccordion, view, h, labels, altContentLabel, accordionItems.length);
     }
 
     // set initial state
     setState({active_alternative_id:content['active_alternative_id']});
 
     return view;
+  }
+
+  function updateAccordionMaxLength(altAccordion, view, h, labels, altContentLabel, labelsNum){
+    var f = function(timeout){
+      setTimeout(function(){
+        var accordion = document.getElementById(altAccordion.id);
+        // if accordion was not mounted yet, then wait and repeat
+        if(accordion === null) return f(100);
+        // ok, it was mounted, so calculate tab content max height
+        // based on view, h, labels and number of labels
+        var maxHeight = $(view.parentNode).height() - $(h).outerHeight() - $(labels).outerHeight() - $(altContentLabel).outerHeight()*labelsNum;
+        var applyMaxHeight = function(v){
+          if(v.parentNode.querySelectorAll('input')[0].checked){
+            v.style.maxHeight = maxHeight+'px';
+          } else {
+            v.style.maxHeight = 0;
+          }
+        };
+        altAccordion.querySelectorAll('label').forEach(function(v){
+          v.addEventListener('click', function(){
+            this.parentNode.parentNode.querySelectorAll('input').forEach(function(input){
+              input.checked = false;
+            });
+            this.parentNode.querySelectorAll('input').forEach(function(input){
+              input.checked = 'checked';
+            });
+            altAccordion.querySelectorAll('.tab-content').forEach(function(v){
+              applyMaxHeight(v);
+            });
+          });
+        });
+        altAccordion.querySelectorAll('.tab-content').forEach(function(v){
+          applyMaxHeight(v);
+        });
+      },timeout);
+    }
+    f(0);
   }
 
   // create labels for conditional info in a form [{key:, nodeId:, label:,}, ...]
@@ -152,55 +277,5 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
     });
 
     return eventData;
-  }
-
-  function createCondPInfoDOMList(condPInfo, alternativeIds){
-    var conditionalsDOMList = [];
-    for(var i in alternativeIds) {
-      var alternativeId = alternativeIds[i];
-      var cont = GRASP.createElement('div',{},'');
-      // create decorated text string for each f.fields[i]
-      for(var j in condPInfo.fieldsObj){
-        var text = '';
-        var b = condPInfo.fieldsObj[j];
-        text += ' '+b['THEN'][alternativeId].probability;
-        for(var parentId in b['IF']){
-          text += '->' + b['IF'][parentId].alternativeLabel + '<br>';
-        }
-        var el = GRASP.createElement('div',{},text);
-        el.dataset.condPInfoBlockId = j;
-        cont.appendChild(el);
-      }
-      conditionalsDOMList[alternativeId] = cont;
-    }
-    return conditionalsDOMList;
-  }
-
-  /**
-   * Creates text and source list
-   * @param id
-   * @param text
-   * @param list
-   */
-  function AltContent(id, text, list){
-    var c = GRASP.createElement('div',{class:'alt_content', id:'alt_content_'+id});
-
-    // text
-    c.appendChild(GRASP.createElement('div',{},text));
-
-    // source list
-    if(GRASP.getObjectLength(list)>0){
-      c.appendChild(GRASP.createElement('div',{},'<br>Sources:<br>'));
-      for(var i in list){
-        c.appendChild(
-            UI.addToopltip(
-                GRASP.createElement('span',{class:'nodeListItemReliability'},'[Reliability - '+list[i].publisher_reliability+'/10]')
-                , 'This numbers are the assumptions of map author'
-            )
-        );
-        c.appendChild(GRASP.createElement('a',{class:'nodeListItem', href:list[i].url, target:'_blank'}, list[i].author+' // '+list[i].name+' // '+list[i].publisher));
-      }
-    }
-    return c;
   }
 })(GRASP, uielements, globalState, publisher, i18n);

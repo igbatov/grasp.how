@@ -49,6 +49,8 @@ class AppFrontend extends App{
         //var_dump($r);
         $graphIds = $r['graphIds'];
         $uniqId = $r['uniqId'];
+        $withFbShare = $r['withFbShare'];
+        if($withFbShare === NULL) $withFbShare = true;
 
         // sanity check
         if(count($graphIds)>50 || strlen($uniqId)>255) throw new Exception('Too long params');
@@ -63,6 +65,10 @@ class AppFrontend extends App{
 
         $graph_ids = json_decode($vars[1],true);
         if(!is_array($graph_ids)) exit('Bad JSON');
+
+        $options = json_decode($_REQUEST['p'], true);
+        if($options['withFbShare'] === false) $withFbShare = false;
+        else $withFbShare = true;
 
         foreach($graph_ids as $graph_id) $this->graphIdConverter->throwIfNowGlobal($graph_id);
 

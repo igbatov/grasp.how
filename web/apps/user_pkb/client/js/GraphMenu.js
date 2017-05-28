@@ -302,7 +302,7 @@ GRASP.GraphMenu.prototype = {
                 for(var j in source.usedIn){
                   var usedInNodesLabels = 'Used in nodes:\n';
                   for(var k in source.usedIn[j].usedInNodes) usedInNodesLabels += '"'+source.usedIn[j].usedInNodes[k].label+'",';
-                  var graph = that.UI.addToopltip(GRASP.createElement('div', {}, source.usedIn[j]['graphName']), usedInNodesLabels);
+                  var graph = that.UI.addTooltip(GRASP.createElement('div', {}, source.usedIn[j]['graphName']), usedInNodesLabels);
                   dom.appendChild(graph);
                 }
 

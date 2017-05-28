@@ -1,7 +1,8 @@
 var DEBUG = false;
 var mediator = mediator || new GRASP.Mediator();
+var withFbShare = withFbShare || false;
 
-(function($, graphDrawer, actions, nodeContentView, mediator){
+(function($, graphDrawer, actions, nodeContentView, mediator, withFbShare){
 
   mediator.setSubscriptions({
     'hide_all_labels':[graphDrawer],
@@ -141,10 +142,10 @@ var mediator = mediator || new GRASP.Mediator();
   function createWrapper(){
     var GRAPH_CONTAINER_LEFT_WIDTH_MARGIN = 1; // in %
     var GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN = 2; // in %
-    var GRAPH_CONTAINER_BOTTOM_MARGIN = 12; // in %
+    var GRAPH_CONTAINER_BOTTOM_MARGIN = withFbShare ? 25 : 0; // in px
 
     var svgcH = $(window).height();
-    svgcH -= GRAPH_CONTAINER_BOTTOM_MARGIN*svgcH/100;
+    svgcH -= GRAPH_CONTAINER_BOTTOM_MARGIN;
     svgcH -= $('#mainMenu').outerHeight(true); // get height of menu with margins
     var wrapper = d3.select("#graphContainer").append("div")
         .attr("id", "mainSVG")
@@ -203,5 +204,5 @@ var mediator = mediator || new GRASP.Mediator();
     }
   }
 
-})($, graphDrawer, graphActions, nodeContentView, mediator);
+})($, graphDrawer, graphActions, nodeContentView, mediator, withFbShare);
 

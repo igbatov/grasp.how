@@ -70,11 +70,20 @@ GRASP.UIElements.prototype = {
   },
 
   /**
-   * attrs - {name:{String}, items:{Object<string, string>}, defaultValue:{String}, callback:{function(string,string)=}, disabled:{boolean=}, formname:{String}, nodrop:true}
+   * attrs - {
+   *    name:{String},
+   *    items:{[key: string]: HTMLElement|string|Object},
+   *    defaultValue:{String},
+   *    callback:{function(string,string)=},
+   *    disabled:{boolean=},
+   *    formname:{String},
+   *    nodrop:true
+   *    map?: function(HTMLElement|string|Object) - optional callback function that modifies item before render
+   * }
    * Returns DOM element that can be used to select items
    * name - name of select box
    * items - in form {'value'=>'label', ...}
-   * defaultValue - selected item name
+   * defaultValue - selected item key
    * callback - callback will receive select name and item name on selection
    * nodrop - use drop down list or show all options at once
    * @returns {HTMLElement}
@@ -82,15 +91,15 @@ GRASP.UIElements.prototype = {
   createSelectBox: function(attrs){
     var that = this,
         uniqId = this.generateId(),
-        selectedItem = GRASP.createElement('div',{class:'selected',value:'none',style:'display:inline;'},'none'),
+        selectedItem = GRASP.createElement('div',{class:'selected'},'none'),
         inputHidden = GRASP.createElement('input',{name:attrs.name,type:'hidden',value:null}),
         selectBox = GRASP.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
-
+    if(typeof attrs.map == 'undefined') attrs.map = function(v){return v;}
     /**
      * Create DOM element from selectBox item
-     * @param item
+     * @param item HTMLElement|string
      * @returns {HTMLElement}
      */
     function createDOMElement(item){
@@ -100,14 +109,14 @@ GRASP.UIElements.prototype = {
         var text = (item.length > that.SELECT_ITEM_MAX_LENGTH ? item.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item);
         return GRASP.createElement('text',{},text);
       }else{
-        return GRASP.createElement('span',{},'');
+        throw new Error('please, use map option to define function that will convert item to string or HTMLElement');
       }
     }
 
     // create list of items
     var lis = Object.keys(attrs.items).map(function(key){
       var li = GRASP.createElement('li',{value:key});
-      li.appendChild(createDOMElement(attrs.items[key]));
+      li.appendChild(createDOMElement(attrs.map(attrs.items[key])));
       return li;
     });
     var ul = GRASP.createElement('ul',{'class': attrs.nodrop ? 'nodrop' : ''},'');
@@ -117,13 +126,13 @@ GRASP.UIElements.prototype = {
     selectBox.appendChild(inputHidden);
     selectBox.appendChild(ul);
 
-    // set selected item
+    // set initial selection (defaultValue)
     if(typeof(attrs.defaultValue) != 'undefined' && GRASP.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
       if(attrs.nodrop){
         lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('nodrop_selected'); });
       }else{
         GRASP.removeChilds(selectedItem);
-        selectedItem.appendChild(createDOMElement(attrs.items[attrs.defaultValue]));
+        selectedItem.appendChild(createDOMElement(attrs.map(attrs.items[attrs.defaultValue])));
       }
       GRASP.updateElement(inputHidden, {value:attrs.defaultValue});
     }
@@ -133,12 +142,20 @@ GRASP.UIElements.prototype = {
       if(attrs.disabled || attrs.nodrop) return;
       if(GRASP.getDisplay(ul) == 'none'){
         GRASP.setDisplay(ul,'block');
+        // hide element that is already selected
+        lis.forEach(function(li){
+          if(li.getAttribute('value') == inputHidden.value){
+            GRASP.setDisplay(li,'none');
+          } else {
+            GRASP.setDisplay(li,'block');
+          }
+        });
       }else{
         GRASP.setDisplay(ul,'none');
       }
     });
 
-    // add select API function
+    // action: select new item
     selectBox.selectItem = function(value){
       GRASP.updateElement(inputHidden, {value:value});
       if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
@@ -152,7 +169,7 @@ GRASP.UIElements.prototype = {
         selectedLi.classList.add('nodrop_selected');
       } else {
         GRASP.removeChilds(selectedItem);
-        selectedItem.appendChild(createDOMElement(attrs.items[value]));
+        selectedItem.appendChild(createDOMElement(attrs.map(attrs.items[value])));
         GRASP.setDisplay(ul,'none');
       }
     };
@@ -728,11 +745,51 @@ GRASP.UIElements.prototype = {
    * @param tooltiptext string
    * @returns {HTMLElement}
    */
-  addToopltip: function(el, tooltiptext){
+  addTooltip: function(el, tooltiptext){
     // add tooltiped class
     el.className += ' tooltiped';
     el.title = tooltiptext;
     return el;
+  },
+
+  /**
+   * Creates accordion menu
+   * @param items - [{
+   *    label: HTMLElement|string,
+   *    content: HTMLElement|string
+   * }]
+   * @param options? - {
+   *    firstOpened: boolean // show first tab opened, default false
+   *    multiple: boolean // do not hide previously opened tabs, default false
+   * }
+   */
+  createAccordion: function(items, options){
+    if(GRASP.typeof(items) !== 'array') return false;
+    var uniqId = this.generateId(), that=this;
+    var c = GRASP.createElement('div',{class:'ui_accordion', id:uniqId});
+    items.forEach(function (v, k) {
+      var tab = GRASP.createElement('div',{class:'tab'});
+      var uid = that.generateId();
+      var input = GRASP.createElement('input',{
+        id: uid,
+        type: (options&&options.multiple?'checkbox':'radio'),
+        name: uniqId
+      });
+      if(options['firstOpened'] && k === 0) input.checked = 'checked';
+      var label = GRASP.createElement('label',{for:uid});
+      label.appendChild(that.stringToDom(v.label));
+      var content = GRASP.createElement('div',{class:'tab-content'});
+      content.appendChild(that.stringToDom(v.content));
+      tab.appendChild(input);
+      tab.appendChild(label);
+      tab.appendChild(content);
+      c.appendChild(tab);
+    });
+    return c;
+  },
+
+  stringToDom: function(s){
+    return GRASP.typeof(s)=='string' ? GRASP.createElement('div',{style:'display:inline;'},s): s;
   },
 
   /**

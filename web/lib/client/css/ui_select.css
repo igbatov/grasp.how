@@ -1,15 +1,25 @@
 .ui_select{
-    vertical-align: middle;
+    position: relative;
     display:inline-block;
 }
-.selected{
+.ui_select .selected{
+    position:relative;
+    background-color: #f6f6f6;
     display:inline-block;
-    outline: thin solid;
-    padding:0 1em 0 1em;
     cursor:pointer;
     line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
+}
+.ui_select .selected::after{
+    position: absolute;
+    content: url(http://www.grasp.local/apps/frontend/client/img/selectListArrow.png);
+    top: 2em;
+    right: 1em;
+    transform: translateY(-50%);
 }
 .ui_select ul{
+    width: 100%;
     vertical-align: baseline;
     margin: 0;
     padding: 0;
@@ -25,15 +35,9 @@
     display:block;
 }
 .ui_select li{
-    padding:0.2em 1em 0.2em 1em;
-    border:2px solid #999;
+    cursor: pointer;
+    border-top: 2px solid #d9d9d9;
 }
 .ui_select li:hover, .ui_select li.nodrop_selected{
-    border: solid 2px;
-    /*background-color: #0000FF;*/
+    background-color: #d9d9d9;
 }
-/*
-.ui_select li.nodrop_selected{
-    background-color: #0000FF;
-}
-*/

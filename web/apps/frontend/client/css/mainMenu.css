@@ -1,0 +1,57 @@
+/* list of main menu items */
+.mainMenuContainer {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    height: 21px;
+    background-color: #1c1f33;
+}
+
+.leftMenuMargin {
+    margin-left: 0px;
+}
+
+.rightMenuMargin {
+    margin-right: 128px;
+}
+
+ul.mainMenu {
+    list-style-type: none;
+    padding: 0;
+    overflow: hidden;
+    display: inline-table;
+}
+
+ul.mainMenu > li {
+    padding-left: 50px;
+    float: left;
+    display: inline;
+    padding-top: 3px;
+}
+
+ul.mainMenu > li a {
+    display: block;
+    /* width: 120px; */
+    font-family: 'DINPro';
+    font-size: 15px;
+    color: #9196b5;
+    text-align: center;
+    /* padding: 4px; */
+    text-decoration: none;
+}
+
+ul.mainMenu > li a:hover, ul.mainMenu > li a.active {
+    color: #FFFFFF;
+}
+
+ul.mainMenu > li:hover > ul{
+    display: block;
+}
+
+ul.mainMenu > li > ul{
+    position: absolute;
+    display: none;
+}
+
+ul.mainMenu > li > ul > li > a{
+    line-height:120%;
+}

@@ -1,123 +1,214 @@
-<!doctype html>
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/main.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>(grasp|how)</title>
 
-    <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."main.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
-  </head>
-  <body>
-  <div id="mainMenuContainer">
-    <div id="logo">
-      GRASP.HOW<br>
-      <div class="snippet">
-        <?php
-          $slogans = array($this->i18n->__('full and reliable worldview'), $this->i18n->__('challenge your worldview'));
-          echo $slogans[rand(0,1)];
-        ?></div>
+  <!-- Bootstrap -->
+  <link href="<?php echo $this->getAppDir('css'); ?>/bootstrap.min.css" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/font-awesome.min.css" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/hover.css" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/style.css" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/media.css" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div class="header">
+  <div class="container">
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#"><img src="img/logo.png"></a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li><a href="#">Цель</a></li>
+            <li><a href="#">Метод</a></li>
+            <li><a href="#">Контакты</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Ru</a></li>
+            <li><a href="#" class="btn">Создать карту взаимосвязей</a></li>
+
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+  </div>
+</div>
+<div class="box1">
+  <div class="container">
+    <p>Редактировать данную карту</p>
+
+    <h1>
+      Помогаем анализировать информацию
+      <span>Покажем вероятность ваших гипотез исходя из фактов и их достоверности</span>
+    </h1>
+    <div id="grasp-how-8866" style="height: 500px;">
+      <script src='/embed.js?data={"graphIds":[1.155],"uniqId":"grasp-how-8866","withFbShare":false}'></script>
     </div>
-    <ul id="mainMenu">
-      <li>
-        <a href="/setLang/en"><?php echo $this->i18n->getLang() == 'ru' ? 'РУ' : 'EN'?></a>
-        <ul>
-          <li><a href="/setLang/en">EN</a></li>
-          <li><a href="/setLang/ru">РУ</a></li>
-        </ul>
-      </li>
-      <li><a href="#purpose"><?php echo $this->i18n->__('GOAL') ?></a></li>
-      <li><a href="#method"><?php echo $this->i18n->__('METHOD') ?></a></li>
-      <li><a href="#contacts"><?php echo $this->i18n->__('CONTACTS') ?></a></li>
-      <li><a href="http://my.grasp.how"><?php echo $this->i18n->__('SIGN IN (UP)') ?></a></li>
-    </ul>
   </div>
+</div>
+<div class="box2">
+  <div class="container padding50">
+    <div class="col-sm-12 nopadding">
+      <h2>Зачем?</h2>
+    </div>
+    <div class="col-sm-7 noleft">
 
-  <div id="grasp-how-8866" style="height: 600px;">
-    <script src='/embed.js?data={"graphIds":[1.155],"uniqId":"grasp-how-8866"}'></script>
-  </div>
+      <p>Читая текст зачастую сложно оценить правдоподобность утверждений автора. Нужно выделить факты, на которых основаны утверждения, оценить их достоверность, понять все ли факты были автором учтены, нужно проверить логические связи между утверждениями.</p>
 
-  <div id="quote" class="description">
-    <blockquote>
-      <p style="font-size: 1em;">
-        <?php echo $this->i18n->__('...availability heuristic helps explain why some issues are highly salient in the public’s mind while others are neglected. People tend to assess the relative importance of issues by the ease with which they are retrieved from memory—and this is largely determined by the extent of coverage in the media. Frequently mentioned topics populate the mind even as others slip away from awareness.'); ?>
-        <br>...<br>
-        <?php echo $this->i18n->__('As the WYSIATI (What You See is All There is) rule implies, neither the quantity nor the quality of the evidence counts for much in subjective confidence. The confidence that individuals have in their beliefs depends mostly on the quality of the story they can tell about what they see, even if they see little. We often fail to allow for the possibility that evidence that should be critical to our judgment is missing—what we see is all there is.'); ?>
+      <p>Мы предлагаем удобный инструмент с помощью которого вы сможете показать что ваш текст основан на проверенных фактах и ему можно доверять.</p>
 
+      <p>Проиллюстрировав текст картой на grasp.how вы получаете конкурентное преимущество перед другими статьями. Читатель перестаёт ощущать что на него перекладывают рутину анализа и, возможно, пытаются манипулировать мнением.</p>
+
+      <p>Более того, карты доступны для совместного редактирования - а значит вместо размытых комментариев читатели смогут присылать конструктивные дополнения к вашей статье.</p>
+    </div>
+
+    <div class="col-sm-5 noright">
+      <p>
+        Количество и качество
+        информации не очень сильно влияют на субъективную уверенность.
+        Уверенность в своих убеждениях зависит от связности
+        истории которую вы можете рассказать о том что видите.
+        <img src="<?php echo $this->getAppDir('img'); ?>/quote.png">
       </p>
-      <footer>
-        — <cite><?php echo $this->i18n->__("'Thinking, fast and slow', Daniel Kahneman, psychologist, Nobel Memorial Prize in Economic Sciences"); ?></cite>
-      </footer>
-    </blockquote>
-  </div>
-  <div class="description subscribe" style="text-align: right;">
-    <input type="text" placeholder="youremail@domain.com">
-    <input id="sss" type="submit" value="<?php echo $this->i18n->__("Subscribe to newsletter"); ?>">
-    <div id="subscribe_msg_ok" style="display: none;"><?php echo $this->i18n->__("thank you, now you subscribed!"); ?></div>
-    <div id="subscribe_msg_error" style="display: none;"><?php echo $this->i18n->__("enter you email"); ?></div>
-  </div>
-  <div id="purpose" class="description">
-    <h1><?php echo $this->i18n->__("Project objective"); ?></h1>
-    <?php  include($this->getAppDir('template', false).'/_aim3.php'); ?>
-  </div>
-  <div id="video1" class="description">
-    <div style="float:left; margin-right: 10%;">
-      <iframe width="560" height="315" src="<?php echo $this->i18n->__("https://www.youtube.com/embed/D_BMNLUkro8"); ?>" frameborder="0" allowfullscreen></iframe>
-    </div>
-    <div style="padding-top: 15%;"><?php echo $this->i18n->__("What is grasp.how and how to use it, in a nutshell"); ?></div>
+      <p class="color">
+        «Думая быстро и медленно»<br/>
+        Даниэль Канеман — психолог,<br/>
+        нобелевский лауреат 2002 г.
+      </p>
 
-    <div style="clear: both;"></div>
-  </div>
-  <div id="video2" class="description">
-    <div style="float:left; margin-right: 10%;">
-      <iframe width="560" height="315" src="<?php echo $this->i18n->__("https://www.youtube.com/embed/JRFGqepAnhU"); ?>" frameborder="0" allowfullscreen></iframe>
+      <p class="last">
+        от 5000 <img style="position: relative; width: 9.3%; margin-top: 30px; margin-left: 30px;"
+                 src="<?php echo $this->getAppDir('img'); ?>/Ruble_sign.svg">
+        <span>платим за ваши карты</span>
+      </p>
     </div>
-    <div style="padding-top: 15%;"><?php echo $this->i18n->__("Real-life example: map of Evolution theory"); ?></div>
+  </div>
+</div>
+<div class="box3">
+  <div class="container padding50">
+    <h1>Как строить карты</h1>
 
-    <div style="clear: both;"></div>
-  </div>
-  <div id="video3" class="description">
-    <div style="float:left; margin-right: 10%;">
-      <iframe width="560" height="315" src="<?php echo $this->i18n->__("https://www.youtube.com/embed/2Fw-zeoT2ew"); ?>" frameborder="0" allowfullscreen></iframe>
+    <div class="item">
+      <div class="col-sm-6 noleft">
+        <p class="head">
+          <span>1.</span> Разделить утверждения на категории
+        </p>
+        <ul>
+          <li>— факт</li>
+          <li>— гипотеза</li>
+          <li>— иллюстрации</li>
+          <li>— вопрос</li>
+          <li>— материал для исследования</li>
+          <li>— лучшие практики</li>
+        </ul>
+      </div>
+      <div class="col-sm-6 noright">
+        <div class="inner">
+          <p>разные кружочки
+            показать</p>
+        </div>
+      </div>
     </div>
-    <div style="padding-top: 15%;"><?php echo $this->i18n->__("How to share map, clone maps of others and get their modifications"); ?></div>
+    <div class="item">
+      <div class="col-sm-6 noleft">
+        <p class="head">
+          <span>2.</span> Указать достоверность
+        </p>
+        <ul>
+          <li>Присваиваем фактам достоверность, чтобы понимать насколько можно доверять указанному факту.  </li>
+          <li><br/>Достоверность определяется по источнику — авторитетности журнала, автора или независимыми экспериментальными проверками.</li>
+        </ul>
+      </div>
+      <div class="col-sm-6 noright">
+        <div class="inner">
+          <p>гифка — заполнение источника</p>
+        </div>
+      </div>
+    </div>
+     <div class="item">
+      <div class="col-sm-6 noright">
+        <p class="head">
+          <span>3.</span> Расставить взаимосвязи
+        </p>
+        <ul>
+          <li>Связываем гипотезы с фактами и указываем условные вероятности — либо вероятности фактов при условии гипотез, либо гипотез при условии этих фактов.</li>
 
-    <div style="clear: both;"></div>
-  </div>
-  <div id="method" class="description">
-    <h1><?php echo $this->i18n->__("Method"); ?></h1>
-    <p><?php echo $this->i18n->__("Aims at subdividing all statements into the following categories:"); ?></p>
-    <ul>
-      <li><?php echo $this->i18n->__("a fact"); ?></li>
-      <li><?php echo $this->i18n->__("a hypothesis"); ?></li>
-      <li><?php echo $this->i18n->__("an illustration"); ?></li>
-      <li><?php echo $this->i18n->__("a question"); ?></li>
-      <li><?php echo $this->i18n->__("research material"); ?></li>
-      <li><?php echo $this->i18n->__("the best practices"); ?></li>
-    </ul>
-    <p>
-      <?php echo $this->i18n->__("Next, reliability level should be determined for all the facts. Reliability shows how much credence to give to the stated fact, and how proven it is."); ?>
-    </p>
-    <p>
-      <?php echo $this->i18n->__("Then all theories and hypothesis should be rated for importance – how much attention you think is worth paying to them."); ?>
-    </p>
-    <p>
-      <?php echo $this->i18n->__("Finally, you need to link hypotheses with the facts relating to them, and determine conditional probabilities – the probabilities of facts on condition of hypotheses. Or, vice versa, the probability of hypotheses on condition of these facts (however, such probabilities are considerably rare to come across)."); ?>
-    </p>
-    <?php  //include($this->getAppDir('template', false).'/_example1.php'); ?>
-  </div>
-  <div id="purpose_extended" class="description">
-    <h1><?php echo $this->i18n->__("Mission") ?></h1>
-    <?php  include($this->getAppDir('template', false).'/_aim2.php'); ?>
-  </div>
-  <div id="contacts" class="description">
-    <h1><?php echo $this->i18n->__("Contacts") ?></h1>
-    <div id="social">
-      <a target="_blank" href="https://www.google.com/+IgorBatov"><img src="<?php echo $this->getAppDir('img'); ?>/g.png"></a>
-      <a target="_blank" href="https://www.facebook.com/igor.batov.351"><img src="<?php echo $this->getAppDir('img'); ?>/f.png"></a>
-      <a target="_blank" href="http://vk.com/igbatov"><img src="<?php echo $this->getAppDir('img'); ?>/vk.png"></a>
+        </ul>
+      </div>
+      <div class="col-sm-6 noleft">
+        <div class="inner">
+          <p>гифка — как связывать узлы</p>
+        </div>
+      </div>
     </div>
   </div>
-  </body>
+</div>
+<div class="box4">
+  <div class="container padding50">
+    <h1>Видео-инструкции</h1>
+    <div class="col-sm-6 noleft">
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/D_BMNLUkro8"); ?>" frameborder="0" allowfullscreen></iframe>
+      <p><?php echo $this->i18n->__("What is grasp.how and how to use it, in a nutshell"); ?></p>
+    </div>
+    <div class="col-sm-6 noright">
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/JRFGqepAnhU"); ?>" frameborder="0" allowfullscreen></iframe>
+      <p><?php echo $this->i18n->__("Real-life example: map of Evolution theory"); ?></p>
+    </div>
+    <div class="col-sm-6 noleft">
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/2Fw-zeoT2ew"); ?>" frameborder="0" allowfullscreen></iframe>
+      <p><?php echo $this->i18n->__("How to share map, clone maps of others and get their modifications"); ?></p>
+    </div>
+  </div>
+</div>
+<div class="footer">
+  <div class="top">
+    <div class="container padding50">
+      <h5>Составим карту для вашей статьи</h5>
+
+      <div class="col-sm-12 nopadding">
+        <input type="text" placeholder="Укажите сайт со статьёй">
+      </div>
+      <div class="col-sm-5 nopadding">
+        <input type="text" placeholder="Эл. адрес">
+      </div>
+      <div class="col-sm-9 nopadding">
+        <button>Отправить</button>
+        <p>С вами свяжутся в течении 3х дней
+          <span>для уточнения деталей</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="container padding50">
+      Вопросы и предложения пишите на <a href="mailto:igbatov@gmail.com">igbatov@gmail.com</a>
+    </div>
+  </div>
+</div>
+
+<script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
+<script src="<?php echo $this->getAppDir('js'); ?>/bootstrap.min.js"></script>
+
+</body>
 </html>

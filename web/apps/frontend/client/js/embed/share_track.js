@@ -25,6 +25,7 @@ var tracker = {
   traceFBShare: function(){
     // select the target node
     var target = document.getElementById('fb-share-btn');
+    if(!target) return;
     // create an observer instance
     var observer = new MutationObserver(function(mutations) {
       var listener = addEventListener('blur', function() {

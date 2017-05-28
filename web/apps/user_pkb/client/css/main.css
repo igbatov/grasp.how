@@ -9,6 +9,16 @@
 @import "../../../../lib/client/css/ui.css";
 @import "graph_element_editor.css";
 
+/*
+ redefine some ui elements
+*/
+.ui_select .selected{
+    padding: 0;
+}
+.ui_select li{
+    padding: 0;
+}
+
 #graphViews{
     position:  absolute;
     top: 0;

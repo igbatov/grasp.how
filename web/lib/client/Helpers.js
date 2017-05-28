@@ -1519,6 +1519,7 @@ GRASP.getDisplay = function(el){
   return window.getComputedStyle(el, null)["display"];
 };
 GRASP.setDisplay = function(el, v){
+  if (el === void 0) return false;
   el.style.display = v;
 };
 /**

@@ -4,7 +4,7 @@
  */
 var graphDrawer = (function(){
   // CONSTANTS
-  var LABEL_FONT_FAMILY = "sans-serif";
+  var LABEL_FONT_FAMILY = "SFNSDisplay";
   var LABEL_FONT_SIZE_FACTOR = 1.6;
   var NODE_SIZE_FACTOR = 1.6;
   var ANIMATION_TICK = 1; // in ms

@@ -74,7 +74,7 @@ var graphActions = (function($,d3,publisher){
   function createTextBoxes(nodes){
     var TEXT_BOX_WIDTH_CENTER_MARGIN = 17; // in %
     var TEXT_BOX_WIDTH_BORDER_MARGIN = 13; // in %
-    var TEXT_BOX_WIDTH_BOTTOM_MARGIN = 5; // in %
+    var TEXT_BOX_WIDTH_BOTTOM_MARGIN = 17; // in %
 
     // create div (textBox) where node content will be shown
     var offset = $("#graphContainer").offset();
