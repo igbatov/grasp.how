@@ -68,9 +68,11 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
 
     } else if (content.type === 'proposition') {
       // create menu from labels
-      var items = content['alternatives'].map(function(v, k){
-        return {alternative:v, type:content.type};
-      });
+      var items = {}
+      for(var i in content['alternatives']){
+        var alternative = content['alternatives'][i];
+        items[i] = {alternative:alternative, type:content.type};
+      }
       var selectBox = UI.createSelectBox({
         name:'labels',
         items:items,
@@ -134,14 +136,11 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
         var altContentContent = GRASP.createElement('div', {});
         for (var i in list) {
           altContentContent.appendChild(
-              UI.addTooltip(
-                  GRASP.createElement(
-                      'span',
-                      {class: 'nodeListItemReliability'},
-                      '[Reliability - ' + list[i].publisher_reliability + '/10]'
-                  ),
-                  'This numbers are the assumptions of map author'
-              )
+            GRASP.createElement(
+                'span',
+                {class: 'nodeListItemReliability'},
+                (list[i].publisher_reliability/10).toFixed(2)+''
+            )
           );
           altContentContent.appendChild(GRASP.createElement('a', {
             class: 'nodeListItem',
@@ -162,20 +161,24 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
         var altContentContent = GRASP.createElement('div',{},'');
         // create decorated text string for each f.fields[i]
         for(var j in condPInfo.fieldsObj){
-          var text = '';
           var b = condPInfo.fieldsObj[j];
-          text += ' '+b['THEN'][alt_id].probability;
+          var el = GRASP.createElement('div',{class:'condPInfo'});
+          var probabilityDOM = GRASP.createElement('div',{class:'conditionalProbability'},b['THEN'][alt_id].probability);
+          el.appendChild(probabilityDOM);
           for(var parentId in b['IF']){
-            text += '->' + b['IF'][parentId].alternativeLabel + '<br>';
+            var conditionalArrow = GRASP.createElement('span',{class:'conditionalArrow'},'&rarr;');
+            var ifCondition = GRASP.createElement('div',{class:'ifCondition'},b['IF'][parentId].alternativeLabel);
+            var newLine = GRASP.createElement('BR',{});
+            el.appendChild(conditionalArrow);
+            el.appendChild(ifCondition);
+            el.appendChild(newLine);
           }
-          var el = GRASP.createElement('div',{},text);
+
           el.dataset.condPInfoBlockId = j;
           altContentContent.appendChild(el);
 
           // hang listeners
           el.addEventListener('mouseover', function (evt) {
-            this.style.backgroundColor = '#b363d2';
-
             // send event to graph drawer to hide all labels
             publisher.publish(['hide_all_labels', {}]);
 
@@ -199,7 +202,6 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
               return item.key;
             })]);
             publisher.publish(['highlight_nodes', {nodeIds: [content.nodeId]}]);
-            this.style.backgroundColor = '#FFFFFF';
           });
         }
 
@@ -220,6 +222,15 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
     return view;
   }
 
+  /**
+   * Adjust accordion tab contents to fit whole view.parentNode height
+   * @param altAccordion
+   * @param view
+   * @param h
+   * @param labels
+   * @param altContentLabel
+   * @param labelsNum
+   */
   function updateAccordionMaxLength(altAccordion, view, h, labels, altContentLabel, labelsNum){
     var f = function(timeout){
       setTimeout(function(){
