@@ -207,6 +207,10 @@ GRASP.GraphMenu.prototype = {
         that.UI.setModalContent(m,cloneListContainer);
       };
 
+      var leftGraphId = null, rightGraphId = null;
+      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') leftGraphId = i;
+      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') rightGraphId = i;
+
       /**
        * Graph select
        * @param position
@@ -220,14 +224,12 @@ GRASP.GraphMenu.prototype = {
 
         // set position of newly selected graph
         that.selectedPosition[graphId] = position;
+        for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') leftGraphId = i;
+        for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') rightGraphId = i;
 
         // say about this event to all subscribers
         that.publisher.publish(['graph_position_changed', {graphId:graphId, position:position}]);
       };
-
-      var leftGraphId = null, rightGraphId = null;
-      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') leftGraphId = i;
-      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') rightGraphId = i;
 
       // clear our container
       $('#'+c.id).html('');
