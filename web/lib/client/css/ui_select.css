@@ -13,10 +13,18 @@
 }
 .ui_select .selected::after{
     position: absolute;
-    content: url(http://www.grasp.local/apps/frontend/client/img/selectListArrow.png);
-    top: 2em;
-    right: 1em;
-    transform: translateY(-50%);
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #9d9d9d;
+    top: 1.7em;
+    right: 2em;
+    display: block;
+    line-height: 4;
+    text-align: center;
+    /* transform: translateY(-50%); */
 }
 .ui_select ul{
     width: 100%;

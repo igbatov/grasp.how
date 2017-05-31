@@ -58,7 +58,9 @@
   <body>
   <?php if($withFbShare) include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
 
+  <?php if ($editMapRibbon) : ?>
   <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="edit map on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
+  <?php endif ?>
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
 
   <div id="graphContainer"></div>

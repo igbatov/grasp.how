@@ -35,20 +35,25 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#"><img src="img/logo.png"></a>
+          <a class="navbar-brand" href="#"><div class="logo">(grasp|how)</div></a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li><a href="#">Цель</a></li>
-            <li><a href="#">Метод</a></li>
-            <li><a href="#">Контакты</a></li>
+            <li><a href="#goal"><?php echo $this->i18n->__('Goal') ?></a></li>
+            <li><a href="#method"><?php echo $this->i18n->__('Method') ?></a></li>
+            <li><a href="#contacts"><?php echo $this->i18n->__('Contacts') ?></a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="#">Ru</a></li>
-            <li><a href="#" class="btn">Создать карту взаимосвязей</a></li>
-
+            <li>
+              <a href="/setLang/en"><?php echo $this->i18n->getLang() == 'ru' ? 'Ru' : 'En'?></a>
+              <ul>
+                <li><a href="/setLang/en">En</a></li>
+                <li><a href="/setLang/ru">Ru</a></li>
+              </ul>
+            </li>
+            <li><a href="http://my.grasp.how" class="btn"><?php echo $this->i18n->__('Create my own map') ?></a></li>
           </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
@@ -64,24 +69,24 @@
       <span>Покажем вероятность ваших гипотез исходя из фактов и их достоверности</span>
     </h1>
     <div id="grasp-how-8866" style="height: 500px;">
-      <script src='/embed.js?data={"graphIds":[1.155],"uniqId":"grasp-how-8866","withFbShare":false}'></script>
+      <script src='/embed.js?data={"graphIds":[1.155],"uniqId":"grasp-how-8866","withFbShare":false,"editMapRibbon":false}'></script>
     </div>
   </div>
 </div>
 <div class="box2">
   <div class="container padding50">
-    <div class="col-sm-12 nopadding">
+    <div id="goal" class="col-sm-12 nopadding">
       <h2>Зачем?</h2>
     </div>
     <div class="col-sm-7 noleft">
 
-      <p>Читая текст зачастую сложно оценить правдоподобность утверждений автора. Нужно выделить факты, на которых основаны утверждения, оценить их достоверность, понять все ли факты были автором учтены, нужно проверить логические связи между утверждениями.</p>
+      <p>Читая текст зачастую сложно оценить правдоподобность утверждений автора. Нужно выделить факты, на которых основаны утверждения, определить достоверность, понять все ли факты учтены, проверить логические связи между утверждениями.</p>
 
-      <p>Мы предлагаем удобный инструмент с помощью которого вы сможете показать что ваш текст основан на проверенных фактах и ему можно доверять.</p>
+      <p>Мы предлагаем удобный инструмент с помощью которого вы сможете проверить свой текст и показать другим что ему можно доверять.</p>
 
-      <p>Проиллюстрировав текст картой на grasp.how вы получаете конкурентное преимущество перед другими статьями. Читатель перестаёт ощущать что на него перекладывают рутину анализа и, возможно, пытаются манипулировать мнением.</p>
+      <p>Проиллюстрировав текст картой на grasp.how вы получаете конкурентное преимущество - читатель перестаёт ощущать что на него перекладывают рутину анализа и пытаются манипулировать мнением.</p>
 
-      <p>Более того, карты доступны для совместного редактирования - а значит вместо размытых комментариев читатели смогут присылать конструктивные дополнения к вашей статье.</p>
+      <p>Карты доступны для совместного редактирования. А это значит что вместо размытых комментариев читатели смогут присылать конструктивные дополнения к вашей статье.</p>
     </div>
 
     <div class="col-sm-5 noright">
@@ -107,7 +112,7 @@
   </div>
 </div>
 <div class="box3">
-  <div class="container padding50">
+  <div id="method" class="container padding50">
     <h1>Как строить карты</h1>
 
     <div class="item">
@@ -182,7 +187,7 @@
     </div>
   </div>
 </div>
-<div class="footer">
+<div id="contacts" class="footer">
   <div class="top">
     <div class="container padding50">
       <h5>Составим карту для вашей статьи</h5>

@@ -49,6 +49,9 @@
 
 }
 @media(max-width:414px){
+    .logo {
+        line-height: 35px;
+    }
     .box1 h1 {
         font-size: 19px;
     }
@@ -97,5 +100,7 @@
     }
 }
 @media(max-width:320px){
-
+    .logo {
+        line-height: 35px;
+    }
 }

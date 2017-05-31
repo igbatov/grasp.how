@@ -7,7 +7,7 @@ var graphDrawer = (function(){
   var LABEL_FONT_FAMILY = "SFNSDisplay";
   var LABEL_FONT_SIZE_FACTOR = 1.6;
   var NODE_SIZE_FACTOR = 1.6;
-  var ANIMATION_TICK = 1; // in ms
+  var ANIMATION_TICK = 5; // in ms
 
   // private module vars
   var _svgc;

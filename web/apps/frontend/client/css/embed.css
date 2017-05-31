@@ -91,7 +91,7 @@ body{
 
 .alternativeLabel {
     /* float: left; */
-    margin-left: 3em;
+    margin-left: 4em;
     /* width: 85%; */
     /* margin-left: 17px; */
     display: inline-block;
@@ -110,6 +110,7 @@ body{
     display: inline-block;
     font-size: 16px;
     font-weight: 300;
+    margin-right: 2em;
 }
 
 .altLabel.hypothesis {
