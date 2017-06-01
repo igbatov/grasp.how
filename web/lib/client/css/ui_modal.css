@@ -1,7 +1,7 @@
 .ui_modal{
     height: 50%;
     width: 40%;
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);

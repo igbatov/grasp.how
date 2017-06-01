@@ -617,21 +617,30 @@ GRASP.UIElements.prototype = {
 
   /**
    * Create modal window
+   * @param options? - {"withCloseButton":boolean, "withOverlay":boolean}
    * @return HTMLElement - can be removed with function closeModal(el)
    */
-  createModal: function(){
+  createModal: function(options){
+    if(typeof options['withCloseButton'] === 'undefined') options['withCloseButton'] = true;
+    if(typeof options['withOverlay'] === 'undefined') options['withOverlay'] = true;
     var that = this,
       uniqId = this.generateId(),
-      modalWindow = GRASP.createElement('div',{id:uniqId, class:'ui_modal'},''),
-      overlay = GRASP.createElement('div',{id:'overlay'+uniqId, class:'ui_modal_overlay'},'');
-    document.body.appendChild(overlay);
+      modalWindow = GRASP.createElement('div',{id:uniqId, class:'ui_modal'},'');
+
+    if(options['withOverlay']){
+      var overlay = GRASP.createElement('div',{id:'overlay'+uniqId, class:'ui_modal_overlay'},'');
+      document.body.appendChild(overlay);
+    }
+
     document.body.appendChild(modalWindow);
 
-    var closeButton = GRASP.createElement('div',{class:'close_button'},'X');
-    modalWindow.appendChild(closeButton);
-    closeButton.addEventListener('click', function(evt){
-      that.closeModal(modalWindow);
-    });
+    if(options['withCloseButton']){
+      var closeButton = GRASP.createElement('div',{class:'close_button'},'X');
+      modalWindow.appendChild(closeButton);
+      closeButton.addEventListener('click', function(evt){
+        that.closeModal(modalWindow);
+      });
+    }
 
     modalWindow.appendChild(GRASP.createElement('div',{class:'ui_modal_wrapper'}));
 
@@ -653,13 +662,17 @@ GRASP.UIElements.prototype = {
     GRASP.setDisplay(modalWindow, 'none');
     GRASP.setDisplay(modalWindow, 'block');
 
-    var wrapper = modalWindow.childNodes[1];
+    var wrapper = modalWindow.getElementsByClassName('ui_modal_wrapper')[0];
     // remove all from wrapper
     [].forEach.call(wrapper, function(child) {
       modalWindow.removeChild(child);
     });
 
     wrapper.appendChild(content);
+  },
+
+  createLoadingIndicator: function(){
+    return GRASP.createElement('div',{class:'ui_spinner'},'');
   },
 
   /**

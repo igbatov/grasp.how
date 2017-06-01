@@ -140,8 +140,8 @@ var withFbShare = withFbShare || false;
   }
 
   function createWrapper(){
-    var GRAPH_CONTAINER_LEFT_WIDTH_MARGIN = 1; // in %
-    var GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN = 2; // in %
+    var GRAPH_CONTAINER_LEFT_WIDTH_MARGIN = 0; // in %
+    var GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN = 0; // in %
     var GRAPH_CONTAINER_BOTTOM_MARGIN = withFbShare ? 25 : 0; // in px
 
     var svgcH = $(window).height();
@@ -151,6 +151,7 @@ var withFbShare = withFbShare || false;
         .attr("id", "mainSVG")
         .attr("style", "margin-left: "+GRAPH_CONTAINER_LEFT_WIDTH_MARGIN+"%;"+
             " margin-right: "+GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN+"%;"+
+            " overflow: hidden;"+
             " height:"+svgcH+'px;'+
             ' width:'+(100-2*(GRAPH_CONTAINER_LEFT_WIDTH_MARGIN+GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN))+"%"
         );

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,6 +20,20 @@
   <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
   <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
   <![endif]-->
+  <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
+  <script>
+    <?php
+    /** @var I18N $i18n */
+    echo 'GRASP.TRANSLATIONS = '.json_encode($this->i18n->showAllTranslations()).';';
+    echo 'GRASP.LANGUAGE = "'.$this->i18n->getLang().'";';
+    ?>
+  </script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/main.js"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/bootstrap.min.js"></script>
 </head>
 <body>
 <div class="header">
@@ -189,14 +202,14 @@
 </div>
 <div id="contacts" class="footer">
   <div class="top">
-    <div class="container padding50">
+    <div class="container padding50 requestMap">
       <h5>Составим карту для вашей статьи</h5>
 
       <div class="col-sm-12 nopadding">
-        <input type="text" placeholder="Укажите сайт со статьёй">
+        <input type="text" id="siteLink" placeholder="Укажите сайт со статьёй">
       </div>
       <div class="col-sm-5 nopadding">
-        <input type="text" placeholder="Эл. адрес">
+        <input type="text" id="email" placeholder="Эл. адрес">
       </div>
       <div class="col-sm-9 nopadding">
         <button>Отправить</button>
@@ -211,9 +224,5 @@
     </div>
   </div>
 </div>
-
-<script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
-<script src="<?php echo $this->getAppDir('js'); ?>/bootstrap.min.js"></script>
-
 </body>
 </html>

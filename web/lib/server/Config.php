@@ -62,7 +62,7 @@ class Config{
         return $this->getWebDomainURL()."/lib/client/";
         break;
       case "css":
-        return $this->getWebDomainURL()."/css/";
+        return $this->getWebDomainURL()."/lib/client/css/";
         break;
       case "log":
         return $this->getWebRootPath()."/../logs";

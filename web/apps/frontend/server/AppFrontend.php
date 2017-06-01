@@ -37,9 +37,9 @@ class AppFrontend extends App{
         $this->logger->log(var_export($output, true));
 
         $email = $output['email'];
-        $query = "INSERT INTO subscribe_email SET email = '".$this->db->escape($email)."'";
+        $query = "INSERT INTO subscribe_email SET email = '".$this->db->escape($email)."', data = '".$this->db->escape(var_export($output, true))."'";
         $this->db->exec(null, $query);
-        $msg = 'Email '.$email.' wants to recieve new maps';
+        $msg = 'Email '.$email.' send form '.var_export($output, true);
         $this->sendMail("info@grasp.how", "igbatov@gmail.com", $msg, $msg);
         break;
 

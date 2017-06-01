@@ -72,38 +72,38 @@ var graphActions = (function($,d3,publisher){
   }
 
   function createTextBoxes(nodes){
-    var TEXT_BOX_WIDTH_CENTER_MARGIN = 17; // in %
-    var TEXT_BOX_WIDTH_BORDER_MARGIN = 13; // in %
-    var TEXT_BOX_WIDTH_BOTTOM_MARGIN = 17; // in %
+    var TEXT_BOX_WIDTH_CENTER_MARGIN = 5; // in %
+    var TEXT_BOX_WIDTH_BORDER_MARGIN = 10; // in %
+    var TEXT_BOX_WIDTH_BOTTOM_MARGIN = 10; // in %
 
     // create div (textBox) where node content will be shown
     var offset = $("#graphContainer").offset();
     var graphContainerWidth = $("#graphContainer").width();
     var graphContainerHeight = $("#graphContainer").height();
-    var pos = {
+    var posLeft = {
       top:offset.top,
       left:offset.left + TEXT_BOX_WIDTH_BORDER_MARGIN*(graphContainerWidth/2)/100,
-      width:graphContainerWidth/2 - TEXT_BOX_WIDTH_CENTER_MARGIN*(graphContainerWidth/2)/100,
+      width:graphContainerWidth/2 - (TEXT_BOX_WIDTH_BORDER_MARGIN + TEXT_BOX_WIDTH_CENTER_MARGIN)*(graphContainerWidth/2)/100,
       height:graphContainerHeight - TEXT_BOX_WIDTH_BOTTOM_MARGIN*graphContainerHeight/100
     };
 
     var leftTextBox = GRASP.createElement('div',{
       id: LEFT_HALF,
       class: 'textBox', // TODO: this class is used somewhere to hide all textBoxes, better do it with events
-      style: 'display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px'
+      style: 'display:none; position: absolute; top: '+posLeft.top+'px; left: '+posLeft.left+'px; width: '+posLeft.width+'px; height: '+posLeft.height+'px'
     });
     document.body.appendChild(leftTextBox);
 
-    var pos = {
+    var posRight = {
       top:offset.top,
-      left:offset.left + graphContainerWidth/2 + (TEXT_BOX_WIDTH_CENTER_MARGIN - TEXT_BOX_WIDTH_BORDER_MARGIN)*(graphContainerWidth/2)/100,
-      width:graphContainerWidth/2 - TEXT_BOX_WIDTH_CENTER_MARGIN*(graphContainerWidth/2)/100,
+      left:offset.left + posLeft.width + (TEXT_BOX_WIDTH_BORDER_MARGIN + 2*TEXT_BOX_WIDTH_CENTER_MARGIN)*(graphContainerWidth/2)/100,
+      width:graphContainerWidth/2 - (TEXT_BOX_WIDTH_BORDER_MARGIN + TEXT_BOX_WIDTH_CENTER_MARGIN)*(graphContainerWidth/2)/100,
       height:graphContainerHeight - TEXT_BOX_WIDTH_BOTTOM_MARGIN*graphContainerHeight/100
     };
     var rightTextBox = GRASP.createElement('div',{
       id: RIGHT_HALF,
       class: 'textBox', // TODO: this class is used somewhere to hide all textBoxes, better do it with events
-      style: 'display:none; position: absolute; top: '+pos.top+'px; left: '+pos.left+'px; width: '+pos.width+'px; height: '+pos.height+'px'
+      style: 'display:none; position: absolute; top: '+posRight.top+'px; left: '+posRight.left+'px; width: '+posRight.width+'px; height: '+posRight.height+'px'
     });
     document.body.appendChild(rightTextBox);
 

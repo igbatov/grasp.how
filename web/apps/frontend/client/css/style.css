@@ -1,3 +1,4 @@
+@import "../../../../lib/client/css/ui.css";
 @font-face{
     font-family:'SFNSDisplay';
     src:url(SFNSDisplay.ttf);
@@ -375,4 +376,16 @@ a {
 }
 .box2 .noright .msg{
     margin-top: 30px;
+}
+.ui_modal{
+    background: transparent;
+    text-align: center;
+    font-family:'DINPro';
+}
+.ui_modal h5{
+    color: #000000;
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.42;
+    margin-top: 0;
 }

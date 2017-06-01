@@ -1,4 +1,35 @@
 
+describe("GRASP.adjustMappingToArea", function(){
+  it('should correctly adjust node mapping to new area', function () {
+    var areaTo = {
+      "width": 683,
+      "height": 396,
+      "centerX": 1024,
+      "centerY": 198
+    };
+    var areaFrom = {
+      "width": 1366,
+      "height": 396,
+      "centerX": 683,
+      "centerY": 198
+    };
+    var mapping = {
+      1:{
+        x:91,
+        y:117
+      }
+    };
+    var newMapping = GRASP.MappingHelper.adjustMappingToArea(
+        {
+          mapping:mapping,
+          area:areaFrom
+        },
+        areaTo
+    );
+    console.log(newMapping);
+  })
+});
+
 describe("GRASP.compare", function(){
   it('should correctly compare all types', function () {
 

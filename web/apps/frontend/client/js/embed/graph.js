@@ -7,7 +7,8 @@ var graphDrawer = (function(){
   var LABEL_FONT_FAMILY = "SFNSDisplay";
   var LABEL_FONT_SIZE_FACTOR = 1.6;
   var NODE_SIZE_FACTOR = 1.6;
-  var ANIMATION_TICK = 5; // in ms
+  var ANIMATION_TICK = 2; // in ms
+  var ANIMATION_INCREMENT = 5; // in pixels
 
   // private module vars
   var _svgc;
@@ -139,15 +140,31 @@ var graphDrawer = (function(){
           var step = oldGraphAreaSidePadding;
           var isIncr = _options['graphAreaSidePadding'] - step > 0;
           setTimeout(function tick(){
+            if(isIncr) {
+              step += ANIMATION_INCREMENT;
+              if(step < _options['graphAreaSidePadding']) setTimeout(tick, ANIMATION_TICK)
+              // last step can be incomplete
+              if(
+                  step > _options['graphAreaSidePadding']
+                  && (step - ANIMATION_INCREMENT) < _options['graphAreaSidePadding']
+              ){
+                step = _options['graphAreaSidePadding'] - ANIMATION_INCREMENT;
+                setTimeout(tick, ANIMATION_TICK)
+              }
+            } else {
+              step -= ANIMATION_INCREMENT;
+              if(step > _options['graphAreaSidePadding']) setTimeout(tick, ANIMATION_TICK)
+              // last step can be incomplete
+              if(
+                  step < _options['graphAreaSidePadding']
+                  && (step+ANIMATION_INCREMENT) > _options['graphAreaSidePadding']
+              ){
+                step = _options['graphAreaSidePadding'] + ANIMATION_INCREMENT;
+                setTimeout(tick, ANIMATION_TICK)
+              }
+            }
             adjustNodeXY(_nodes, _options['mappingArea'], _options['wrapperArea'], step);
             updateNodeXY();
-            if(isIncr) {
-              step += 5;
-              if(step<_options['graphAreaSidePadding'])  setTimeout(tick, ANIMATION_TICK)
-            } else {
-              step -= 5;
-              if(step>_options['graphAreaSidePadding'])  setTimeout(tick, ANIMATION_TICK)
-            }
           }, ANIMATION_TICK);
         } else {
           _options[option] = eventData[option];
@@ -207,9 +224,9 @@ var graphDrawer = (function(){
   /**
    *
    * @param _nodes - [{x:x, y:y}, ...]
-   * @param mappingArea - area that corresponds to mapping _nodes
-   * @param wrapperArea - area for which we want to recalculate _nodes
-   * @param graphAreaSidePadding - padding on wrapperArea (>0 - left, <0 - right)
+   * @param mappingArea - area that corresponds to current mapping of  _nodes
+   * @param wrapperArea - area relative to which we calc new mappingArea (for new graphAreaSidePadding)
+   * @param graphAreaSidePadding - padding relative wrapperArea (>0 - left, <0 - right)
    */
   function adjustNodeXY(_nodes, mappingArea, wrapperArea, graphAreaSidePadding){
     var w = wrapperArea.width - Math.abs(graphAreaSidePadding)*wrapperArea.width/100;

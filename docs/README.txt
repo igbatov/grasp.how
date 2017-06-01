@@ -21,7 +21,7 @@ Rollup/down migrations:
 scripts/migrations.php
 Debug migrations:
 php -dxdebug.remote_autostart=On  -dxdebug.remote_enable=1 -dxdebug.remote_mode=req -dxdebug.remote_port=9000 -dxdebug.remote_host=grasp.local  scripts/
-migrations.php -m=D20170423MultiTenant -d=up
+migrations.php -m=D20170601AddDataColumnToSubscribeTable -d=up
 
 Изменение типа узлов
 1. Редактируем список типов в таблице graph
