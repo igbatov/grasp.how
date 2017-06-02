@@ -621,6 +621,7 @@ GRASP.UIElements.prototype = {
    * @return HTMLElement - can be removed with function closeModal(el)
    */
   createModal: function(options){
+    if(typeof options === 'undefined') options = {withCloseButton:true, withOverlay:true};
     if(typeof options['withCloseButton'] === 'undefined') options['withCloseButton'] = true;
     if(typeof options['withOverlay'] === 'undefined') options['withOverlay'] = true;
     var that = this,
