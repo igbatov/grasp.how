@@ -74,10 +74,12 @@ GRASP.UIElements.prototype = {
    *    name:{String},
    *    items:{[key: string]: HTMLElement|string|Object},
    *    defaultValue:{String},
-   *    callback:{function(string,string)=},
+   *    callback:{function(name: string, value: string)}, // name = attrs.name, value = item.key
    *    disabled:{boolean=},
    *    formname:{String},
-   *    nodrop:true
+   *    dropType: 'multiple'|'single'|'icon'
+   *    icon?: HTMLElement - icon that will be used for dropType = 'icon'
+   *    withLeftArrow: boolean,
    *    map?: function(HTMLElement|string|Object) - optional callback function that modifies item before render
    * }
    * Returns DOM element that can be used to select items
@@ -85,7 +87,9 @@ GRASP.UIElements.prototype = {
    * items - in form {'value'=>'label', ...}
    * defaultValue - selected item key
    * callback - callback will receive select name and item name on selection
-   * nodrop - use drop down list or show all options at once
+   * single - use drop down list
+   * multiple - show all options at once
+   * icon - show icon (default three lines) and use menu items as buttons
    * @returns {HTMLElement}
    */
   createSelectBox: function(attrs){
@@ -95,14 +99,17 @@ GRASP.UIElements.prototype = {
         inputHidden = GRASP.createElement('input',{name:attrs.name,type:'hidden',value:null}),
         selectBox = GRASP.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
+    if(typeof(attrs.dropType) == 'undefined') attrs.dropType = 'single';
+    if(typeof(attrs.icon) == 'undefined') attrs.icon = GRASP.createElement('div',{class:'threelines white'});
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
     if(typeof attrs.map == 'undefined') attrs.map = function(v){return v;}
+
     /**
      * Create DOM element from selectBox item
      * @param item HTMLElement|string
      * @returns {HTMLElement}
      */
-    function createDOMElement(item){
+    function createDOMElement(item) {
       if(GRASP.isDOMElement(item)){
         return GRASP.clone(item);
       }else if(GRASP.typeof(item) == 'string'){
@@ -119,27 +126,39 @@ GRASP.UIElements.prototype = {
       li.appendChild(createDOMElement(attrs.map(attrs.items[key])));
       return li;
     });
-    var ul = GRASP.createElement('ul',{'class': attrs.nodrop ? 'nodrop' : ''},'');
+    var ul = GRASP.createElement('ul',{'class': attrs.dropType},'');
     lis.forEach(function(li){ ul.appendChild(li); });
 
-    if(!attrs.nodrop) selectBox.appendChild(selectedItem);
+    if(attrs.dropType === 'single') {
+      selectBox.appendChild(selectedItem);
+    } else if (attrs.dropType === 'icon') {
+      selectBox.appendChild(attrs.icon);
+    }
     selectBox.appendChild(inputHidden);
     selectBox.appendChild(ul);
 
     // set initial selection (defaultValue)
     if(typeof(attrs.defaultValue) != 'undefined' && GRASP.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
-      if(attrs.nodrop){
-        lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('nodrop_selected'); });
-      }else{
+      if (attrs.dropType === 'multiple') {
+        lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('multiple_selected'); });
+      } else {
         GRASP.removeChilds(selectedItem);
         selectedItem.appendChild(createDOMElement(attrs.map(attrs.items[attrs.defaultValue])));
       }
       GRASP.updateElement(inputHidden, {value:attrs.defaultValue});
     }
 
-    // behaviour: toggle show/hide of menu
+    // behaviour: toggle show/hide of menu for dropType = 'icon'
+    attrs.icon.addEventListener('click', function(evt){
+      if(GRASP.getDisplay(ul) == 'none'){
+        GRASP.setDisplay(ul,'block');
+      }else{
+        GRASP.setDisplay(ul,'none');
+      }
+    });
+    // behaviour: toggle show/hide of menu for dropType = 'multiple'|'single'
     selectedItem.addEventListener('click', function(evt){
-      if(attrs.disabled || attrs.nodrop) return;
+      if(attrs.disabled || attrs.dropType === 'multiple') return;
       if(GRASP.getDisplay(ul) == 'none'){
         GRASP.setDisplay(ul,'block');
         // hide element that is already selected
@@ -159,17 +178,20 @@ GRASP.UIElements.prototype = {
     selectBox.selectItem = function(value){
       GRASP.updateElement(inputHidden, {value:value});
       if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
-      if(attrs.nodrop){
+      if(attrs.dropType === 'multiple'){
         // select item in no drop select list (aka 'select multiple')
         var selectedLi = null;
         lis.forEach(function(li){
-          li.classList.remove('nodrop_selected')
+          li.classList.remove('multiple_selected')
           if(li.value === value) selectedLi = li;
         });
-        selectedLi.classList.add('nodrop_selected');
-      } else {
+        selectedLi.classList.add('multiple_selected');
+      } else if (attrs.dropType === 'single') {
         GRASP.removeChilds(selectedItem);
         selectedItem.appendChild(createDOMElement(attrs.map(attrs.items[value])));
+        GRASP.setDisplay(ul,'none');
+      } else {
+        // dropType === 'icon' - just hide menu
         GRASP.setDisplay(ul,'none');
       }
     };
@@ -184,7 +206,7 @@ GRASP.UIElements.prototype = {
 
     // behaviour: hide menu when clicked outside menu
     document.body.addEventListener('click', function(evt){
-      if(attrs.nodrop) return;
+      if(attrs.dropType === 'multiple') return;
       if(!GRASP.isChildOf(evt.target, selectBox)){
         GRASP.setDisplay(ul,'none');
       }
@@ -521,7 +543,7 @@ GRASP.UIElements.prototype = {
     if(field['type'] == 'text') fieldDOM = this.createTextBox({name:name, value:field['value'], label:field['label'],placeholder:field['placeholder'], disabled:field['disabled'], callback:field['callback'], formname:form.id});
     if(field['type'] == 'textarea') fieldDOM = this.createTextareaBox({name:name, value:field['value'], label:field['label'], disabled:field['disabled'], callback:field['callback'], callback_delay:field['callback_delay'], formname:form.id});
     if(field['type'] == 'date') fieldDOM = this.createDate({name:name, value:field['value'], disabled:field['disabled'], callback:field['callback'], formname:form.id});
-    if(field['type'] == 'select') fieldDOM = this.createSelectBox({name:name, items:field['items'], defaultValue:field['value'], callback:field['callback'], disabled:field['disabled'], formname:form.id, nodrop:field['nodrop']});
+    if(field['type'] == 'select') fieldDOM = this.createSelectBox({name:name, items:field['items'], defaultValue:field['value'], callback:field['callback'], disabled:field['disabled'], formname:form.id, dropType:field['dropType']});
     if(field['type'] == 'button'){
       // if button field has callback - use it, if no - use general form submitCallback and pass form data to it
       fieldDOM = this.createButton({

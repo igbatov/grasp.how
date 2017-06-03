@@ -62,6 +62,8 @@ GRASP.Publisher.prototype = {
    * Publish events
    * @param events - every argument is an event.
    * Event can be an array [name, data], string 'name' or GRASP.Event(name, data)
+   * If you want to publish array of events, you can call
+   * publisher.publish.apply(publisher, [['name1',{}], ['name2',{}], ...])
    */
   publish: function(events){
     for(var i in arguments){

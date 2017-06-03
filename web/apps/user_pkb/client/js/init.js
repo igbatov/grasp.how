@@ -67,7 +67,9 @@ var Modules = {
   NodeListCache: GRASP.NodeListCache,
 
   BayesPubSub: GRASP.BayesPubSub,
-  BayesCalculator: GRASP.BayesCalculatorGRain
+  BayesCalculator: GRASP.BayesCalculatorGRain,
+
+  I18n: GRASP.I18n
 };
 
 /**
@@ -76,6 +78,7 @@ var Modules = {
  * @type {Object}
  */
 var DI = {
+  I18n: [],
   Ajax: ['jQuery'],
   Promise: ['jQuery'],
   Mediator: [],
@@ -130,7 +133,7 @@ var DI = {
   Repository: ['Publisher', 'Ajax', 'imageLoader'],
 
   FormFields: ['UIElements', 'Publisher'],
-  GraphMenu: ['Publisher', 'ViewManager', 'UIElements', 'FormFields', 'jQuery'],
+  GraphMenu: ['Publisher', 'ViewManager', 'UIElements', 'FormFields', 'jQuery', 'I18n'],
 
   SelectGraphLayoutModel: ['Publisher',{
     basicLayout: {
@@ -177,7 +180,14 @@ var DI = {
   GraphDecoration: [],
   GraphDecorationsPubSub: ['GraphDecoration'],
 
-  GraphElementEditor: ['Publisher', 'ViewManager', 'UIElements', 'FormFields', 'jQuery', GRASP.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})],
+  GraphElementEditor: [
+    'Publisher',
+    'ViewManager',
+    'UIElements',
+    'FormFields',
+    'jQuery',
+    GRASP.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})
+  ],
 
   NodeListCache: ['Publisher'],
 
@@ -315,6 +325,7 @@ Modules['Mediator'].setSubscriptions(
       'find_sources':[Modules['Repository']],
       'query_grain':[Modules['Repository']],
       'get_username':[Modules['Repository']],
+      'load_translations':[Modules['Repository']],
 
       'get_selected_layout':[Modules['SelectGraphLayoutModel']],
       'get_layout_by_name':[Modules['SelectGraphLayoutModel']],

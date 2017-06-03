@@ -62,6 +62,17 @@ class I18N{
     }
   }
 
+  /**
+   * Return array of all translations in a form [
+   *  'ru' => [
+   *      'enPhrase'=>'ruPhrase'
+   *    ],
+   *  'fr' => [
+   *      'frPhrase'=>'frPhrase'
+   *    ]
+   * ]
+   * @return array
+   */
   public function showAllTranslations()
   {
     $translations = [];

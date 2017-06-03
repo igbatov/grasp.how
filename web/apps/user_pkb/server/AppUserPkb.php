@@ -199,6 +199,9 @@ class AppUserPkb extends App
     switch($action){
 
       /* READ METHODS */
+      case 'load_translations':
+        return $this->showRawData(json_encode($this->i18n->showAllTranslations()));
+        break;
       case 'query_grain':
         // create text of R script for gRain
         $graph_id = $this->getRequest()['graphId'];

@@ -1,8 +1,9 @@
 /**
  * Class for translation of labels into different languages
- * Stores current language
- * @param translations - {ru:{engPhrase1:ruPhrase1, ...}, fr:{}, ...}
- * @param currentLang
+ * Stores current language and all translations
+ * If arg translations is not passed, it fires GRASP.Event 'get_translations'
+ * @param translations: optional {ru:{engPhrase1:ruPhrase1, ...}, fr:{}, ...}
+ * @param currentLang: 'en'|'ru'|'fr'
  * @constructor
  */
 GRASP.I18n = function (translations, currentLang) {
@@ -12,6 +13,10 @@ GRASP.I18n = function (translations, currentLang) {
 };
 
 GRASP.I18n.prototype = {
+  setTranslations: function(translations){
+    this._translations = translations;
+  },
+
   setLang: function(lang){
     if (this._possibleLangs.indexOf(lang) === -1) {
       throw Error('Language '+lang+' is not implemented yet!');

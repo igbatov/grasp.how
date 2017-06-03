@@ -216,6 +216,12 @@ GRASP.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
+    }else if(name == 'load_translations'){
+      this.pendingRequests.push({url:'load_translations', data:e.getData(), callback:function(data){
+        that.setEventResponse(e, data, 'JSON');
+      }});
+      this.sendPendingRequests()
+
     }else if(name == 'get_username'){
       this.pendingRequests.push({url:'get_username', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');

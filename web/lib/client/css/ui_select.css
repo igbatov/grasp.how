@@ -27,7 +27,7 @@
     /* transform: translateY(-50%); */
 }
 .ui_select ul{
-    width: 100%;
+    /* width: 100%; */
     vertical-align: baseline;
     margin: 0;
     padding: 0;
@@ -38,7 +38,7 @@
     background:#f1f1f1;
     display:none;
 }
-.ui_select ul.nodrop{
+.ui_select ul.multiple{
     position:relative;
     display:block;
 }
@@ -46,6 +46,24 @@
     cursor: pointer;
     border-top: 2px solid #d9d9d9;
 }
-.ui_select li:hover, .ui_select li.nodrop_selected{
+.ui_select li:hover, .ui_select li.multiple_selected{
     background-color: #d9d9d9;
+}
+
+.threelines {
+    cursor: pointer;
+    /* margin-top: 5px; */
+    margin-left: 6px;
+    margin-right: 6px;
+    padding-top: 2px;
+    border-bottom: 8px double black;
+    border-top: 3px solid black;
+    content:"";
+    height: 12px;
+    width: 18px;
+}
+
+.threelines .white {
+    border-bottom: 17px double white;
+    border-top: 6px solid white;
 }

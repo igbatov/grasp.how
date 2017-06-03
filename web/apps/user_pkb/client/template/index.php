@@ -22,6 +22,7 @@
   <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>Ajax.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/iListener.js"></script>

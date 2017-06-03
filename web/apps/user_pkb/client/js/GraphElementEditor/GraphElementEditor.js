@@ -381,7 +381,7 @@ GRASP.GraphElementEditor.prototype = {
           };
 
           if(node.type == that.NODE_TYPE_PROPOSITION){
-            that.UI.updateForm(form, 'active_alternative_id', {type:'select',items:[],callback:attrChange,nodrop:true});
+            that.UI.updateForm(form, 'active_alternative_id', {type:'select',items:[],callback:attrChange,dropType:'multiple'});
             that.UI.updateForm(form, 'addAlternative', {type:'button',label:'Add alternative',callback:addAlternative});
             that.UI.updateForm(form, 'removeAlternative', {type:'button',label:'Remove alternative',callback:removeAlternative});
             that.UI.updateForm(form, 'node-alternative_division_line', {type:'title',value:'================== Alternative =============='});
