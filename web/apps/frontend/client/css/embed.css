@@ -6,10 +6,21 @@
 .ui_select{
     width: 100%;
 }
-
+.ui_select a {
+    white-space: normal;
+    padding-right: 0;
+    padding-top: 0;
+    padding-left: 0;
+}
+.ui_select li {
+    min-width: unset;
+}
+.ui_select ul {
+    width: 100%;
+}
 /**
- * Font definitions
- */
+* Font definitions
+*/
 @font-face {
     font-family: 'DINPro';
     src: url('DINPro-Regular.woff') format('woff');

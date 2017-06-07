@@ -8,7 +8,7 @@ class Logger{
   private $start_time = 0;
   private $id;
 
-  public function __construct($db, $eh, $log_dir, $username){
+  public function __construct(MultiTenantDB $db, $eh, $log_dir, $username){
     $this->db = $db;
     $this->eh = $eh;
     $this->log_dir = $log_dir;

@@ -79,116 +79,145 @@ GRASP.UIElements.prototype = {
    *    formname:{String},
    *    dropType: 'multiple'|'single'|'icon'
    *    icon?: HTMLElement - icon that will be used for dropType = 'icon'
-   *    withLeftArrow: boolean,
+   *    withDownArrow: boolean,
    *    map?: function(HTMLElement|string|Object) - optional callback function that modifies item before render
    * }
    * Returns DOM element that can be used to select items
-   * name - name of select box
-   * items - in form {'value'=>'label', ...}
-   * defaultValue - selected item key
-   * callback - callback will receive select name and item name on selection
-   * single - use drop down list
-   * multiple - show all options at once
-   * icon - show icon (default three lines) and use menu items as buttons
+   * name - Name of select box
+   * items - In a form {'value1'=>'label1', 'value2'=>{'label2','items':['value3'=>'label3'], ...}
+   * defaultValue - Selected item key
+   * callback - Callback will receive select name and item name on selection. If callback returns false, selectBox do not change selected element
+   * dropTypes:
+   *    'single' - use drop down list
+   *    'multiple' - show all options at once
+   *    'icon' - show icon (default three lines) and use menu items as buttons
    * @returns {HTMLElement}
    */
   createSelectBox: function(attrs){
     var that = this,
         uniqId = this.generateId(),
-        selectedItem = GRASP.createElement('div',{class:'selected'},'none'),
         inputHidden = GRASP.createElement('input',{name:attrs.name,type:'hidden',value:null}),
         selectBox = GRASP.createElement('div',{class:'ui_select',id:uniqId,value:'none'},'');
 
+    attrs.withDownArrow = !!attrs.withDownArrow;
     if(typeof(attrs.dropType) == 'undefined') attrs.dropType = 'single';
-    if(typeof(attrs.icon) == 'undefined') attrs.icon = GRASP.createElement('div',{class:'threelines white'});
+    if(typeof(attrs.icon) == 'undefined') attrs.icon = GRASP.createElement('div',{class:'hamburger'});
     if(typeof(attrs.disabled) == 'undefined') attrs.disabled = false;
     if(typeof attrs.map == 'undefined') attrs.map = function(v){return v;}
+    var selectedItem = attrs.dropType == 'icon' ?
+        attrs.icon : GRASP.createElement('div',{class:'selected' + (attrs.withDownArrow ? ' withDownArrow' : '')},'none');
 
     /**
      * Create DOM element from selectBox item
+     * If item = {'value':DOMElement, 'items':{'value':DOMElement, ...}} then also creates url for next level
      * @param item HTMLElement|string
      * @returns {HTMLElement}
      */
     function createDOMElement(item) {
-      if(GRASP.isDOMElement(item)){
-        return GRASP.clone(item);
-      }else if(GRASP.typeof(item) == 'string'){
+      if (GRASP.isDOMElement(item)) {
+        var a = GRASP.createElement('a',{});
+        a.appendChild(GRASP.clone(item));
+        return a;
+      } else if(GRASP.typeof(item) == 'string') {
         var text = (item.length > that.SELECT_ITEM_MAX_LENGTH ? item.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item);
-        return GRASP.createElement('text',{},text);
-      }else{
+        return GRASP.createElement('a',{},text);
+      } else if (GRASP.typeof(item) === 'object' && GRASP.typeof(item['items']) === 'object') {
+        var c = GRASP.createElement('div',{})
+        var subitem = createDOMElement(item['value']);
+        subitem.className += 'with_left_arrow';
+        subitem.appendChild(GRASP.createElement('div',{class:'left_arrow'}));
+        var ul = createUL(item['items']);
+        c.appendChild(subitem);
+        c.appendChild(ul);
+        return c;
+      } else {
         throw new Error('please, use map option to define function that will convert item to string or HTMLElement');
       }
     }
 
-    // create list of items
-    var lis = Object.keys(attrs.items).map(function(key){
-      var li = GRASP.createElement('li',{value:key});
-      li.appendChild(createDOMElement(attrs.map(attrs.items[key])));
-      return li;
-    });
-    var ul = GRASP.createElement('ul',{'class': attrs.dropType},'');
-    lis.forEach(function(li){ ul.appendChild(li); });
+    // recursively create multi-level list of items
+    function createUL(items){
+      var lis = Object.keys(items).map(function(key){
+        var li = GRASP.createElement('li',{value:key});
+        li.appendChild(createDOMElement(attrs.map(items[key])));
 
-    if(attrs.dropType === 'single') {
+        var submenu = li.getElementsByTagName('ul').length ? li.getElementsByTagName('ul')[0] : null;
+
+        if(submenu){
+          li.addEventListener('mouseover', function(){
+            submenu.style.display = 'block';
+          })
+          li.addEventListener('mouseout', function(){
+            submenu.style.display = 'none';
+          })
+        }else{
+          // behaviour: click on item - select new one
+          li.addEventListener('click', function(evt){
+            var value = li.getAttribute('value');
+            selectBox.selectItem(value);
+          });
+        }
+
+        return li;
+      });
+      var ul = GRASP.createElement('ul',{'class': attrs.dropType},'');
+      lis.forEach(function(li){ ul.appendChild(li); });
+      return ul;
+    }
+
+    var ul = createUL(attrs.items);
+    var lis = ul.getElementsByTagName('li');
+
+    // create selected item
+    if(attrs.dropType !== 'multiple') {
       selectBox.appendChild(selectedItem);
-    } else if (attrs.dropType === 'icon') {
-      selectBox.appendChild(attrs.icon);
     }
     selectBox.appendChild(inputHidden);
     selectBox.appendChild(ul);
 
-    // set initial selection (defaultValue)
-    if(typeof(attrs.defaultValue) != 'undefined' && GRASP.getObjectKeys(attrs.items).indexOf(attrs.defaultValue) != -1){
-      if (attrs.dropType === 'multiple') {
-        lis.forEach(function(li){ if(li.getAttribute('value') == attrs.defaultValue) li.classList.add('multiple_selected'); });
-      } else {
-        GRASP.removeChilds(selectedItem);
-        selectedItem.appendChild(createDOMElement(attrs.map(attrs.items[attrs.defaultValue])));
-      }
-      GRASP.updateElement(inputHidden, {value:attrs.defaultValue});
-    }
-
-    // behaviour: toggle show/hide of menu for dropType = 'icon'
-    attrs.icon.addEventListener('click', function(evt){
-      if(GRASP.getDisplay(ul) == 'none'){
-        GRASP.setDisplay(ul,'block');
-      }else{
-        GRASP.setDisplay(ul,'none');
-      }
-    });
-    // behaviour: toggle show/hide of menu for dropType = 'multiple'|'single'
+    // behaviour: toggle show/hide of menu
     selectedItem.addEventListener('click', function(evt){
       if(attrs.disabled || attrs.dropType === 'multiple') return;
       if(GRASP.getDisplay(ul) == 'none'){
         GRASP.setDisplay(ul,'block');
         // hide element that is already selected
-        lis.forEach(function(li){
+        for(var i = 0; i < lis.length; i++){
+          var li = lis[i];
           if(li.getAttribute('value') == inputHidden.value){
             GRASP.setDisplay(li,'none');
           } else {
             GRASP.setDisplay(li,'block');
           }
-        });
+        }
       }else{
         GRASP.setDisplay(ul,'none');
       }
     });
 
     // action: select new item
-    selectBox.selectItem = function(value){
+    selectBox.selectItem = function(value, doNotCallUserCallback){
+      if(!that._findSelectBoxItem(attrs.items, value)) return false;
+      var cbResult = true;
+      if(typeof(attrs.callback) != 'undefined' && !doNotCallUserCallback) {
+        cbResult = attrs.callback(attrs.name, value);
+      }
+
+      // if callback returns false, do not change selected element
+      if (cbResult === false) return GRASP.setDisplay(ul,'none');
+
       GRASP.updateElement(inputHidden, {value:value});
-      if(typeof(attrs.callback) != 'undefined') attrs.callback(attrs.name, value);
       if(attrs.dropType === 'multiple'){
         // select item in no drop select list (aka 'select multiple')
         var selectedLi = null;
-        lis.forEach(function(li){
+        for(var i = 0; i < lis.length; i++){
+          var li = lis[i];
           li.classList.remove('multiple_selected')
-          if(li.value === value) selectedLi = li;
-        });
+          if(li.value.toString() === value) selectedLi = li;
+        }
         selectedLi.classList.add('multiple_selected');
       } else if (attrs.dropType === 'single') {
         GRASP.removeChilds(selectedItem);
-        selectedItem.appendChild(createDOMElement(attrs.map(attrs.items[value])));
+        selectedItem.appendChild(createDOMElement(attrs.map(that._findSelectBoxItem(attrs.items, value))));
         GRASP.setDisplay(ul,'none');
       } else {
         // dropType === 'icon' - just hide menu
@@ -196,13 +225,14 @@ GRASP.UIElements.prototype = {
       }
     };
 
-    // behaviour: click on item - select new one
-    lis.forEach(function(li){
-      li.addEventListener('click', function(evt){
-        var value = li.getAttribute('value');
-        selectBox.selectItem(value);
-      });
-    });
+    // set initial selection (defaultValue)
+    if(
+        attrs.dropType !== 'icon'
+        && typeof(attrs.defaultValue) != 'undefined'
+        && this._findSelectBoxItem(attrs.items, attrs.defaultValue)
+    ){
+      selectBox.selectItem(attrs.defaultValue, true);
+    }
 
     // behaviour: hide menu when clicked outside menu
     document.body.addEventListener('click', function(evt){
@@ -215,6 +245,18 @@ GRASP.UIElements.prototype = {
     this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'select', definition:attrs, dom:selectBox});
 
     return selectBox;
+  },
+
+  _findSelectBoxItem: function(items, needle){
+    for(var key in items){
+      var item = items[key];
+      if(key === needle) return item;
+      if(item.items) {
+        var r = this._findSelectBoxItem(item.items, needle);
+        if(r) return r;
+      } 
+    }
+    return false;
   },
 
   /**
@@ -272,12 +314,13 @@ GRASP.UIElements.prototype = {
    * @param attrs - {name, label, callback, disabled, formname}
    *  {String} name - i.e. "yes"
    *  {String} label - i.e "I agree!"
+   *  {String} type: 'bigButton'|'trashBin'|'plusCircle'
    *  {function(object)=} callback - callback arg is event
    *  {boolean=} disabled
    */
   createButton: function(attrs){
     var uniqId = this.generateId();
-    var el = GRASP.createElement('button',{id:uniqId, name:attrs.name, class:'ui_button',disabled:attrs.disabled},attrs.label);
+    var el = GRASP.createElement('button',{id:uniqId, name:attrs.name, class:'ui_button '+attrs.type, disabled:attrs.disabled},attrs.label);
     if(typeof(attrs.callback) != 'undefined'){
       el.addEventListener('click', function(evt){
         attrs.callback(evt);
@@ -699,6 +742,22 @@ GRASP.UIElements.prototype = {
   },
 
   /**
+   * Alert user
+   * @param text - "Are you sure ...?"
+   * @param callback - callback will get 'yes' or 'no'
+   */
+  showAlert: function(text){
+    var that = this, m = this.createModal(), modalContent = GRASP.createElement('div', {class:'ui_confirm'});
+    modalContent.appendChild(this.createForm(
+        {title:{type:'title', value:text}, ok:{type:'button',label:'OK'}},
+        function(v){
+          that.closeModal(m);
+        }
+    ));
+    this.setModalContent(m, modalContent);
+  },
+
+  /**
    * Ask user to confirm his action
    * @param text - "Are you sure ...?"
    * @param callback - callback will get 'yes' or 'no'
@@ -732,9 +791,10 @@ GRASP.UIElements.prototype = {
    * Creates list of items with action buttons next to each
    * @param {Object<string, string | HTMLElement>} items - in a form {id:label, ...}, id is string, label is string or HTMLElement
    * @param {Object<string, function>} actions - action that can be made on item, in a form {name:callback, ...}, action args are item id and li (HTMLElement that represents item)
+   * @param disabled: boolean
    */
   createList: function(items, actions, disabled){
-    var disabled = disabled || false;
+    disabled = !!disabled;
     var uniqId = this.generateId();
     var ul = GRASP.createElement('ul', {id:uniqId, class:'ui_list'});
     for(var id in items){

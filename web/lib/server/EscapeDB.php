@@ -20,7 +20,7 @@ class EscapeDB {
   public function exec($query, $params=array())
   {
     foreach($params as $key=>$value){
-      $query = str_replace(':'.$key, $this->db->escape($value), $query);
+      $query = str_replace(':'.$key, '"'.$this->db->escape($value).'"', $query);
     }
     return $this->db->execute($query);
   }

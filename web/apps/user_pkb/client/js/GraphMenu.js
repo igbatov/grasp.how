@@ -4,11 +4,12 @@
  * @param publisher
  * @param viewManager
  * @param UI
- * @param formFields
+ * @param formFields - instance of GRASP.FormFields
  * @param jQuery
+ * @param i18n - instance of GRASP.I18n
  * @constructor
  */
-GRASP.GraphMenu = function(publisher, viewManager, UI, formFields, jQuery, i18n){
+GRASP.GraphMenu = function(publisher, viewManager, UI, formFields, jQuery, i18n) {
   this.publisher = publisher;
   this.selectedPosition = {};  // {graphId:<'leftGraphView', 'rightGraphView', 'not to be shown'>, ...}
   this.viewManager = viewManager;
@@ -18,6 +19,15 @@ GRASP.GraphMenu = function(publisher, viewManager, UI, formFields, jQuery, i18n)
   this.i18n = i18n;
 
   this.container = this.viewManager.getViewContainer('horizontalMenu');
+
+  // internal state vars
+  this.graphs = {};
+  this.trashItems = {};
+
+  this.leftGraphId = null;
+  this.rightGraphId = null;
+  this.leftGraphViewSelect = null;
+  this.rightGraphViewSelect = null;
 };
 
 GRASP.GraphMenu.prototype = {
@@ -58,343 +68,407 @@ GRASP.GraphMenu.prototype = {
   _createView: function(){
     var c = this.container, that = this, $ = this.jQuery;
 
-    this.publisher.publish("get_graph_models", "repository_get_graphs_clone_list").then(function(graphs, clones){
-      var items = {'none':'none'}, i, trashItems={};
+    this.publisher.publish("get_graph_models").then(function(graphs){
+      that.graphs = graphs;
+      that.trashItems = {};
+      var items = {}, i;
 
-      // get our own graph names
+      // fill in items and trashItems
       for(i in graphs){
         if(!graphs[i].getAttribute('isInTrash')) items[graphs[i].getGraphId()] = graphs[i].getGraphName();
-        else trashItems[graphs[i].getGraphId()] = graphs[i].getGraphName();
+        else that.trashItems[graphs[i].getGraphId()] = graphs[i].getGraphName();
       }
 
-      var onRemove = function(position){
-        var graphId = '';
-        for(var i in that.selectedPosition){
-          if(that.selectedPosition[i] == position) graphId = i;
-        }
-        if(typeof(graphs[graphId]) == 'undefined') return true;
-        that.UI.showConfirm('Are you sure you want to move "'+graphs[graphId].getGraphName()+'" to trash?', function(answer){
-          if(answer == 'no') return true;
-          // set it as not to be shown
-          onSelect('not to be shown', graphId);
-          // say about this event to all subscribers
-          that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:true}]);
-          // redraw menu
-          that._createView();
-        });
-      };
-
-      var onEdit = function(position){
-        var graphId = null;
-        for(var i in that.selectedPosition){
-          if(that.selectedPosition[i] == position) graphId = i;
-        }
-        if(typeof(graphs[graphId]) == 'undefined') return;
-
-        var m = that.UI.createModal();
-        that.UI.setModalContent(m, that.UI.createForm({
-          'graphId':{'type':'hidden', 'value':graphId},
-          'name':{'type':'text', 'label':'Name:', 'value':graphs[graphId].getGraphName()},
-          'submit':{type:'button', label:'Изменить'}
-        }, function(form){
-          // say about this event to all subscribers
-          that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
-          // redraw menu
-          that._createView();
-          that.UI.closeModal(m);
-        }));
-      };
-
-      var showNew = function(){
-        var m = that.UI.createModal();
-        var newGraphId = null;
-        that.UI.setModalContent(
-          m,
-          that.UI.createForm({
-            'name':{type:'text', label:'Name:'},
-            'submit':{type:'button', label:'Создать'}
-          },
-          function(form){
-            that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(data){
-              newGraphId = data['graphId'];
-              // reload graphs models
-              return that.publisher.publish(['load_graph_models']);
-            }).then(function(){
-              // redraw menu
-              that._createView();
-              leftGraphViewSelect.selectItem(newGraphId);
-            });
-            that.UI.closeModal(m);
-          })
-        );
-      };
-
-      var showTrash = function(){
-        that.UI.showModalList(trashItems, {'restore':function(graphId, el){
-          el.parentNode.removeChild(el);
-          // say about this event to all subscribers
-          that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:false}]);
-          // redraw menu
-          that._createView();
-        }});
-      };
-
-      var calculateBayes = function(position){
-        var graphId = null;
-        for(var i in that.selectedPosition){
-          if(that.selectedPosition[i] == position) graphId = i;
-        }
-        if(typeof(graphs[graphId]) == 'undefined') return;
-        that.publisher.publish(['calculate_bayes_probabilities', {graphId:graphId}]);
-      };
-
-      /**
-       * show list of clones of graph selected in position pos
-       * @param pos
-       */
-      var showClones = function(pos){
-        var graphId;
-
-        // determine graphId selected on position pos
-        for(var i in that.selectedPosition){
-          if(that.selectedPosition[i] == pos) graphId = i;
-        }
-
-        var showGraph = function(cloneId){
-          // get graph diff and show it
-          that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
-            // change graph position
-            that.selectedPosition[cloneId] = 'rightGraphView';
-            // and then show them
-            that.publisher.publish('show_graphs');
-            that.UI.closeModal(m);
-          });
-        };
-
-        var clonedFromList = that.UI.createList(clones[graphId]['cloned_from'],
-            {
-              'show clone': showGraph,
-              'show diff':function(cloneId){
-                // get graph diff and show it
-                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
-                  // and then show them
-                  that.publisher.publish('show_graphs');
-                  that.UI.closeModal(m);
-                });
-              }
-            });
-
-        var clonedToList = that.UI.createList(clones[graphId]['cloned_to'],
-            {
-              'show clone': showGraph,
-              'show diff':function(cloneId){
-                // get graph diff and show it
-                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
-                  // and then show them
-                  that.publisher.publish('show_graphs');
-                  that.UI.closeModal(m);
-                });
-              }
-            });
-
-        var m = that.UI.createModal();
-
-        var cloneListContainer = GRASP.createElement('div', {});
-        cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned from'));
-        cloneListContainer.appendChild(clonedFromList);
-        cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned to'));
-        cloneListContainer.appendChild(clonedToList);
-
-        that.UI.setModalContent(m,cloneListContainer);
-      };
-
-      var leftGraphId = null, rightGraphId = null;
-      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') leftGraphId = i;
-      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') rightGraphId = i;
-
-      /**
-       * Graph select
-       * @param position
-       * @param graphId
-       */
-      var onSelect = function(position, graphId){
-        // set position of old selected graph to 'not to be shown'
-        for(var i in that.selectedPosition){
-          if(that.selectedPosition[i] == position) that.selectedPosition[i] = 'not to be shown';
-        }
-
-        // set position of newly selected graph
-        that.selectedPosition[graphId] = position;
-        for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') leftGraphId = i;
-        for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') rightGraphId = i;
-
-        // say about this event to all subscribers
-        that.publisher.publish(['graph_position_changed', {graphId:graphId, position:position}]);
-      };
+      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'leftGraphView') that.leftGraphId = i;
+      for(i in that.selectedPosition) if(that.selectedPosition[i] == 'rightGraphView') that.rightGraphId = i;
 
       // clear our container
       $('#'+c.id).html('');
-
-      // create New and Trash Buttons
-      var generalButtonsContainer = GRASP.createElement('div',{class:'GeneralButtons'});
-      document.getElementById(c.id).appendChild(generalButtonsContainer);
-      generalButtonsContainer.appendChild(that.UI.createSelectBox({
-        name:'general_buttons',
-        items:{
-          'New': that.i18n.__('Create new'),
-          'Trash': that.i18n.__('Removed'),
-          'Sources': that.i18n.__('Fact sources')
-        },
-        callback:function(name, value){
-          if(value === 'New') showNew();
-          if(value === 'Trash') showTrash();
-          if(value === 'Sources') showSources();
-        },
-        dropType:'icon'
-      }));
 
       // create containers for select boxes
       $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');
       $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
 
       // create left and right select box
-      var leftGraphViewSelect = that.UI.createSelectBox({name:'leftGraphView', items:items, defaultValue:leftGraphId, callback:onSelect});
-      document.getElementById('leftSelectContainer').appendChild(leftGraphViewSelect);
-      var rightGraphViewSelect = that.UI.createSelectBox({name:'rightGraphView', items:items, defaultValue:rightGraphId, callback:onSelect});
-      document.getElementById('rightSelectContainer').appendChild(rightGraphViewSelect);
-
-      // add edit and remove buttons to the right of select boxes
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'EditName',label:'Edit name', callback:function(){onEdit('leftGraphView')}}));
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('leftGraphView')}}));
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Clones', label:'Clones', callback:function(){showClones('leftGraphView')}}));
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'CalculateBayes', label:'Bayes|>', callback:function(){calculateBayes('leftGraphView')}}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Edit', label:'Edit name', callback:function(){onEdit('rightGraphView')}}));
-      document.getElementById('rightSelectContainer').appendChild(that.UI.createButton({name:'Remove', label:'Remove', callback:function(){onRemove('rightGraphView')}}));
-
-      // Share button
-      document.getElementById('leftSelectContainer').appendChild(that.UI.createButton({name:'Share',label:'Share', class:'share_button', callback:function(){
-        var m = that.UI.createModal();
-        var uniqId = Math.floor(Math.random()*10000);
-        var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src=\'http://www.grasp.how/embed.js?data={"graphIds":['+leftGraphId+'],"uniqId":"grasp-how-'+uniqId+'"}\'></script></div>';
-        var embedImageCode = '<a target="_blank" href="http://www.grasp.how/embed/['+leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+leftGraphId+'.jpg"></a>';
-        that.UI.setModalContent(
-            m,
-            that.UI.createForm({
-              'title':{
-                type:'title',
-                value:'To place the "'+graphs[leftGraphId].getGraphName()+'" in a web page, copy snippet below'
-              },
-              'tabs':{
-                type:'tabs',
-                items:{
-                  'javascript code':GRASP.createElement('textarea',{},embedJSCode),
-                  'image':GRASP.createElement('textarea',{},embedImageCode)
-                },
-                defaultItem:'javascript code'
-              }
-            })
-        );
-      }}));
-
-      var showSources = function(){
-        that.publisher.publish(['repository_get_user_sources', {}]).then(function(sources){
-          var items = {};
-
-          function createSourceDOM(source){
-            var dom = GRASP.createElement('div', {}, source.name
-                +' //'+source.author+' // '
-                +source.publisher
-                +' // (rel. '+source.publisher_reliability
-                +')\n || Used in graphs:\n');
-
-            // create DOM for nodes used in sources[i]
-            for(var j in source.usedIn){
-              var usedInNodesLabels = 'Used in nodes:\n';
-              for(var k in source.usedIn[j].usedInNodes) usedInNodesLabels += '"'+source.usedIn[j].usedInNodes[k].label+'",';
-              var graph = that.UI.addTooltip(GRASP.createElement('div', {}, source.usedIn[j]['graphName']), usedInNodesLabels);
-              dom.appendChild(graph);
-            }
-
-            return dom;
+      var selectItems = {
+        SelectGraph: {value:'Open', items:items},
+        Clones: that.i18n.__('Clones'),
+        New: that.i18n.__('New'),
+        Share: that.i18n.__('Share'),
+        EditName: that.i18n.__('Edit name'),
+      };
+      if(GRASP.getObjectLength(items) > 1) selectItems.Remove = that.i18n.__('Remove');
+      that.leftGraphViewSelect = that.UI.createSelectBox({
+        name:'leftGraphView',
+        items:selectItems,
+        defaultValue:that.leftGraphId,
+        callback:function(name, value) {
+          if(value === 'EditName'){
+            that._onEdit.call(that, 'leftGraphView');
+            return false;
+          } else if (value === 'Clones') {
+            that._showClones.call(that, 'leftGraphView')
+            return false;
+          } else if (value === 'New') {
+            that._showNew.call(that);
+            return false;
+          } else if (value === 'Share') {
+            that._shareCallback.call(that);
+            return false;
+          } else if (value === 'Remove') {
+            that._onRemove.call(that, 'leftGraphView');
+            return false;
+          } else {
+            // selection of graph (value = graphId)
+            that._onSelect.call(that,'leftGraphView',value);
+            return true;
           }
+        }
+      });
+      document.getElementById('leftSelectContainer').appendChild(that.leftGraphViewSelect);
 
-          // create label for every source
-          for(var i in sources){
-            items[sources[i].id] = createSourceDOM(sources[i]);
+      that.rightGraphViewSelect = that.UI.createSelectBox({
+        name:'rightGraphView',
+        items:items,
+        defaultValue:that.rightGraphId,
+        callback:function(name, value) {
+          that._onSelect.call(that,'rightGraphView',value);
+        }
+      });
+      document.getElementById('rightSelectContainer').appendChild(that.rightGraphViewSelect);
+
+      // create New and Trash Buttons
+      var generalButtonsContainer = GRASP.createElement('div',{class:'GeneralButtons'});
+      document.getElementById(c.id).appendChild(generalButtonsContainer);
+      // add general menu
+      var sc = GRASP.createElement('div',{class:'hamburgerSelectBoxWrapper'});
+      sc.appendChild(that.UI.createSelectBox({
+        name:'Hamburger',
+        items:{
+          'Trash': that.i18n.__('Removed'),
+          'Sources': that.i18n.__('Fact sources'),
+          'Logout': that.i18n.__('Logout')
+        },
+        callback:function(name, value){
+          if(value === 'Trash') that._showTrash.call(that, that.trashItems);
+          if(value === 'Sources') that._showSources.call(that);
+          if(value === 'Logout') {
+            window.location.href = '/logout';
           }
-
-          var itemActions = {
-            edit:function(id, el){
-              var item = sources[id];
-              var modalWindow = that.UI.createModal();
-              // create blank form with submit callback
-              var form = that.UI.createForm(
-                  {},
-                  function(form) {
-                    // update sources
-                    GRASP.getObjectKeys(sources[id]).forEach(function (v, k) {
-                      if (typeof(form[v]) != 'undefined') sources[id][v] = form[v];
-                    });
-                    // update server
-                    that.publisher.publish(['repository_update_source', form]).then(function () {
-                      el.parentNode.insertBefore(that.UI.createListItem(id, createSourceDOM(sources[id]), itemActions), el);
-                      el.parentNode.removeChild(el);
-                      that.UI.closeModal(modalWindow);
-                    });
-                  }
-              );
-
-              // create fields for this form
-              var formFields = that.formFields.getSourceFields(form);
-              // do not find other sources by name modification
-              formFields['name']['findCallback'] = function () {
-              };
-              formFields['name']['selectCallback'] = function () {
-              };
-              formFields['name']['typeCallback'] = function () {
-              };
-              // remove 'pages' field because it is set custom for each concrete node
-              delete formFields['pages'];
-              // remove 'source' field because we gonna use id field instead
-              delete formFields['source_id'];
-
-              // fill in form fields
-              if (GRASP.getObjectKeys(item).length) {
-                GRASP.getObjectKeys(formFields).forEach(function (v, k) {
-                  if (typeof(item[v]) != 'undefined') formFields[v].value = item[v];
-                });
-              }
-
-              // fill blank form with fields
-              for (var fieldName in formFields) {
-                that.UI.updateForm(form, fieldName, formFields[fieldName]);
-              }
-
-              // show/hide fields in a form according to item source_type
-              if (item.source_type) formFields['source_type'].callback('', item.source_type);
-
-              that.UI.setModalContent(modalWindow, form);
-            },
-            remove: function(id, el){
-              that.publisher.publish(['repository_remove_user_sources', [id]]).then(function(result){
-                if(result['removed'].length && result['removed'][0] == id){
-                  el.parentNode.removeChild(el);
-                }
-              });
-            }
-          };
-          that.UI.showModalList(items, itemActions);
-
-        });
-      }
-
-      // logout button
-      document.getElementById('rightSelectContainer').appendChild(GRASP.createElement('a',{href:'/logout',class:'logout'},'logout'));
-
+        },
+        dropType:'icon'
+      }));
+      generalButtonsContainer.appendChild(sc);
       // username
       that.publisher.publish(['get_username']).then(function(data){
-        document.getElementById('rightSelectContainer').appendChild(GRASP.createElement('span',{class:'username'},data.username));
+        generalButtonsContainer.appendChild(
+            GRASP.createElement('span',{class:'username'},data.username)
+        );
+        // add edit and remove buttons to the right of select boxes
+        generalButtonsContainer.appendChild(
+            that.UI.createButton({
+              name:'CalculateBayes',
+              label:'Bayes|>',
+              type:'bigButton',
+              callback:function(){that._calculateBayes.call(that, 'leftGraphView')}
+            })
+        );
       });
+    });
+  },
+
+  _onRemove: function(position){
+    var graphToRemoveId = '', that = this;
+    for(var i in this.selectedPosition){
+      if(this.selectedPosition[i] == position) graphToRemoveId = i;
+    }
+    var remainingGraphIds = [];
+    for(var i in this.selectedPosition){
+      if(Object.keys(this.trashItems).indexOf(i) === -1 && i !== graphToRemoveId) remainingGraphIds.push(i);
+    }
+    if(typeof(this.graphs[graphToRemoveId]) == 'undefined') return true;
+    if(remainingGraphIds.length == 0){
+      this.UI.showAlert('Sorry, you cannot remove your only map');
+      return false;
+    }
+    this.UI.showConfirm(
+      'Are you sure you want to move "'+this.graphs[graphToRemoveId].getGraphName()+'" to trash?',
+      function(answer){
+        if(answer == 'no') return true;
+
+        that.publisher.publish(['set_graph_attributes', {graphId:graphToRemoveId, isInTrash:true}])
+          .then(function(){
+            that.leftGraphViewSelect.selectItem(remainingGraphIds[0]);
+            that._createView();
+          });
+      }
+    );
+  },
+
+  _onEdit: function(position){
+    var graphId = null, that = this;
+    for(var i in this.selectedPosition){
+      if(this.selectedPosition[i] == position) graphId = i;
+    }
+    if(typeof(this.graphs[graphId]) == 'undefined') return;
+
+    var m = this.UI.createModal();
+    this.UI.setModalContent(m, this.UI.createForm({
+      'graphId':{'type':'hidden', 'value':graphId},
+      'name':{'type':'text', 'label':'Name:', 'value':this.graphs[graphId].getGraphName()},
+      'submit':{type:'button', label:'Изменить'}
+    }, function(form){
+      // say about this event to all subscribers
+      that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
+      // redraw menu
+      that._createView();
+      that.UI.closeModal(m);
+    }));
+  },
+
+  /**
+   * Graph select callback
+   * @param position
+   * @param graphId
+   */
+  _onSelect: function(position, graphId){
+    // set position of old selected graph to 'not to be shown'
+    for(var i in this.selectedPosition){
+      if(this.selectedPosition[i] == position) this.selectedPosition[i] = 'not to be shown';
+    }
+
+    // set position of newly selected graph
+    this.selectedPosition[graphId] = position;
+    for(i in this.selectedPosition) if(this.selectedPosition[i] == 'leftGraphView') this.leftGraphId = i;
+    for(i in this.selectedPosition) if(this.selectedPosition[i] == 'rightGraphView') this.rightGraphId = i;
+
+    // say about this event to all subscribers
+    return this.publisher.publish(['graph_position_changed', {graphId:graphId, position:position}]);
+  },
+
+  _showNew: function(){
+    var that = this;
+    var m = this.UI.createModal();
+    var newGraphId = null;
+    this.UI.setModalContent(
+      m,
+      this.UI.createForm(
+        {
+          'name':{type:'text', label:'Name:'},
+          'submit':{type:'button', label:'Создать'}
+        },
+        function(form){
+          that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(data){
+            newGraphId = data['graphId'];
+            // reload graphs models
+            return that.publisher.publish(['load_graph_models']);
+          }).then(function(){
+            // redraw menu
+            that._createView();
+            that.leftGraphViewSelect.selectItem(newGraphId);
+          });
+          that.UI.closeModal(m);
+        }
+      )
+    );
+  },
+
+  _showTrash: function(trashItems){
+    var that = this;
+    this.UI.showModalList(trashItems, {'restore':function(graphId, el){
+      el.parentNode.removeChild(el);
+      // say about this event to all subscribers
+      that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:false}]).then(function(){
+        // redraw menu
+        that._createView();
+      });
+    }});
+  },
+
+  _calculateBayes: function(position){
+    var graphId = null;
+    for(var i in this.selectedPosition){
+      if(this.selectedPosition[i] == position) graphId = i;
+    }
+    if(typeof(this.graphs[graphId]) == 'undefined') return;
+    this.publisher.publish(['calculate_bayes_probabilities', {graphId:graphId}]);
+  },
+
+  /**
+   * show list of clones of graph selected in position pos
+   * @param pos
+   */
+  _showClones: function(pos){
+    var graphId, that=this, m = that.UI.createModal();
+
+    // determine graphId selected on position pos
+    for(var i in this.selectedPosition){
+      if(this.selectedPosition[i] == pos) graphId = i;
+    }
+
+    var showGraph = function(cloneId){
+      // get graph diff and show it
+      that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
+        // change graph position
+        that.selectedPosition[cloneId] = 'rightGraphView';
+        // and then show them
+        that.publisher.publish('show_graphs');
+        that.UI.closeModal(m);
+      });
+    };
+
+    this.publisher.publish("repository_get_graphs_clone_list").then(function(clones){
+      var clonedFromList = that.UI.createList(clones[graphId]['cloned_from'],
+          {
+            'show clone': showGraph,
+            'show diff':function(cloneId){
+              // get graph diff and show it
+              that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
+                // and then show them
+                that.publisher.publish('show_graphs');
+                that.UI.closeModal(m);
+              });
+            }
+          });
+
+      var clonedToList = that.UI.createList(clones[graphId]['cloned_to'],
+          {
+            'show clone': showGraph,
+            'show diff':function(cloneId){
+              // get graph diff and show it
+              that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
+                // and then show them
+                that.publisher.publish('show_graphs');
+                that.UI.closeModal(m);
+              });
+            }
+          });
+
+      var cloneListContainer = GRASP.createElement('div', {});
+      cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned from'));
+      cloneListContainer.appendChild(clonedFromList);
+      cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned to'));
+      cloneListContainer.appendChild(clonedToList);
+
+      that.UI.setModalContent(m,cloneListContainer);
+    });
+  },
+
+  /**
+   * Share button
+   */
+  _shareCallback: function(){
+    var m = this.UI.createModal();
+    var uniqId = Math.floor(Math.random()*10000);
+    var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src=\'http://www.grasp.how/embed.js?data={"graphIds":['+this.leftGraphId+'],"uniqId":"grasp-how-'+uniqId+'"}\'></script></div>';
+    var embedImageCode = '<a target="_blank" href="http://www.grasp.how/embed/['+this.leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+this.leftGraphId+'.jpg"></a>';
+    this.UI.setModalContent(
+        m,
+        this.UI.createForm({
+          'title':{
+            type:'title',
+            value:'To place the "'+this.graphs[this.leftGraphId].getGraphName()+'" in a web page, copy snippet below'
+          },
+          'tabs':{
+            type:'tabs',
+            items:{
+              'javascript code':GRASP.createElement('textarea',{},embedJSCode),
+              'image':GRASP.createElement('textarea',{},embedImageCode)
+            },
+            defaultItem:'javascript code'
+          }
+        })
+    );
+  },
+
+  _showSources: function(){
+    var that=this;
+    this.publisher.publish(['repository_get_user_sources', {}]).then(function(sources){
+      var items = {};
+
+      function createSourceDOM(source){
+        var dom = GRASP.createElement('div', {}, source.name
+            +' //'+source.author+' // '
+            +source.publisher
+            +' // (rel. '+source.publisher_reliability
+            +')\n || Used in graphs:\n');
+
+        // create DOM for nodes used in sources[i]
+        for(var j in source.usedIn){
+          var usedInNodesLabels = 'Used in nodes:\n';
+          for(var k in source.usedIn[j].usedInNodes) usedInNodesLabels += '"'+source.usedIn[j].usedInNodes[k].label+'",';
+          var graph = that.UI.addTooltip(GRASP.createElement('div', {}, source.usedIn[j]['graphName']), usedInNodesLabels);
+          dom.appendChild(graph);
+        }
+
+        return dom;
+      }
+
+      // create label for every source
+      for(var i in sources){
+        items[sources[i].id] = createSourceDOM(sources[i]);
+      }
+
+      var itemActions = {
+        edit:function(id, el){
+          var item = sources[id];
+          var modalWindow = that.UI.createModal();
+
+          // create empty form with submit callback
+          var form = that.UI.createForm(
+              {},
+              function(form) {
+                // update sources
+                GRASP.getObjectKeys(sources[id]).forEach(function (v, k) {
+                  if (typeof(form[v]) != 'undefined') sources[id][v] = form[v];
+                });
+                // update server
+                that.publisher.publish(['repository_update_source', form]).then(function () {
+                  el.parentNode.insertBefore(that.UI.createListItem(id, createSourceDOM(sources[id]), itemActions), el);
+                  el.parentNode.removeChild(el);
+                  that.UI.closeModal(modalWindow);
+                });
+              }
+          );
+
+          // create fields for this form
+          var formFields = that.formFields.getSourceFields(form);
+          // do not find other sources by name modification
+          formFields['name']['findCallback'] = function () {};
+          formFields['name']['selectCallback'] = function () {};
+          formFields['name']['typeCallback'] = function () {};
+          // remove 'pages' field because it is set custom for each concrete node
+          delete formFields['pages'];
+          // remove 'source' field because we gonna use id field instead
+          delete formFields['source_id'];
+
+          // fill in form fields
+          if (GRASP.getObjectKeys(item).length) {
+            GRASP.getObjectKeys(formFields).forEach(function (v, k) {
+              if (typeof(item[v]) != 'undefined') formFields[v].value = item[v];
+            });
+          }
+
+          // fill blank form with fields
+          for (var fieldName in formFields) {
+            that.UI.updateForm(form, fieldName, formFields[fieldName]);
+          }
+
+          // show/hide fields in a form according to item source_type
+          if (item.source_type) formFields['source_type'].callback('', item.source_type);
+
+          that.UI.setModalContent(modalWindow, form);
+        },
+        remove: function(id, el){
+          that.publisher.publish(['repository_remove_user_sources', [id]]).then(function(result){
+            if(result['removed'].length && result['removed'][0] == id){
+              el.parentNode.removeChild(el);
+            }
+          });
+        }
+      };
+      that.UI.showModalList(items, itemActions);
+
     });
   }
 };

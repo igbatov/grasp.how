@@ -11,7 +11,8 @@
     width: 100%;
     box-sizing: border-box;
 }
-.ui_select .selected::after{
+/* down arrow for select list */
+.ui_select .selected.withDownArrow::after{
     position: absolute;
     content: "";
     width: 0;
@@ -38,32 +39,66 @@
     background:#f1f1f1;
     display:none;
 }
-.ui_select ul.multiple{
-    position:relative;
-    display:block;
-}
 .ui_select li{
     cursor: pointer;
-    border-top: 2px solid #d9d9d9;
+    /* border-top: 2px solid #d9d9d9; */
+    position: relative; /* positioned so this is the reference. Required to be able to have the sub menu show up at the same level */
+    display: inline-block;
+    background-color:#FFFFFF;
+    /* Make the dropdown menu at least as wide as it's parent */
+    min-width: 100%;
+}
+
+.ui_select a {
+    padding-top: 13px;
+    padding-bottom: 12px;
+    padding-left: 20px;
+    padding-right: 62px;
+    display: block; /* So we can have padding */
+    white-space: nowrap; /* No linebreaks in the menu */
+    text-decoration: none;
+}
+.ui_select a.with_left_arrow {
+    padding-right: 1.5em;
+}
+.ui_select a .left_arrow {
+    display:inline-block;
+    width: 9px;
+    height: 9px;
+    transform: rotate(-225deg);
+    border-top: solid 2px #000000;
+    border-left: solid 2px #000000;
+    margin-top: 0.1em;
+    float: right;
 }
 .ui_select li:hover, .ui_select li.multiple_selected{
     background-color: #d9d9d9;
 }
-
-.threelines {
-    cursor: pointer;
-    /* margin-top: 5px; */
-    margin-left: 6px;
-    margin-right: 6px;
-    padding-top: 2px;
-    border-bottom: 8px double black;
-    border-top: 3px solid black;
-    content:"";
-    height: 12px;
-    width: 18px;
+/* for multi-level menu */
+.ui_select ul ul, .ui_select ul ul ul, .ui_select ul ul ul ul {
+    position:absolute;
+    display: none;
+    left: 100%; /* Pushes the menu to the right of it's parent */
+    top: 0; /* Make it appear at the same level as it's parent */
 }
 
-.threelines .white {
-    border-bottom: 17px double white;
-    border-top: 6px solid white;
+/* for dropType='multiple' case*/
+.ui_select ul.multiple{
+    position:relative;
+    display:block;
+}
+
+/* default icon for dropType='icon' */
+.hamburger{
+    cursor: pointer;
+    padding: 0.5em;
+}
+.hamburger::before{
+    display: inline-block;
+    width: 1.3em;
+    height: 1em;
+    padding: 0.0em;
+    content: "";
+    background: url("/lib/client/img/Hamburger_icon.svg") no-repeat 0 0;
+    background-size: 100%;
 }

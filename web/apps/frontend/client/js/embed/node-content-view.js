@@ -15,9 +15,9 @@ var globalState = typeof(globalState) == 'undefined' ? {probabilitiesOpened: tru
  */
 var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
   // component props
-  var _state = {active_alternative_id:null};
+  var _state = {nodeId:null, active_alternative_id:null};
   // children components
-  var altContentList = [];
+  var altContentList = {}; // {[index: nodeId]: DOMElement[]}
   // cache of generated views
   var cache = {};
 
@@ -25,18 +25,15 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
     getView: getView
   };
 
-  function setState(newstate){
-    _state = newstate;
-
-    var alt_id = _state['active_alternative_id'];
-
+  function setState(nodeId, alt_id){
+    _state = {nodeId:nodeId, active_alternative_id:alt_id};
     // show appropriate alternative content
-    altContentList.forEach(function(el){ GRASP.setDisplay(el, 'none'); });
-    GRASP.setDisplay(altContentList[alt_id],'block');
+    altContentList[nodeId].forEach(function(el){ GRASP.setDisplay(el, 'none'); });
+    GRASP.setDisplay(altContentList[nodeId][alt_id],'block');
   }
 
-  function getState(varname){
-    return _state[varname];
+  function getState(){
+    return _state;
   }
 
   /**
@@ -75,11 +72,12 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
       }
       var selectBox = UI.createSelectBox({
         name:'labels',
+        withDownArrow: true,
         items:items,
         defaultValue:"0",
         map:createLabelHTML,
         callback:function(name, alt_id){
-          setState({active_alternative_id:alt_id});
+          setState(content.nodeId, alt_id);
         }
       });
       var c = GRASP.createElement('div',{});
@@ -212,12 +210,13 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
       }
       var altAccordion = UI.createAccordion(accordionItems,{firstOpened:true});
       mainC.appendChild(altAccordion);
-      altContentList[alt_id] = altAccordion;
+      if(!altContentList[content.nodeId]) altContentList[content.nodeId] = [];
+      altContentList[content.nodeId][alt_id] = altAccordion;
       updateAccordionMaxLength(altAccordion, view, h, labels, altContentLabel, accordionItems.length);
     }
 
     // set initial state
-    setState({active_alternative_id:content['active_alternative_id']});
+    setState(content.nodeId, content['active_alternative_id']);
     cache[content.nodeId] = view;
     return view;
   }
@@ -283,8 +282,8 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
     var thenNodeId = condBlock['THEN'][0]['nodeId'];
     // concat 'then' alternative labels
     var thenLabel = '';
-    thenLabel += i18n.__('THEN PROBABILITY OF')+'\n"'+condBlock['THEN'][getState('active_alternative_id')].alternativeLabel+'"\n';
-    thenLabel += i18n.__('IS')+' '+condBlock['THEN'][getState('active_alternative_id')].probability+'\n\n';
+    thenLabel += i18n.__('THEN PROBABILITY OF')+'\n"'+condBlock['THEN'][getState()['active_alternative_id']].alternativeLabel+'"\n';
+    thenLabel += i18n.__('IS')+' '+condBlock['THEN'][getState()['active_alternative_id']].probability+'\n\n';
 
     eventData.push({
       key: 'condLabel',
