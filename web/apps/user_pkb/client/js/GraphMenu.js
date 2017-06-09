@@ -137,38 +137,40 @@ GRASP.GraphMenu.prototype = {
       });
       document.getElementById('rightSelectContainer').appendChild(that.rightGraphViewSelect);
 
-      // create New and Trash Buttons
       var generalButtonsContainer = GRASP.createElement('div',{class:'GeneralButtons'});
       document.getElementById(c.id).appendChild(generalButtonsContainer);
-      // add general menu
-      var sc = GRASP.createElement('div',{class:'hamburgerSelectBoxWrapper'});
-      sc.appendChild(that.UI.createSelectBox({
-        name:'Hamburger',
-        items:{
-          'Trash': that.i18n.__('Removed'),
-          'Sources': that.i18n.__('Fact sources'),
-          'Logout': that.i18n.__('Logout')
-        },
-        callback:function(name, value){
-          if(value === 'Trash') that._showTrash.call(that, that.trashItems);
-          if(value === 'Sources') that._showSources.call(that);
-          if(value === 'Logout') {
-            window.location.href = '/logout';
-          }
-        },
-        dropType:'icon'
-      }));
-      generalButtonsContainer.appendChild(sc);
-      // username
-      that.publisher.publish(['get_username']).then(function(data){
+      that.publisher.publish(['get_user_settings']).then(function(settings){
+        // add general menu
+        var sc = GRASP.createElement('div',{class:'hamburgerSelectBoxWrapper'});
+        sc.appendChild(that.UI.createSelectBox({
+          name:'Hamburger',
+          items:{
+            'Settings': that.i18n.__('Account settings'),
+            'Trash': that.i18n.__('Removed maps'),
+            'Sources': that.i18n.__('Fact sources'),
+            'Support': that.i18n.__('Support'),
+            'Logout': that.i18n.__('Logout')
+          },
+          callback:function(name, value){
+            if(value === 'Trash') that._showTrash.call(that, that.trashItems);
+            if(value === 'Sources') that._showSources.call(that);
+            if(value === 'Settings') that._showSettings.call(that, settings);
+            if(value === 'Logout') {
+              window.location.href = '/logout';
+            }
+          },
+          dropType:'icon'
+        }));
+        generalButtonsContainer.appendChild(sc);
+
         generalButtonsContainer.appendChild(
-            GRASP.createElement('span',{class:'username'},data.username)
+            GRASP.createElement('span',{class:'username'}, settings.username)
         );
         // add edit and remove buttons to the right of select boxes
         generalButtonsContainer.appendChild(
             that.UI.createButton({
               name:'CalculateBayes',
-              label:'Bayes|>',
+              label:that.i18n.__('Calculate Bayes'),
               type:'bigButton',
               callback:function(){that._calculateBayes.call(that, 'leftGraphView')}
             })
@@ -271,6 +273,33 @@ GRASP.GraphMenu.prototype = {
         }
       )
     );
+  },
+
+  _showSettings: function(settings){
+    var that = this;
+    var m = this.UI.createModal();
+    var form = this.UI.createForm({
+      'lang':{
+        type:'select',
+        items:{'en':'en', 'ru':'ru'},
+        value:settings['lang'],
+        dropType: 'single'
+      },
+      'submit':{
+        type:'button',
+        label:this.i18n.__('Save')
+      }
+    },
+    function(settings){
+      // save settings and close modal
+      that.publisher.publish(['set_user_settings', settings]).then(function(){
+        that.UI.closeModal(m);
+        // redraw menu with new language
+        that._createView();
+      });
+    });
+
+    that.UI.setModalContent(m,form);
   },
 
   _showTrash: function(trashItems){

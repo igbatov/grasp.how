@@ -222,8 +222,14 @@ GRASP.Repository.prototype = {
       }});
       this.sendPendingRequests()
 
-    }else if(name == 'get_username'){
-      this.pendingRequests.push({url:'get_username', data:e.getData(), callback:function(data){
+    }else if(name == 'repository_set_user_settings'){
+      this.pendingRequests.push({url:'repository_set_user_settings', data:e.getData(), callback:function(data){
+        that.setEventResponse(e, data, 'JSON');
+      }});
+      this.sendPendingRequests()
+
+    }else if(name == 'repository_get_user_settings'){
+      this.pendingRequests.push({url:'repository_get_user_settings', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests()

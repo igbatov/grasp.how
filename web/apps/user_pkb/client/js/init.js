@@ -69,7 +69,8 @@ var Modules = {
   BayesPubSub: GRASP.BayesPubSub,
   BayesCalculator: GRASP.BayesCalculatorGRain,
 
-  I18n: GRASP.I18n
+  I18n: GRASP.I18n,
+  UserSettings: GRASP.UserSettings
 };
 
 /**
@@ -192,7 +193,8 @@ var DI = {
   NodeListCache: ['Publisher'],
 
   BayesCalculator: ['Publisher'],
-  BayesPubSub: ['Publisher','BayesCalculator']
+  BayesPubSub: ['Publisher','BayesCalculator'],
+  UserSettings: ['Publisher','I18n']
 };
 
 // Creating and wiring modules according to DI array.
@@ -321,10 +323,11 @@ Modules['Mediator'].setSubscriptions(
       'repository_get_user_sources':[Modules['Repository']],
       'repository_remove_user_sources':[Modules['Repository']],
       'repository_update_node_mapping':[Modules['Repository']],
+      'repository_get_user_settings':[Modules['Repository']],
+      'repository_set_user_settings':[Modules['Repository']],
       'find_publishers':[Modules['Repository']],
       'find_sources':[Modules['Repository']],
       'query_grain':[Modules['Repository']],
-      'get_username':[Modules['Repository']],
       'load_translations':[Modules['Repository']],
 
       'get_selected_layout':[Modules['SelectGraphLayoutModel']],
@@ -337,5 +340,9 @@ Modules['Mediator'].setSubscriptions(
       'repository_requests_send':[Modules['StatusString']],
 
       'repository_processing':[Modules['StatusString']],
+
+      'init_user_settings':[Modules['UserSettings']],
+      'get_user_settings':[Modules['UserSettings']],
+      'set_user_settings':[Modules['UserSettings']]
     }
 );

@@ -174,6 +174,7 @@ class AppUserPkb extends App
             */
           )
       );
+      $fromUrl = isset($_REQUEST['fromUrl']) ? $_REQUEST['fromUrl'] : "/";
       include($this->getAppDir("template", false)."/login.php");
       return $this->showRawData();
     }
@@ -489,6 +490,19 @@ class AppUserPkb extends App
         return $this->showRawData(json_encode(['result'=>'success']));
         break;
 
+      case 'repository_get_user_settings':
+        return $this->showRawData(json_encode($this->getUserSettings()));
+        break;
+
+      case 'repository_set_user_settings':
+        $settings = $this->getUserSettings();
+        $r = $this->getRequest();
+        $settings = array_replace($settings, $r);
+        $q = "UPDATE auth SET settings = '".$this->db->escape(json_encode($settings))."' WHERE id = '".$this->getAuthId()."'";
+        $this->db->exec(null, $q);
+        $this->showRawData(json_encode($settings));
+        break;
+
       case 'getUserSources':
         $user_graph_ids = $this->getGraphIds($this->getAuthId());
         foreach ($user_graph_ids as $k => $user_graph_id) {
@@ -664,6 +678,15 @@ class AppUserPkb extends App
         }
         break;
     }
+  }
+
+  protected function getUserSettings(){
+    $q = "SELECT username, settings FROM auth WHERE id = '".$this->getAuthId()."' ";
+    $row = $this->db->exec(null, $q)[0];
+    $settings = $row['settings'] ? json_decode($row['settings'], true) : [];
+    $settings['username'] = $row['username'];
+    $settings['lang'] = isset($settings['lang']) ? $settings['lang'] : 'en';
+    return $settings;
   }
 
   protected function getGraphSettings($graph_ids){
@@ -1153,6 +1176,7 @@ class AppUserPkb extends App
       'GraphViewElement/GraphViewNodeLabel.js',
       'GraphViewElement/GraphViewEdge.js',
 
+      'UserSettings.js',
       'GraphMenu.js',
       'SelectGraphLayoutModel.js',
       'SelectGraphSkinModel.js',

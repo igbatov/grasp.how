@@ -47,22 +47,28 @@ GRASP.TestHelpers.fetch(
 }).then(function(){
    return GRASP[TEST_NAME]['testUpdateGraph']();
 }).then(function(){
-   return GRASP[TEST_NAME]['testUser']();
-}).then(function(){
    return GRASP[TEST_NAME]['testGraphRemove']();
 }).then(function(){
+ return GRASP[TEST_NAME]['testUser']();
+}).then(function(){
   var allEvents = p.getAllEvents();
-  Modules['Promise'].when.apply(Modules['Promise'], allEvents).then(function(){
+  Modules['Promise'].when.apply(Modules['Promise'], allEvents)
+  .then(function(){
     console.log('clearing test DB');
     return GRASP.TestHelpers.fetch(
-        TEST_NAME,
-        window.location.origin+'/clearTest'
-    ).then(function(){
-      console.log('all is done');
-      console.log('finished at', new Date());
-      console.log('total time', sw.elapsed()/1000);
-      console.log('fetchStat: ', GRASP.TestHelpers.getFetchStat());
-    });
+      TEST_NAME,
+      window.location.origin+'/clearTest');
+  })
+  .then(function() {
+    return GRASP.TestHelpers.fetch(
+      TEST_NAME,
+      window.location.origin + '/logout');
+  })
+  .then(function(){
+    console.log('all is done');
+    console.log('finished at', new Date());
+    console.log('total time', sw.elapsed()/1000);
+    console.log('fetchStat: ', GRASP.TestHelpers.getFetchStat());
   });
 });
 
