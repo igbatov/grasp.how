@@ -125,7 +125,7 @@ body {
 #leftSelectContainer{
     margin-left: 15em;
     display: inline-block;
-    width: 50%;
+    width: 40%;
 }
 
 #rightSelectContainer{
@@ -133,8 +133,10 @@ body {
 }
 
 .GeneralButtons{
-    width: 20%;
+    text-align: right;
+    width: 40%;
     display: inline-block;
+    padding-right: 6.5em;
 }
 
 .username{
