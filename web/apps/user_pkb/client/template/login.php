@@ -18,16 +18,14 @@
           <input type="<?php echo $field["type"]; ?>" name="<?php echo $key; ?>" /><br>
         </p>
         <?php endforeach ?>
-        <?php if (isset($_REQUEST['fromUrl'])) { ?>
-          <input type="hidden" name="fromUrl" value="<?php echo $_REQUEST['fromUrl']; ?>" />
-        <?php } ?>
+        <input type="hidden" name="fromUrl" value="<?php echo $fromUrl; ?>" />
         <input type="submit" value="SIGN IN" />
       </form>
     </fieldset>
     <div>
       <div style="text-align: center;">or authorize via</div>
       <div style="text-align: center;">
-        <?php foreach($this->oauth->getOauthProviders(base64_encode(json_encode(['fromUrl'=>$_REQUEST['fromUrl']]))) as $provider) : ?>
+        <?php foreach($this->oauth->getOauthProviders(base64_encode(json_encode(['fromUrl'=>$fromUrl]))) as $provider) : ?>
           <a target="_blank" href="<?php echo $provider['uri'] ?>" style="margin: 0 5px 0 5px;"><?php echo $provider['name']; ?></a>
         <?php
           endforeach
