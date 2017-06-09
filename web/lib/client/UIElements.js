@@ -181,12 +181,14 @@ GRASP.UIElements.prototype = {
       if(GRASP.getDisplay(ul) == 'none'){
         GRASP.setDisplay(ul,'block');
         // hide element that is already selected
-        for(var i = 0; i < lis.length; i++){
-          var li = lis[i];
-          if(li.getAttribute('value') == inputHidden.value){
-            GRASP.setDisplay(li,'none');
-          } else {
-            GRASP.setDisplay(li,'block');
+        if(attrs.dropType !== 'icon'){
+          for(var i = 0; i < lis.length; i++){
+            var li = lis[i];
+            if(li.getAttribute('value') == inputHidden.value){
+              GRASP.setDisplay(li,'none');
+            } else {
+              GRASP.setDisplay(li,'block');
+            }
           }
         }
       }else{
