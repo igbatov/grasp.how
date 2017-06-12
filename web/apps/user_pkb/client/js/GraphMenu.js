@@ -91,13 +91,15 @@ GRASP.GraphMenu.prototype = {
 
       // create left and right select box
       var selectItems = {
-        SelectGraph: {value:'Open', items:items},
-        Clones: that.i18n.__('Clones'),
-        New: that.i18n.__('New'),
-        Share: that.i18n.__('Share'),
-        EditName: that.i18n.__('Edit name'),
+        SelectGraph: {value:that.i18n.__('Open'), items:items},
+        New: GRASP.createElement('div',{class:'withAddIcon'},that.i18n.__('New')),
+        Clones: GRASP.createElement('div',{class:'withCloneIcon'},that.i18n.__('Clones')),
+        Share: GRASP.createElement('div',{class:'withShareIcon'}, that.i18n.__('Share')),
+        EditName: GRASP.createElement('div',{class:'withEditIcon'},that.i18n.__('Rename')),
       };
-      if(GRASP.getObjectLength(items) > 1) selectItems.Remove = that.i18n.__('Remove');
+      if(GRASP.getObjectLength(items) > 1) {
+        selectItems.Remove = GRASP.createElement('div',{class:'withTrashIcon'},that.i18n.__('Remove'));
+      }
       that.leftGraphViewSelect = that.UI.createSelectBox({
         name:'leftGraphView',
         items:selectItems,
@@ -146,7 +148,7 @@ GRASP.GraphMenu.prototype = {
           name:'Hamburger',
           items:{
             'Settings': that.i18n.__('Account settings'),
-            'Trash': that.i18n.__('Removed maps'),
+            'Trash': that.i18n.__('Removed'),
             'Sources': that.i18n.__('Fact sources'),
             'Support': that.i18n.__('Support'),
             'Logout': that.i18n.__('Logout')

@@ -54,6 +54,65 @@ body {
     margin-left: 0.5em;
 }
 
+/**
+ * menu item icons
+ */
+.withAddIcon::before{
+    position: relative;
+    top: -0.2em;
+    display: inline;
+    width: 24px;
+    height: 24px;
+    padding-right: 2.3em;
+    padding-bottom: 5px;
+    content: "";
+    background: url(/apps/user_pkb/client/img/ic_add_circle_black_24px.svg) no-repeat 0 0;
+}
+.withCloneIcon::before{
+    position: relative;
+    top: -0.2em;
+    display: inline;
+    width: 24px;
+    height: 24px;
+    padding-right: 2.3em;
+    padding-bottom: 5px;
+    content: "";
+    background: url(/apps/user_pkb/client/img/ic_control_point_duplicate_black_24px.svg) no-repeat 0 0;
+}
+.withTrashIcon::before{
+    position: relative;
+    top: -0.2em;
+    display: inline;
+    width: 24px;
+    height: 24px;
+    padding-right: 2.3em;
+    padding-bottom: 5px;
+    content: "";
+    background: url(/apps/user_pkb/client/img/ic_delete_black_24px.svg) no-repeat 0 0;
+}
+.withEditIcon::before{
+    position: relative;
+    top: -0.2em;
+    display: inline;
+    width: 24px;
+    height: 24px;
+    padding-right: 2.3em;
+    padding-bottom: 5px;
+    content: "";
+    background: url(/apps/user_pkb/client/img/ic_mode_edit_black_24px.svg) no-repeat 0 0;
+}
+.withShareIcon::before{
+    position: relative;
+    top: -0.2em;
+    display: inline;
+    width: 24px;
+    height: 24px;
+    padding-right: 2.3em;
+    padding-bottom: 5px;
+    content: "";
+    background: url(/apps/user_pkb/client/img/ic_share_black_24px.svg) no-repeat 0 0;
+}
+
 #graphViews{
     position:  absolute;
     top: 0;
