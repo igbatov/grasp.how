@@ -845,12 +845,29 @@ GRASP.SVGDrawer.Circle = function(baseShape, args){
   baseShape.setShape(this.shape);
   baseShape.init();
   this.setRadius(args.radius);
+  this.setFillOpacity(args.fillOpacity);
+  this.setStrokeColor(args.stroke);
+  this.setStrokeOpacity(args.strokeOpacity);
 };
 
 GRASP.SVGDrawer.Circle.prototype = {
+  setStrokeOpacity: function(v){
+    if(v) this.getShape().style += 'stroke-opacity: '+v+';';
+  },
+  setStrokeWidth: function(v){
+    if(v) this.getShape().style += 'stroke-width: '+v+';';
+  },
+  setStrokeColor: function(v){
+    if(v) this.getShape().style += 'stroke: '+v+';';
+  },
+  setFillOpacity: function(v){
+    if(v) this.getShape().setAttributeNS(null, "fill-opacity",  v);
+  },
   setRadius: function(v){
-    this.radius = v;
-    this.getShape().setAttributeNS(null, "r",  this.radius);
+    if(v) {
+      this.radius = v;
+      this.getShape().setAttributeNS(null, "r",  this.radius);
+    }
   },
   getRadius: function(){
     return this.radius;

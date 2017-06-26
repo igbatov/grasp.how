@@ -7,16 +7,18 @@
  * @param ViewManager
  * @param UI
  * @param formFields
+ * @param i18n
  * @param jQuery
  * @param ajaxIndicator
  * @constructor
  */
-GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, jQuery, ajaxIndicator){
+GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, i18n, jQuery, ajaxIndicator){
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
   this.UI = UI;
   this.formFields = formFields;
+  this.i18n = i18n;
 
   this.currentElement = null;
   this.currentEvent = null;
@@ -39,11 +41,9 @@ GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, jQue
 };
 
 GRASP.GraphElementEditor.prototype = {
-  NODE_TYPE_FACT: 'fact',
-  NODE_TYPE_PROPOSITION: 'proposition',
-  DEFAULT_ALTERNATIVE_LABEL_PREFIX: 'NOT TRUE: ',
+
   eventListener: function(event){
-    var $ = this.jQuery, v;
+    var $ = this.jQuery, v, that=this;
 
     if(event.getData().position == 'rightGraphView') v = $('#'+this.leftContainer.id);
     else if(event.getData().position == 'leftGraphView') v = $('#'+this.rightContainer.id);
@@ -63,7 +63,7 @@ GRASP.GraphElementEditor.prototype = {
         }else{
           // If this is update of opened node, then reload it
           if(event.getData().nodeContentId == this.currentElement.elementId
-              && this.getEventElementType(event) == this.currentElement.elementType)
+              && this._getEventElementType(event) == this.currentElement.elementType)
           {
             if([
                 'addAlternative', 'removeAlternative', 'updateAlternative', 'updateNodeAlternativesP',
@@ -100,14 +100,33 @@ GRASP.GraphElementEditor.prototype = {
 
         v.html('');
         if(event.getData().elementType == 'node'){
-          document.getElementById(v.attr('id')).appendChild(
-            this._createNodeForm(
-              event.getData().graphId,
-              event.getData().isEditable,
-              event.getData().nodeTypes,
-              event.getData().nodeId,
-              event.getData().nodeContentId
-          ));
+          var graphId = event.getData().graphId;
+          var nodeId = event.getData().nodeId;
+          var nodeContentId = event.getData().nodeContentId;
+          var model = this.publisher.getInstant('get_graph_models', [graphId])[graphId];
+          var parentNodeContentIds = model.getParentNodesContentIds(nodeId);
+
+          this.publisher
+              .publish(
+                  ['get_graph_node_content', {graphId:graphId, nodeContentIds:[nodeContentId]}],
+                  ['get_graph_node_content', {graphId:graphId, nodeContentIds:parentNodeContentIds}]
+              )
+              .then(function(nodeContents, parentNodeContents){
+                var nodeFormElements = that._createNodeForm(
+                    graphId,
+                    event.getData().isEditable,
+                    event.getData().nodeTypes,
+                    nodeId,
+                    nodeContentId,
+                    nodeContents[nodeContentId],
+                    parentNodeContents
+                );
+                for(var i in nodeFormElements) {
+                  document.getElementById(v.attr('id')).appendChild(nodeFormElements[i]);
+                }
+
+              });
+
         }else if(event.getData().elementType == 'edge'){
           document.getElementById(v.attr('id')).appendChild(
             this._createEdgeForm(
@@ -117,7 +136,8 @@ GRASP.GraphElementEditor.prototype = {
               event.getData().edge
           ));
         }
-        v.show();
+
+        GRASP.setDisplay(document.getElementById(v.attr('id')), 'block');
         break;
       case 'hide_graph_element_editor':
         this.currentElement = null;
@@ -131,306 +151,480 @@ GRASP.GraphElementEditor.prototype = {
     }
   },
 
-  getEventElementType: function(event){
-    if(event.getName() == 'graph_element_content_changed' && [
-      'updateEdgeAttribute',
-      'addEdge'
-    ].indexOf(event.getData().type) != -1) return 'edge';
-
-    if(event.getName() == 'graph_element_content_changed' && [
-      'updateNodeAttribute',
-      'addAlternative',
-      'removeAlternative',
-      'updateAlternative',
-      'updateNodeAlternativesP',
-      'updateNodeText',
-      'node_list_update_request',
-      'node_list_remove_request',
-      'node_list_add_request',
-      'addNode',
-      'addIcon'
-    ].indexOf(event.getData().type) != -1) return 'node';
-
-    return false;
-  },
-
   _reloadEvent: function(){
     this.eventListener(this.currentEvent);
   },
 
-  _createNodeForm: function(graphId, isEditable, nodeTypes, nodeId, nodeContentId){
-    // select list for node types
+  _createNodeForm: function(
+      graphId,
+      isEditable,
+      nodeTypes,
+      nodeId,
+      nodeContentId,
+      node,
+      parentNodeContents
+  ){
     var that = this;
 
-    // define callbacks for fields
-    var removeNode = function(){
-      if(confirm('Are you sure?')){
-        that.publisher.publish(["request_for_graph_model_change", {graphId: graphId, type: 'removeNode', elementId: nodeId}]);
-      }
-    };
-
-    var addAlternative = function(){
-      var modalWindow = that.UI.createModal();
-      var form = that.UI.createForm({
-            //label: {label:'Введите название альтернативной теории',type:'text',value:'',callback:function(){}},
-            label: {label:'Please, enter name of the alternative proposition',type:'text',value:'',callback:function(){}},
-            button:{type:'button', label:'Добавить'}
-          },
-          // form submit callback
-          function (form) {
-            // set form fields to item
-            that.publisher.publish(["request_for_graph_element_content_change", {
-              graphId: graphId, 
-              type: 'addAlternative', 
-              nodeContentId: nodeContentId,
-              label: form.label
-            }]);
-
-            that.UI.closeModal(modalWindow);
-          });
-      that.UI.setModalContent(modalWindow, form);
-    };
-
-    /*
-     var addIcon = function(files,ul){
-
-     that.publisher.publish(['request_for_graph_element_content_change', {
-     graphId: graphId,
-     type: 'addIcon',
-     file: files,
-     nodeContentId: node.nodeContentId
-     }]);
-     };
-     var removeIcon = function(){};
-     */
-
-    // create empty form with all necessary fields
-    var formDef = {};
-    formDef['editConditionals'] ={type:'hidden'};
-    formDef['active_alternative_id'] = {type:'hidden'};
-    formDef['addAlternative'] = {type:'hidden',disabled:!isEditable};
-    formDef['removeAlternative'] = {type:'hidden',disabled:!isEditable};
-    formDef['removeButton'] ={type:'button',label:'remove Node',disabled:!isEditable};
-    formDef['type'] = {type:'select',items:[],value:'',disabled:!isEditable};
-    formDef['importance'] =  {type:'range',min:0,max:99,step:1,value:100,disabled:!isEditable};
-    formDef['node-alternative_division_line'] = {type:'hidden'};
-    formDef['label'] = {type:'textarea',value:'',disabled:!isEditable, callback_delay:1000};
-    formDef['reliability'] = {type:'hidden'};
-    //  formDef['icon'] =        {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
-    formDef['text'] ={type:'textarea',label:'',disabled:!isEditable, callback_delay:1000};
-    formDef['list'] ={type:'list',disabled:!isEditable};
-
-    var form = this.UI.createForm(formDef);
-
-    this.publisher
-        .publish(
-            ['get_graph_node_content', {graphId:graphId, nodeContentIds:[nodeContentId]}]
-        )
-      // nodes - text, list - sources or falsifications
-        .then(function(contents){
-
-         console.info('contents',GRASP.clone(contents));
-
-          var node = contents[nodeContentId];
-          var activeAlternative = node.alternatives[node.active_alternative_id];
-
-          var types = nodeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{});
-
-          var attrChange = function(name,value){
-            that.publisher.publish(['request_for_graph_element_content_change', {
-              graphId: graphId,
-              type: 'updateNodeAttribute',
-              nodeContentId: nodeContentId,
-              node_alternative_id: node.active_alternative_id,
-              nodeAttribute: {name:name, value:value}
-            }]);
-
-            // if node is of type FACT then we should also automatically rename its alternative on label edit
-            if(name == 'label' && node.type == that.NODE_TYPE_FACT){
-              that.publisher.publish(['request_for_graph_element_content_change', {
-                graphId: graphId,
-                type: 'updateNodeAttribute',
-                nodeContentId: nodeContentId,
-                node_alternative_id: 1,
-                nodeAttribute: {name:name, value:that.DEFAULT_ALTERNATIVE_LABEL_PREFIX+value}
-              }]);
-            }
-          };
-
-          var removeAlternative = function(){
-
-            if(GRASP.getObjectKeys(node.alternatives).length == 2){
-              //alert('Извините, но должно быть минимум 2 альтернативы!');
-              alert('Sorry, you cannot have only one alternative');
-              return;
-            }
-            if(confirm('Are you sure?')){
-              that.publisher.publish(['request_for_graph_element_content_change', {
-                    graphId: graphId,
-                    type: 'removeAlternative',
-                    nodeContentId: nodeContentId,
-                    node_alternative_id: node.active_alternative_id
-              }]);
-            }
-
-          };
-
-          /**
-           * Form of conditional probabilities editor
-           */
-          var editConditionals = function(){
-            var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
-            var parentNodeContentIds = model.getParentNodesContentIds(nodeId);
-
-            that.publisher
-                .publish(
-                    ['get_graph_node_content', {graphId:graphId, nodeContentIds:parentNodeContentIds}]
-                )
-                .then(function(parentContents){
-                  var fields = {};
-                  // array of each combination of parent alternatives,
-                  // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
-                  var formKeys = [{}];
-
-                  var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
-                      node,
-                      isEditable,
-                      function(type){return type == that.NODE_TYPE_FACT;},
-                      parentContents,
-                      [that.NODE_TYPE_FACT, that.NODE_TYPE_PROPOSITION],
-                      nodeId
-                  );
-                  fields = f.fields;
-                  formKeys = f.formKeys;
-
-                  fields['button'] = {type:'button', label:'Save',disabled:!isEditable};
-
-                  var modalWindow = that.UI.createModal();
-                  var form = that.UI.createForm(
-                    fields,
-                    // form submit callback
-                    function (form) {
-                      var probabilities = {};
-
-                      for(var j in node.alternatives){
-                        probabilities[j] = {};
-                        for(var i in formKeys){
-                          var formKeyStr = JSON.stringify(formKeys[i]);
-                          probabilities[j][formKeyStr] = form[i+'_THEN_'+formKeyStr+'_'+j] != '' ? form[i+'_THEN_'+formKeyStr+'_'+j] : 1/GRASP.getObjectLength(node.alternatives);
-                        }
-                      }
-
-                      // sanity check of probability values
-                      for(var i in formKeys){
-                        var formKeyStr = JSON.stringify(formKeys[i]);
-
-                        // check that every probability in [0,1]
-                        for(var j in node.alternatives){
-                          if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
-                            alert('Probability cannot be less than 0 and greater than 1');
-                            return true;
-                          }
-                        }
-
-                        // check that sum of probabilities by row equals 1
-                        var sum = 0;
-                        var alertMsg = '';
-                        for(var j in node.alternatives){
-                          sum += parseFloat(probabilities[j][formKeyStr]);
-                          alertMsg += probabilities[j][formKeyStr]+'+';
-                        }
-                        if(sum != 1){
-                          alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
-                          //alert(alertMsg+"\n"+'Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его условий) должна быть равна 1');
-                          alert(alertMsg+"\n"+'Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1');
-                          return true;
-                        }
-
-                      }
-
-                      that.publisher.publish(["request_for_graph_element_content_change", {
-                           graphId: graphId,
-                           type: 'updateNodeAlternativesP',
-                           nodeContentId: nodeContentId,
-                           alternatives: probabilities
-                         }]);
-
-                      that.UI.closeModal(modalWindow);
-                      return true;
-                    }
-                  );
-
-                  // add auto-change of field values so that sum by row equals 1 (only for case of 2 alternatives)
-                  if(GRASP.getObjectLength(node.alternatives) == 2){
-                    for(var i in formKeys){
-                      var formKeyStr = JSON.stringify(formKeys[i]);
-                      var alternativeIds = GRASP.getObjectKeys(node.alternatives);
-                      for(var j in alternativeIds){
-                        (function(formKeyStr, i, j, alternativeIds){
-                          that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[j], {callback: function(name,value){
-                            var newValue = parseFloat(Number((1 - parseFloat(value))).toFixed(15));
-                              that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
-                          }});
-                        })(formKeyStr, i, j, alternativeIds);
-                      }
-                    }
-                  }
-
-                  that.UI.setModalContent(modalWindow, form);
-                });
-          };
-
-          if(node.type == that.NODE_TYPE_PROPOSITION){
-            that.UI.updateForm(form, 'active_alternative_id', {type:'select',items:[],callback:attrChange,dropType:'multiple'});
-            that.UI.updateForm(form, 'addAlternative', {type:'button',label:'Add alternative',callback:addAlternative});
-            that.UI.updateForm(form, 'removeAlternative', {type:'button',label:'Remove alternative',callback:removeAlternative});
-            that.UI.updateForm(form, 'node-alternative_division_line', {type:'title',value:'================== Alternative =============='});
-          }
-
-          if(node.type == that.NODE_TYPE_PROPOSITION || node.type == that.NODE_TYPE_FACT){
-            // if node is a child - let user edit its conditional probabilities
-            var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
-            var parentNodeContentIds = model.getParentNodesContentIds(nodeId);
-            if(parentNodeContentIds.length){
-              // if parents contains node types 'fact' or 'proposition', then let user edit conditional probabilities
-              that.checkNodesHasFactOrProposition(graphId, parentNodeContentIds, function(yes){
-                if(yes) that.UI.updateForm(form, 'editConditionals', {type:'button',label:'Conditional probabilities',callback:editConditionals});
-              });
-            }
-            that.UI.updateForm(form, 'reliability', {type:'range',min:0,max:100,step:1,value:activeAlternative.reliability,callback:attrChange,disabled:true});
-          }
-
-          that.UI.updateForm(form, 'type', {type:'select',items:types,value:node.type,callback:attrChange});
-          that.UI.updateForm(form, 'importance', {type:'range',min:0,max:99,step:1,value:node.importance,callback:attrChange});
-          that.UI.updateForm(form, 'label', {type:'textarea',value:activeAlternative.label,callback:attrChange});
-          //  formDef['icon',      {type:'file',items:{},addCallback:addIcon,removeCallback:removeIcon};
-          that.UI.updateForm(form, 'removeButton', {type:'button',label:'remove Node',callback:removeNode});
-
-          that._addContent(form, nodeContentId, node.type, graphId, isEditable, contents);
+    var remove = this.UI.createButton({
+      name: 'removeNode',
+      label: this.i18n.__('Remove node'),
+      callback: this._removeNode.bind(this, graphId, nodeId)
     });
 
+    var label = this._createLabel(graphId, nodeContentId, node);
+
+    var accordionItems = [];
+    accordionItems.push({
+      label: this.i18n.__('Description'),
+      content: this._createDescription(graphId, nodeContentId, node, isEditable)
+    });
+
+    if (node.type == GRASP.GraphViewNode.NODE_TYPE_FACT) {
+      accordionItems.push({
+        label: this.i18n.__('Sources'),
+        content: this._createSources(graphId, nodeContentId, node, isEditable)
+      });
+    }
+
+    if (
+        (node.type == GRASP.GraphViewNode.NODE_TYPE_FACT || node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION)
+        && this.hasFactOrProposition(parentNodeContents)
+    ) {
+      accordionItems.push({
+        label: this.i18n.__('Conditional probabilities'),
+        content: this._createConditionalProbabilities(graphId, nodeContentId, nodeId, node, parentNodeContents, isEditable)
+      });
+    }
+
+    var accordion = null;
+    accordion = this.UI.createAccordion(accordionItems,{firstOpened: true, callback:function(){
+      that._setAccordionTabHeight(accordion)
+    }});
+    this._setAccordionTabHeight(accordion);
+    return [remove, label, accordion];
+  },
+
+  _setAccordionTabHeight: function(accordion){
+    var that = this;
+    var f = function(timeout) {
+      setTimeout(function () {
+        // if accordion was not mounted yet, then wait and repeat
+        if(document.getElementById(accordion.id) === null) return f(100);
+        // ok, it was mounted, so calculate tab content max height
+
+        var editorId = accordion.parentNode.id;
+        var cHeight = that.jQuery('#'+editorId).outerHeight();
+        var cTop = that.jQuery('#'+editorId).offset().top;
+        var tabs = that.jQuery('#'+editorId+' .tab');
+        var aboveAccordionHeight = that.jQuery(tabs[0]).offset().top - cTop;
+        var firstLabel = that.jQuery('#'+editorId+' .tab>label')[0];
+        var allAccordionLabelsHeight = that.jQuery(firstLabel).outerHeight()*tabs.length;
+        var tabContentHeight = cHeight - aboveAccordionHeight - allAccordionLabelsHeight;
+        for (var i=0; i<tabs.length; i++) {
+          var tabContent = that.jQuery(tabs[i]).find('.tab-content')[0];
+          if(tabContent.parentNode.querySelectorAll('input')[0].checked){
+            tabContent.style.maxHeight = tabContentHeight+'px';
+          } else {
+            tabContent.style.maxHeight = 0;
+          }
+        }
+      }, timeout);
+    };
+    f(0);
+  },
+
+  /**
+   * Form of conditional probabilities editor
+   */
+  _createConditionalProbabilities: function(graphId, nodeContentId, nodeId, node, parentContents, isEditable){
+    var that = this;
+
+    var fields = {};
+    // array of each combination of parent alternatives,
+    // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+    var formKeys = [{}];
+
+    var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
+        node,
+        isEditable,
+        function(type){return type == GRASP.GraphViewNode.NODE_TYPE_FACT;},
+        parentContents,
+        [GRASP.GraphViewNode.NODE_TYPE_FACT, GRASP.GraphViewNode.NODE_TYPE_PROPOSITION],
+        nodeId
+    );
+    fields = f.fields;
+    formKeys = f.formKeys;
+
+    fields['button'] = {type:'button', label:'Save',disabled:!isEditable};
+
+    //var modalWindow = that.UI.createModal();
+    var form = that.UI.createForm(
+        fields,
+        // form submit callback
+        function (form) {
+          var probabilities = {};
+
+          for(var j in node.alternatives){
+            probabilities[j] = {};
+            for(var i in formKeys){
+              var formKeyStr = JSON.stringify(formKeys[i]);
+              probabilities[j][formKeyStr] = form[i+'_THEN_'+formKeyStr+'_'+j] != '' ? form[i+'_THEN_'+formKeyStr+'_'+j] : 1/GRASP.getObjectLength(node.alternatives);
+            }
+          }
+
+          // sanity check of probability values
+          for(var i in formKeys){
+            var formKeyStr = JSON.stringify(formKeys[i]);
+
+            // check that every probability in [0,1]
+            for(var j in node.alternatives){
+              if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
+                alert('Probability cannot be less than 0 and greater than 1');
+                return true;
+              }
+            }
+
+            // check that sum of probabilities by row equals 1
+            var sum = 0;
+            var alertMsg = '';
+            for(var j in node.alternatives){
+              sum += parseFloat(probabilities[j][formKeyStr]);
+              alertMsg += probabilities[j][formKeyStr]+'+';
+            }
+            if(sum != 1){
+              alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
+              //alert(alertMsg+"\n"+'Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его условий) должна быть равна 1');
+              alert(alertMsg+"\n"+'Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1');
+              return true;
+            }
+
+          }
+
+          that.publisher.publish(["request_for_graph_element_content_change", {
+            graphId: graphId,
+            type: 'updateNodeAlternativesP',
+            nodeContentId: nodeContentId,
+            alternatives: probabilities
+          }]);
+
+          that.UI.closeModal(modalWindow);
+          return true;
+        }
+    );
+
+    // add auto-change of field values so that sum by row equals 1 (only for case of 2 alternatives)
+    if(GRASP.getObjectLength(node.alternatives) == 2){
+      for(var i in formKeys){
+        var formKeyStr = JSON.stringify(formKeys[i]);
+        var alternativeIds = GRASP.getObjectKeys(node.alternatives);
+        for(var j in alternativeIds){
+          (function(formKeyStr, i, j, alternativeIds){
+            that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[j], {callback: function(name,value){
+              var newValue = parseFloat(Number((1 - parseFloat(value))).toFixed(15));
+              that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
+            }});
+          })(formKeyStr, i, j, alternativeIds);
+        }
+      }
+    }
+
+    //that.UI.setModalContent(modalWindow, form);
     return form;
+  },
+
+  _createSources: function(graphId, nodeContentId, node, isEditable){
+    var that = this;
+    if(node.type != GRASP.GraphViewNode.NODE_TYPE_FACT) return;
+
+    // create HTMLElements from list
+    var list = node.alternatives[node.active_alternative_id]['list'];
+    var htmllist = {};
+    for(var i in list) htmllist[i] = this._createHTMLFromListItem(list[i], node.type);
+
+    var validateListItem = function(item){
+      // check that publisher reliability is from 0 to 10
+      item.publisher_reliability = Number(item.publisher_reliability);
+      if(item.publisher_reliability < 0 || item.publisher_reliability > 10){
+        alert('reliability должен быть от 0 до 10');
+        return false;
+      }
+      return true;
+    };
+
+    var updateListItem = function(id, el){
+      that._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, list[id],
+          // this callback is called on 'submit' button
+          function(graphId, nodeContentId, node_alternative_id, item){
+            if(!validateListItem(item)) return false;
+
+            // save updated list
+            that.publisher
+                .publish(['request_for_graph_element_content_change', {
+                  type:'node_list_update_request',
+                  graphId: graphId,
+                  nodeContentId: nodeContentId,
+                  node_alternative_id:node_alternative_id,
+                  item: item,
+                  nodeType:node.type
+                }])
+                .then(function (updateAnswer) {
+                  // We do not change reliability of proposition based on falsification yet
+                  if(node.type != GRASP.GraphViewNode.NODE_TYPE_FACT) return true;
+
+                  that.publisher.publish(['request_for_graph_element_content_change',{
+                    type: 'updateNodeAttribute',
+                    graphId: graphId,
+                    nodeContentId: nodeContentId,
+                    node_alternative_id:node_alternative_id,
+                    nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
+                  }]);
+
+                  return true;
+                });
+            return true;
+          });
+      return true;
+    };
+
+    var removeListItem = function(id, el){
+      // save updated list
+      that.publisher.publish(
+          [
+            'request_for_graph_element_content_change',
+            {
+              type:'node_list_remove_request',
+              graphId:graphId, nodeContentId:nodeContentId,
+              node_alternative_id:node.active_alternative_id,
+              nodeType:node.type,
+              itemId:id
+            }
+          ]
+      ).then(function (updateAnswer) {
+        if(node.type != GRASP.GraphViewNode.NODE_TYPE_FACT) return true;
+
+        that.publisher.publish(['request_for_graph_element_content_change',{
+          type: 'updateNodeAttribute',
+          graphId: graphId,
+          nodeContentId: nodeContentId,
+          node_alternative_id:node.active_alternative_id,
+          nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
+        }]);
+
+        return true;
+      });
+      return true;
+    };
+
+    // define and add "add source button"
+    var addListItem = function(){
+      that._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, {source_type: 'article'},
+          function(graphId, nodeContentId, node_alternative_id, item){
+            if(!validateListItem(item)) return false;
+
+            that.publisher
+                .publish(['request_for_graph_element_content_change', {
+                  type:'node_list_add_request',
+                  graphId: graphId,
+                  nodeContentId: nodeContentId,
+                  node_alternative_id:node_alternative_id,
+                  nodeType:node.type,
+                  item:item
+                }])
+                .then(function (updateAnswer) {
+                  // We do not change reliability of proposition based on falsification yet
+                  if(node.type != GRASP.GraphViewNode.NODE_TYPE_FACT) return true;
+
+                  that.publisher.publish(['request_for_graph_element_content_change',{
+                    type: 'updateNodeAttribute',
+                    graphId: graphId,
+                    nodeContentId: nodeContentId,
+                    node_alternative_id:node_alternative_id,
+                    nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
+                  }]);
+
+                  return true;
+                });
+
+            return true;
+          }
+      );
+    };
+
+    return this.UI.createListBox({
+      name: 'list',
+      items:htmllist,
+      itemActions:{edit:updateListItem, remove:removeListItem},
+      addLabel: this.i18n.__('add source'),
+      addCallback: addListItem,
+      disabled:!isEditable
+    })
+  },
+
+  _createDescription: function(graphId, nodeContentId, node, isEditable){
+    var that=this;
+    var c = GRASP.createElement('div',{});
+    var editNodeText = function(name, value){
+      that.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateNodeText',
+        nodeContentId: nodeContentId,
+        node_alternative_id: node.active_alternative_id,
+        text: value
+      }]);
+    };
+    var nodeText = node.alternatives[node.active_alternative_id]['text'];
+    c.appendChild(this.UI.createTextareaBox({
+      name:'text',
+      value:nodeText,
+      disabled:!isEditable,
+      callback:editNodeText,
+      callback_delay:1000
+    }));
+    c.appendChild(this.UI.createRange({
+      name: 'importance',
+      min: 1,
+      max: 99,
+      step: 1,
+      value: node.importance,
+      callback: this._attrChange.bind(this, graphId, nodeContentId, node),
+      disabled: !isEditable
+    }));
+    return c;
+  },
+
+  _createLabel: function(graphId, nodeContentId, node){
+    var c = GRASP.createElement('div',{}); // container
+    var alternatives = node['alternatives'];
+    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION) {
+      // create list of alternative labels
+      var alternativeLabels = {};
+      for(var i in alternatives){
+        alternativeLabels[i] = GRASP.createElement('div',
+            {style:'position:relative; display: inline-block; width:100%; '+this._getPartialGradientStyle(alternatives[i].reliability)},
+            alternatives[i].label + ' ' +alternatives[i].reliability+'%');
+      }
+      // create select with alternativeLabels
+      var select = this.UI.createSelectBox({
+        name: 'active_alternative_id',
+        items: alternativeLabels,
+        value: node.active_alternative_id,
+        callback: this._attrChange.bind(this, graphId, nodeContentId, node),
+        dropType:'multiple'
+      });
+      // create buttons to add and remove alternatives
+      var add = this.UI.createButton({
+        name: 'addAlternative',
+        label: this.i18n.__('Add alternative'),
+        callback: this._addAlternative.bind(this, graphId, nodeContentId)
+      });
+      var remove = this.UI.createButton({
+        name: 'removeAlternative',
+        label: this.i18n.__('Remove alternative'),
+        callback: this._removeAlternative.bind(this, graphId, nodeContentId)
+      });
+      c.appendChild(select);
+      c.appendChild(add);
+      c.appendChild(remove);
+    } else {
+      var label = GRASP.createElement('div', {}, alternatives[node.active_alternative_id].label);
+      c.appendChild(label);
+    }
+
+    return c;
+  },
+
+  _removeNode: function(graphId, nodeId){
+    if(confirm('Are you sure?')){
+      this.publisher.publish([
+        "request_for_graph_model_change",
+        {
+          graphId: graphId,
+          type: 'removeNode',
+          elementId: nodeId
+        }
+      ]);
+    }
+  },
+
+  _addAlternative: function(graphId, nodeContentId){
+    var that = this;
+    var modalWindow = that.UI.createModal();
+    var form = that.UI.createForm({
+          label: {
+            label: that.i18n.__('Please, enter name of the alternative proposition'),
+            type:'text',
+            value:'',
+            callback:function(){}
+          },
+          button:{type:'button', label:'Добавить'}
+        },
+        // form submit callback
+        function (form) {
+          // set form fields to item
+          that.publisher.publish(["request_for_graph_element_content_change", {
+            graphId: graphId,
+            type: 'addAlternative',
+            nodeContentId: nodeContentId,
+            label: form.label
+          }]);
+
+          that.UI.closeModal(modalWindow);
+        }
+    );
+    that.UI.setModalContent(modalWindow, form);
+  },
+
+  _attrChange: function(graphId, nodeContentId, node, name, value){
+    this.publisher.publish(['request_for_graph_element_content_change', {
+      graphId: graphId,
+      type: 'updateNodeAttribute',
+      nodeContentId: nodeContentId,
+      node_alternative_id: node.active_alternative_id,
+      nodeAttribute: {name:name, value:value}
+    }]);
+
+    // if node is of type FACT then we should also automatically rename its alternative on label edit
+    if(name == 'label' && node.type == GRASP.GraphViewNode.NODE_TYPE_FACT){
+      this.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'updateNodeAttribute',
+        nodeContentId: nodeContentId,
+        node_alternative_id: 1,
+        nodeAttribute: {name:name, value:this.DEFAULT_ALTERNATIVE_LABEL_PREFIX+value}
+      }]);
+    }
+  },
+
+  _removeAlternative: function(graphId, nodeContentId, node){
+
+    if(GRASP.getObjectKeys(node.alternatives).length == 2){
+      //alert('Извините, но должно быть минимум 2 альтернативы!');
+      alert('Sorry, you cannot have only one alternative');
+      return;
+    }
+    if(confirm('Are you sure?')){
+      this.publisher.publish(['request_for_graph_element_content_change', {
+        graphId: graphId,
+        type: 'removeAlternative',
+        nodeContentId: nodeContentId,
+        node_alternative_id: node.active_alternative_id
+      }]);
+    }
+
   },
 
   /**
    * Check if node_content_ids contains 'fact' or 'proposition'
-   * @param graphId
-   * @param node_content_ids
-   * @param cb
+   * @param nodeContents
    */
-  checkNodesHasFactOrProposition: function(graphId, node_content_ids, cb){
+  hasFactOrProposition: function(nodeContents){
     var that = this;
-    this.publisher
-        .publish(
-            ['get_elements_attributes', {nodes:node_content_ids}]
-        )
-        .then(function(attrs){
-          var types = [];
-          for(var i in attrs['nodes']){
-            types.push(attrs['nodes'][i]['type']);
-          }
-          cb(types.indexOf(that.NODE_TYPE_PROPOSITION) != -1 || types.indexOf(that.NODE_TYPE_FACT) != -1);
-        });
+    var types = [];
+    for(var i in nodeContents){
+      types.push(nodeContents[i]['type']);
+    }
+    return types.indexOf(GRASP.GraphViewNode.NODE_TYPE_PROPOSITION) != -1 || types.indexOf(GRASP.GraphViewNode.NODE_TYPE_FACT) != -1;
   },
 
   /**
@@ -453,171 +647,6 @@ GRASP.GraphElementEditor.prototype = {
   },
 
   /**
-   * Create promises to add text and source list (for fact) or falsification list (for proposition)
-   * @param form
-   * @param nodeContentId
-   * @param nodeType
-   * @param graphId
-   * @param isEditable
-   * @param contents
-   * @private
-   */
-  _addContent: function(form, nodeContentId, nodeType, graphId, isEditable, contents){
-    var that = this;
-    var active_alternative_id = contents[nodeContentId]['active_alternative_id'];
-
-    var editNodeText = function(name, value){
-      that.publisher.publish(['request_for_graph_element_content_change', {
-        graphId: graphId,
-        type: 'updateNodeText',
-        nodeContentId: nodeContentId,
-        node_alternative_id: active_alternative_id,
-        text: value
-      }]);
-    };
-
-    var alternatives = contents[nodeContentId]['alternatives'];
-
-    if(nodeType == that.NODE_TYPE_PROPOSITION){
-      // create list of alternative labels
-      var alternativeLabels = {};
-      for(var i in alternatives){
-        alternativeLabels[i] = GRASP.createElement('div',
-          {style:'position:relative; display: inline-block; width:100%; '+that._getPartialGradientStyle(alternatives[i].reliability)},
-          alternatives[i].label + ' ' +alternatives[i].reliability+'%');
-      }
-
-      // update alternatives select
-      that.UI.updateForm(form,'active_alternative_id',{items:alternativeLabels, value:contents[nodeContentId]['active_alternative_id']});
-    }
-
-    // update node text
-    var nodeText = alternatives[contents[nodeContentId]['active_alternative_id']]['text'];
-    if(isEditable){
-      that.UI.updateForm(form,'text',{type:'textarea', value:nodeText, callback:editNodeText});
-    }else{
-      that.UI.updateForm(form,'text',{type:'textarea', value:nodeText, callback:editNodeText, disabled:true});
-    }
-
-    if(nodeType != that.NODE_TYPE_FACT && nodeType != that.NODE_TYPE_PROPOSITION) return;
-
-    // create HTMLElements from list
-    var list = alternatives[active_alternative_id]['list'];
-    var htmllist = {};
-    for(var i in list) htmllist[i] = that._createHTMLFromListItem(list[i], nodeType);
-
-    var validateListItem = function(item){
-      // check that publisher reliability is from 0 to 10
-      item.publisher_reliability = Number(item.publisher_reliability);
-      if(item.publisher_reliability < 0 || item.publisher_reliability > 10){
-        alert('reliability должен быть от 0 до 10');
-        return false;
-      }
-      return true;
-    };
-
-    var updateListItem = function(id, el){
-      that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, list[id],
-         // this callback is called on 'submit' button
-        function(graphId, nodeContentId, node_alternative_id, item){
-          if(!validateListItem(item)) return false;
-
-          // save updated list
-          that.publisher
-            .publish(['request_for_graph_element_content_change', {
-                type:'node_list_update_request',
-                graphId: graphId,
-                nodeContentId: nodeContentId,
-                node_alternative_id:node_alternative_id,
-                item: item,
-                nodeType:nodeType
-              }])
-            .then(function (updateAnswer) {
-                // We do not change reliability of proposition based on falsification yet
-                if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return true;
-
-                that.publisher.publish(['request_for_graph_element_content_change',{
-                  type: 'updateNodeAttribute',
-                  graphId: graphId,
-                  nodeContentId: nodeContentId,
-                  node_alternative_id:node_alternative_id,
-                  nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
-                }]);
-
-                return true;
-            });
-          return true;
-        });
-      return true;
-    };
-
-    var removeListItem = function(id, el){
-      // save updated list
-      that.publisher.publish(
-          ['request_for_graph_element_content_change', {type:'node_list_remove_request', graphId:graphId, nodeContentId:nodeContentId, node_alternative_id:active_alternative_id, nodeType:nodeType, itemId:id}]
-      ).then(function (updateAnswer) {
-        // We do not change reliability of proposition based on falsification yet
-        if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return true;
-
-        that.publisher.publish(['request_for_graph_element_content_change',{
-          type: 'updateNodeAttribute',
-          graphId: graphId,
-          nodeContentId: nodeContentId,
-          node_alternative_id:active_alternative_id,
-          nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
-        }]);
-
-        return true;
-      });
-      return true;
-    };
-
-    // define and add "add source button"
-    var addListItem = function(){
-      that._editListItem(graphId, nodeContentId, active_alternative_id, nodeType, {source_type: 'article'},
-          function(graphId, nodeContentId, node_alternative_id, item){
-            if(!validateListItem(item)) return false;
-
-            that.publisher
-            .publish(['request_for_graph_element_content_change', {
-                  type:'node_list_add_request',
-                  graphId: graphId,
-                  nodeContentId: nodeContentId,
-                  node_alternative_id:active_alternative_id,
-                  nodeType:nodeType,
-                  item:item
-                }])
-            .then(function (updateAnswer) {
-              // We do not change reliability of proposition based on falsification yet
-              if(contents[nodeContentId].type != that.NODE_TYPE_FACT) return true;
-
-              that.publisher.publish(['request_for_graph_element_content_change',{
-                type: 'updateNodeAttribute',
-                graphId: graphId,
-                nodeContentId: nodeContentId,
-                node_alternative_id:node_alternative_id,
-                nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
-              }]);
-
-              return true;
-            });
-
-            return true;
-          }
-      );
-    };
-
-    that.UI.updateForm(form, 'list', {
-      type:'list',
-      items:htmllist,
-      itemActions:{edit:updateListItem, remove:removeListItem},
-      addLabel: (nodeType == that.NODE_TYPE_FACT ? 'add source' : 'add falsification'),
-      addCallback: addListItem,
-      disabled:!isEditable
-    });
-  },
-
-  /**
    * Creating HTMLElement from node's list item
    * @param item - is a source (= {author:<string>, url:<string>, name:<string>, publisher:<string>}) or falsification
    * @returns {HTMLElement}
@@ -625,13 +654,13 @@ GRASP.GraphElementEditor.prototype = {
    */
   _createHTMLFromListItem: function(item, nodeType){
     var el = null;
-    if(nodeType == this.NODE_TYPE_FACT){
+    if(nodeType == GRASP.GraphViewNode.NODE_TYPE_FACT){
       if(typeof(item.url) != 'undefined' && item.url.length > 0){
         el = GRASP.createElement('a',{href:item.url, target:'_blank', title:this._lineBreaksForTooltips(item.comment)}, item.author+' / '+item.name+' / '+item.publisher);
       }else{
         el = document.createTextNode(item.author+' / '+item.name+' / '+item.publisher);
       }
-    }else if(nodeType == this.NODE_TYPE_PROPOSITION){
+    }else if(nodeType == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION){
       el = document.createTextNode(item.name);
     }
     return el;
@@ -708,9 +737,9 @@ GRASP.GraphElementEditor.prototype = {
     );
     var formFields = {};
 
-    if(nodeType == this.NODE_TYPE_FACT){
+    if(nodeType == GRASP.GraphViewNode.NODE_TYPE_FACT){
       formFields = that.formFields.getSourceFields(form);
-    }else if(nodeType == that.NODE_TYPE_PROPOSITION){
+    }else if(nodeType == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION){
       formFields = that.formFields.getFalsificationFields();
     }
 
@@ -730,6 +759,29 @@ GRASP.GraphElementEditor.prototype = {
 
     that.UI.setModalContent(modalWindow, form);
 
+  },
+
+  _getEventElementType: function(event){
+    if(event.getName() == 'graph_element_content_changed' && [
+          'updateEdgeAttribute',
+          'addEdge'
+        ].indexOf(event.getData().type) != -1) return 'edge';
+
+    if(event.getName() == 'graph_element_content_changed' && [
+          'updateNodeAttribute',
+          'addAlternative',
+          'removeAlternative',
+          'updateAlternative',
+          'updateNodeAlternativesP',
+          'updateNodeText',
+          'node_list_update_request',
+          'node_list_remove_request',
+          'node_list_add_request',
+          'addNode',
+          'addIcon'
+        ].indexOf(event.getData().type) != -1) return 'node';
+
+    return false;
   },
 
   _nl2br: function(str, is_xhtml) {

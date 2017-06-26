@@ -17,20 +17,34 @@ GRASP.GraphViewNode = function(drawer, graphViewElement, args){
     draggable: true
   });
 
-  this.circle = this.drawer.createShape('circle', {
-    x: 0,
-    y: 0,
-    radius: args.size,
-    fill: args.color,
-    stroke: args.color,
-    strokeWidth: 1
-  });
+  // if fact, then make white border around it
+  if(args.nodeType === GRASP.GraphViewNode.NODE_TYPE_FACT){
+    this.circle = this.drawer.createShape('circle', {
+      x: 0,
+      y: 0,
+      radius: args.size,
+      fill: args.color,
+      stroke: '#FFFFFF',
+      strokeWidth: 1,
+      strokeOpacity: 1
+    });
+  } else {
+    this.circle = this.drawer.createShape('circle', {
+      x: 0,
+      y: 0,
+      radius: args.size,
+      fill: args.color
+    });
+  }
   this.shape.add(this.circle);
 
   this.setStickers(args.stickers);
 
   graphViewElement.setDrawerShape(this.shape);
 };
+
+GRASP.GraphViewNode.NODE_TYPE_FACT = 'fact';
+GRASP.GraphViewNode.NODE_TYPE_PROPOSITION = 'proposition';
 
 GRASP.GraphViewNode.prototype = {
   remove: function(){

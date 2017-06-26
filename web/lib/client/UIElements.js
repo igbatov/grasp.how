@@ -859,6 +859,7 @@ GRASP.UIElements.prototype = {
    * @param options? - {
    *    firstOpened: boolean // show first tab opened, default false
    *    multiple: boolean // do not hide previously opened tabs, default false
+   *    callback: function
    * }
    */
   createAccordion: function(items, options){
@@ -871,10 +872,12 @@ GRASP.UIElements.prototype = {
       var input = GRASP.createElement('input',{
         id: uid,
         type: (options&&options.multiple?'checkbox':'radio'),
-        name: uniqId
+        name: uniqId,
+        class: 'tab_input'
       });
       if(options['firstOpened'] && k === 0) input.checked = 'checked';
       var label = GRASP.createElement('label',{for:uid});
+      if(options.callback) label.addEventListener('click', options.callback);
       label.appendChild(that.stringToDom(v.label));
       var content = GRASP.createElement('div',{class:'tab-content'});
       content.appendChild(that.stringToDom(v.content));

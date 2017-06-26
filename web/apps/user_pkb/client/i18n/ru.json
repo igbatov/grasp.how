@@ -10,5 +10,10 @@
   "Account settings":"Настройки аккаунта",
   "Support":"Поддержка",
   "Logout":"Выйти",
-  "Calculate Bayes":"Рассчитать по Байесу"
+  "Calculate Bayes":"Рассчитать по Байесу",
+  "Please, enter name of the alternative proposition":"Введите название альтернативной гипотезы",
+  "Description":"Описание",
+  "Remove node":"Удалить узел",
+  "Conditional probabilities":"Условные вероятности",
+  "Sources":"Источники"
 }

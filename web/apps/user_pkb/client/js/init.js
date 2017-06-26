@@ -186,6 +186,7 @@ var DI = {
     'ViewManager',
     'UIElements',
     'FormFields',
+    'I18n',
     'jQuery',
     GRASP.createElement('img',{'src':document.getElementById('ajaxLoader').getAttribute('src')})
   ],

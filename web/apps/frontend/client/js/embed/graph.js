@@ -323,13 +323,18 @@ var graphDrawer = (function(){
     // draw nodes
     for(var i in _nodes){
       var node = _nodes[i];
-      _svgc.append("circle")
+      var circle = _svgc.append("circle")
           .attr("class", 'graphNode')
           .attr("nodeId", node.id)
           .attr("nodeType", node.type)
           .attr("r", node.size*NODE_SIZE_FACTOR)
           .style("fill", node.color)
           .attr('fill-opacity', node.opacity);
+      if (node.type === 'fact') {
+          circle
+            .style("stroke", '#FFFFFF')
+            .style("stroke-width", 1);
+      }
     }
 
     // draw labels
