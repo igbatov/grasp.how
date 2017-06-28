@@ -1463,6 +1463,13 @@ GRASP.createElement = function(tag, attrs, text, callback, isText){
       callback(el.getAttribute('name'), el.options[el.selectedIndex].value);
     });
 
+    // contenteditable div
+    else if(tag == 'div' && attrs.contenteditable){
+      el.addEventListener('input',function(evt){
+        callback(el.getAttribute('name'), el.innerHTML);
+      });
+    }
+
     // textarea
     else if(tag == 'textarea'){
       el.addEventListener('keyup',function(evt){
@@ -1761,4 +1768,24 @@ GRASP.stopWatch = function(timerName){
   return {
     elapsed: elapsed
   }
+}
+
+GRASP.isHTML = function(str){
+  return /<(br|basefont|hr|input|source|frame|param|area|meta|!--|col|link|option|base|img|wbr|!DOCTYPE).*?>|<(a|abbr|acronym|address|applet|article|aside|audio|b|bdi|bdo|big|blockquote|body|button|canvas|caption|center|cite|code|colgroup|command|datalist|dd|del|details|dfn|dialog|dir|div|dl|dt|em|embed|fieldset|figcaption|figure|font|footer|form|frameset|head|header|hgroup|h1|h2|h3|h4|h5|h6|html|i|iframe|ins|kbd|keygen|label|legend|li|map|mark|menu|meter|nav|noframes|noscript|object|ol|optgroup|output|p|pre|progress|q|rp|rt|ruby|s|samp|script|section|select|small|span|strike|strong|style|sub|summary|sup|table|tbody|td|textarea|tfoot|th|thead|time|title|tr|track|tt|u|ul|var|video).*?<\/\2>/i.test(str);
+}
+
+
+GRASP.html2text = function(html){
+  html = html.replace(/<style([\s\S]*?)<\/style>/gi, '');
+  html = html.replace(/<script([\s\S]*?)<\/script>/gi, '');
+  html = html.replace(/<div>/ig, '\n');
+  html = html.replace(/<\/div>/ig, '\n');
+  html = html.replace(/<\/li>/ig, '\n');
+  html = html.replace(/<li>/ig, '  *  ');
+  html = html.replace(/<\/ul>/ig, '\n');
+  html = html.replace(/<\/p>/ig, '\n');
+  html = html.replace(/<br\s*[\/]?>/gi, "\n");
+  html = html.replace(/<[^>]+>/ig, '');
+  html = html.replace(/&nbsp;/ig, '');
+  return html;
 }

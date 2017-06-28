@@ -350,7 +350,16 @@ GRASP.UIElements.prototype = {
 
   /**
    *
-   * @param attrs - {name:, value:, label:, disabled:, callback:, formname:, callback_delay:}
+   * @param attrs - {
+   *    name: string,
+   *    value: string,
+   *    label: string,
+   *    disabled: boolean,
+   *    callback: function,
+   *    formname: string,
+   *    callback_delay: int, // in ms
+   *    isContentEditable: boolean // if true the result will be <div contenteditable="true">, else will be <textarea>
+   * }
    * @returns {HTMLElement}
    */
   createTextareaBox: function(attrs){
@@ -362,7 +371,31 @@ GRASP.UIElements.prototype = {
     var state = {
       timer: null
     };
-    var el = GRASP.createElement(
+
+    var cb = function(name, value){
+      if(CALLBACK_DELAY>0){
+        if(state.timer) clearTimeout(state.timer);
+        state.timer = setTimeout(function(){
+          attrs.callback(name, value)
+        }, CALLBACK_DELAY)
+      }else{
+        if(typeof(attrs.callback) != 'undefined') attrs.callback(name, value)
+      }
+    };
+
+    if(attrs.isContentEditable){
+      var el = GRASP.createElement(
+          'div',
+          {
+            contenteditable: !attrs.disabled,
+            id:uniqId,
+            name:attrs.name
+          },
+          attrs.value,
+          cb
+      );
+    } else {
+      var el = GRASP.createElement(
         'textarea',
         {
           id:uniqId,
@@ -371,17 +404,9 @@ GRASP.UIElements.prototype = {
           disabled:attrs.disabled
         },
         attrs.value,
-        function(name, value){
-          if(CALLBACK_DELAY>0){
-            if(state.timer) clearTimeout(state.timer);
-            state.timer = setTimeout(function(){
-              attrs.callback(name, value)
-            }, CALLBACK_DELAY)
-          }else{
-            if(typeof(attrs.callback) != 'undefined') attrs.callback(name, value)
-          }
-        }
-    );
+        cb
+      );
+    }
 
     this.elements.insertRow({
       id:uniqId,

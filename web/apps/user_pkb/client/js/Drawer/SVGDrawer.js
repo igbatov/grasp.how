@@ -894,6 +894,7 @@ GRASP.SVGDrawer.Text = function(baseShape, args){
 
 GRASP.SVGDrawer.Text.prototype = {
   setText: function(v){
+    v = GRASP.html2text(v);
     this.text = v;
     while (this.getShape().firstChild) {
       this.getShape().removeChild(this.getShape().firstChild);

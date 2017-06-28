@@ -479,7 +479,8 @@ GRASP.GraphElementEditor.prototype = {
       value:nodeText,
       disabled:!isEditable,
       callback:editNodeText,
-      callback_delay:1000
+      callback_delay:1000,
+      isContentEditable: true
     }));
     c.appendChild(this.UI.createRange({
       name: 'importance',
@@ -508,9 +509,11 @@ GRASP.GraphElementEditor.prototype = {
       var select = this.UI.createSelectBox({
         name: 'active_alternative_id',
         items: alternativeLabels,
-        value: node.active_alternative_id,
+        defaultValue: node.active_alternative_id,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
-        dropType:'multiple'
+        dropType:'single',
+        contentEditableName: 'label',
+        contentEditableCallback: this._attrChange.bind(this, graphId, nodeContentId, node)
       });
       // create buttons to add and remove alternatives
       var add = this.UI.createButton({
@@ -527,7 +530,12 @@ GRASP.GraphElementEditor.prototype = {
       c.appendChild(add);
       c.appendChild(remove);
     } else {
-      var label = GRASP.createElement('div', {}, alternatives[node.active_alternative_id].label);
+      var label = this.UI.createTextareaBox({
+        name:'label',
+        value:alternatives[node.active_alternative_id].label,
+        callback: this._attrChange.bind(this, graphId, nodeContentId, node),
+        isContentEditable: true
+      });
       c.appendChild(label);
     }
 
