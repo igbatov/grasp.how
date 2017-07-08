@@ -193,7 +193,30 @@ GRASP.GraphElementEditor.prototype = {
     ) {
       accordionItems.push({
         label: this.i18n.__('Conditional probabilities'),
-        content: this._createConditionalProbabilities(graphId, nodeContentId, nodeId, node, parentNodeContents, isEditable)
+        content: this._createAlternatriveCondPInfo(
+            graphId,
+            nodeContentId,
+            nodeId,
+            node,
+            parentNodeContents,
+            isEditable
+        ),
+        labelButtons: [
+            this.UI.createButton({
+              name: 'editConditionals',
+              type: 'edit',
+              callback: function(){
+                that._createConditionalProbabilitiesModal(
+                    graphId,
+                    nodeContentId,
+                    nodeId,
+                    node,
+                    parentNodeContents,
+                    isEditable
+                );
+              }
+            })
+        ]
       });
     }
 
@@ -237,7 +260,7 @@ GRASP.GraphElementEditor.prototype = {
   /**
    * Form of conditional probabilities editor
    */
-  _createConditionalProbabilities: function(graphId, nodeContentId, nodeId, node, parentContents, isEditable){
+  _createConditionalProbabilitiesModal: function(graphId, nodeContentId, nodeId, node, parentContents, isEditable){
     var that = this;
 
     var fields = {};
@@ -258,7 +281,7 @@ GRASP.GraphElementEditor.prototype = {
 
     fields['button'] = {type:'button', label:'Save',disabled:!isEditable};
 
-    //var modalWindow = that.UI.createModal();
+    var modalWindow = that.UI.createModal();
     var form = that.UI.createForm(
         fields,
         // form submit callback
@@ -329,8 +352,41 @@ GRASP.GraphElementEditor.prototype = {
       }
     }
 
-    //that.UI.setModalContent(modalWindow, form);
+    that.UI.setModalContent(modalWindow, form);
     return form;
+  },
+  /**
+   * Form of conditional probabilities editor
+   */
+  _createAlternatriveCondPInfo: function(graphId, nodeContentId, nodeId, node, parentContents, isEditable){
+    var that = this;
+    var c = GRASP.createElement('div',{},this.i18n.__('Probability of proposition is:'));
+
+    var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
+        node,
+        isEditable,
+        function(type){return type == GRASP.GraphViewNode.NODE_TYPE_FACT;},
+        parentContents,
+        [GRASP.GraphViewNode.NODE_TYPE_FACT, GRASP.GraphViewNode.NODE_TYPE_PROPOSITION],
+        nodeId
+    );
+
+    for(var i in f.fieldsObj){
+      var ifthen = f.fieldsObj[i];
+      var p = GRASP.createElement('div',{class:'probability'},ifthen['THEN'][node.active_alternative_id].probability);
+      var iflabel = GRASP.createElement('div',{class:'iflabel'},'if');
+      var ifcond = GRASP.createElement('div',{class:'ifcond'});
+      for (var j in ifthen['IF']){
+        ifcond.appendChild(
+            GRASP.createElement('div', {}, ifthen['IF'][j].alternativeLabel)
+        );
+      }
+      c.appendChild(p);
+      c.appendChild(iflabel);
+      c.appendChild(ifcond);
+    }
+
+    return c;
   },
 
   _createSources: function(graphId, nodeContentId, node, isEditable){
@@ -495,50 +551,70 @@ GRASP.GraphElementEditor.prototype = {
   },
 
   _createLabel: function(graphId, nodeContentId, node){
+    var that = this;
     var c = GRASP.createElement('div',{}); // container
-    var alternatives = node['alternatives'];
+    var alternatives = {};
+    for(var key in node['alternatives']){
+      alternatives[key] = node['alternatives'][key];
+      alternatives[key].alternative_id = key;
+    }
     if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION) {
-      // create list of alternative labels
-      var alternativeLabels = {};
-      for(var i in alternatives){
-        alternativeLabels[i] = GRASP.createElement('div',
-            {style:'position:relative; display: inline-block; width:100%; '+this._getPartialGradientStyle(alternatives[i].reliability)},
-            alternatives[i].label + ' ' +alternatives[i].reliability+'%');
-      }
       // create select with alternativeLabels
       var select = this.UI.createSelectBox({
         name: 'active_alternative_id',
-        items: alternativeLabels,
+        items: alternatives,
         defaultValue: node.active_alternative_id,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
-        dropType:'single',
-        contentEditableName: 'label',
-        contentEditableCallback: this._attrChange.bind(this, graphId, nodeContentId, node)
-      });
-      // create buttons to add and remove alternatives
-      var add = this.UI.createButton({
-        name: 'addAlternative',
-        label: this.i18n.__('Add alternative'),
-        callback: this._addAlternative.bind(this, graphId, nodeContentId)
-      });
-      var remove = this.UI.createButton({
-        name: 'removeAlternative',
-        label: this.i18n.__('Remove alternative'),
-        callback: this._removeAlternative.bind(this, graphId, nodeContentId)
+        dropType: 'single',
+        map: this._alternativeToSelectBoxItem.bind(this, graphId, nodeContentId, node),
+        selectedItemMap: function(alternative){
+          var c = GRASP.createElement('div',{});
+          var r = GRASP.createElement('div',{class:'alternativeProbability'}, alternative.reliability);
+          var l = that.UI.createTextareaBox({
+            name:'label',
+            value:alternative.label,
+            callback: that._attrChange.bind(that, graphId, nodeContentId, node),
+            isContentEditable: true
+          });
+          // create buttons to add and remove alternatives
+          var add = that.UI.createButton({
+            name: 'addAlternative',
+            type: 'plusCircle',
+            callback: that._addAlternative.bind(that, graphId, nodeContentId)
+          });
+          c.appendChild(r);
+          c.appendChild(l);
+          c.appendChild(add);
+          return c;
+        },
+        withDownArrow: true
       });
       c.appendChild(select);
-      c.appendChild(add);
-      c.appendChild(remove);
     } else {
       var label = this.UI.createTextareaBox({
         name:'label',
-        value:alternatives[node.active_alternative_id].label,
+        value:this._alternativeToSelectBoxItem(graphId, nodeContentId, node, alternatives[node.active_alternative_id]),
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
         isContentEditable: true
       });
       c.appendChild(label);
     }
 
+    return c;
+  },
+
+  _alternativeToSelectBoxItem: function(graphId, nodeContentId, node, alternative){
+    var c = GRASP.createElement('div',{});
+    var r = GRASP.createElement('div',{class:'alternativeProbability'}, alternative.reliability);
+    var l = GRASP.createElement('div',{class:'alternativeLabel'}, alternative.label);
+    var remove = this.UI.createButton({
+      name: 'removeAlternative',
+      type: 'delete',
+      callback: this._removeAlternative.bind(this, graphId, nodeContentId, node, alternative)
+    });
+    c.appendChild(r);
+    c.appendChild(l);
+    c.appendChild(remove);
     return c;
   },
 
@@ -604,19 +680,19 @@ GRASP.GraphElementEditor.prototype = {
     }
   },
 
-  _removeAlternative: function(graphId, nodeContentId, node){
-
+  _removeAlternative: function(graphId, nodeContentId, node, alternative, e){
+    e.stopPropagation();
     if(GRASP.getObjectKeys(node.alternatives).length == 2){
-      //alert('Извините, но должно быть минимум 2 альтернативы!');
       alert('Sorry, you cannot have only one alternative');
       return;
     }
+
     if(confirm('Are you sure?')){
       this.publisher.publish(['request_for_graph_element_content_change', {
         graphId: graphId,
         type: 'removeAlternative',
         nodeContentId: nodeContentId,
-        node_alternative_id: node.active_alternative_id
+        node_alternative_id: alternative.alternative_id
       }]);
     }
 

@@ -15,5 +15,6 @@
   "Description":"Описание",
   "Remove node":"Удалить узел",
   "Conditional probabilities":"Условные вероятности",
-  "Sources":"Источники"
+  "Sources":"Источники",
+  "Probability of proposition is:":"Вероятность этого утверждения равна:"
 }

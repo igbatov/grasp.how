@@ -81,6 +81,7 @@ GRASP.UIElements.prototype = {
    *    icon?: HTMLElement - icon that will be used for dropType = 'icon'
    *    withDownArrow: boolean,
    *    map?: function(HTMLElement|string|Object) - optional callback function that modifies item before render
+   *    selectedItemMap?: function(HTMLElement|string|Object) - optional callback function that modifies selected item before render
    * }
    * Returns DOM element that can be used to select items
    * name - Name of select box
@@ -116,7 +117,7 @@ GRASP.UIElements.prototype = {
     function createDOMElement(item) {
       if (GRASP.isDOMElement(item)) {
         var a = GRASP.createElement('a',{});
-        a.appendChild(GRASP.clone(item));
+        a.appendChild(item);
         return a;
       } else if(GRASP.typeof(item) == 'string') {
         var text = (item.length > that.SELECT_ITEM_MAX_LENGTH ? item.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item);
@@ -197,7 +198,7 @@ GRASP.UIElements.prototype = {
     });
 
     // action: select new item
-    selectBox.selectItem = function(value, doNotCallUserCallback){
+    selectBox.selectItem = function(value, doNotCallUserCallback) {
       if(!that._findSelectBoxItem(attrs.items, value)) return false;
       var cbResult = true;
       if(typeof(attrs.callback) != 'undefined' && !doNotCallUserCallback) {
@@ -219,7 +220,12 @@ GRASP.UIElements.prototype = {
         selectedLi.classList.add('multiple_selected');
       } else if (attrs.dropType === 'single') {
         GRASP.removeChilds(selectedItem);
-        selectedItem.appendChild(createDOMElement(attrs.map(that._findSelectBoxItem(attrs.items, value))));
+        if (attrs.selectedItemMap) {
+          var l = attrs.selectedItemMap(that._findSelectBoxItem(attrs.items, value));
+        } else {
+          var l = attrs.map(that._findSelectBoxItem(attrs.items, value));
+        }
+        selectedItem.appendChild(createDOMElement(l));
         GRASP.setDisplay(ul,'none');
       } else {
         // dropType === 'icon' - just hide menu
@@ -315,14 +321,23 @@ GRASP.UIElements.prototype = {
    * Create button
    * @param attrs - {name, label, callback, disabled, formname}
    *  {String} name - i.e. "yes"
-   *  {String} label - i.e "I agree!"
-   *  {String} type: 'bigButton'|'trashBin'|'plusCircle'
+   *  {String} label? - i.e "I agree!"
+   *  {String} type: 'bigButton'|'trashBin'|'plusCircle'|'edit'
    *  {function(object)=} callback - callback arg is event
    *  {boolean=} disabled
    */
   createButton: function(attrs){
     var uniqId = this.generateId();
-    var el = GRASP.createElement('button',{id:uniqId, name:attrs.name, class:'ui_button '+attrs.type, disabled:attrs.disabled},attrs.label);
+    var el = GRASP.createElement(
+        'button',
+        {
+          id:uniqId,
+          name:attrs.name,
+          class:'ui_button ' + attrs.type,
+          disabled:attrs.disabled
+        },
+        attrs.label ? attrs.label: ''
+    );
     if(typeof(attrs.callback) != 'undefined'){
       el.addEventListener('click', function(evt){
         attrs.callback(evt);
@@ -373,13 +388,15 @@ GRASP.UIElements.prototype = {
     };
 
     var cb = function(name, value){
-      if(CALLBACK_DELAY>0){
-        if(state.timer) clearTimeout(state.timer);
-        state.timer = setTimeout(function(){
+      if(typeof(attrs.callback) != 'undefined') {
+        if(CALLBACK_DELAY>0){
+          if(state.timer) clearTimeout(state.timer);
+          state.timer = setTimeout(function(){
+            attrs.callback(name, value)
+          }, CALLBACK_DELAY)
+        }else{
           attrs.callback(name, value)
-        }, CALLBACK_DELAY)
-      }else{
-        if(typeof(attrs.callback) != 'undefined') attrs.callback(name, value)
+        }
       }
     };
 
@@ -879,6 +896,7 @@ GRASP.UIElements.prototype = {
    * Creates accordion menu
    * @param items - [{
    *    label: HTMLElement|string,
+   *    labelButtons?: HTMLElement[],
    *    content: HTMLElement|string
    * }]
    * @param options? - {
@@ -906,8 +924,13 @@ GRASP.UIElements.prototype = {
       label.appendChild(that.stringToDom(v.label));
       var content = GRASP.createElement('div',{class:'tab-content'});
       content.appendChild(that.stringToDom(v.content));
+      var labelButtons = GRASP.createElement('div',{class:'label-buttons'});
+      for (var i in v.labelButtons){
+        labelButtons.appendChild(v.labelButtons[i]);
+      }
       tab.appendChild(input);
       tab.appendChild(label);
+      label.appendChild(labelButtons);
       tab.appendChild(content);
       c.appendChild(tab);
     });

@@ -7,7 +7,7 @@
     z-index: 1;
     background-color: aqua;
     width: 40%;
-    max-height: 80%;
+    /* max-height: 80%; */
     min-height: 40%;
     overflow: auto;
 }
@@ -65,7 +65,10 @@
 .graphElementEditorContainer .ui_range input {
     width: 5em;
 }
-.graphElementEditorContainer .ui_accordion {
-   /* flex-grow: 1; */
+.graphElementEditorContainer .ui_accordion  label::after{
+   display: inline-block;
+   position: static;
+   margin-left: 0.5em;
+   margin-bottom: 0.2em;
 }
 

@@ -8,6 +8,7 @@
     overflow: hidden;
 }
 .ui_accordion label {
+    height: 2em;
     position: relative;
     display: block;
     padding: 0 0 0 0;
@@ -42,7 +43,7 @@
 }
 /* :checked */
 .ui_accordion input.tab_input:checked ~ .tab-content {
-    /* overflow: hidden; */
+    overflow: auto;
     max-height: none;
 }
 .ui_accordion input.tab_input[type=checkbox] + label::after {
@@ -56,4 +57,10 @@
 }
 .ui_accordion input.tab_input[type=radio]:checked + label::after {
     transform: rotateX(180deg);
+}
+
+.ui_accordion .label-buttons {
+/* position: relative; */
+display: inline-block;
+float: right;
 }
