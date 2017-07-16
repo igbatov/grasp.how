@@ -2,12 +2,12 @@
     position:  absolute;
     display: none;
     /* flex-direction: column; */
-    opacity:0.8;
+    opacity: 1;
     padding: 1em;
     z-index: 1;
-    background-color: aqua;
+    background-color: #ffffff;
     width: 40%;
-    /* max-height: 80%; */
+    max-height: 100%;
     min-height: 40%;
     overflow: auto;
 }
@@ -56,11 +56,17 @@
     white-space: normal;
 }
 .graphElementEditorContainer .ui_list li {
-    display: block;
+    display: flex;
+    flex-direction: row;
     line-height: 1.5em;
 }
 .graphElementEditorContainer .ui_list li button {
     float:right;
+    background-size: 1.3em;
+    height: 1.5em;
+    width: 0.5em;
+    margin-right: 0;
+    /* height: 2em; */
 }
 .graphElementEditorContainer .ui_range input {
     width: 5em;
@@ -71,4 +77,73 @@
    margin-left: 0.5em;
    margin-bottom: 0.2em;
 }
+.graphElementEditorContainer .condPInfoLabel {
+    font-family: 'Roboto';
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.43;
+    text-align: left;
+    color: #191919;
+}
+.graphElementEditorContainer .ifThenContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: baseline;
+}
 
+.ifThenContainer .probability {
+    margin-right: 0.5em;
+    font-family: 'DINPro';
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.25;
+    text-align: left;
+    color: #b363d2;
+    display: inline;
+}
+.ifThenContainer .iflabel {
+    margin-right: 0.5em;
+    font-family: 'DINPro';
+    font-size: 16px;
+    line-height: 1.25;
+    color: #8b8b8b;
+    display: inline;
+}
+.ifThenContainer .ifcond {
+    font-family: 'Roboto';
+    font-size: 14px;
+    line-height: 1.43;
+    text-align: left;
+    color: #191919;
+    /* display: inline; */
+}
+.graphElementEditorContainer .sourceItem {
+    width: 93%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-family: 'Roboto';
+    font-size: 14px;
+    line-height: 1.43;
+    color: #191919;
+}
+.graphElementEditorContainer .sourceItem .leftC{
+    width: 75%;
+}
+.graphElementEditorContainer .sourceItem .rightC{
+    width: 15%;
+}
+.graphElementEditorContainer .sourceItem .sourceType{
+}
+.graphElementEditorContainer .sourceItem .name{
+}
+.graphElementEditorContainer .sourceItem .authors{
+    color: #788d98;
+}
+.graphElementEditorContainer .sourceItem .publisherReliabilityLabel{
+    color: #bdbdbd;
+}
+.graphElementEditorContainer .sourceItem .publisherReliability{
+    color: #4fce69;
+}

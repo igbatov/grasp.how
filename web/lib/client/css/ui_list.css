@@ -1,12 +1,12 @@
 .ui_list{
     display: table;
-    background-color: aqua;
-    margin-left: 3%;
-    width: 96%;
+    background-color: #FFFFFF;
+    /* margin-left: 3%; */
+    /* width: 96%; */
 }
 
 .ui_list li:hover{
-    background-color: #C2B9C2;
+    background-color: #f4f9fc;
 }
 .ui_list li::after{
     content: ".";
@@ -16,20 +16,28 @@
     visibility: hidden;
 }
 
-.ui_list li{
+.ui_list li {
     display: table-row;
-    padding-right: 10px;
-    padding-top: 3px;
-    padding-bottom: 3px;
-    padding-left: 7px;
+    /* padding-right: 10px; */
+    /* padding-top: 3px; */
+    /* padding-bottom: 3px; */
+    /* padding-left: 7px; */
 }
 
-.ui_list li .buttons{
+.ui_list li:hover .buttons {
+    visibility: visible;
+}
+
+.ui_list li .buttons {
+    display: flex;
+    visibility: hidden;
+    width: 7%;
     white-space: nowrap;
-    float: right;
+    /* float: right; */
+    flex-direction: column;
 }
 
-.ui_list li button{
+.ui_list li button {
     cursor: pointer;
     padding-left: 10px;
 }

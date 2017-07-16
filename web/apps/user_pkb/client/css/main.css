@@ -20,6 +20,10 @@
     font-family: 'Roboto';
     src: url(Roboto-Regular.ttf);
 }
+@font-face {
+    font-family: 'Roboto-Bold';
+    src: url(Roboto-Bold.ttf);
+}
 body {
     font-family: 'Roboto';
 }

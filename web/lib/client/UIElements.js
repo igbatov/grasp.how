@@ -322,7 +322,7 @@ GRASP.UIElements.prototype = {
    * @param attrs - {name, label, callback, disabled, formname}
    *  {String} name - i.e. "yes"
    *  {String} label? - i.e "I agree!"
-   *  {String} type: 'bigButton'|'trashBin'|'plusCircle'|'edit'
+   *  {String} type: 'bigButton'|'delete'|'plusCircle'|'edit'
    *  {function(object)=} callback - callback arg is event
    *  {boolean=} disabled
    */
@@ -851,7 +851,11 @@ GRASP.UIElements.prototype = {
    * Creating item for the createList
    * @param id
    * @param label
-   * @param actions
+   * @param actions - {
+   *  buttonParams1, // see this.createButton definition
+   *  ..
+   * }
+   *
    * @returns {HTMLElement}
    */
   createListItem: function(id,label,actions,disabled){
@@ -866,13 +870,20 @@ GRASP.UIElements.prototype = {
     var buttons = GRASP.createElement('div',{class:'buttons'});
     li.appendChild(buttons);
 
-    for(var name in actions){
-      var button = this.createButton({name:name, label:name, disabled:disabled});
-      (function(button, callback, id,li){
+    for(var i in actions){
+      var action = actions[i];
+      var buttonOptions = {
+        name: action.name,
+        label: action.label,
+        type: action.type,
+        disabled: action.disabled,
+      }
+      var button = this.createButton(buttonOptions);
+      (function(button, callback, id, li){
         button.addEventListener('click', function(evt){
           callback(id, li);
         });
-      })(button, actions[name], id, li);
+      })(button, action.callback, id, li);
       buttons.appendChild(button);
     }
 
@@ -938,7 +949,7 @@ GRASP.UIElements.prototype = {
   },
 
   stringToDom: function(s){
-    return GRASP.typeof(s)=='string' ? GRASP.createElement('div',{style:'display:inline;'},s): s;
+    return GRASP.typeof(s)=='string' ? GRASP.createElement('div',{class:'label-text'},s): s;
   },
 
   /**

@@ -51,17 +51,23 @@ GRASP.ModelChangeController.prototype = {
           event.getData()['type'] == 'addNode')                 // no need to redraw - it will be done by 'graph_model_changed' event
           return true;
 
-      // plan update after current js function call stack finishes (we don't want to pause user input by our graph updates)
+      // plan update after current js function call stack finishes
+      // (because we don't want to pause user label input by our graph updates)
       var timeout = 0;
-      if(event.getData()['type'] ==  'updateNodeAttribute' && event.getData()['nodeAttribute']['name'] == 'label') timeout = 500;
-
       clearTimeout(this.timer);
+      if(event.getData()['type'] ==  'updateNodeAttribute' && event.getData()['nodeAttribute']['name'] == 'label') timeout = 500;
       var graphId = event.getData()['graphId'];
-      this.timer = setTimeout(function(){
+      if (timeout) {
+        this.timer = setTimeout(function(){
+          that.publisher.publish(["get_graph_models", [graphId]]).then(function(graphModels){
+            that.showGraph(graphModels[graphId]);
+          });
+        },timeout);
+      } else {
         that.publisher.publish(["get_graph_models", [graphId]]).then(function(graphModels){
           that.showGraph(graphModels[graphId]);
         });
-      },timeout);
+      }
     }
   },
 

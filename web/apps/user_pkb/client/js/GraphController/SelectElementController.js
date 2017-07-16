@@ -1,6 +1,7 @@
 /**
  * This module process events like
  * 'clicknode', 'clickedge', 'mouseenternode', 'mouseenteredge', 'mouseleavenode', 'mouseleaveedge'
+ * to change graph decoration
  * @param publisher
  * @constructor
  */
@@ -23,17 +24,20 @@ GRASP.SelectElementController.prototype = {
     if(
       eventName == 'draw_graph_view'
     ){
+      /**
+       * Change draw_graph_view event to enlarge selected node
+       */
       graphId = event.getData()['graphId'];
 
       if(typeof(event.getData().decoration) != 'undefined') that.initDecorations(graphId, event.getData().decoration);
 
       if(selectedElement && selectedElement.element){
-        that.selectedDecoration[graphId] = that.enlargeNodes(that.initialDecoration[graphId], [selectedElement.element.id]);
-        graphViewSettings = {
-          graphId: graphId,
-          decoration: that.selectedDecoration[graphId]
-        };
-        that.publisher.publish(["update_graph_view_decoration", graphViewSettings]);
+        that.selectedDecoration[graphId] = that.enlargeNodes(
+            event.getData().decoration,
+            that.initialDecoration[graphId],
+            [selectedElement.element.id]
+        );
+        event.getData().decoration = that.selectedDecoration[graphId];
       }
     }
 
@@ -69,8 +73,22 @@ GRASP.SelectElementController.prototype = {
       if(eventName === 'mouseenternode'){
         this.selectedDecoration[graphId] = this.lowerOpacity(that.initialDecoration[graphId], nodesToSelect, edgesToSelect, true);
       }
-      if(eventName === 'clicknode') this.selectedDecoration[graphId] = this.enlargeNodes(that.initialDecoration[graphId], nodesToSelect);
-      if(eventName === 'clickedge') this.selectedDecoration[graphId] = this.enlargeEdges(that.initialDecoration[graphId], edgesToSelect);
+
+      if(selectedElement.element){
+        if(selectedElement.elementType === 'node'){
+          this.selectedDecoration[graphId] = this.enlargeNodes(
+              that.selectedDecoration[graphId],
+              that.initialDecoration[graphId],
+              [selectedElement.element.id]
+          );
+        } else {
+          this.selectedDecoration[graphId] = this.enlargeEdges(
+              that.selectedDecoration[graphId],
+              that.initialDecoration[graphId],
+              [selectedElement.element.id]
+          );
+        }
+      }
 
       var graphViewSettings = {
         graphId: graphId,
@@ -128,22 +146,22 @@ GRASP.SelectElementController.prototype = {
     this.publisher.publish(["hide_graph_element_editor",{}]);
   },
 
-  enlargeEdges: function(d, edgeIds){
+  enlargeEdges: function(d, initialD, edgeIds){
     var i, id, decoration = GRASP.clone(d);
     for(i in edgeIds){
       id = edgeIds[i];
-      decoration.edges[id].width = this.edgeScale*Math.max(1, d.edges[id].width);
+      decoration.edges[id].width = this.edgeScale*Math.max(1, initialD.edges[id].width);
     }
     return decoration;
   },
 
-  enlargeNodes: function(d, nodeIds){
+  enlargeNodes: function(d, initialD, nodeIds){
     var i, id, decoration = GRASP.clone(d);
     for(i in nodeIds){
       id = nodeIds[i];
-      if(typeof(decoration.nodes[id]) == 'undefined') continue;
-      decoration.nodes[id].size = this.nodeScale*d.nodes[id].size;
-      decoration.nodeLabels[id].size = this.nodeLabelScale*d.nodeLabels[id].size;
+      if(!decoration || typeof(decoration.nodes[id]) == 'undefined') continue;
+      decoration.nodes[id].size = this.nodeScale*initialD.nodes[id].size;
+      decoration.nodeLabels[id].size = this.nodeLabelScale*initialD.nodeLabels[id].size;
     }
     return decoration;
   },

@@ -183,7 +183,14 @@ GRASP.GraphElementEditor.prototype = {
     if (node.type == GRASP.GraphViewNode.NODE_TYPE_FACT) {
       accordionItems.push({
         label: this.i18n.__('Sources'),
-        content: this._createSources(graphId, nodeContentId, node, isEditable)
+        content: this._createSources(graphId, nodeContentId, node, isEditable),
+        labelButtons: [
+          this.UI.createButton({
+            name: 'editConditionals',
+            type: 'plusCircle',
+            callback: that._addListItem.bind(this, graphId, nodeContentId, node)
+          })
+        ]
       });
     }
 
@@ -230,20 +237,30 @@ GRASP.GraphElementEditor.prototype = {
 
   _setAccordionTabHeight: function(accordion){
     var that = this;
+    GRASP.setDisplay(accordion,'none');
     var f = function(timeout) {
       setTimeout(function () {
         // if accordion was not mounted yet, then wait and repeat
         if(document.getElementById(accordion.id) === null) return f(100);
         // ok, it was mounted, so calculate tab content max height
-
-        var editorId = accordion.parentNode.id;
-        var cHeight = that.jQuery('#'+editorId).outerHeight();
-        var cTop = that.jQuery('#'+editorId).offset().top;
-        var tabs = that.jQuery('#'+editorId+' .tab');
+        GRASP.setDisplay(accordion,'block');
+        var editor = accordion.parentNode;
+        // var maxContainerHeight = that.jQuery(
+        //     '#'+that.ViewManager.getViewContainer('graphViews').id
+        // ).outerHeight();
+        var graphViews = document.getElementById(
+            that.ViewManager.getViewContainer('graphViews').id
+        );
+        var maxContainerHeight = parseInt(window.getComputedStyle(graphViews, null).getPropertyValue("height").match(/\d+/));
+        var cTop = that.jQuery('#'+editor.id).offset().top;
+        var tabs = that.jQuery('#'+editor.id+' .tab');
         var aboveAccordionHeight = that.jQuery(tabs[0]).offset().top - cTop;
-        var firstLabel = that.jQuery('#'+editorId+' .tab>label')[0];
+        var firstLabel = that.jQuery('#'+editor.id+' .tab>label')[0];
         var allAccordionLabelsHeight = that.jQuery(firstLabel).outerHeight()*tabs.length;
-        var tabContentHeight = cHeight - aboveAccordionHeight - allAccordionLabelsHeight;
+        var editorPadding = parseInt(
+            window.getComputedStyle(editor,null).getPropertyValue("padding-bottom").match(/\d+/)
+        );
+        var tabContentHeight = maxContainerHeight - aboveAccordionHeight - allAccordionLabelsHeight - editorPadding;
         for (var i=0; i<tabs.length; i++) {
           var tabContent = that.jQuery(tabs[i]).find('.tab-content')[0];
           if(tabContent.parentNode.querySelectorAll('input')[0].checked){
@@ -360,8 +377,9 @@ GRASP.GraphElementEditor.prototype = {
    */
   _createAlternatriveCondPInfo: function(graphId, nodeContentId, nodeId, node, parentContents, isEditable){
     var that = this;
-    var c = GRASP.createElement('div',{},this.i18n.__('Probability of proposition is:'));
-
+    var c = GRASP.createElement('div',{});
+    var l = GRASP.createElement('div',{class:'condPInfoLabel'},this.i18n.__('Probability of proposition is:'));
+    c.appendChild(l);
     var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
         node,
         isEditable,
@@ -372,18 +390,24 @@ GRASP.GraphElementEditor.prototype = {
     );
 
     for(var i in f.fieldsObj){
+      var ifthenC = GRASP.createElement('div',{class:'ifThenContainer'});
       var ifthen = f.fieldsObj[i];
-      var p = GRASP.createElement('div',{class:'probability'},ifthen['THEN'][node.active_alternative_id].probability);
-      var iflabel = GRASP.createElement('div',{class:'iflabel'},'if');
+      var p = GRASP.createElement(
+          'div',
+          {class:'probability'},
+          parseFloat(ifthen['THEN'][node.active_alternative_id].probability).toFixed(2)
+      );
+      var iflabel = GRASP.createElement('div',{class:'iflabel'}, that.i18n.__('if'));
       var ifcond = GRASP.createElement('div',{class:'ifcond'});
       for (var j in ifthen['IF']){
         ifcond.appendChild(
             GRASP.createElement('div', {}, ifthen['IF'][j].alternativeLabel)
         );
       }
-      c.appendChild(p);
-      c.appendChild(iflabel);
-      c.appendChild(ifcond);
+      ifthenC.appendChild(p);
+      ifthenC.appendChild(iflabel);
+      ifthenC.appendChild(ifcond);
+      c.appendChild(ifthenC);
     }
 
     return c;
@@ -398,21 +422,11 @@ GRASP.GraphElementEditor.prototype = {
     var htmllist = {};
     for(var i in list) htmllist[i] = this._createHTMLFromListItem(list[i], node.type);
 
-    var validateListItem = function(item){
-      // check that publisher reliability is from 0 to 10
-      item.publisher_reliability = Number(item.publisher_reliability);
-      if(item.publisher_reliability < 0 || item.publisher_reliability > 10){
-        alert('reliability должен быть от 0 до 10');
-        return false;
-      }
-      return true;
-    };
-
     var updateListItem = function(id, el){
       that._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, list[id],
           // this callback is called on 'submit' button
           function(graphId, nodeContentId, node_alternative_id, item){
-            if(!validateListItem(item)) return false;
+            if(!that._validateSourceListItem(item)) return false;
 
             // save updated list
             that.publisher
@@ -472,49 +486,60 @@ GRASP.GraphElementEditor.prototype = {
       return true;
     };
 
-    // define and add "add source button"
-    var addListItem = function(){
-      that._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, {source_type: 'article'},
-          function(graphId, nodeContentId, node_alternative_id, item){
-            if(!validateListItem(item)) return false;
-
-            that.publisher
-                .publish(['request_for_graph_element_content_change', {
-                  type:'node_list_add_request',
-                  graphId: graphId,
-                  nodeContentId: nodeContentId,
-                  node_alternative_id:node_alternative_id,
-                  nodeType:node.type,
-                  item:item
-                }])
-                .then(function (updateAnswer) {
-                  // We do not change reliability of proposition based on falsification yet
-                  if(node.type != GRASP.GraphViewNode.NODE_TYPE_FACT) return true;
-
-                  that.publisher.publish(['request_for_graph_element_content_change',{
-                    type: 'updateNodeAttribute',
-                    graphId: graphId,
-                    nodeContentId: nodeContentId,
-                    node_alternative_id:node_alternative_id,
-                    nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
-                  }]);
-
-                  return true;
-                });
-
-            return true;
-          }
-      );
-    };
-
     return this.UI.createListBox({
       name: 'list',
       items:htmllist,
-      itemActions:{edit:updateListItem, remove:removeListItem},
-      addLabel: this.i18n.__('add source'),
-      addCallback: addListItem,
+      itemActions:[
+        {name:'edit', type:'edit', callback: updateListItem},
+        {name:'remove', type:'delete', callback: removeListItem}
+      ],
       disabled:!isEditable
     })
+  },
+
+  _validateSourceListItem: function(item){
+    // check that publisher reliability is from 0 to 10
+    item.publisher_reliability = Number(item.publisher_reliability);
+    if(item.publisher_reliability < 0 || item.publisher_reliability > 10){
+      alert('reliability должен быть от 0 до 10');
+      return false;
+    }
+    return true;
+  },
+
+  _addListItem: function(graphId, nodeContentId, node){
+    var that = this;
+    this._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, {source_type: 'article'},
+        function(graphId, nodeContentId, node_alternative_id, item){
+          if(!that._validateSourceListItem(item)) return false;
+
+          that.publisher
+              .publish(['request_for_graph_element_content_change', {
+                type:'node_list_add_request',
+                graphId: graphId,
+                nodeContentId: nodeContentId,
+                node_alternative_id:node_alternative_id,
+                nodeType:node.type,
+                item:item
+              }])
+              .then(function (updateAnswer) {
+                // We do not change reliability of proposition based on falsification yet
+                if(node.type != GRASP.GraphViewNode.NODE_TYPE_FACT) return true;
+
+                that.publisher.publish(['request_for_graph_element_content_change',{
+                  type: 'updateNodeAttribute',
+                  graphId: graphId,
+                  nodeContentId: nodeContentId,
+                  node_alternative_id:node_alternative_id,
+                  nodeAttribute: {name:'reliability', value:updateAnswer.reliability}
+                }]);
+
+                return true;
+              });
+
+          return true;
+        }
+    );
   },
 
   _createDescription: function(graphId, nodeContentId, node, isEditable){
@@ -591,12 +616,17 @@ GRASP.GraphElementEditor.prototype = {
       });
       c.appendChild(select);
     } else {
-      var label = this.UI.createTextareaBox({
+      var alternative = alternatives[node.active_alternative_id];
+      var label = GRASP.createElement('div',{});
+      var r = GRASP.createElement('div',{class:'alternativeProbability'}, alternative.reliability);
+      var l = this.UI.createTextareaBox({
         name:'label',
-        value:this._alternativeToSelectBoxItem(graphId, nodeContentId, node, alternatives[node.active_alternative_id]),
+        value:alternative.label,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
         isContentEditable: true
       });
+      label.appendChild(r);
+      label.appendChild(l);
       c.appendChild(label);
     }
 
@@ -737,17 +767,57 @@ GRASP.GraphElementEditor.prototype = {
    * @private
    */
   _createHTMLFromListItem: function(item, nodeType){
-    var el = null;
+    var c = GRASP.createElement('div',{class:'sourceItem'});
     if(nodeType == GRASP.GraphViewNode.NODE_TYPE_FACT){
+      var leftC = GRASP.createElement('div',{class:'leftC'});
+
       if(typeof(item.url) != 'undefined' && item.url.length > 0){
-        el = GRASP.createElement('a',{href:item.url, target:'_blank', title:this._lineBreaksForTooltips(item.comment)}, item.author+' / '+item.name+' / '+item.publisher);
-      }else{
-        el = document.createTextNode(item.author+' / '+item.name+' / '+item.publisher);
+        var name = GRASP.createElement('div',{class:'name'});
+        var a = GRASP.createElement('a',{
+          href:item.url,
+          target:'_blank',
+          title:this._lineBreaksForTooltips(item.comment)
+        }, item.name);
+        name.appendChild(a);
+      } else {
+        var name = GRASP.createElement('div',{class:'name'}, item.name);
       }
+
+      var authors = GRASP.createElement('div',{class:'authors'}, item.author);
+      leftC.appendChild(name);
+      leftC.appendChild(authors);
+
+      var rightC = GRASP.createElement('div',{class:'rightC'});
+      var source_type = GRASP.createElement(
+          'div',
+          {class:'sourceType'},
+          GRASP.ucfirst(this.i18n.__(item.source_type))
+      );
+      var publisherReliabilityLabel = GRASP.createElement(
+          'div',
+          {class:'publisherReliabilityLabel'}
+      );
+      var publisherReliability = GRASP.createElement(
+          'span',
+          {class:'publisherReliability'},
+          item.publisher_reliability
+      );
+      var publisherReliabilityPostfix = GRASP.createElement(
+          'span',
+          {},
+          ' ' + this.i18n.__('from') + ' 10'
+      );
+      publisherReliabilityLabel.appendChild(publisherReliability);
+      publisherReliabilityLabel.appendChild(publisherReliabilityPostfix);
+      rightC.appendChild(source_type);
+      rightC.appendChild(publisherReliabilityLabel);
+
+      c.appendChild(leftC);
+      c.appendChild(rightC);
     }else if(nodeType == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION){
-      el = document.createTextNode(item.name);
+      c.appendChild(document.createTextNode(item.name));
     }
-    return el;
+    return c;
   },
 
   _lineBreaksForTooltips: function(text){

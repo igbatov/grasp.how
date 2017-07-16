@@ -306,14 +306,22 @@ GRASP.GraphMenu.prototype = {
 
   _showTrash: function(trashItems){
     var that = this;
-    this.UI.showModalList(trashItems, {'restore':function(graphId, el){
-      el.parentNode.removeChild(el);
-      // say about this event to all subscribers
-      that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:false}]).then(function(){
-        // redraw menu
-        that._createView();
-      });
-    }});
+    this.UI.showModalList(trashItems,
+        [
+          {
+            name:'restore',
+            label:'restore',
+            callback: function(graphId, el){
+              el.parentNode.removeChild(el);
+              // say about this event to all subscribers
+              that.publisher.publish(['set_graph_attributes', {graphId:graphId, isInTrash:false}]).then(function(){
+                // redraw menu
+                that._createView();
+              });
+            }
+          }
+        ]
+    );
   },
 
   _calculateBayes: function(position){
@@ -350,30 +358,46 @@ GRASP.GraphMenu.prototype = {
 
     this.publisher.publish("repository_get_graphs_clone_list").then(function(clones){
       var clonedFromList = that.UI.createList(clones[graphId]['cloned_from'],
-          {
-            'show clone': showGraph,
-            'show diff':function(cloneId){
-              // get graph diff and show it
-              that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
-                // and then show them
-                that.publisher.publish('show_graphs');
-                that.UI.closeModal(m);
-              });
+          [
+            {
+              name: 'show clone',
+              label: 'show clone',
+              callback: showGraph
+            },
+            {
+              name: 'show diff',
+              label: 'show diff',
+              callback: function(cloneId){
+                // get graph diff and show it
+                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
+                  // and then show them
+                  that.publisher.publish('show_graphs');
+                  that.UI.closeModal(m);
+                });
+              }
             }
-          });
+          ]);
 
       var clonedToList = that.UI.createList(clones[graphId]['cloned_to'],
-          {
-            'show clone': showGraph,
-            'show diff':function(cloneId){
-              // get graph diff and show it
-              that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
-                // and then show them
-                that.publisher.publish('show_graphs');
-                that.UI.closeModal(m);
-              });
+          [
+            {
+              name: 'show clone',
+              label: 'show clone',
+              callback: showGraph
+            },
+            {
+              name: 'show diff',
+              label: 'show diff',
+              callback: function(cloneId){
+                // get graph diff and show it
+                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
+                  // and then show them
+                  that.publisher.publish('show_graphs');
+                  that.UI.closeModal(m);
+                });
+              }
             }
-          });
+          ]);
 
       var cloneListContainer = GRASP.createElement('div', {});
       cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned from'));
@@ -440,64 +464,72 @@ GRASP.GraphMenu.prototype = {
         items[sources[i].id] = createSourceDOM(sources[i]);
       }
 
-      var itemActions = {
-        edit:function(id, el){
-          var item = sources[id];
-          var modalWindow = that.UI.createModal();
+      var itemActions = [
+        {
+          name:'edit',
+          label:'edit',
+          callback: function(id, el) {
+            var item = sources[id];
+            var modalWindow = that.UI.createModal();
 
-          // create empty form with submit callback
-          var form = that.UI.createForm(
-              {},
-              function(form) {
-                // update sources
-                GRASP.getObjectKeys(sources[id]).forEach(function (v, k) {
-                  if (typeof(form[v]) != 'undefined') sources[id][v] = form[v];
-                });
-                // update server
-                that.publisher.publish(['repository_update_source', form]).then(function () {
-                  el.parentNode.insertBefore(that.UI.createListItem(id, createSourceDOM(sources[id]), itemActions), el);
-                  el.parentNode.removeChild(el);
-                  that.UI.closeModal(modalWindow);
-                });
+            // create empty form with submit callback
+            var form = that.UI.createForm(
+                {},
+                function(form) {
+                  // update sources
+                  GRASP.getObjectKeys(sources[id]).forEach(function (v, k) {
+                    if (typeof(form[v]) != 'undefined') sources[id][v] = form[v];
+                  });
+                  // update server
+                  that.publisher.publish(['repository_update_source', form]).then(function () {
+                    el.parentNode.insertBefore(that.UI.createListItem(id, createSourceDOM(sources[id]), itemActions), el);
+                    el.parentNode.removeChild(el);
+                    that.UI.closeModal(modalWindow);
+                  });
+                }
+            );
+
+            // create fields for this form
+            var formFields = that.formFields.getSourceFields(form);
+            // do not find other sources by name modification
+            formFields['name']['findCallback'] = function () {};
+            formFields['name']['selectCallback'] = function () {};
+            formFields['name']['typeCallback'] = function () {};
+            // remove 'pages' field because it is set custom for each concrete node
+            delete formFields['pages'];
+            // remove 'source' field because we gonna use id field instead
+            delete formFields['source_id'];
+
+            // fill in form fields
+            if (GRASP.getObjectKeys(item).length) {
+              GRASP.getObjectKeys(formFields).forEach(function (v, k) {
+                if (typeof(item[v]) != 'undefined') formFields[v].value = item[v];
+              });
+            }
+
+            // fill blank form with fields
+            for (var fieldName in formFields) {
+              that.UI.updateForm(form, fieldName, formFields[fieldName]);
+            }
+
+            // show/hide fields in a form according to item source_type
+            if (item.source_type) formFields['source_type'].callback('', item.source_type);
+
+            that.UI.setModalContent(modalWindow, form);
+          }
+        },
+        {
+          name:'remove',
+          label:'remove',
+          callback: function(id, el){
+            that.publisher.publish(['repository_remove_user_sources', [id]]).then(function(result){
+              if(result['removed'].length && result['removed'][0] == id){
+                el.parentNode.removeChild(el);
               }
-          );
-
-          // create fields for this form
-          var formFields = that.formFields.getSourceFields(form);
-          // do not find other sources by name modification
-          formFields['name']['findCallback'] = function () {};
-          formFields['name']['selectCallback'] = function () {};
-          formFields['name']['typeCallback'] = function () {};
-          // remove 'pages' field because it is set custom for each concrete node
-          delete formFields['pages'];
-          // remove 'source' field because we gonna use id field instead
-          delete formFields['source_id'];
-
-          // fill in form fields
-          if (GRASP.getObjectKeys(item).length) {
-            GRASP.getObjectKeys(formFields).forEach(function (v, k) {
-              if (typeof(item[v]) != 'undefined') formFields[v].value = item[v];
             });
           }
-
-          // fill blank form with fields
-          for (var fieldName in formFields) {
-            that.UI.updateForm(form, fieldName, formFields[fieldName]);
-          }
-
-          // show/hide fields in a form according to item source_type
-          if (item.source_type) formFields['source_type'].callback('', item.source_type);
-
-          that.UI.setModalContent(modalWindow, form);
-        },
-        remove: function(id, el){
-          that.publisher.publish(['repository_remove_user_sources', [id]]).then(function(result){
-            if(result['removed'].length && result['removed'][0] == id){
-              el.parentNode.removeChild(el);
-            }
-          });
         }
-      };
+      ];
       that.UI.showModalList(items, itemActions);
 
     });

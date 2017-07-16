@@ -1789,3 +1789,7 @@ GRASP.html2text = function(html){
   html = html.replace(/&nbsp;/ig, '');
   return html;
 }
+
+GRASP.ucfirst = function(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}

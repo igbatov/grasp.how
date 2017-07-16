@@ -8,9 +8,9 @@
   <body>
   <div id="container">
     <div id="horizontalMenu"></div>
-    <div id="leftGraphElementEditorContainer" class="graphElementEditorContainer"></div>
-    <div id="rightGraphElementEditorContainer" class="graphElementEditorContainer"></div>
     <div id="graphViews">
+      <div id="leftGraphElementEditorContainer" class="graphElementEditorContainer"></div>
+      <div id="rightGraphElementEditorContainer" class="graphElementEditorContainer"></div>
       <img class="ajax" id="ajaxLoader" src="<?php echo $this->getAppDir('img'); ?>/ajax.gif">
     </div>
     <div id="statusString"></div>
