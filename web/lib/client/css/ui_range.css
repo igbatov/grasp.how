@@ -5,4 +5,5 @@
 
 .ui_range input{
     margin: 0;
+    display: inline;
 }

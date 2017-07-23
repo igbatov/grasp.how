@@ -155,6 +155,19 @@ GRASP.GraphElementEditor.prototype = {
     this.eventListener(this.currentEvent);
   },
 
+  _createHead: function(graphId, nodeId, node, nodeTypes) {
+    var c = GRASP.createElement('div', {class:'head', style:'color: ' + nodeTypes[node.type]})
+    var label = GRASP.createElement('span', {class:'label'}, GRASP.ucfirst(this.i18n.__(node.type)));
+    var remove = this.UI.createButton({
+      name: 'removeNode',
+      type: 'icon delete grey',
+      callback: this._removeNode.bind(this, graphId, nodeId)
+    });
+    c.appendChild(label);
+    c.appendChild(remove);
+    return c;
+  },
+
   _createNodeForm: function(
       graphId,
       isEditable,
@@ -166,11 +179,7 @@ GRASP.GraphElementEditor.prototype = {
   ){
     var that = this;
 
-    var remove = this.UI.createButton({
-      name: 'removeNode',
-      label: this.i18n.__('Remove node'),
-      callback: this._removeNode.bind(this, graphId, nodeId)
-    });
+    var head = this._createHead(graphId, nodeId, node, nodeTypes);
 
     var label = this._createLabel(graphId, nodeContentId, node);
 
@@ -187,7 +196,7 @@ GRASP.GraphElementEditor.prototype = {
         labelButtons: [
           this.UI.createButton({
             name: 'editConditionals',
-            type: 'plusCircle',
+            type: 'icon plusCircle grey',
             callback: that._addListItem.bind(this, graphId, nodeContentId, node)
           })
         ]
@@ -211,7 +220,7 @@ GRASP.GraphElementEditor.prototype = {
         labelButtons: [
             this.UI.createButton({
               name: 'editConditionals',
-              type: 'edit',
+              type: 'icon edit grey',
               callback: function(){
                 that._createConditionalProbabilitiesModal(
                     graphId,
@@ -232,7 +241,7 @@ GRASP.GraphElementEditor.prototype = {
       that._setAccordionTabHeight(accordion)
     }});
     this._setAccordionTabHeight(accordion);
-    return [remove, label, accordion];
+    return [head, label, accordion];
   },
 
   _setAccordionTabHeight: function(accordion){
@@ -490,8 +499,8 @@ GRASP.GraphElementEditor.prototype = {
       name: 'list',
       items:htmllist,
       itemActions:[
-        {name:'edit', type:'edit', callback: updateListItem},
-        {name:'remove', type:'delete', callback: removeListItem}
+        {name:'edit', type:'icon edit grey', callback: updateListItem},
+        {name:'remove', type:'icon delete grey', callback: removeListItem}
       ],
       disabled:!isEditable
     })
@@ -565,6 +574,7 @@ GRASP.GraphElementEditor.prototype = {
     }));
     c.appendChild(this.UI.createRange({
       name: 'importance',
+      label: this.i18n.__('Importance'),
       min: 1,
       max: 99,
       step: 1,
@@ -593,8 +603,8 @@ GRASP.GraphElementEditor.prototype = {
         dropType: 'single',
         map: this._alternativeToSelectBoxItem.bind(this, graphId, nodeContentId, node),
         selectedItemMap: function(alternative){
-          var c = GRASP.createElement('div',{});
-          var r = GRASP.createElement('div',{class:'alternativeProbability'}, alternative.reliability);
+          var c = GRASP.createElement('div',{class:'nodeLabel inSelectBox'});
+          var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
           var l = that.UI.createTextareaBox({
             name:'label',
             value:alternative.label,
@@ -604,7 +614,7 @@ GRASP.GraphElementEditor.prototype = {
           // create buttons to add and remove alternatives
           var add = that.UI.createButton({
             name: 'addAlternative',
-            type: 'plusCircle',
+            type: 'icon plusCircle grey',
             callback: that._addAlternative.bind(that, graphId, nodeContentId)
           });
           c.appendChild(r);
@@ -617,10 +627,11 @@ GRASP.GraphElementEditor.prototype = {
       c.appendChild(select);
     } else {
       var alternative = alternatives[node.active_alternative_id];
-      var label = GRASP.createElement('div',{});
-      var r = GRASP.createElement('div',{class:'alternativeProbability'}, alternative.reliability);
+      var label = GRASP.createElement('div',{class:'nodeLabel'});
+      var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
       var l = this.UI.createTextareaBox({
         name:'label',
+        class:'notInSelectLabel',
         value:alternative.label,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
         isContentEditable: true
@@ -634,12 +645,12 @@ GRASP.GraphElementEditor.prototype = {
   },
 
   _alternativeToSelectBoxItem: function(graphId, nodeContentId, node, alternative){
-    var c = GRASP.createElement('div',{});
-    var r = GRASP.createElement('div',{class:'alternativeProbability'}, alternative.reliability);
+    var c = GRASP.createElement('div',{class:'nodeLabel inSelectBox'});
+    var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
     var l = GRASP.createElement('div',{class:'alternativeLabel'}, alternative.label);
     var remove = this.UI.createButton({
       name: 'removeAlternative',
-      type: 'delete',
+      type: 'icon delete grey',
       callback: this._removeAlternative.bind(this, graphId, nodeContentId, node, alternative)
     });
     c.appendChild(r);

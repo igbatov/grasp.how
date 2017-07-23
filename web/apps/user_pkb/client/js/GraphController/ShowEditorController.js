@@ -42,9 +42,12 @@ GRASP.ShowEditorController.prototype = {
   _showNodeEditor: function(graphId, nodeId, nodeContentId){
     var that = this;
     this.publisher
-      .publish(["get_graph_models", [graphId]],
-            ["get_selected_positions", [graphId]])
-      .then(function(graphModels, positions){
+      .publish(
+          ["get_graph_models", [graphId]],
+          ["get_selected_positions", [graphId]],
+          ["get_selected_skin", [graphId]]
+      )
+      .then(function(graphModels, positions, skin){
           if(typeof(graphModels[graphId]) == 'undefined') return true;
             var graphModel = graphModels[graphId];
             that.publisher.publish(["show_graph_element_editor", {
@@ -54,7 +57,7 @@ GRASP.ShowEditorController.prototype = {
               elementType: 'node',
               nodeId: nodeId,
               nodeContentId: nodeContentId,
-              nodeTypes: graphModel.getNodeTypes()
+              nodeTypes: skin['node']['attr']['typeColors']
             }]);
       });
   },

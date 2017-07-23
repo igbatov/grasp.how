@@ -11,22 +11,24 @@
     background-color: #f4f9fc;
 }
 .ui_accordion label {
+    padding-top: 0.7em;
+    padding-left: 1.6em;
     color: #191919;
     font-family: 'Roboto-Bold';
     font-size: 14px;
     font-weight: 500;
     line-height: 1.43;
-    height: 2.5em;
+    height: 3em;
     position: relative;
     display: block;
-    padding: 6px 0 6px 0;
     cursor: pointer;
 }
 .ui_accordion .label-text {
     display: inline-block;
-    margin-top: 2px;
+    margin-top: 5px;
 }
 .ui_accordion .tab-content {
+    padding-left: 1.6em;
     max-height: 0;
     overflow: auto;
     -webkit-transition: max-height .35s;
@@ -36,7 +38,7 @@
 /* Icon */
 .ui_accordion label::after {
     position: absolute;
-    top: 40%;
+    top: 50%;
     right: 2em;
     display: block;
     width: 0;
@@ -62,6 +64,7 @@
     content: "+";
 }
 .ui_accordion input.tab_input[type=radio] + label::after {
+    display: inline-block;
     content: "";
 }
 .ui_accordion input.tab_input[type=checkbox]:checked + label::after {

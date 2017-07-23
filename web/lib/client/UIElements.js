@@ -299,13 +299,13 @@ GRASP.UIElements.prototype = {
     var uniqId = this.generateId();
 
     var range = GRASP.createElement('div',{class:'ui_range'});
-    var label = GRASP.createElement('label',{},attrs.name+' ');
+    var label = GRASP.createElement('span',{},attrs.label+': ');
+    var output = GRASP.createElement('span',{},attrs.value);
     var input = GRASP.createElement('input',{type:'range', name:attrs.name, value:attrs.value, min:attrs.min, max:attrs.max, step:attrs.step, disabled:attrs.disabled},'');
     if(attrs.disabled == true) GRASP.setDisplay(input,'none');
-    var output = GRASP.createElement('span',{},attrs.value);
     range.appendChild(label);
-    range.appendChild(input);
     range.appendChild(output);
+    range.appendChild(input);
     input.addEventListener('input',function(evt){
       output.innerText = input.value;
       attrs.callback(attrs.name,input.value);
@@ -322,7 +322,7 @@ GRASP.UIElements.prototype = {
    * @param attrs - {name, label, callback, disabled, formname}
    *  {String} name - i.e. "yes"
    *  {String} label? - i.e "I agree!"
-   *  {String} type: 'bigButton'|'delete'|'plusCircle'|'edit'
+   *  {String} type: 'bigButton'|'icon delete'|'icon plusCircle'|'icon edit'
    *  {function(object)=} callback - callback arg is event
    *  {boolean=} disabled
    */
@@ -368,6 +368,7 @@ GRASP.UIElements.prototype = {
    * @param attrs - {
    *    name: string,
    *    value: string,
+   *    class: string,
    *    label: string,
    *    disabled: boolean,
    *    callback: function,
@@ -406,7 +407,8 @@ GRASP.UIElements.prototype = {
           {
             contenteditable: !attrs.disabled,
             id:uniqId,
-            name:attrs.name
+            name:attrs.name,
+            class:attrs.class
           },
           attrs.value,
           cb
@@ -877,7 +879,7 @@ GRASP.UIElements.prototype = {
         label: action.label,
         type: action.type,
         disabled: action.disabled,
-      }
+      };
       var button = this.createButton(buttonOptions);
       (function(button, callback, id, li){
         button.addEventListener('click', function(evt){

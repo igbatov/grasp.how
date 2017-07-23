@@ -18,6 +18,9 @@
 .ui_select ul {
     width: 100%;
 }
+.ui_select .selected.withDownArrow::after {
+    top: 1.7em;
+}
 /**
 * Font definitions
 */
@@ -72,6 +75,7 @@ body{
     display: inline-block;
 }
 .textBoxContent {
+    padding-bottom: 1.5em;
     /* margin-top: 50px; */
     background-color: #FFFFFF;
     font-family: "DINPro";
@@ -93,11 +97,11 @@ body{
 }
 
 .mainC {
-    margin-left: 24px;
+    /* margin-left: 24px; */
     /* margin-top: 8px; */
-    margin-right: 40px;
+    /* margin-right: 40px; */
     /* margin-bottom: 46px; */
-    padding-bottom: 16px;
+    /* padding-bottom: 16px; */
 }
 
 .alternativeLabel {

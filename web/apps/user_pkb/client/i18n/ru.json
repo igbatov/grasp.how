@@ -24,5 +24,12 @@
   "book":"книга",
   "news":"новости",
   "personal experience":"личный опыт",
-  "from":"из"
+  "from":"из",
+  "Importance":"Важность",
+  "proposition":"гипотеза",
+  "fact":"факт",
+  "illustration":"иллюстрация",
+  "question":"вопрос",
+  "to_read":"прочитать",
+  "best_known_practice":"лучшие практики"
 }

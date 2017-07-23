@@ -238,7 +238,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
         if(accordion === null) return f(100);
         // ok, it was mounted, so calculate tab content max height
         // based on view, h, labels and number of labels
-        var maxHeight = $(view.parentNode).height() - $(h).outerHeight() - $(labels).outerHeight() - $(altContentLabel).outerHeight()*labelsNum;
+        var maxHeight = $(view.parentNode).height() - $(h).outerHeight() - $(labels).outerHeight() - $(altContentLabel.parentNode).outerHeight()*labelsNum;
         var applyMaxHeight = function(v){
           if(v.parentNode.querySelectorAll('input')[0].checked){
             v.style.maxHeight = maxHeight+'px';

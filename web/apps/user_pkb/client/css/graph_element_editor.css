@@ -3,7 +3,7 @@
     display: none;
     /* flex-direction: column; */
     opacity: 1;
-    padding: 1em;
+    padding-bottom: 1em;
     z-index: 1;
     background-color: #ffffff;
     width: 40%;
@@ -50,17 +50,18 @@
     margin-right: 1em;
 }
 .graphElementEditorContainer .ui_select {
-    margin-right: 1em;
+    /* margin-right: 1em; */
 }
 .graphElementEditorContainer .ui_select a {
     white-space: normal;
+    padding-right: 0;
 }
 .graphElementEditorContainer .ui_list li {
     display: flex;
     flex-direction: row;
     line-height: 1.5em;
 }
-.graphElementEditorContainer .ui_list li button {
+.graphElementEditorContainer .ui_list li button.ui_button.icon{
     float:right;
     background-size: 1.3em;
     height: 1.5em;
@@ -69,13 +70,14 @@
     /* height: 2em; */
 }
 .graphElementEditorContainer .ui_range input {
-    width: 5em;
+    width: 20em;
+    margin-left: 1em;
 }
 .graphElementEditorContainer .ui_accordion  label::after{
    display: inline-block;
    position: static;
    margin-left: 0.5em;
-   margin-bottom: 0.2em;
+   margin-bottom: 0.1em;
 }
 .graphElementEditorContainer .condPInfoLabel {
     font-family: 'Roboto';
@@ -118,15 +120,72 @@
     color: #191919;
     /* display: inline; */
 }
+.graphElementEditorContainer .alternativeLabel {
+    
+}
+.graphElementEditorContainer .alternativeProbability {
+    width: 3em;
+    font-family: DINPro;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.25;
+    color: #b363d2;
+}
+.graphElementEditorContainer .ui_accordion {
+    /* padding: 1em 1em 1em 1em; */
+}
+.graphElementEditorContainer .ui_accordion .tab label {
+    padding: 0.5em 1em 0em 16px;
+}
+.graphElementEditorContainer .ui_accordion .tab .tab-content {
+    padding: 0em 1em 0em 16px;
+}
+.graphElementEditorContainer .head {
+    height: 1.5em;
+    margin: 1em 1em 0.5em 1em;
+}
+.graphElementEditorContainer .head .label {
+    margin-top: 0.26em;
+    display: inline-block;
+    vertical-align: middle;
+}
+.graphElementEditorContainer .head button {
+    display: inline-block;
+    float: right;
+}
+.graphElementEditorContainer .nodeLabel {
+    font-family: 'Roboto-Bold';
+    display: flex;
+    margin: 1em 1em 0.5em 1em;
+}
+.graphElementEditorContainer .nodeLabel.inSelectBox {
+    margin: 0;
+}
+.graphElementEditorContainer .nodeLabel .notInSelectLabel {
+    margin-top: 3px;
+}
+.graphElementEditorContainer .selected .nodeLabel > button {
+    margin-top: 2em;
+}
+.graphElementEditorContainer .nodeLabel > button {
+    padding-left: 30px;
+    background-position-y: bottom;
+    height: 24px;
+}
+.graphElementEditorContainer li .nodeLabel > button {
+    height: 24px;
+}
+.graphElementEditorContainer .tab-content {
+    font-family: 'Roboto';
+    font-size: 14px;
+    line-height: 1.43;
+    color: #191919;
+}
 .graphElementEditorContainer .sourceItem {
     width: 93%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    font-family: 'Roboto';
-    font-size: 14px;
-    line-height: 1.43;
-    color: #191919;
 }
 .graphElementEditorContainer .sourceItem .leftC{
     width: 75%;

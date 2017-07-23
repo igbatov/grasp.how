@@ -24,25 +24,29 @@
     padding: 7px 20px;
 }
 
-.ui_button.edit {
+.ui_button.icon {
     border: none;
     border-radius: 0;
     width: 24px;
     height: 24px;
-    background: url("/lib/client/img/ic_mode_edit_black_24px.svg") no-repeat 0 center;
 }
 
-.ui_button.plusCircle {
-    border: none;
-    border-radius: 0;
-    width: 24px;
-    height: 24px;
+.ui_button.icon.edit {
+    background: url("/lib/client/img/ic_mode_edit_black_24px.svg") no-repeat 0 center;
+}
+.ui_button.icon.plusCircle {
     background: url("/lib/client/img/ic_add_circle_outline_black_24px.svg") no-repeat 0 center;
 }
-.ui_button.delete {
-    border: none;
-    border-radius: 0;
-    width: 24px;
-    height: 24px;
+.ui_button.icon.delete {
     background: url("/lib/client/img/ic_delete_black_24px.svg") no-repeat 0 center;
+}
+
+.ui_button.icon.edit.grey {
+    background: url("/lib/client/img/ic_mode_edit_grey_24px.svg") no-repeat 0 center;
+}
+.ui_button.icon.plusCircle.grey {
+    background: url("/lib/client/img/ic_add_circle_outline_grey_24px.svg") no-repeat 0 center;
+}
+.ui_button.icon.delete.grey {
+    background: url("/lib/client/img/ic_delete_grey_24px.svg") no-repeat 0 center;
 }
