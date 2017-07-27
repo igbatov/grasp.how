@@ -754,9 +754,27 @@ GRASP.UIElements.prototype = {
       });
     }
 
-    modalWindow.appendChild(GRASP.createElement('div',{class:'ui_modal_wrapper'}));
+    var wrapper = GRASP.createElement('div',{class:'ui_modal_wrapper'});
+    modalWindow.appendChild(wrapper);
 
     GRASP.setDisplay(modalWindow, 'none');
+
+    /**
+     * When modal is mounted adjust its height to content
+     */
+    var f = function(timeout) {
+      setTimeout(function () {
+        // if modal was not mounted yet, then wait and repeat
+        if (document.getElementById(uniqId) === null) return f(100);
+        // 2 is because of float to int round errors
+        modalWindow.style.height = 3
+        + wrapper.children[0].clientHeight
+        + parseInt(getComputedStyle(modalWindow).paddingTop)
+        + parseInt(getComputedStyle(modalWindow).paddingBottom)
+        +'px';
+      }, timeout);
+    };
+    f(0);
 
     return modalWindow;
   },
