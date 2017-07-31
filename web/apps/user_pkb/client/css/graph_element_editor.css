@@ -50,6 +50,15 @@
     margin-right: 1em;
 }
 .graphElementEditorContainer .ui_select {
+    width: 100%;
+    /* margin-right: 1em; */
+}
+.graphElementEditorContainer .ui_select .nodeLabel div[name=label] {
+    width: 100%;
+    /* margin-right: 1em; */
+}
+.graphElementEditorContainer .ui_select ul {
+    width: 100%;
     /* margin-right: 1em; */
 }
 .graphElementEditorContainer .ui_select a {
@@ -121,7 +130,7 @@
     /* display: inline; */
 }
 .graphElementEditorContainer .alternativeLabel {
-    
+    margin-top: 0.2em;width: 100%;
 }
 .graphElementEditorContainer .alternativeProbability {
     width: 3em;
@@ -159,6 +168,7 @@
     margin: 1em 1em 0.5em 1em;
 }
 .graphElementEditorContainer .nodeLabel.inSelectBox {
+    width: 100%;
     margin: 0;
 }
 .graphElementEditorContainer .nodeLabel .notInSelectLabel {

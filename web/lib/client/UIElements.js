@@ -252,6 +252,7 @@ GRASP.UIElements.prototype = {
   },
 
   _findSelectBoxItem: function(items, needle){
+    needle = needle+""; //convert to string
     for(var key in items){
       var item = items[key];
       if(key === needle) return item;
