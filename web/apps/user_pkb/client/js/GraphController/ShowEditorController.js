@@ -45,7 +45,7 @@ GRASP.ShowEditorController.prototype = {
       .publish(
           ["get_graph_models", [graphId]],
           ["get_selected_positions", [graphId]],
-          ["get_selected_skin", [graphId]]
+          ["get_selected_skin", graphId]
       )
       .then(function(graphModels, positions, skin){
           if(typeof(graphModels[graphId]) == 'undefined') return true;
