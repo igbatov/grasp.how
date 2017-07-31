@@ -6,7 +6,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
-    background-color: #9DE9BD;
+    background-color: #FFFFFF;
     padding: 20px 20px 20px 20px;
     max-height: 90%;
     overflow: hidden;
@@ -20,7 +20,7 @@
 }
 
 .ui_modal_wrapper{
-    align-items: center;
+    align-items: baseline;
     justify-content: center;
     display: flex;
     /* top: 20px; */
@@ -35,22 +35,30 @@
  * Induce special settings for ui_form in modal window
  */
 .ui_modal .ui_form{
-    position: absolute;
+    position: relative;
     /* min-height: 80%; */
     width: 90%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* justify-content: space-around; */
 }
 
-.ui_modal .ui_form input, .ui_modal .ui_form textarea, .ui_modal .ui_form button, .ui_modal .ui_form .ui_select, .ui_modal .ui_form .ui_search{
+.ui_modal .ui_form .formRow {
+    display: flex;
     width: 100%;
-    margin: 0 0 1em 0;
+    margin: 0 0 0.8em 0;
+}
+.ui_form .formRow.upMarginMiddle {
+    margin-top: 1.5em;
+}
+.ui_form .formRow.twoColumn {
+    width: 50%;
+    display: inline-block;
 }
 
 .ui_modal .ui_form .ui_button{
     align-self: center;
-    width: 50%;
+    /* width: 50%; */
 }
 
 .ui_modal textarea{

@@ -56,37 +56,62 @@ GRASP.FormFields.prototype = {
     };
 
     var formFields = {
-      'source_type':{'type':'select', 'label':'Тип',
+      'source_type':{
+        rowType:'select',
+        rowLabel:'Type',
         callback:selectSourceType,
-        'items':SOURCE_TYPES,
-        'value':'article'
+        items:SOURCE_TYPES,
+        value:'article',
+        withDownArrow: true
       },
-      'name':{'type':'search', label:'Title',
+      'name':{
+        rowType:'search',
+        rowLabel:'Title',
+        placeholder:'Title',
         findCallback:function(str){
           var source_type = that.UI.getFormValue(form, 'source_type');
           return that.publisher.publish(['find_sources',{source_type:source_type, substring:str}]);
         },
         selectCallback:function(name, value){
           // if value didn't come just return
-          if(typeof(value.source_id) == 'undefined') return;
+          if(typeof(value.source_id) == 'undefined') {
+            return;
+          }
 
+          // fill in values from source
           GRASP.getObjectKeys(formFields).forEach(function(v){
             if(typeof(value[v]) != 'undefined'){
               that.UI.updateForm(form,v,{value:value[v]});
             }
           });
+
+          // block source fields (they can be edited from 'Fact Sources' only)
+          that.getImmutableSourceFields().forEach(function(v){
+            that.UI.updateForm(form,v,{disabled:true});
+          });
         },
         typeCallback:function(name, value){
           // reset default values
-          that.UI.updateForm(form,'source_id',{value:''});
+          GRASP.getObjectKeys(formFields).forEach(function(fieldName){
+            if (['name', 'source_type'].indexOf(fieldName) !== -1) {
+              return;
+            }
+            that.UI.updateForm(form,fieldName,{value:''});
+          });
+
+          // unblock source fields
+          that.getImmutableSourceFields().forEach(function(v){
+            that.UI.updateForm(form,v,{disabled:false});
+          });
         }
       },
-      'url':{'type':'text', label:'URL'},
-      'author':{'type':'text', label:'Authors'},
-      'editor':{'type':'text', label:'Reviewer'},
+      'url':{rowType:'text', rowLabel:'URL', placeholder: ""},
+      'author':{rowType:'text', rowLabel:'Authors', placeholder: ""},
+      'editor':{rowType:'text', rowLabel:'Reviewer', placeholder: ""},
       'publisher':{
-        type:'search',
-        label:'Publisher',
+        rowType:'search',
+        rowLabel:'Publisher',
+        placeholder: "",
         findCallback:function(str){
           return that.publisher.publish(['find_publishers',{substring:str}]);
         },
@@ -101,27 +126,42 @@ GRASP.FormFields.prototype = {
         }
       },
       'publisher_reliability':{
-        type:'text',
+        rowType:'select',
         disabled:false,
-        label:'reliability'
+        rowLabel:'Reliability',
+        items: {'1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10'}
       },
-      'scopus_title_list_id':{type:'hidden'},
-      'publish_date':{type:'date', label:'Publish date'},
-      'pages':{type:'text', label:'volume, pages'},
-      'comment':{type:'textarea', label:'Comment'},
-      'source_id':{type:'hidden'},
-      'id':{type:'hidden'},
-      'button':{type:'button', label:'Save'}
+      'scopus_title_list_id':{rowType:'hidden'},
+      'publish_date':{rowType:'date', rowLabel:'Publish date'},
+      'pages':{rowType:'text', rowLabel:'volume, pages', placeholder: ""},
+      'comment':{
+        rowType:'textarea',
+        rowLabel:'Comment',
+        placeholder: ""
+      },
+      'source_id':{rowType:'hidden'},
+      'id':{rowType:'hidden'}
     };
 
     return formFields;
   },
 
+  /**
+   * Define immutable source fields.
+   * This fields will be disabled for edit when user selects source that is already exists in 'Fact Sources'.
+   * If user wants to edit source itself, he/she should edit it in 'Fact Sources'.
+   */
+  getImmutableSourceFields: function(){
+    var immutableSourceFields = [
+      'source_type', 'url', 'author', 'editor', 'publisher', 'publisher_reliability', 'publish_date'
+    ];
+    return immutableSourceFields;
+  },
+
   getFalsificationFields: function(){
     var formFields = {
-      'name':{type:'text', label:'Name'},
-      'comment':{type:'textarea', label:'Description'},
-      'button':{type:'button', label:'Save'}
+      'name':{rowType:'text', rowLabel:'Name'},
+      'comment':{rowType:'textarea', rowLabel:'Description'}
     };
     return formFields;
   }

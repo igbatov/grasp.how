@@ -6,3 +6,53 @@
 .ui_form h1{
     font-size: 1em;
 }
+
+.ui_form .formRow {
+    font-family: 'Roboto';
+    font-size: 14px;
+    line-height: 1.43;
+    color: #788d98;
+}
+
+.ui_form .formRow.upMarginMiddle{
+    margin-top: 2em;
+}
+
+.ui_form .formRow.twoColumn{
+    width: 50%;
+    display: inline-block;
+}
+
+.ui_form .formRow input[type=text]{
+    height: 33px;
+    width: 69%;
+    display: inline-block;
+    border: none;
+    border-bottom: solid 1px #788d98;
+    color: #788d98;
+}
+.ui_form .formRow input[type=date]{
+    height: 33px;
+    width: 69%;
+    display: inline-block;
+    border: none;
+    border-bottom: solid 1px #788d98;
+    color: #788d98;
+}
+
+.ui_form .formRow .ui_search{
+    width: 68%;
+    display: inline-block;
+}
+
+.ui_form .formRow textarea{
+    min-height: 4em;
+    width: 68%;
+    display: inline-block;
+}
+
+.ui_form .formRow .label{
+    margin-top: 2px;
+    width: 30%;
+    display: inline-block;
+}

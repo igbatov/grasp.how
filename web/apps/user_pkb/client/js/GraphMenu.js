@@ -218,9 +218,9 @@ GRASP.GraphMenu.prototype = {
 
     var m = this.UI.createModal();
     this.UI.setModalContent(m, this.UI.createForm({
-      'graphId':{'type':'hidden', 'value':graphId},
-      'name':{'type':'text', 'label':'Name:', 'value':this.graphs[graphId].getGraphName()},
-      'submit':{type:'button', label:'Изменить'}
+      'graphId':{rowType:'hidden', value:graphId},
+      'name':{rowType:'text', rowLabel:'Name:', value:this.graphs[graphId].getGraphName()},
+      'submit':{rowType:'button', label:'Изменить'}
     }, function(form){
       // say about this event to all subscribers
       that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
@@ -258,8 +258,8 @@ GRASP.GraphMenu.prototype = {
       m,
       this.UI.createForm(
         {
-          'name':{type:'text', label:'Name:'},
-          'submit':{type:'button', label:'Создать'}
+          'name':{rowType:'text', rowLabel:'Name:'},
+          'submit':{rowType:'button', label:'Создать'}
         },
         function(form){
           that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(data){
@@ -282,13 +282,14 @@ GRASP.GraphMenu.prototype = {
     var m = this.UI.createModal();
     var form = this.UI.createForm({
       'lang':{
-        type:'select',
+        rowType:'select',
+        rowLabel:that.i18n.__('Language'),
         items:{'en':'en', 'ru':'ru'},
         value:settings['lang'],
         dropType: 'single'
       },
       'submit':{
-        type:'button',
+        rowType:'button',
         label:this.i18n.__('Save')
       }
     },
@@ -421,11 +422,11 @@ GRASP.GraphMenu.prototype = {
         m,
         this.UI.createForm({
           'title':{
-            type:'title',
+            rowType:'title',
             value:'To place the "'+this.graphs[this.leftGraphId].getGraphName()+'" in a web page, copy snippet below'
           },
           'tabs':{
-            type:'tabs',
+            rowType:'tabs',
             items:{
               'javascript code':GRASP.createElement('textarea',{},embedJSCode),
               'image':GRASP.createElement('textarea',{},embedImageCode)
@@ -499,6 +500,22 @@ GRASP.GraphMenu.prototype = {
             delete formFields['pages'];
             // remove 'source' field because we gonna use id field instead
             delete formFields['source_id'];
+
+            // add button
+            formFields['save'] = {
+              rowClass:'twoColumn upMarginMiddle',
+              rowType:'button',
+              type:'bigButton uppercase',
+              label:that.i18n.__('save')
+            };
+            formFields['cancel'] = {
+              rowClass:'twoColumn upMarginMiddle',
+              rowType:'button',
+              type:'bigButton white uppercase',
+              label:that.i18n.__('cancel'),
+              callback: function(){
+                that.UI.closeModal(modalWindow);
+              }};
 
             // fill in form fields
             if (GRASP.getObjectKeys(item).length) {

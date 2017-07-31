@@ -305,7 +305,7 @@ GRASP.GraphElementEditor.prototype = {
     fields = f.fields;
     formKeys = f.formKeys;
 
-    fields['button'] = {type:'button', label:'Save',disabled:!isEditable};
+    fields['button'] = {rowType:'button', rowLabel:'Save',disabled:!isEditable};
 
     var modalWindow = that.UI.createModal();
     var form = that.UI.createForm(
@@ -677,12 +677,12 @@ GRASP.GraphElementEditor.prototype = {
     var modalWindow = that.UI.createModal();
     var form = that.UI.createForm({
           label: {
-            label: that.i18n.__('Please, enter name of the alternative proposition'),
-            type:'text',
+            rowLabel: that.i18n.__('Please, enter name of the alternative proposition'),
+            rowType:'text',
             value:'',
             callback:function(){}
           },
-          button:{type:'button', label:'Добавить'}
+          button:{rowType:'button', label:'Добавить'}
         },
         // form submit callback
         function (form) {
@@ -848,18 +848,18 @@ GRASP.GraphElementEditor.prototype = {
     };
     var form = this.UI.createForm({
       'label':{
-        type:'text',
+        rowType:'text',
         value:edge.label,
         callback:onchange
       },
       'type':{
-        type:'select',
+        rowType:'select',
         items:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
         value:edge.type,
         callback:onchange
       },
       'removeButton':{
-        type:'button',
+        rowType:'button',
         label:'Remove edge',
         callback:function(){
           if(confirm('Are you sure?')){
@@ -907,17 +907,36 @@ GRASP.GraphElementEditor.prototype = {
     }else if(nodeType == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION){
       formFields = that.formFields.getFalsificationFields();
     }
+    formFields['save'] = {
+      rowClass:'twoColumn upMarginMiddle',
+      rowType:'button',
+      type:'bigButton uppercase',
+      label:that.i18n.__('save')
+    };
+    formFields['cancel'] = {
+      rowClass:'twoColumn upMarginMiddle',
+      rowType:'button',
+      type:'bigButton white uppercase',
+      label:that.i18n.__('cancel'),
+      callback: function(){
+      that.UI.closeModal(modalWindow);
+    }};
 
     // fill in form fields
     if(GRASP.getObjectKeys(item).length){
       GRASP.getObjectKeys(formFields).forEach(function(v,k){
-        if(typeof(item[v]) != 'undefined') formFields[v].value = item[v];
+        if(typeof(item[v]) != 'undefined') formFields[v].value = item[v]+"";
       });
     }
 
     for(var fieldName in formFields){
       that.UI.updateForm(form, fieldName, formFields[fieldName]);
     }
+
+    // block source fields (they can be edited from 'Fact Sources' only)
+    that.formFields.getImmutableSourceFields().forEach(function(v){
+      that.UI.updateForm(form,v,{disabled:true});
+    });
 
     // update fields in a form according to item source_type
     if(item.source_type && formFields['source_type']) formFields['source_type'].callback('',item.source_type);

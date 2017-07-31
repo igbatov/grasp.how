@@ -9,19 +9,28 @@
     cursor: pointer;
 }
 
+.ui_button.uppercase {
+    text-transform: uppercase;
+}
+
 .ui_button:hover {
     background: #3cb0fd;
     text-decoration: none;
 }
 
 .ui_button.bigButton {
-    font-family: Roboto;
+    font-family: 'Roboto';
     font-size: 16px;
     line-height: 1.31;
     box-shadow:none;
     border: 0;
     border-radius: 4px;
     padding: 7px 20px;
+}
+
+.ui_button.bigButton.white {
+    background: #FFFFFF;
+    color: #4a4a4a;
 }
 
 .ui_button.icon {

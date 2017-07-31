@@ -6,7 +6,7 @@ GRASP.UIElements = function(){
   this.uniqueId = 0;
   this.SELECT_ITEM_MAX_LENGTH = 255;
   // list of all elements created
-  this.elements = new GRASP.Table(['id', 'type', 'formname', 'name', 'definition', 'dom', 'state']);
+  this.formRows = new GRASP.Table(['id', 'type', 'formname', 'name', 'definition', 'dom', 'state']);
 };
 
 GRASP.UIElements.prototype = {
@@ -16,7 +16,7 @@ GRASP.UIElements.prototype = {
    * {function} typeCallback - will bw called as user type smth in a search tree. Arguments are name and value (= selected object from items)
    * {function} selectCallback - function that will be called as user select item. Arguments are name and value (= selected object from items)
    * {boolean=} disabled
-   * @param attrs - {name, label, value, findCallback, typeCallback, selectCallback, disabled, formname}
+   * @param attrs - {name, placeholder, value, findCallback, typeCallback, selectCallback, disabled, formname}
    */
   createSearch: function(attrs){
     var that = this,
@@ -64,8 +64,6 @@ GRASP.UIElements.prototype = {
       }
     });
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'search', definition:attrs, dom:selectBox});
-
     return selectBox;
   },
 
@@ -85,7 +83,7 @@ GRASP.UIElements.prototype = {
    * }
    * Returns DOM element that can be used to select items
    * name - Name of select box
-   * items - In a form {'value1'=>'label1', 'value2'=>{'label2','items':['value3'=>'label3'], ...}
+   * items - In a form {'value1':'label1', 'value2':{'label2','items':['value3'=>'label3'], ...}
    * defaultValue - Selected item key
    * callback - Callback will receive select name and item name on selection. If callback returns false, selectBox do not change selected element
    * dropTypes:
@@ -119,7 +117,7 @@ GRASP.UIElements.prototype = {
         var a = GRASP.createElement('a',{});
         a.appendChild(item);
         return a;
-      } else if(GRASP.typeof(item) == 'string') {
+      } else if(GRASP.typeof(item) == 'string' || GRASP.typeof(item) == 'number') {
         var text = (item.length > that.SELECT_ITEM_MAX_LENGTH ? item.substr(0, that.SELECT_ITEM_MAX_LENGTH)+'...' : item);
         return GRASP.createElement('a',{},text);
       } else if (GRASP.typeof(item) === 'object' && GRASP.typeof(item['items']) === 'object') {
@@ -250,8 +248,6 @@ GRASP.UIElements.prototype = {
       }
     });
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'select', definition:attrs, dom:selectBox});
-
     return selectBox;
   },
 
@@ -285,8 +281,6 @@ GRASP.UIElements.prototype = {
       attrs.addCallback(this.files,list);
     });
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'file', definition:attrs, dom:container});
-
     return container;
   },
 
@@ -310,8 +304,6 @@ GRASP.UIElements.prototype = {
       output.innerText = input.value;
       attrs.callback(attrs.name,input.value);
     });
-
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'range', definition:attrs, dom:range});
 
     return range;
   },
@@ -344,8 +336,6 @@ GRASP.UIElements.prototype = {
       });
     }
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'button', definition:attrs, dom:el});
-
     return el;
   },
 
@@ -358,8 +348,6 @@ GRASP.UIElements.prototype = {
     var uniqId = this.generateId();
     var el = GRASP.createElement('input',{id:uniqId, type:'text', name:attrs.name, value:attrs.value, placeholder:attrs.placeholder ? attrs.placeholder : attrs.label, disabled:attrs.disabled},'',attrs.callback);
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'text', definition:attrs, dom:el});
-
     return el;
   },
 
@@ -369,7 +357,7 @@ GRASP.UIElements.prototype = {
    *    name: string,
    *    value: string,
    *    class: string,
-   *    label: string,
+   *    placeholder: string,
    *    disabled: boolean,
    *    callback: function,
    *    formname: string,
@@ -417,25 +405,14 @@ GRASP.UIElements.prototype = {
       var el = GRASP.createElement(
         'textarea',
         {
-          id:uniqId,
           name:attrs.name,
-          placeholder:attrs.label,
+          placeholder:attrs.placeholder,
           disabled:attrs.disabled
         },
         attrs.value,
         cb
       );
     }
-
-    this.elements.insertRow({
-      id:uniqId,
-      formname:attrs.formname,
-      name:attrs.name,
-      type:'textarea',
-      definition:attrs,
-      dom:el,
-      state:state
-    });
 
     return el;
   },
@@ -449,8 +426,6 @@ GRASP.UIElements.prototype = {
     var uniqId = this.generateId();
     var el = GRASP.createElement('input',{type:'date',id:uniqId,name:attrs.name, value:attrs.value, disabled:attrs.disabled},'',attrs.callback);
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'date', definition:attrs, dom:el});
-
     return el;
   },
 
@@ -462,8 +437,6 @@ GRASP.UIElements.prototype = {
   createHidden: function(attrs){
     var uniqId = this.generateId();
     var el = GRASP.createElement('input',{type:'hidden',id:uniqId, name:attrs.name, value:attrs.value, disabled:attrs.disabled},'');
-
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs['name'], type:'hidden', definition:attrs, dom:el});
 
     return el;
   },
@@ -478,9 +451,6 @@ GRASP.UIElements.prototype = {
 
     // create DOM
     var el = GRASP.createElement('h1',{id:uniqId},attrs.value);
-
-    // update internal list of all UI elements
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:null, type:'title', definition:attrs, dom:el});
 
     return el;
   },
@@ -501,7 +471,6 @@ GRASP.UIElements.prototype = {
        var HTMLList = this.createList(attrs.items, attrs.itemActions, attrs.disabled);
        div.appendChild(HTMLList);
     }
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'list', definition:attrs, dom:div});
 
     return div;
   },
@@ -549,8 +518,6 @@ GRASP.UIElements.prototype = {
     GRASP.setDisplay(content, is_default_hide === false ? 'block' : 'none');
     c.appendChild(content);
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'toggle', definition:attrs, dom:c});
-
     return c;
   },
 
@@ -596,7 +563,6 @@ GRASP.UIElements.prototype = {
       document.getElementById('tabContent_'+e.target.id).classList.add('active');
     });
 
-    this.elements.insertRow({id:uniqId, formname:attrs.formname, name:attrs.name, type:'toggle', definition:attrs, dom:c});
     return c;
   },
 
@@ -614,7 +580,7 @@ GRASP.UIElements.prototype = {
       form.submitCallback = submitCallback;
 
     for(name in fields){
-      form.appendChild(this.createFormField(form, name, fields[name]));
+      form.appendChild(this.createFormRow(form, name, fields[name]));
     }
 
     return form;
@@ -624,21 +590,22 @@ GRASP.UIElements.prototype = {
    *
    * @param form
    * @param name
-   * @param field
+   * @param rowAttrs - element attrs + {rowType, rowLabel, rowClass}
    * @returns {*}
    */
-  createFormField: function(form, name, field){
+  createFormRow: function(form, name, rowAttrs){
     var fieldDOM;
-    if(field['type'] == 'text') fieldDOM = this.createTextBox({name:name, value:field['value'], label:field['label'],placeholder:field['placeholder'], disabled:field['disabled'], callback:field['callback'], formname:form.id});
-    if(field['type'] == 'textarea') fieldDOM = this.createTextareaBox({name:name, value:field['value'], label:field['label'], disabled:field['disabled'], callback:field['callback'], callback_delay:field['callback_delay'], formname:form.id});
-    if(field['type'] == 'date') fieldDOM = this.createDate({name:name, value:field['value'], disabled:field['disabled'], callback:field['callback'], formname:form.id});
-    if(field['type'] == 'select') fieldDOM = this.createSelectBox({name:name, items:field['items'], defaultValue:field['value'], callback:field['callback'], disabled:field['disabled'], formname:form.id, dropType:field['dropType']});
-    if(field['type'] == 'button'){
+    if(rowAttrs['rowType'] == 'text') fieldDOM = this.createTextBox({name:name, value:rowAttrs['value'], placeholder:rowAttrs['placeholder'], disabled:rowAttrs['disabled'], callback:rowAttrs['callback']});
+    if(rowAttrs['rowType'] == 'textarea') fieldDOM = this.createTextareaBox({name:name, value:rowAttrs['value'], placeholder:rowAttrs['placeholder'], disabled:rowAttrs['disabled'], callback:rowAttrs['callback'], callback_delay:rowAttrs['callback_delay']});
+    if(rowAttrs['rowType'] == 'date') fieldDOM = this.createDate({name:name, value:rowAttrs['value'], disabled:rowAttrs['disabled'], callback:rowAttrs['callback']});
+    if(rowAttrs['rowType'] == 'select') fieldDOM = this.createSelectBox({name:name, items:rowAttrs['items'], defaultValue:rowAttrs['value'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled'], dropType:rowAttrs['dropType'], withDownArrow:rowAttrs['withDownArrow']});
+    if(rowAttrs['rowType'] == 'button'){
       // if button field has callback - use it, if no - use general form submitCallback and pass form data to it
       fieldDOM = this.createButton({
         name: name,
-        label: field['label'],
-        callback: field['callback'] ? field['callback'] : function(evt){
+        label: rowAttrs['label'],
+        type: rowAttrs['type'],
+        callback: rowAttrs['callback'] ? rowAttrs['callback'] : function(evt){
           var data = {};
           // gather data from form fields
           [].forEach.call(form.getElementsByTagName("textarea"), function(child) {
@@ -652,19 +619,36 @@ GRASP.UIElements.prototype = {
           });
           if(form.submitCallback) form.submitCallback(data);
         },
-        disabled:field['disabled'],
+        disabled:rowAttrs['disabled'],
         formname:form.id
       });
     }
-    if(field['type'] == 'search') fieldDOM = this.createSearch({name:name, label:field['label'], value:field['value'], findCallback:field['findCallback'], typeCallback:field['typeCallback'], selectCallback:field['selectCallback'], disabled:field['disabled'], formname:form.id});
-    if(field['type'] == 'file') fieldDOM = this.createFileBox({name:name, items:field['items'], addCallback:field['addCallback'], removeCallback:field['removeCallback'], disabled:field['disabled'], formname:form.id});
-    if(field['type'] == 'range') fieldDOM = this.createRange({name:name, value:field['value'], min:field['min'], max:field['max'], step:field['step'], callback:field['callback'], disabled:field['disabled'], formname:form.id});
-    if(field['type'] == 'hidden') fieldDOM = this.createHidden({name:name,value:field['value'], formname:form.id, disabled:field['disabled']});
-    if(field['type'] == 'title') fieldDOM = this.createTitle({value:field['value'], formname:form.id});
-    if(field['type'] == 'list') fieldDOM = this.createListBox({name:name,items:field['items'], itemActions:field['itemActions'], addLabel: field['addLabel'], addCallback:field['addCallback'], formname:form.id});
-    if(field['type'] == 'tabs') fieldDOM = this.createTabs({name:name, items:field['items'], defaultItem:field['defaultItem'], formname:form.id});
+    if(rowAttrs['rowType'] == 'search') fieldDOM = this.createSearch({name:name, placeholder:rowAttrs['placeholder'], value:rowAttrs['value'], findCallback:rowAttrs['findCallback'], typeCallback:rowAttrs['typeCallback'], selectCallback:rowAttrs['selectCallback'], disabled:rowAttrs['disabled']});
+    if(rowAttrs['rowType'] == 'file') fieldDOM = this.createFileBox({name:name, items:rowAttrs['items'], addCallback:rowAttrs['addCallback'], removeCallback:rowAttrs['removeCallback'], disabled:rowAttrs['disabled']});
+    if(rowAttrs['rowType'] == 'range') fieldDOM = this.createRange({name:name, value:rowAttrs['value'], min:rowAttrs['min'], max:rowAttrs['max'], step:rowAttrs['step'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled']});
+    if(rowAttrs['rowType'] == 'hidden') fieldDOM = this.createHidden({name:name,value:rowAttrs['value'], disabled:rowAttrs['disabled']});
+    if(rowAttrs['rowType'] == 'title') fieldDOM = this.createTitle({value:rowAttrs['value']});
+    if(rowAttrs['rowType'] == 'list') fieldDOM = this.createListBox({name:name,items:rowAttrs['items'], itemActions:rowAttrs['itemActions'], addLabel: rowAttrs['addLabel'], addCallback:rowAttrs['addCallback']});
+    if(rowAttrs['rowType'] == 'tabs') fieldDOM = this.createTabs({name:name, items:rowAttrs['items'], defaultItem:rowAttrs['defaultItem']});
 
-    return fieldDOM;
+    var uniqId = this.generateId();
+    var formRow = GRASP.createElement('div',{
+      id:uniqId,
+      class:'formRow' + (rowAttrs['rowClass'] ? ' ' + rowAttrs['rowClass'] : ''),
+      style:rowAttrs['rowType'] === 'hidden' ? 'display:none;' : ''
+    });
+    if (
+        ['tabs','list','title','hidden', 'button'].indexOf(rowAttrs['rowType']) === -1
+        && typeof rowAttrs.rowLabel != 'undefined'
+    ) {
+      var label = GRASP.createElement('div', {class:'label'}, rowAttrs.rowLabel);
+      formRow.appendChild(label);
+    }
+    formRow.appendChild(fieldDOM);
+
+    this.formRows.insertRow({id:uniqId, formname:form.id, name:name, type:rowAttrs['rowType'], definition:rowAttrs, dom:formRow});
+
+    return formRow;
   },
 
   /**
@@ -675,7 +659,7 @@ GRASP.UIElements.prototype = {
    * @param attrs
    */
   updateForm: function(form,name,attrs){
-    var els = this.elements.getRows({formname:form.id, name:name});
+    var els = this.formRows.getRows({formname:form.id, name:name});
 
     if(els.length) {
       var el = els[0];
@@ -690,7 +674,7 @@ GRASP.UIElements.prototype = {
     }
 
     // create new version
-    var newDom = this.createFormField(form, name, attrs);
+    var newDom = this.createFormRow(form, name, attrs);
 
     // old element was found? remove it and create new one
     if(els.length) {
@@ -699,7 +683,7 @@ GRASP.UIElements.prototype = {
       oldDom.parentNode.removeChild(oldDom);
 
       // remove old version (new one was already inserted in create<ElementName>() above)
-      this.elements.removeRowByIds(this.elements.getRowIds({id: el.id}));
+      this.formRows.removeRowByIds(this.formRows.getRowIds({id: el.id}));
     }
     // old element was not found? just insert new one at the end
     else{
@@ -716,7 +700,7 @@ GRASP.UIElements.prototype = {
    * @returns {*}
    */
   getFormValue: function(form, fieldname){
-    var els = this.elements.getRows({formname:form.id, name:fieldname});
+    var els = this.formRows.getRows({formname:form.id, name:fieldname});
 
     if(els.length){
       var el = els[0];
@@ -759,23 +743,6 @@ GRASP.UIElements.prototype = {
 
     GRASP.setDisplay(modalWindow, 'none');
 
-    /**
-     * When modal is mounted adjust its height to content
-     */
-    var f = function(timeout) {
-      setTimeout(function () {
-        // if modal was not mounted yet, then wait and repeat
-        if (document.getElementById(uniqId) === null) return f(100);
-        // 2 is because of float to int round errors
-        modalWindow.style.height = 3
-        + wrapper.children[0].clientHeight
-        + parseInt(getComputedStyle(modalWindow).paddingTop)
-        + parseInt(getComputedStyle(modalWindow).paddingBottom)
-        +'px';
-      }, timeout);
-    };
-    f(0);
-
     return modalWindow;
   },
 
@@ -799,6 +766,23 @@ GRASP.UIElements.prototype = {
     });
 
     wrapper.appendChild(content);
+
+    /**
+     * When modal is mounted adjust its height to content
+     */
+    var f = function(timeout) {
+      setTimeout(function () {
+        // if modal was not mounted yet, then wait and repeat
+        if (document.getElementById(modalWindow.id) === null) return f(100);
+        // 3 is because of float to int round errors
+        modalWindow.style.height = 3
+            + wrapper.children[0].clientHeight
+            + parseInt(getComputedStyle(modalWindow).paddingTop)
+            + parseInt(getComputedStyle(modalWindow).paddingBottom)
+            +'px';
+      }, timeout);
+    };
+    f(0);
   },
 
   createLoadingIndicator: function(){
@@ -813,7 +797,7 @@ GRASP.UIElements.prototype = {
   showAlert: function(text){
     var that = this, m = this.createModal(), modalContent = GRASP.createElement('div', {class:'ui_confirm'});
     modalContent.appendChild(this.createForm(
-        {title:{type:'title', value:text}, ok:{type:'button',label:'OK'}},
+        {title:{rowType:'title', value:text}, ok:{rowType:'button',label:'OK'}},
         function(v){
           that.closeModal(m);
         }
@@ -829,7 +813,7 @@ GRASP.UIElements.prototype = {
   showConfirm: function(text, callback){
     var that = this, m = this.createModal(), modalContent = GRASP.createElement('div', {class:'ui_confirm'});
     modalContent.appendChild(this.createForm(
-        {title:{type:'title', value:text}, yes:{type:'button',label:'Yes'}, no:{type:'button', label:'No'}},
+        {title:{rowType:'title', value:text}, yes:{rowType:'button',label:'Yes'}, no:{rowType:'button', label:'No'}},
         function(v){
           if(v['yes']) v = 'yes';
           else v = 'no';
@@ -982,6 +966,6 @@ GRASP.UIElements.prototype = {
   },
 
   getElements: function(){
-    return this.elements;
+    return this.formRows;
   }
 };
