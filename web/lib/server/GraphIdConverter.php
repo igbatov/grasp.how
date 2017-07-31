@@ -70,7 +70,7 @@ class GraphIdConverter{
     }
   }
 
-  public function throwIfNowGlobal($graphId){
+  public function throwIfNotGlobal($graphId){
     if(!$this->isGraphIdGlobal($graphId)) {
       $msg ="Graph id must be in a global format! Got ".$graphId;
       $this->logger->log($msg);

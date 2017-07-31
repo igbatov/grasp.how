@@ -74,7 +74,7 @@ class AppFrontend extends App{
         $withFbShare = $options['withFbShare'] === NULL ? true : $options['withFbShare'];
         $editMapRibbon = $options['editMapRibbon'] === NULL ? true : $options['editMapRibbon'];
 
-        foreach($graph_ids as $graph_id) $this->graphIdConverter->throwIfNowGlobal($graph_id);
+        foreach($graph_ids as $graph_id) $this->graphIdConverter->throwIfNotGlobal($graph_id);
 
         $graphs = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
         $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $graphs);

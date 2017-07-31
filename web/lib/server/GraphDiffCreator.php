@@ -313,7 +313,7 @@ class GraphDiffCreator{
   {
     // new node in $graph2 - return its text
     if(!$graphId1){
-      $graphIdConverter->throwIfNowGlobal($graphId2);
+      $graphIdConverter->throwIfNotGlobal($graphId2);
       $localGraphId2 = $graphIdConverter->getLocalGraphId($graphId2);
       $authId2 = $graphIdConverter->getAuthId($graphId2);
       $q = "SELECT text FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId2."' AND alternative_id='".$alternativeId2."'";
@@ -325,7 +325,7 @@ class GraphDiffCreator{
 
     // removed $graph1 node - return its text
     if(!$graphId2){
-      $graphIdConverter->throwIfNowGlobal($graphId1);
+      $graphIdConverter->throwIfNotGlobal($graphId1);
       $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
       $authId1 = $graphIdConverter->getAuthId($graphId1);
       $q = "SELECT text FROM node_content WHERE graph_id = '".$localGraphId1."' AND local_content_id = '".$localContentId1."' AND alternative_id='".$alternativeId1."'";
@@ -335,10 +335,10 @@ class GraphDiffCreator{
       return false;
     }
 
-    $graphIdConverter->throwIfNowGlobal($graphId1);
+    $graphIdConverter->throwIfNotGlobal($graphId1);
     $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
     $authId1 = $graphIdConverter->getAuthId($graphId1);
-    $graphIdConverter->throwIfNowGlobal($graphId2);
+    $graphIdConverter->throwIfNotGlobal($graphId2);
     $localGraphId2 = $graphIdConverter->getLocalGraphId($graphId2);
     $authId2 = $graphIdConverter->getAuthId($graphId2);
 
@@ -383,8 +383,8 @@ class GraphDiffCreator{
   }
 
   public static function getGraphSettings(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $graphId1, $graphId2){
-    $graphIdConverter->throwIfNowGlobal($graphId1);
-    $graphIdConverter->throwIfNowGlobal($graphId2);
+    $graphIdConverter->throwIfNotGlobal($graphId1);
+    $graphIdConverter->throwIfNotGlobal($graphId2);
     $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
     $authId1 = $graphIdConverter->getAuthId($graphId1);
     $localGraphId2 = $graphIdConverter->getLocalGraphId($graphId2);
@@ -412,8 +412,8 @@ class GraphDiffCreator{
   }
 
   public static function getGraphModelSettings(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $graphId1, $graphId2){
-    $graphIdConverter->throwIfNowGlobal($graphId1);
-    $graphIdConverter->throwIfNowGlobal($graphId2);
+    $graphIdConverter->throwIfNotGlobal($graphId1);
+    $graphIdConverter->throwIfNotGlobal($graphId2);
     $localGraphId1 = $graphIdConverter->getLocalGraphId($graphId1);
     $authId1 = $graphIdConverter->getAuthId($graphId1);
     $q = "SELECT graph FROM graph WHERE id = '".$localGraphId1."'";

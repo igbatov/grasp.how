@@ -24,7 +24,7 @@ class EmbGraph{
   public function getGraphsData($graph_ids){
     $graph = array();
     foreach ($graph_ids as $graph_id) {
-      $this->graphIdConverter->throwIfNowGlobal($graph_id);
+      $this->graphIdConverter->throwIfNotGlobal($graph_id);
       $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
       $authId = $this->graphIdConverter->getAuthId($graph_id);
       $graph_settings_row = $this->db->exec($authId, "SELECT * FROM graph_settings WHERE graph_id = '".$localGraphId."'")[0];

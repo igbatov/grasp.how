@@ -39,7 +39,7 @@ $graphIdConverter = new GraphIdConverter($logger);
 
 $authIds = [];
 if($graph_id){
-  $graphIdConverter->throwIfNowGlobal($graph_id);
+  $graphIdConverter->throwIfNotGlobal($graph_id);
   $localGraphId = $graphIdConverter->getLocalGraphId($graph_id);
   $authId = $graphIdConverter->getAuthId($graph_id);
   $authIds = [$authId];

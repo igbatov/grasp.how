@@ -241,7 +241,7 @@ class AppUserPkb extends App
        */
       case 'getGraphsModelSettings':
         if($vars[0] === 'showGraph'){
-          $this->graphIdConverter->throwIfNowGlobal($showGraphId);
+          $this->graphIdConverter->throwIfNotGlobal($showGraphId);
           $graphs_settings = $this->getGraphs(array($showGraphId));
           $graphs_settings[$showGraphId]['isEditable'] = false;
         }else{
@@ -314,7 +314,7 @@ class AppUserPkb extends App
           if(GraphDiffCreator::isDiffGraphId($graph_id)){
             $timeline[$graph_id][0] = time();
           }else{
-            $this->graphIdConverter->throwIfNowGlobal($graph_id);
+            $this->graphIdConverter->throwIfNotGlobal($graph_id);
             $timeline[$graph_id] = array();
             $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
             $authId = $this->graphIdConverter->getAuthId($graph_id);
@@ -369,7 +369,7 @@ class AppUserPkb extends App
       case 'addGraphHistoryItem':
         $r = $this->getRequest();
         $graphId = $r['graphId'];
-        $this->graphIdConverter->throwIfNowGlobal($graphId);
+        $this->graphIdConverter->throwIfNotGlobal($graphId);
         $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
         $authId = $this->graphIdConverter->getAuthId($graphId);
         $query = 'INSERT INTO graph_history SET '
@@ -388,7 +388,7 @@ class AppUserPkb extends App
       case 'updateNodeMapping':
         $r = $this->getRequest();
         $graphId = $r['graphId'];
-        $this->graphIdConverter->throwIfNowGlobal($graphId);
+        $this->graphIdConverter->throwIfNotGlobal($graphId);
         $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
         $authId = $this->graphIdConverter->getAuthId($graphId);
         if(!isset($r['node_mapping'])) return 'no node_mapping';
@@ -434,7 +434,7 @@ class AppUserPkb extends App
           $local_content_id = null;
         }
 
-        $this->graphIdConverter->throwIfNowGlobal($graph_id);
+        $this->graphIdConverter->throwIfNotGlobal($graph_id);
         // check that graph_id owned by user
         if(!$this->isUserOwnGraph($graph_id)) return false;
 
@@ -696,7 +696,7 @@ class AppUserPkb extends App
         $t = GraphDiffCreator::decodeDiffGraphId($graph_id);
         $s[$graph_id] = GraphDiffCreator::getGraphSettings($this->db, $this->graphIdConverter, $t['graphId1'], $t['graphId2']);
       }else{
-        $this->graphIdConverter->throwIfNowGlobal($graph_id);
+        $this->graphIdConverter->throwIfNotGlobal($graph_id);
         $s[$graph_id] = $this->graphs->getGraphSettings($graph_id);
       }
     }
@@ -705,8 +705,8 @@ class AppUserPkb extends App
   }
 
   protected function getGraphDiff($graphId1, $graphId2){
-    $this->graphIdConverter->throwIfNowGlobal($graphId1);
-    $this->graphIdConverter->throwIfNowGlobal($graphId2);
+    $this->graphIdConverter->throwIfNotGlobal($graphId1);
+    $this->graphIdConverter->throwIfNotGlobal($graphId2);
     $localGraphId1 = $this->graphIdConverter->getLocalGraphId($graphId1);
     $authId1 = $this->graphIdConverter->getAuthId($graphId1);
     $localGraphId2 = $this->graphIdConverter->getLocalGraphId($graphId2);
@@ -858,11 +858,11 @@ class AppUserPkb extends App
       if(GraphDiffCreator::isDiffGraphId($graph_id)){
 
         $graphId1 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId1'];
-        $this->graphIdConverter->throwIfNowGlobal($graphId1);
+        $this->graphIdConverter->throwIfNotGlobal($graphId1);
         $authId1 = $this->graphIdConverter->getAuthId($graphId1);
 
         $graphId2 = GraphDiffCreator::decodeDiffGraphId($graph_id)['graphId2'];
-        $this->graphIdConverter->throwIfNowGlobal($graphId2);
+        $this->graphIdConverter->throwIfNotGlobal($graphId2);
         $localGraphId2 = $this->graphIdConverter->getLocalGraphId($graphId2);
         $authId2 = $this->graphIdConverter->getAuthId($graphId2);
 
@@ -919,7 +919,7 @@ class AppUserPkb extends App
         if($step == null){
           $step = $this->getGraphLastStep($graph_id);
         }
-        $this->graphIdConverter->throwIfNowGlobal($graph_id);
+        $this->graphIdConverter->throwIfNotGlobal($graph_id);
         $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
         $authId = $this->graphIdConverter->getAuthId($graph_id);
         $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$localGraphId."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
@@ -1023,7 +1023,7 @@ class AppUserPkb extends App
   * @throws Exception
   */
   private function getBayesProbabilities($graph_id, $bayes_graph, ContentIdConverter $contentIdConverter){
-    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $this->graphIdConverter->throwIfNotGlobal($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $conv = $contentIdConverter;
@@ -1087,7 +1087,7 @@ class AppUserPkb extends App
    * @return array
    */
   private function getImperfectNodes($graph_id, $bayes_graph, $probabilities){
-    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $this->graphIdConverter->throwIfNotGlobal($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $converter = $this->contentIdConverter;

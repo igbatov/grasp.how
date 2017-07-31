@@ -31,7 +31,7 @@ class Graphs {
    * @return array
    */
   public function getGraphProps($graph_id){
-    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $this->graphIdConverter->throwIfNotGlobal($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $graph_query = "SELECT id, graph FROM graph WHERE id = '".$localGraphId."'";
@@ -46,7 +46,7 @@ class Graphs {
    */
   public function getGraphSettings($graph_id){
     if($this->graphIdConverter->isNewNodesGraph($graph_id)) return false;
-    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $this->graphIdConverter->throwIfNotGlobal($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $query = "SELECT graph_id, settings FROM graph_settings WHERE graph_id = '".$localGraphId."'";
@@ -67,7 +67,7 @@ class Graphs {
     // add text and source list
     foreach($nodes as $content_id=>$node){
       $graph_id = $this->contentIdConverter->decodeContentId($content_id)['graph_id'];
-      $this->graphIdConverter->throwIfNowGlobal($graph_id);
+      $this->graphIdConverter->throwIfNotGlobal($graph_id);
       $graphAuthId = $this->graphIdConverter->getAuthId($graph_id);
       $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
       $local_content_id = $this->contentIdConverter->decodeContentId($content_id)['local_content_id'];
@@ -284,7 +284,7 @@ class Graphs {
   }
 
   public function updateGraphName($graph_id, $name){
-    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $this->graphIdConverter->throwIfNotGlobal($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $query = "SELECT graph FROM `graph` WHERE id=".$localGraphId;
@@ -296,7 +296,7 @@ class Graphs {
   }
 
   public function setGraphAttributes($graphId, $attributes){
-    $this->graphIdConverter->throwIfNowGlobal($graphId);
+    $this->graphIdConverter->throwIfNotGlobal($graphId);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
     $authId = $this->graphIdConverter->getAuthId($graphId);
     $query = "SELECT graph FROM `graph` WHERE id=".$localGraphId;
@@ -316,7 +316,7 @@ class Graphs {
    * @return bool
    */
   public function changeGraphPosition($graphId, $position, $user_graph_ids){
-    $this->graphIdConverter->throwIfNowGlobal($graphId);
+    $this->graphIdConverter->throwIfNotGlobal($graphId);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
     $authId = $this->graphIdConverter->getAuthId($graphId);
     $user_graph_ids = array_map(function($graphId) {
@@ -343,7 +343,7 @@ class Graphs {
   }
 
   public function updateGraphElementContent($graph_id, $local_content_id, $r){
-    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $this->graphIdConverter->throwIfNotGlobal($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     if($r['type'] == 'updateNodeText'){
@@ -682,7 +682,7 @@ class Graphs {
    * @param $graph_id
    */
   public function copyGraph($auth_id, $name, $graph_id){
-    $this->graphIdConverter->throwIfNowGlobal($graph_id);
+    $this->graphIdConverter->throwIfNotGlobal($graph_id);
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $q = "SELECT graph FROM graph WHERE id = '".$localGraphId."'";
