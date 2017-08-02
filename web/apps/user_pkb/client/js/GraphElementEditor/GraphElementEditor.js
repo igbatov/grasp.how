@@ -121,8 +121,10 @@ GRASP.GraphElementEditor.prototype = {
                     nodeContents[nodeContentId],
                     parentNodeContents
                 );
+                var view = document.getElementById(v.attr('id'));
+                GRASP.removeChilds(view);
                 for(var i in nodeFormElements) {
-                  document.getElementById(v.attr('id')).appendChild(nodeFormElements[i]);
+                  view.appendChild(nodeFormElements[i]);
                 }
 
               });
@@ -300,14 +302,32 @@ GRASP.GraphElementEditor.prototype = {
         function(type){return type == GRASP.GraphViewNode.NODE_TYPE_FACT;},
         parentContents,
         [GRASP.GraphViewNode.NODE_TYPE_FACT, GRASP.GraphViewNode.NODE_TYPE_PROPOSITION],
-        nodeId
+        nodeId,
+        that.i18n
     );
     fields = f.fields;
     formKeys = f.formKeys;
 
-    fields['button'] = {rowType:'button', rowLabel:'Save',disabled:!isEditable};
-
     var modalWindow = that.UI.createModal();
+
+    fields['save'] = {
+      rowClass:'twoColumn upMarginMiddle',
+      rowType:'button',
+      label:that.i18n.__('save'),
+      disabled:!isEditable,
+      type:'bigButton uppercase',
+    };
+    fields['cancel'] = {
+      rowClass:'twoColumn upMarginMiddle',
+      rowType:'button',
+      disabled:!isEditable,
+      type:'bigButton white uppercase',
+      label:that.i18n.__('cancel'),
+      callback: function(){
+        that.UI.closeModal(modalWindow);
+      }
+    };
+
     var form = that.UI.createForm(
         fields,
         // form submit callback

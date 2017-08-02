@@ -629,6 +629,7 @@ GRASP.UIElements.prototype = {
     if(rowAttrs['rowType'] == 'range') fieldDOM = this.createRange({name:name, value:rowAttrs['value'], min:rowAttrs['min'], max:rowAttrs['max'], step:rowAttrs['step'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled']});
     if(rowAttrs['rowType'] == 'hidden') fieldDOM = this.createHidden({name:name,value:rowAttrs['value'], disabled:rowAttrs['disabled']});
     if(rowAttrs['rowType'] == 'title') fieldDOM = this.createTitle({value:rowAttrs['value']});
+    if(rowAttrs['rowType'] == 'string') fieldDOM = GRASP.createElement('div',{class:'string'},rowAttrs['value']);
     if(rowAttrs['rowType'] == 'list') fieldDOM = this.createListBox({name:name,items:rowAttrs['items'], itemActions:rowAttrs['itemActions'], addLabel: rowAttrs['addLabel'], addCallback:rowAttrs['addCallback']});
     if(rowAttrs['rowType'] == 'tabs') fieldDOM = this.createTabs({name:name, items:rowAttrs['items'], defaultItem:rowAttrs['defaultItem']});
 
@@ -639,7 +640,7 @@ GRASP.UIElements.prototype = {
       style:rowAttrs['rowType'] === 'hidden' ? 'display:none;' : ''
     });
     if (
-        ['tabs','list','title','hidden', 'button'].indexOf(rowAttrs['rowType']) === -1
+        ['tabs','list','hidden', 'button'].indexOf(rowAttrs['rowType']) === -1
         && typeof rowAttrs.rowLabel != 'undefined'
     ) {
       var label = GRASP.createElement('div', {class:'label'}, rowAttrs.rowLabel);

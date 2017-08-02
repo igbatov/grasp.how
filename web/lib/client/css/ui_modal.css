@@ -44,6 +44,7 @@
 }
 
 .ui_modal .ui_form .formRow {
+    align-items: baseline;
     display: flex;
     width: 100%;
     margin: 0 0 0.8em 0;

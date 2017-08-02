@@ -23,6 +23,10 @@
     display: inline-block;
 }
 
+.ui_form .formRow div.string{
+    font-family: 'Roboto-Bold';
+    width: 69%;
+}
 .ui_form .formRow input[type=text]{
     height: 33px;
     width: 69%;
@@ -55,4 +59,35 @@
     margin-top: 2px;
     width: 30%;
     display: inline-block;
+}
+
+.ui_form .formRow.shortLabel .label{
+    width: 15%;
+}
+.ui_form .formRow.shortLabel input{
+    width: 84%;
+}
+.ui_form .formRow.shortLabel textarea{
+    width: 84%;
+}
+.ui_form .formRow.shortLabel div.string{
+    width: 84%;
+}
+.ui_form .formRow.blue div {
+    color: #b668d4;
+}
+.ui_form .formRow.blue .label{
+    color: #788d98;
+}
+.ui_form .formRow.black div {
+    color: #000000;
+}
+.ui_form .formRow.black input {
+    color: #000000;
+}
+.ui_form .formRow.black .label {
+    color: #788d98;
+}
+.ui_form .formRow.shortLabel .ui_search{
+    width: 84%;
 }

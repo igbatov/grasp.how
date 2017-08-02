@@ -89,6 +89,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
   /**
    * Create Node content view block
    * @param content
+   * @param condPInfo
    * @returns {HTMLElement}
    * @constructor
    */

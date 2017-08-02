@@ -1595,9 +1595,18 @@ GRASP.nodeConditionalFormHelper = (function(){
    * @param parentContents
    * @param condNodeTypes
    * @param nodeId - nodeId of the node that for which we get conditional form fields
+   * @param i18n - necessary only if you want to use getNodeConditionalFormFields['fields']
    * @returns {{fields: {}, fieldsObj: {}, formKeys: *[]}}
    */
-  var getNodeConditionalFormFields = function(node, isEditable, isNodeFact, parentContents, condNodeTypes, nodeId){
+  var getNodeConditionalFormFields = function(
+      node,
+      isEditable,
+      isNodeFact,
+      parentContents,
+      condNodeTypes,
+      nodeId,
+      i18n
+  ){
     /**
      * fieldsObj:
      * Output in a hierarchical form, i.e.
@@ -1622,14 +1631,18 @@ GRASP.nodeConditionalFormHelper = (function(){
     /**
      * Fields in a flat form that suits for UI.createForm, i.e.
      * {
-     *   '0_IF__label': {rowType:'title', value: "IF: "},
-     *   '0_IF_<parent1NodeId>=<parent1NodeAlternative1Id>_label': {rowType:'title', value: <string>},
-     *   '0_THEN__label': {rowType:'title', value: "THEN"},
+     *   '0_IF_<parent1NodeId>=<parent1NodeAlternative1Id>_label': {
+     *      rowLabel:"IF: ",
+     *      rowType:'title',
+     *      value: <string>
+     *    },
      *   '0_THEN_{<parent1NodeId>:<parent1NodeAlternative1Id>}_<nodeAlternative1Id>__label':{
+     *     rowLabel: 'THEN'
      *     rowType:'title',
      *     value:<string>
      *   }
      *   '0_THEN_{<parent1NodeId>:<parent1NodeAlternative1Id>}__<nodeAlternative1Id>':{
+     *     rowLabel: '',
            rowType: 'text',
            value: 0.4,
            placeholder: 0.5,
@@ -1640,6 +1653,9 @@ GRASP.nodeConditionalFormHelper = (function(){
      * @type {{}}
      */
     var fields = {};
+
+    if(!i18n) i18n = {__:function(v){return v;}};
+
     // formKeys is array of each combination of parent alternatives,
     // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
     var formKeys = [{}];
@@ -1656,14 +1672,16 @@ GRASP.nodeConditionalFormHelper = (function(){
     for(var i in formKeys){ // i - number of combination
       var alternativeLabel = '';
       fieldsObj[i] = {IF:{}, THEN:{}};
-      fields[i+'_IFLabel'] = {rowType:'title', value:'IF: '};
       for(var j in formKeys[i]){ // j - parent node id, formKeys[i][j] - parent node j alternative id
         alternativeLabel = parentContents[j].alternatives[formKeys[i][j]].label;
-        fields[i+'_IF_'+j+'='+formKeys[i][j]+'_label'] = {rowType:'title',value:'----- "'+alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
+        fields[i+'_IF_'+j+'='+formKeys[i][j]+'_label'] = {
+          rowLabel: j===GRASP.getObjectKeys(formKeys[i])[0] ? i18n.__('If') : i18n.__('and'),
+          rowType:'string',
+          rowClass:'shortLabel black',
+          value:alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')
+        };
         fieldsObj[i]['IF'][j] = {alternativeId:formKeys[i][j], alternativeLabel:alternativeLabel}
       }
-
-      fields[i+'_THENLabel'] = {rowType:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;THEN: '};
 
       // formKeyStr is a fixed set of parent nodes alternatives, i.e. {p1:1,p2:1}
       var formKeyStr = JSON.stringify(formKeys[i]);
@@ -1675,19 +1693,26 @@ GRASP.nodeConditionalFormHelper = (function(){
         // do not show second alternative for facts,
         // as it is always filled in automatically from first alternative probability
         var isFactDenial = isNodeFact(node.type) && j!=0;
-        if(!isFactDenial) fields[inputLabelKey] = {rowType:'title',value:'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;----- PROBABILITY: "'+node.alternatives[j].label.replace(/(?:\r\n|\r|\n)/g, ' ')+'"'};
         var probability = GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "";
         fields[inputKey] = {
+          rowLabel: j === GRASP.getObjectKeys(node.alternatives)[0] ? i18n.__('Then') : '',
           rowType: isFactDenial ? 'hidden' : 'text',
+          rowClass:'shortLabel black',
           value: probability,
           placeholder: 1/GRASP.getObjectLength(node.alternatives),
           disabled:!isEditable
+        };
+        if(!isFactDenial) fields[inputLabelKey] = {
+          rowLabel: '',
+          rowType:'string',
+          rowClass:'shortLabel blue',
+          value:node.alternatives[j].label.replace(/(?:\r\n|\r|\n)/g, ' ')
         };
         fieldsObj[i]['THEN'][j] = {nodeId: nodeId, alternativeId: j, probability:probability, alternativeLabel:node.alternatives[j].label}
       }
     }
 
-    return {'fields':fields, fieldsObj:fieldsObj, formKeys:formKeys};
+    return {fields:fields, fieldsObj:fieldsObj, formKeys:formKeys};
   }
 
   var isNodeConditionalFieldsEmpty = function(node){
