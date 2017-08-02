@@ -13,7 +13,7 @@ GRASP.GraphViewNode = function(drawer, graphViewElement, args){
   this.shape = this.drawer.createGroup({
     x: args.x,
     y: args.y,
-    opacity: args.opacity,
+    opacity: 1,
     draggable: true
   });
 
@@ -26,14 +26,16 @@ GRASP.GraphViewNode = function(drawer, graphViewElement, args){
       fill: args.color,
       stroke: '#FFFFFF',
       strokeWidth: 1,
-      strokeOpacity: 1
+      strokeOpacity: 1,
+      fillOpacity:  args.opacity
     });
   } else {
     this.circle = this.drawer.createShape('circle', {
       x: 0,
       y: 0,
       radius: args.size,
-      fill: args.color
+      fill: args.color,
+      fillOpacity:  args.opacity
     });
   }
   this.shape.add(this.circle);
