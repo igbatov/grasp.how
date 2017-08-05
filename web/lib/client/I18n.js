@@ -24,10 +24,23 @@ GRASP.I18n.prototype = {
     this._currentLang = lang;
   },
 
+  /**
+   * First arg is phrase to translate
+   * Others are optional - data to insert into phrase in place of %s
+   * @param phrase
+   * @returns {*}
+   * @private
+   */
   __: function(phrase){
+    var data = [].slice.call(arguments);
+    data.shift();
     var tr = this._translations[this._currentLang];
     if (typeof tr === 'undefined') return phrase;
     var trPhrase = this._translations[this._currentLang][phrase];
-    return typeof trPhrase !== 'undefined' ? trPhrase : phrase;
+    trPhrase = typeof trPhrase !== 'undefined' ? trPhrase : phrase;
+    data.forEach(function (v) {
+      trPhrase = trPhrase.replace('%s', v);
+    });
+    return trPhrase;
   }
 }

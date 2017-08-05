@@ -246,6 +246,11 @@ GRASP.GraphElementEditor.prototype = {
     return [head, label, accordion];
   },
 
+  /**
+   * Dynamically set accordion tab height
+   * @param accordion
+   * @private
+   */
   _setAccordionTabHeight: function(accordion){
     var that = this;
     GRASP.setDisplay(accordion,'none');
@@ -256,9 +261,6 @@ GRASP.GraphElementEditor.prototype = {
         // ok, it was mounted, so calculate tab content max height
         GRASP.setDisplay(accordion,'block');
         var editor = accordion.parentNode;
-        // var maxContainerHeight = that.jQuery(
-        //     '#'+that.ViewManager.getViewContainer('graphViews').id
-        // ).outerHeight();
         var graphViews = document.getElementById(
             that.ViewManager.getViewContainer('graphViews').id
         );

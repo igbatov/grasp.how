@@ -4,7 +4,6 @@
  see also
  http://wellcaffeinated.net/articles/2012/12/10/very-simple-css-only-proportional-resizing-of-elements/
 */
-@import url(http://fonts.googleapis.com/css?family=Roboto:300|Open+Sans+Condensed:300&subset=latin,cyrillic);
 @import "../../../../lib/client/css/reset.css";
 @import "../../../../lib/client/css/ui.css";
 @import "graph_element_editor.css";
@@ -173,7 +172,7 @@ body {
     color: white;
     /* padding: 0.33em 0; */
     font-size: 16px;
-    background-position: 7em -0.1em;
+    background-position: 5% -0.1em;
 }
 
 .GraphMenu{
@@ -186,7 +185,7 @@ body {
 }
 
 #leftSelectContainer{
-    margin-left: 15em;
+    margin-left: 16%;
     display: inline-block;
     width: 40%;
 }
@@ -203,7 +202,7 @@ body {
 }
 
 .GeneralButtons .ui_select {
-    z-index: 1000;
+    z-index: 998;
 }
 
 .username{

@@ -2,7 +2,8 @@
  * This module render common UI elements - select box, modal window, text box, etc
  * @constructor
  */
-GRASP.UIElements = function(){
+GRASP.UIElements = function(i18n){
+  this.i18n = i18n;
   this.uniqueId = 0;
   this.SELECT_ITEM_MAX_LENGTH = 255;
   // list of all elements created
@@ -815,7 +816,21 @@ GRASP.UIElements.prototype = {
   showConfirm: function(text, callback){
     var that = this, m = this.createModal(), modalContent = GRASP.createElement('div', {class:'ui_confirm'});
     modalContent.appendChild(this.createForm(
-        {title:{rowType:'title', value:text}, yes:{rowType:'button',label:'Yes'}, no:{rowType:'button', label:'No'}},
+        {
+          title:{rowType:'title', value:text},
+          yes:{
+            rowClass:'twoColumn upMarginMiddle',
+            rowType:'button',
+            type:'bigButton uppercase',
+            label:that.i18n.__('yes')
+          },
+          no:{
+            rowClass:'twoColumn upMarginMiddle',
+            rowType:'button',
+            type:'bigButton uppercase',
+            label:that.i18n.__('no')
+          }
+        },
         function(v){
           if(v['yes']) v = 'yes';
           else v = 'no';

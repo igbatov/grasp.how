@@ -29,6 +29,7 @@
 }
 .ui_accordion .tab-content {
     padding-left: 1.6em;
+    padding-right: 1.5em;
     max-height: 0;
     overflow: auto;
     -webkit-transition: max-height .35s;

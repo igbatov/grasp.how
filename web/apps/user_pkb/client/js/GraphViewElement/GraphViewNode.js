@@ -120,6 +120,14 @@ GRASP.GraphViewNode.prototype = {
     return this.circle.getFill();
   },
 
+  setOpacity: function(v){
+    if(v != this.circle.getFillOpacity()) this.circle.setFillOpacity(v);
+  },
+
+  getOpacity: function(){
+    return this.circle.getFillOpacity();
+  },
+
   setXY: function(x,y){
     if(x != this.shape.getX()) this.shape.setX(x);
     if(y != this.shape.getY()) this.shape.setY(y);

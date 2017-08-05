@@ -98,7 +98,7 @@ var DI = {
     graphViews: {id:'graphViews',padding:[15,0]},
     statusString: {id:'statusString'}
   }],
-  UIElements: [],
+  UIElements: ['I18n'],
 
   KeyManager: ['Publisher'],
   StatusString: ['Publisher', 'ViewManager', 'jQuery', 'miniAjaxLoader'],

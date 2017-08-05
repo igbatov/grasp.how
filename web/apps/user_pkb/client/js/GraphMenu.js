@@ -196,7 +196,7 @@ GRASP.GraphMenu.prototype = {
       return false;
     }
     this.UI.showConfirm(
-      'Are you sure you want to move "'+this.graphs[graphToRemoveId].getGraphName()+'" to trash?',
+      this.i18n.__('Are you sure you want to move "%s" to trash?', this.graphs[graphToRemoveId].getGraphName()),
       function(answer){
         if(answer == 'no') return true;
 
@@ -220,7 +220,21 @@ GRASP.GraphMenu.prototype = {
     this.UI.setModalContent(m, this.UI.createForm({
       'graphId':{rowType:'hidden', value:graphId},
       'name':{rowType:'text', rowLabel:'Name:', value:this.graphs[graphId].getGraphName()},
-      'submit':{rowType:'button', label:'Изменить'}
+      'submit':{
+        rowClass:'twoColumn upMarginMiddle',
+        rowType:'button',
+        label:that.i18n.__('save'),
+        type:'bigButton uppercase'
+      },
+      'cancel':{
+        rowClass:'twoColumn upMarginMiddle',
+        rowType:'button',
+        type:'bigButton white uppercase',
+        label:that.i18n.__('cancel'),
+        callback: function(){
+          that.UI.closeModal(m);
+        }
+      }
     }, function(form){
       // say about this event to all subscribers
       that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
@@ -259,7 +273,12 @@ GRASP.GraphMenu.prototype = {
       this.UI.createForm(
         {
           'name':{rowType:'text', rowLabel:'Name:'},
-          'submit':{rowType:'button', label:'Создать'}
+          'submit':{
+            rowClass:'twoColumn upMarginMiddle',
+            rowType:'button',
+            label:that.i18n.__('save'),
+            type:'bigButton uppercase'
+          }
         },
         function(form){
           that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(data){
@@ -284,13 +303,25 @@ GRASP.GraphMenu.prototype = {
       'lang':{
         rowType:'select',
         rowLabel:that.i18n.__('Language'),
+        withDownArrow: true,
         items:{'en':'en', 'ru':'ru'},
         value:settings['lang'],
         dropType: 'single'
       },
-      'submit':{
+      'save':{
+        rowClass:'twoColumn upMarginMiddle',
         rowType:'button',
-        label:this.i18n.__('Save')
+        label:that.i18n.__('save'),
+        type:'bigButton uppercase',
+      },
+      'cancel':{
+        rowClass:'twoColumn upMarginMiddle',
+        rowType:'button',
+        type:'bigButton white uppercase',
+        label:that.i18n.__('cancel'),
+        callback: function(){
+          that.UI.closeModal(m);
+        }
       }
     },
     function(settings){

@@ -863,6 +863,9 @@ GRASP.SVGDrawer.Circle.prototype = {
   setFillOpacity: function(v){
     if(v) this.getShape().setAttributeNS(null, "fill-opacity",  v);
   },
+  getFillOpacity: function(){
+    return this.getShape().getAttributeNS(null, "fill-opacity");
+  },
   setRadius: function(v){
     if(v) {
       this.radius = v;
