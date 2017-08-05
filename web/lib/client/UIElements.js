@@ -468,7 +468,9 @@ GRASP.UIElements.prototype = {
   createListBox: function(attrs){
     var uniqId = this.generateId();
     var div = GRASP.createElement('div',{id:uniqId},'');
-    if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback, disabled: attrs.disabled}));
+    if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') {
+      div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback, disabled: attrs.disabled}));
+    }
     if(typeof(attrs.items)!='undefined' && GRASP.getObjectKeys(attrs.items).length > 0){
        var HTMLList = this.createList(attrs.items, attrs.itemActions, attrs.disabled);
        div.appendChild(HTMLList);
@@ -734,11 +736,12 @@ GRASP.UIElements.prototype = {
     document.body.appendChild(modalWindow);
 
     if(options['withCloseButton']){
-      var closeButton = GRASP.createElement('div',{class:'close_button'},'X');
-      modalWindow.appendChild(closeButton);
-      closeButton.addEventListener('click', function(evt){
-        that.closeModal(modalWindow);
+      var closeButton = this.createButton({
+        name: 'editConditionals',
+        type: 'close_button icon close grey',
+        callback: function () { that.closeModal(modalWindow); }
       });
+      modalWindow.appendChild(closeButton);
     }
 
     var wrapper = GRASP.createElement('div',{class:'ui_modal_wrapper'});
@@ -883,7 +886,7 @@ GRASP.UIElements.prototype = {
     var disabled = disabled || false;
     var li = GRASP.createElement('li',{});
     if(typeof(label) == 'string'){
-      li.appendChild(document.createTextNode(label));
+      li.appendChild(GRASP.createElement('div', {class:'item'}, label));
     }else{
       li.appendChild(label);
     }

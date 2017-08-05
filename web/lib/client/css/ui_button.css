@@ -53,6 +53,12 @@
 .ui_button.icon.edit.grey {
     background: url("/lib/client/img/ic_mode_edit_grey_24px.svg") no-repeat 0 center;
 }
+.ui_button.icon.replay.grey {
+    background: url("/lib/client/img/ic_replay_black_24px.svg") no-repeat 0 center;
+}
+.ui_button.icon.close.grey {
+    background: url("/lib/client/img/ic_close_black_24px.svg") no-repeat 0 center;
+}
 .ui_button.icon.plusCircle.grey {
     background: url("/lib/client/img/ic_add_circle_outline_grey_24px.svg") no-repeat 0 center;
 }

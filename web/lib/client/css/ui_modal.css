@@ -7,14 +7,14 @@
     transform: translate(-50%, -50%);
     z-index: 1000;
     background-color: #FFFFFF;
-    padding: 20px 20px 20px 20px;
+    padding: 30px 8px 15px 0px;
     max-height: 90%;
     overflow: hidden;
 }
 
 .ui_modal .close_button{
     position: absolute;
-    right: 0.4em;
+    right: 0;
     top: 0.2em;
     cursor: pointer;
 }
@@ -29,6 +29,10 @@
     height: 100%;
     /* padding: 1em 0 1em 0; */
     overflow: auto;
+}
+
+.ui_modal_wrapper .ui_list {
+    width: 96%;
 }
 
 /**

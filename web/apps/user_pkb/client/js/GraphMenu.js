@@ -336,13 +336,20 @@ GRASP.GraphMenu.prototype = {
     that.UI.setModalContent(m,form);
   },
 
+  /**
+   *
+   * @param trashItems - {graphId: name, ...}
+   * @private
+   */
   _showTrash: function(trashItems){
     var that = this;
+    var htmlList = {};
+    for(var i in trashItems) htmlList[i] = this._createHTMLFromTrashItem(trashItems[i]);
     this.UI.showModalList(trashItems,
         [
           {
             name:'restore',
-            label:'restore',
+            type:'icon replay grey',
             callback: function(graphId, el){
               el.parentNode.removeChild(el);
               // say about this event to all subscribers
@@ -354,6 +361,10 @@ GRASP.GraphMenu.prototype = {
           }
         ]
     );
+  },
+
+  _createHTMLFromTrashItem: function (item) {
+
   },
 
   _calculateBayes: function(position){

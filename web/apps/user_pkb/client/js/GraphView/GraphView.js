@@ -936,7 +936,7 @@ GRASP.GraphView.prototype = {
         attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
       },
       background:{
-        attr: {fill:'#2B2B2B'}
+        attr: {fill:'#2b2f47'}
       }
     }
    * @param c

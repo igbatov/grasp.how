@@ -17,18 +17,26 @@
 }
 
 .ui_list li {
-    display: table-row;
-    /* padding-right: 10px; */
-    /* padding-top: 3px; */
-    /* padding-bottom: 3px; */
-    /* padding-left: 7px; */
+    padding: 1em;
+    display: flex;
+    flex-direction: row;
 }
 
 .ui_list li:hover .buttons {
     visibility: visible;
 }
 
+.ui_list li .item {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 93%;
+    /* padding: 1em; */
+}
+
 .ui_list li .buttons {
+    align-items: center;
     display: flex;
     visibility: hidden;
     width: 7%;
