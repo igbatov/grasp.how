@@ -512,22 +512,24 @@ class AppUserPkb extends App
         $node_attributes = $this->graphs->getGraphNodeAttributes($user_graph_ids);
 
         $sources = [];
-        $q = "SELECT * FROM source";
+        $q = "SELECT * FROM source ORDER BY name ASC";
         $rows = $this->db->exec($this->getAuthId(),$q);
-        foreach ($rows as $row) $sources[$row['id']] = $row;
+        foreach ($rows as $row) $sources[] = $row;
 
-        foreach($sources as $source_id => $source){
+        foreach($sources as $key => $source){
           $source_graphs = [];
           $q = "SELECT * FROM node_content_source WHERE source_id = '".$source['id']."'";
           $source_node_contents = $this->db->exec($this->getAuthId(),$q);
           foreach ($source_node_contents as $source_node_content){
+            $globalGraphId = $this->graphIdConverter->createGlobalGraphId($this->getAuthId(), $source_node_content['graph_id']);
             if(!isset($source_graphs[$source_node_content['graph_id']])) {
-              $globalGraphId = $this->graphIdConverter->createGlobalGraphId($this->getAuthId(), $source_node_content['graph_id']);
-              $source_graphs[$globalGraphId] = [
-                  'graphId' => $globalGraphId,
-                  'graphName' => $graphs[$globalGraphId]['name'],
-                  'usedInNodes' => []
-              ];
+              if (!isset($source_graphs[$globalGraphId])){
+                $source_graphs[$globalGraphId] = [
+                    'graphId' => $globalGraphId,
+                    'graphName' => $graphs[$globalGraphId]['name'],
+                    'usedInNodes' => []
+                ];
+              }
             }
 
             $global_content_id = $this->contentIdConverter->createGlobalContentId(
@@ -541,7 +543,7 @@ class AppUserPkb extends App
                 'label'=>$node_attributes[$global_content_id]['alternatives'][$active_alternative_id]['label']
             ];
           }
-          $sources[$source_id]['usedIn'] = $source_graphs;
+          $sources[$key]['usedIn'] = $source_graphs;
         }
 
         return $this->showRawData(json_encode($sources));

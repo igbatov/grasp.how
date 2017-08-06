@@ -32,7 +32,7 @@ GRASP.FormFields.prototype = {
 
     // define which source type has which fields visible
     var typeFields = {
-      'personal experience':['source_type', 'name', 'comment', 'publisher_reliability', 'button']
+      'personal experience':['source_type', 'name', 'comment', 'publisher_reliability', 'save', 'cancel']
     };
 
     var selectSourceType = function(name, value){

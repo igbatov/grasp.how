@@ -6,6 +6,7 @@ GRASP.UIElements = function(i18n){
   this.i18n = i18n;
   this.uniqueId = 0;
   this.SELECT_ITEM_MAX_LENGTH = 255;
+  this.MODAL_WINDOW_ZINDEX = 999;
   // list of all elements created
   this.formRows = new GRASP.Table(['id', 'type', 'formname', 'name', 'definition', 'dom', 'state']);
 };
@@ -717,7 +718,7 @@ GRASP.UIElements.prototype = {
 
   /**
    * Create modal window
-   * @param options? - {"withCloseButton":boolean, "withOverlay":boolean}
+   * @param options? - {withCloseButton: boolean, withOverlay: boolean, class: string}
    * @return HTMLElement - can be removed with function closeModal(el)
    */
   createModal: function(options){
@@ -726,10 +727,19 @@ GRASP.UIElements.prototype = {
     if(typeof options['withOverlay'] === 'undefined') options['withOverlay'] = true;
     var that = this,
       uniqId = this.generateId(),
-      modalWindow = GRASP.createElement('div',{id:uniqId, class:'ui_modal'},'');
+      modalWindow = GRASP.createElement('div',{
+        id:uniqId,
+        class:'ui_modal ' + (options.class ? options.class : '')
+      },'');
+
+    // we want modal windows that are called from other modal windows to overlay them
+    // so track number of all opened modal windows here
+    var openedModalCount = document.getElementsByClassName('ui_modal').length;
+    modalWindow.style.zIndex = this.MODAL_WINDOW_ZINDEX + 1 + openedModalCount;
 
     if(options['withOverlay']){
       var overlay = GRASP.createElement('div',{id:'overlay'+uniqId, class:'ui_modal_overlay'},'');
+      overlay.style.zIndex = this.MODAL_WINDOW_ZINDEX + openedModalCount;
       document.body.appendChild(overlay);
     }
 
@@ -753,7 +763,9 @@ GRASP.UIElements.prototype = {
   },
 
   closeModal: function(modalWindow){
-    if(modalWindow.getAttribute('class') != 'ui_modal') GRASP.throwError('This is not a modal window HTMLElement');
+    if(modalWindow.getAttribute('class').indexOf('ui_modal') === -1) {
+      GRASP.errorHandler.throwError('This is not a modal window HTMLElement');
+    }
 
     var overlay = document.getElementById('overlay'+modalWindow.getAttribute('id'));
     overlay.parentNode.removeChild(overlay);

@@ -1,0 +1,79 @@
+.GeneralButtons {
+    text-align: right;
+    width: 40%;
+    display: inline-block;
+    padding-right: 6.5em;
+}
+
+.GeneralButtons .ui_select {
+    z-index: 998;
+}
+
+.username {
+    font-family: 'DINPro';
+    font-size: 15px;
+    margin-right: 1%;
+    color: #8480a6;
+}
+
+.source {
+    width: 98%;
+    flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+    /* justify-content: space-between; */
+}
+
+.source .leftC {
+    padding-right: 1em;
+    width: 40%;
+    /* flex: 0 0 40%; */
+}
+.source .leftC .authors {
+    color: #788d98;
+}
+
+.source .rightC {
+    /* flex: 0 0 60%; */
+    width: 60%;
+}
+
+.source .rightC .usedIn {
+    margin-bottom: 1em;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    /* justify-content: space-between; */
+}
+
+.source .rightC .usedIn .rowLeftC{
+    flex-grow: 0;
+    width: 33%;
+}
+
+.source .rightC .usedIn .rowRightC{
+    width: 67%;
+}
+
+.source .rightC .usedIn .rowRightC .nodeName{
+    margin-bottom: 0.5em;
+}
+
+.sourceHeadWrapper {
+    width: 100%;
+    height: 2em;
+}
+.sourceHeader {
+    width: 97%;
+    padding-left: 1em;
+    padding-bottom: 0;
+    font-family: 'Roboto-Bold';
+    padding-right: 1em;
+    position: fixed;
+    background-color: #FFFFFF;
+}
+
+.sourceHeader .leftC {
+    padding-right: 0;
+}

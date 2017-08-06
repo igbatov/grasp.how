@@ -6,6 +6,7 @@
 */
 @import "../../../../lib/client/css/reset.css";
 @import "../../../../lib/client/css/ui.css";
+@import "general_buttons.css";
 @import "graph_element_editor.css";
 /**
  * Font definitions
@@ -192,24 +193,6 @@ body {
 
 #rightSelectContainer{
     display: none;
-}
-
-.GeneralButtons{
-    text-align: right;
-    width: 40%;
-    display: inline-block;
-    padding-right: 6.5em;
-}
-
-.GeneralButtons .ui_select {
-    z-index: 998;
-}
-
-.username{
-    font-family: DINPro;
-    font-size: 15px;
-    margin-right: 1%;
-    color: #8480a6;
 }
 
 .logout{

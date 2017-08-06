@@ -343,8 +343,6 @@ GRASP.GraphMenu.prototype = {
    */
   _showTrash: function(trashItems){
     var that = this;
-    var htmlList = {};
-    for(var i in trashItems) htmlList[i] = this._createHTMLFromTrashItem(trashItems[i]);
     this.UI.showModalList(trashItems,
         [
           {
@@ -361,10 +359,6 @@ GRASP.GraphMenu.prototype = {
           }
         ]
     );
-  },
-
-  _createHTMLFromTrashItem: function (item) {
-
   },
 
   _calculateBayes: function(position){
@@ -482,37 +476,17 @@ GRASP.GraphMenu.prototype = {
   _showSources: function(){
     var that=this;
     this.publisher.publish(['repository_get_user_sources', {}]).then(function(sources){
-      var items = {};
-
-      function createSourceDOM(source){
-        var dom = GRASP.createElement('div', {}, source.name
-            +' //'+source.author+' // '
-            +source.publisher
-            +' // (rel. '+source.publisher_reliability
-            +')\n || Used in graphs:\n');
-
-        // create DOM for nodes used in sources[i]
-        for(var j in source.usedIn){
-          var usedInNodesLabels = 'Used in nodes:\n';
-          for(var k in source.usedIn[j].usedInNodes) usedInNodesLabels += '"'+source.usedIn[j].usedInNodes[k].label+'",';
-          var graph = that.UI.addTooltip(GRASP.createElement('div', {}, source.usedIn[j]['graphName']), usedInNodesLabels);
-          dom.appendChild(graph);
-        }
-
-        return dom;
-      }
-
-      // create label for every source
-      for(var i in sources){
-        items[sources[i].id] = createSourceDOM(sources[i]);
+      var htmlList = {};
+      for(var i in sources) {
+        htmlList[i] = that._createHTMLFromSource(sources[i]);
       }
 
       var itemActions = [
         {
           name:'edit',
-          label:'edit',
-          callback: function(id, el) {
-            var item = sources[id];
+          type:'icon edit grey',
+          callback: function(index, el) {
+            var item = sources[index];
             var modalWindow = that.UI.createModal();
 
             // create empty form with submit callback
@@ -520,12 +494,12 @@ GRASP.GraphMenu.prototype = {
                 {},
                 function(form) {
                   // update sources
-                  GRASP.getObjectKeys(sources[id]).forEach(function (v, k) {
-                    if (typeof(form[v]) != 'undefined') sources[id][v] = form[v];
+                  GRASP.getObjectKeys(sources[index]).forEach(function (v, k) {
+                    if (typeof(form[v]) != 'undefined') sources[index][v] = form[v];
                   });
                   // update server
                   that.publisher.publish(['repository_update_source', form]).then(function () {
-                    el.parentNode.insertBefore(that.UI.createListItem(id, createSourceDOM(sources[id]), itemActions), el);
+                    el.parentNode.insertBefore(that.UI.createListItem(index, that._createHTMLFromSource(sources[index]), itemActions), el);
                     el.parentNode.removeChild(el);
                     that.UI.closeModal(modalWindow);
                   });
@@ -579,18 +553,103 @@ GRASP.GraphMenu.prototype = {
         },
         {
           name:'remove',
-          label:'remove',
-          callback: function(id, el){
-            that.publisher.publish(['repository_remove_user_sources', [id]]).then(function(result){
-              if(result['removed'].length && result['removed'][0] == id){
+          type:'icon delete grey',
+          callback: function(index, el){
+            var sourceId = sources[index].id;
+            that.publisher.publish(['repository_remove_user_sources', [sourceId]]).then(function(result){
+              if(result['removed'].length && result['removed'][0] == sourceId){
                 el.parentNode.removeChild(el);
               }
             });
           }
         }
       ];
-      that.UI.showModalList(items, itemActions);
 
+      var list = GRASP.createElement('div',{});
+      list.appendChild(that._createSourceHeader());
+      // wrapper that prevents fixed-positioned sourceHeader to hide list below
+      var wrapper = GRASP.createElement('div',{class:'sourceHeadWrapper'},'&nbsp;');
+      list.appendChild(wrapper);
+      list.appendChild(that.UI.createList(htmlList, itemActions));
+      var modalWindow = that.UI.createModal({
+        class: 'wide'
+      });
+      that.UI.setModalContent(modalWindow, list);
     });
+  },
+
+  _createSourceHeader: function() {
+    var sourceHeader = GRASP.createElement('div',{class:'sourceHeader'});
+    var c = GRASP.createElement('div',{class:'source'});
+    sourceHeader.appendChild(c);
+
+    var leftC = GRASP.createElement('div',{class:'leftC'});
+    leftC.appendChild(GRASP.createElement('div',{}, this.i18n.__('Sources')));
+
+    var rightC = GRASP.createElement('div',{class:'rightC'});
+    var row = GRASP.createElement('div',{class:'usedIn'});
+
+    var rowLeftC = GRASP.createElement('div',{class:'rowLeftC'});
+    rowLeftC.appendChild(GRASP.createElement('div',{}, this.i18n.__('used in maps')));
+    var rowRightC = GRASP.createElement('div',{class:'rowRightC'});
+    rowRightC.appendChild(GRASP.createElement('div',{}, this.i18n.__('in nodes')));
+
+    row.appendChild(rowLeftC);
+    row.appendChild(rowRightC);
+
+    rightC.appendChild(row);
+
+    c.appendChild(leftC);
+    c.appendChild(rightC);
+
+    return sourceHeader;
+  },
+
+  _createHTMLFromSource: function (source) {
+    var c = GRASP.createElement('div',{class:'source'});
+    var leftC = GRASP.createElement('div',{class:'leftC'});
+    var rightC = GRASP.createElement('div',{class:'rightC'});
+
+    /**
+     * Left column - source name and authors
+     */
+    if(typeof(source.url) != 'undefined' && source.url.length > 0){
+      var name = GRASP.createElement('div',{class:'name'});
+      var a = GRASP.createElement('a',{
+        href:source.url,
+        target:'_blank'
+      }, source.name);
+      name.appendChild(a);
+    } else {
+      var name = GRASP.createElement('div',{class:'name'}, source.name);
+    }
+    var authors = GRASP.createElement('div',{class:'authors'}, source.author);
+    leftC.appendChild(name);
+    leftC.appendChild(authors);
+
+    /**
+     * Right column - graphs and nodes, source used in
+     */
+    for(var i in source.usedIn){
+      var row = GRASP.createElement('div',{class:'usedIn'});
+      var rowLeftC = GRASP.createElement('div',{class:'rowLeftC'});
+      rowLeftC.appendChild(
+          GRASP.createElement('div',{},source.usedIn[i]['graphName'])
+      );
+      var rowRightC = GRASP.createElement('div',{class:'rowRightC'});
+      for (var j in source.usedIn[i].usedInNodes) {
+        var node = source.usedIn[i].usedInNodes[j];
+        rowRightC.appendChild(
+            GRASP.createElement('div',{class:'nodeName'},'&mdash;&nbsp;&nbsp;'+node.label)
+        );
+      }
+      row.appendChild(rowLeftC);
+      row.appendChild(rowRightC);
+      rightC.appendChild(row);
+    }
+
+    c.appendChild(leftC);
+    c.appendChild(rightC);
+    return c;
   }
 };

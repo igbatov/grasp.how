@@ -39,5 +39,7 @@
   "Then":"Тогда",
   "yes":"да",
   "no":"нет",
-  "Are you sure you want to move \"%s\" to trash?":"Вы уверены что хотите переместить карту \"%s\" в корзину?"
+  "Are you sure you want to move \"%s\" to trash?":"Вы уверены что хотите переместить карту \"%s\" в корзину?",
+  "used in maps":"указаны в картах",
+  "in nodes":"в узлах"
 }
