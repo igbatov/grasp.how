@@ -561,6 +561,9 @@ GRASP.GraphMenu.prototype = {
                 el.parentNode.removeChild(el);
               }
             });
+          },
+          show: function(index){
+            return sources[index].usedIn.length === 0;
           }
         }
       ];

@@ -888,13 +888,15 @@ GRASP.UIElements.prototype = {
    * @param id
    * @param label
    * @param actions - {
-   *  buttonParams1, // see this.createButton definition
+   *  //  this is this.createButton definition +
+   *  // 'show' - callback that determines when button must be showed
+   *  buttonParams1,
    *  ..
    * }
    *
    * @returns {HTMLElement}
    */
-  createListItem: function(id,label,actions,disabled){
+  createListItem: function(id, label, actions, disabled){
     var disabled = disabled || false;
     var li = GRASP.createElement('li',{});
     if(typeof(label) == 'string'){
@@ -908,6 +910,9 @@ GRASP.UIElements.prototype = {
 
     for(var i in actions){
       var action = actions[i];
+      if (action.show && !action.show(id)) {
+        continue;
+      }
       var buttonOptions = {
         name: action.name,
         label: action.label,
