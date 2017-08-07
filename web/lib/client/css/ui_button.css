@@ -13,19 +13,22 @@
     text-transform: uppercase;
 }
 
-.ui_button:hover {
-    background: #3cb0fd;
+.ui_button.bigButton:hover {
+    background-color: #a74bd2;
     text-decoration: none;
 }
 
 .ui_button.bigButton {
     font-family: 'Roboto';
-    font-size: 16px;
-    line-height: 1.31;
+    font-size: 12px;
+    /* line-height: 1.31; */
     box-shadow:none;
     border: 0;
-    border-radius: 4px;
     padding: 7px 20px;
+    letter-spacing: 0.6px;
+    height: 3em;
+    border-radius: 2px;
+    background-color: #b363d2;
 }
 
 .ui_button.bigButton.white {

@@ -1818,3 +1818,26 @@ GRASP.html2text = function(html){
 GRASP.ucfirst = function(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+/**
+ *
+ * @param elementId - DOM element id
+ * @param type - 'text'|'html'
+ */
+GRASP.copyToClipboard = function(elementId, type) {
+  // Create an auxiliary hidden input
+  var aux = document.createElement("input");
+  // Get the text from the element passed into the input
+  var content = type === 'html' ?
+      document.getElementById(elementId).innerHTML :
+      document.getElementById(elementId).innerText;
+  aux.setAttribute("value", content);
+  // Append the aux input to the body
+  document.body.appendChild(aux);
+  // Highlight the content
+  aux.select();
+  // Execute the copy command
+  document.execCommand("copy");
+  // Remove the input from the body
+  document.body.removeChild(aux);
+}

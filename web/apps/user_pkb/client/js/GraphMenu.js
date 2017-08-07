@@ -371,7 +371,7 @@ GRASP.GraphMenu.prototype = {
   },
 
   /**
-   * show list of clones of graph selected in position pos
+   * Show list of clones of graph selected in position pos
    * @param pos
    */
   _showClones: function(pos){
@@ -450,27 +450,67 @@ GRASP.GraphMenu.prototype = {
    * Share button
    */
   _shareCallback: function(){
-    var m = this.UI.createModal();
-    var uniqId = Math.floor(Math.random()*10000);
-    var embedJSCode = '<div id="grasp-how-'+uniqId+'"><script src=\'http://www.grasp.how/embed.js?data={"graphIds":['+this.leftGraphId+'],"uniqId":"grasp-how-'+uniqId+'"}\'></script></div>';
-    var embedImageCode = '<a target="_blank" href="http://www.grasp.how/embed/['+this.leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+this.leftGraphId+'.jpg"></a>';
-    this.UI.setModalContent(
-        m,
-        this.UI.createForm({
-          'title':{
-            rowType:'title',
-            value:'To place the "'+this.graphs[this.leftGraphId].getGraphName()+'" in a web page, copy snippet below'
-          },
-          'tabs':{
-            rowType:'tabs',
-            items:{
-              'javascript code':GRASP.createElement('textarea',{},embedJSCode),
-              'image':GRASP.createElement('textarea',{},embedImageCode)
-            },
-            defaultItem:'javascript code'
-          }
-        })
+    var m = this.UI.createModal({class:'wide'});
+    var uniqId = this.UI.generateId();
+    var jsId = this.UI.generateId();
+    var imgId = this.UI.generateId();
+    var title = GRASP.createElement(
+        'div',
+        {class:'shareTitle'},
+        this.i18n.__(
+            'To place the "%s" in a web page, copy one of the snippets:',
+            this.graphs[this.leftGraphId].getGraphName()
+        )
     );
+    var jsTitle = GRASP.createElement(
+        'div',
+        {class:'jsTitle'},
+        this.i18n.__('Javascript code for interactive map')
+    );
+    var jsCode = GRASP.createElement(
+        'div',
+        {id:jsId, class:'jsCode'},
+        '<div id="grasp-how-'+uniqId+'"><script src=\'http://www.grasp.how/embed.js?data={"graphIds":['+this.leftGraphId+'],"uniqId":"grasp-how-'+uniqId+'"}\'></script></div>',
+        null,
+        true
+    );
+    var jsButton = this.UI.createButton({
+      rowType:'button',
+      type:'bigButton uppercase',
+      label:this.i18n.__('copy javascript'),
+      callback: function(){
+        GRASP.copyToClipboard(jsId);
+      }
+    });
+    var imgTitle = GRASP.createElement(
+        'div',
+        {class:'imgTitle'},
+        this.i18n.__('HTML code for non-interactive image')
+    );
+    var imgCode =  GRASP.createElement(
+        'div',
+        {id:imgId, class:'imgCode'},
+        '<a target="_blank" href="http://www.grasp.how/embed/['+this.leftGraphId+']"><img src="http://www.grasp.how/img/graph_shots/'+this.leftGraphId+'.jpg"></a>',
+        null,
+        true
+    );
+    var imgButton = this.UI.createButton({
+      rowType:'button',
+      type:'bigButton uppercase',
+      label:this.i18n.__('copy HTML'),
+      callback: function(){
+        GRASP.copyToClipboard(imgId);
+      }
+    });
+    var c = GRASP.createElement('div',{class:'share'});
+    c.appendChild(title);
+    c.appendChild(jsTitle);
+    c.appendChild(jsCode);
+    c.appendChild(jsButton);
+    c.appendChild(imgTitle);
+    c.appendChild(imgCode);
+    c.appendChild(imgButton);
+    this.UI.setModalContent(m, c);
   },
 
   _showSources: function(){

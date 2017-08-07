@@ -1,3 +1,42 @@
+.logout{
+    float: right;
+    margin-right: 1%;
+}
+
+.share_button{
+    margin-left: 1%;
+}
+
+.share {
+    font-size: 14px;
+    line-height: 1.43;
+    text-align: left;
+    color: #191919;
+    padding: 0 1em 1em 1em;
+}
+
+.share .jsTitle {
+font-family: 'Roboto-Bold';
+margin-top: 2em;
+}
+
+.share .jsCode {
+color: #788d98;
+}
+
+.share .imgTitle {
+font-family: 'Roboto-Bold';
+margin-top: 2.5em;
+}
+
+.share .imgCode {
+color: #788d98;
+}
+
+.share .ui_button {
+margin-top: 1em;
+}
+
 .GeneralButtons {
     text-align: right;
     width: 40%;
@@ -76,4 +115,9 @@
 
 .sourceHeader .leftC {
     padding-right: 0;
+}
+
+.ui_button.bigButton[name=CalculateBayes] {
+    position: relative;
+    top: -0.15em;
 }
