@@ -875,7 +875,11 @@ class Graphs {
       }else{
         // duplicate source for clonee user
         $q = "SELECT * FROM source WHERE id = '".$row['source_id']."'";
-        $source = $this->db->exec($fromAuthId, $q)[0];
+        $sourceArr = $this->db->exec($fromAuthId, $q);
+
+        if (!count($sourceArr))  continue;
+
+        $source = $sourceArr[0];
 
         $q = "INSERT INTO source SET ".
             " source_type = '".$source['source_type']."',".
