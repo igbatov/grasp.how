@@ -917,11 +917,11 @@ class Graphs {
 
     foreach ($rows as $row) {
       $q = "INSERT INTO node_content_falsification SET ".
-          "`graph_id` = ".$row['graph_id'].", ".
-          "`local_content_id` = ".$row['local_content_id'].", ".
-          "`alternative_id` = ".$row['alternative_id'].", ".
-          "`name` = ".$this->db->escape($row['name']).", ".
-          "`comment` = ".$this->db->escape($row['comment']).", ".
+          "`graph_id` = '".$new_graph_id."', ".
+          "`local_content_id` = '".$row['local_content_id']."', ".
+          "`alternative_id` = '".$row['alternative_id']."', ".
+          "`name` = '".$this->db->escape($row['name'])."', ".
+          "`comment` = '".$this->db->escape($row['comment'])."', ".
           "`created_at` = NOW(), ".
           "`updated_at` = NOW()";
       $this->db->exec($auth_id, $q);
