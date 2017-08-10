@@ -36,6 +36,26 @@
     color: #4a4a4a;
 }
 
+.ui_button.likeHref {
+    background: rgba(0, 0, 0, 0);
+    color: #000000;
+    font-size: 16px;
+    font-family: 'Roboto';
+    box-shadow:none;
+    border-top: 5px solid rgba(0, 0, 0, 0);
+    border-bottom: 5px solid rgba(0, 0, 0, 0);
+    border-left: none;
+    border-right: none;
+    padding: 7px 20px;
+    letter-spacing: 0.6px;
+    height: 3em;
+    border-radius: 2px;
+}
+
+.ui_button.likeHref:hover {
+    border-bottom: 5px solid #b363d2;
+}
+
 .ui_button.icon {
     border: none;
     border-radius: 0;
@@ -58,6 +78,9 @@
 }
 .ui_button.icon.replay.grey {
     background: url("/lib/client/img/ic_replay_black_24px.svg") no-repeat 0 center;
+}
+.ui_button.icon.copy.grey {
+    background: url("/lib/client/img/ic_control_point_duplicate_grey_24px.svg") no-repeat 0 0
 }
 .ui_button.icon.close.grey {
     background: url("/lib/client/img/ic_close_black_24px.svg") no-repeat 0 center;

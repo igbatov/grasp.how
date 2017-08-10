@@ -222,8 +222,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           GRASP.TestHelpers.cmp(
               'user sources should contain two items',
               JSON.parse(e),
-              {
-                "1":{
+              [
+                {
                   "id":"1",
                   "source_type":"article",
                   "field_type":"",
@@ -244,7 +244,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
 
                   ]
                 },
-                "2":{
+                {
                   "id":"2",
                   "source_type":"meta-article",
                   "field_type":"",
@@ -263,7 +263,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
                   "usedIn":usedIn
                 }
-              }
+              ]
           );
         });
 
@@ -360,8 +360,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           GRASP.TestHelpers.cmp(
               'user sources should contain one item',
               JSON.parse(e),
-              {
-                "1":{
+              [
+                {
                   "id":"1",
                   "source_type":"article",
                   "field_type":"",
@@ -380,7 +380,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
                   "usedIn":usedIn
                 }
-              }
+              ]
           );
         });
   }

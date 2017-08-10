@@ -46,5 +46,8 @@
   "Javascript code for interactive map":"Javascript код для показа интерактивной карты",
   "HTML code for non-interactive image":"Код карты для показа картинки без интерактива",
   "copy javascript":"скопировать javascript",
-  "copy HTML":"скопировать HTML"
+  "copy HTML":"скопировать HTML",
+  "This map was copied from:":"Скопировано из:",
+  "This map was copied by:":"Скопировано в:",
+  "Difference":"Различия"
 }

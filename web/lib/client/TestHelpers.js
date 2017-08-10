@@ -73,6 +73,9 @@ GRASP.TestHelpers = {
       }
     }
   },
+  likeInt: function likeTimestamp(){
+    return new GRASP.TestHelpers.likeRegexp('[0-9]+');
+  },
   likeTimestamp: function likeTimestamp(){
     return new GRASP.TestHelpers.likeRegexp('[0-9]+');
   },

@@ -591,7 +591,16 @@ class AppUserPkb extends App
             $cloned_from_graphname = json_decode($this->db->exec($cloned_from_auth_id, $q)[0]['graph'], true)['name'];
             $q = "SELECT username FROM auth WHERE id = '".$cloned_from_auth_id."'";
             $cloned_from_username = $this->db->exec(null, $q)[0]['username'];
-            $clone_list[$graph_id]['cloned_from'][$global_cloned_from_graph_id] = $cloned_from_username.": ".$cloned_from_graphname;
+            $clone_list[$graph_id]['cloned_from'][$global_cloned_from_graph_id] = [
+              'user'=>[
+                'id' => $cloned_from_auth_id,
+                'username' => $cloned_from_username,
+              ],
+              'graph' => [
+                'id' => $global_cloned_from_graph_id,
+                'name' => $cloned_from_graphname
+              ]
+            ];
           }
 
           // now get list of cloned to graph name and username
@@ -601,7 +610,16 @@ class AppUserPkb extends App
           if(!is_array($cloned_to)) $cloned_to = [];
           //$this->logger->log($rows[0]['cloned_to'],$cloned_to);
           foreach($cloned_to as $globalGraphId => $data) {
-            $clone_list[$graph_id]['cloned_to'][$globalGraphId] = $data['username'].": ".$data['graphName'];
+            $clone_list[$graph_id]['cloned_to'][$globalGraphId] = [
+              'user'=>[
+                'id'=>$this->graphIdConverter->getAuthId($globalGraphId),
+                'username'=>$data['username']
+              ],
+              'graph' => [
+                'id'=> $globalGraphId,
+                'name'=> $data['graphName'],
+              ]
+            ];
           }
         }
 

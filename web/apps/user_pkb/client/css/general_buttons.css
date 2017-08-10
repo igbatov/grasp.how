@@ -16,25 +16,32 @@
 }
 
 .share .jsTitle {
-font-family: 'Roboto-Bold';
-margin-top: 2em;
+
+font-family: 'Roboto-Bold';
+
+margin-top: 2em;
 }
 
 .share .jsCode {
-color: #788d98;
+
+color: #788d98;
 }
 
 .share .imgTitle {
-font-family: 'Roboto-Bold';
-margin-top: 2.5em;
+
+font-family: 'Roboto-Bold';
+
+margin-top: 2.5em;
 }
 
 .share .imgCode {
-color: #788d98;
+
+color: #788d98;
 }
 
 .share .ui_button {
-margin-top: 1em;
+
+margin-top: 1em;
 }
 
 .GeneralButtons {
@@ -105,7 +112,7 @@
 }
 .sourceHeader {
     width: 97%;
-    padding-left: 1em;
+    padding-left: 3em;
     padding-bottom: 0;
     font-family: 'Roboto-Bold';
     padding-right: 1em;
@@ -120,4 +127,38 @@
 .ui_button.bigButton[name=CalculateBayes] {
     position: relative;
     top: -0.15em;
+}
+
+.cloneListContainer {
+    width: 100%;
+    /* margin-left: 2em; */
+}
+
+.cloneListContainer .title {
+    margin: 0 1.5em;
+    font-family: 'Roboto-Bold';
+    font-size: 14px;
+    line-height: 1.43;
+    color: #191919;
+}
+
+.cloneListContainer .ui_list li {
+    align-items: baseline;
+    padding: 0 1.5em;
+}
+.cloneListContainer .ui_list li .buttons {width: 8em;margin-left: auto;}
+
+.cloneItem {
+    /* width: 70%; */
+    align-items: baseline;
+    display: flex;
+}
+
+.cloneItem .user {
+    overflow: hidden;
+    width: 14em;
+}
+
+.cloneItem button {
+max-width: 20em;
 }

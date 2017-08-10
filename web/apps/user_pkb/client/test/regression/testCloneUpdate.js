@@ -190,13 +190,24 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         return GRASP.TestHelpers.fetch(
           TEST_NAME,
           window.location.origin+'/getGraphsCloneList'
-        ).then(function(e){
+        ).then(function(e) {
           var expected = {};
           expected[originalGraphId] = {
             "cloned_from": [],
             "cloned_to": {}
           };
-          expected[originalGraphId]['cloned_to'][cloneGraphId] = new GRASP.TestHelpers.likeRegexp("^testuser_[a-z0-9]*: testGraph$");
+          expected[originalGraphId]['cloned_to'][cloneGraphId] = {
+            'user':{
+              id:new GRASP.TestHelpers.likeInt(),
+              username: new GRASP.TestHelpers.likeRegexp("^testuser_[a-z0-9]*$")
+            },
+            'graph': {
+              id:new GRASP.TestHelpers.likeInt(),
+              name: 'testGraph'
+            }
+          };
+
+
           GRASP.TestHelpers.cmp(
             'clones list must have cloned graph',
             JSON.parse(e),

@@ -375,75 +375,100 @@ GRASP.GraphMenu.prototype = {
    * @param pos
    */
   _showClones: function(pos){
-    var graphId, that=this, m = that.UI.createModal();
+    var graphId, that=this, m = that.UI.createModal({class:'middle'});
 
     // determine graphId selected on position pos
     for(var i in this.selectedPosition){
       if(this.selectedPosition[i] == pos) graphId = i;
     }
 
-    var showGraph = function(cloneId){
-      // get graph diff and show it
-      that.publisher.publish(['load_graph_models', {graphIds:[cloneId]}]).then(function(){
+    this.publisher.publish("repository_get_graphs_clone_list").then(function(clones){
+      var clonedFromHtmlList = that._createHTMLFromCloneList(
+          clones[graphId]['cloned_from'],
+          function(){  that.UI.closeModal(m); }
+      );
+      var actions = [
+        {
+          name: 'show diff',
+          type:'bigButton uppercase',
+          label: that.i18n.__('Difference'),
+          callback: function(cloneId){
+            // get graph diff and show it
+            that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
+              // and then show them
+              that.publisher.publish('show_graphs');
+              that.UI.closeModal(m);
+            });
+          }
+        }
+      ];
+      var clonedFromList = that.UI.createList(
+        clonedFromHtmlList,
+        actions
+      );
+
+      clonedFromHtmlList = that._createHTMLFromCloneList(
+          clones[graphId]['cloned_to'],
+          function(){  that.UI.closeModal(m); }
+      );
+      var clonedToList = that.UI.createList(
+          clonedFromHtmlList,
+          actions
+      );
+
+      var cloneListContainer = GRASP.createElement('div', {class:'cloneListContainer'});
+      cloneListContainer.appendChild(GRASP.createElement(
+          'div',
+          {class:'title'},
+          that.i18n.__('This map was copied from:')
+      ));
+      cloneListContainer.appendChild(clonedFromList);
+      cloneListContainer.appendChild(GRASP.createElement(
+          'div',
+          {class:'title'},
+          that.i18n.__('This map was copied by:')
+      ));
+      cloneListContainer.appendChild(clonedToList);
+
+      that.UI.setModalContent(m, cloneListContainer);
+    });
+  },
+
+  _createHTMLFromCloneList: function (clones, callback) {
+    var that = this;
+    var HTMLList = {};
+    var buttonCb = function(graphId){
+      that._showGraph(graphId).then(function(){ callback(); });
+    };
+    for(var graphId in clones){
+      var clone = clones[graphId];
+      var c = GRASP.createElement('div',{class:"cloneItem"});
+      var user = GRASP.createElement('div',{class:'user'}, clone.user.username);
+      var graph = this.UI.createButton({
+        label:clone.graph.name,
+        name:'show_graph_'+clone.graph.id,
+        type:'likeHref',
+        callback: buttonCb.bind(this, graphId)
+      });
+      c.appendChild(user);
+      c.appendChild(graph);
+      HTMLList[graphId] = c;
+    }
+    return HTMLList;
+  },
+
+  _showGraph: function(cloneId, promise){
+    var that = this;
+    // get graph diff and show it
+    return this.publisher.publish(['load_graph_models', {graphIds:[cloneId]}])
+      .then(function(){
         // change graph position
         that.selectedPosition[cloneId] = 'rightGraphView';
         // and then show them
         that.publisher.publish('show_graphs');
-        that.UI.closeModal(m);
+
+        return Promise.resolve();
       });
-    };
-
-    this.publisher.publish("repository_get_graphs_clone_list").then(function(clones){
-      var clonedFromList = that.UI.createList(clones[graphId]['cloned_from'],
-          [
-            {
-              name: 'show clone',
-              label: 'show clone',
-              callback: showGraph
-            },
-            {
-              name: 'show diff',
-              label: 'show diff',
-              callback: function(cloneId){
-                // get graph diff and show it
-                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
-                  // and then show them
-                  that.publisher.publish('show_graphs');
-                  that.UI.closeModal(m);
-                });
-              }
-            }
-          ]);
-
-      var clonedToList = that.UI.createList(clones[graphId]['cloned_to'],
-          [
-            {
-              name: 'show clone',
-              label: 'show clone',
-              callback: showGraph
-            },
-            {
-              name: 'show diff',
-              label: 'show diff',
-              callback: function(cloneId){
-                // get graph diff and show it
-                that.publisher.publish(['load_graph_models', {graphIds:['diff_'+graphId+'_'+cloneId]}]).then(function(){
-                  // and then show them
-                  that.publisher.publish('show_graphs');
-                  that.UI.closeModal(m);
-                });
-              }
-            }
-          ]);
-
-      var cloneListContainer = GRASP.createElement('div', {});
-      cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned from'));
-      cloneListContainer.appendChild(clonedFromList);
-      cloneListContainer.appendChild(GRASP.createElement('h1', {}, 'Cloned to'));
-      cloneListContainer.appendChild(clonedToList);
-
-      that.UI.setModalContent(m,cloneListContainer);
-    });
   },
 
   /**

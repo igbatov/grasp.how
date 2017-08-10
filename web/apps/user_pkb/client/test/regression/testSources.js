@@ -70,7 +70,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
                 ).then(function(e){
                   GRASP.TestHelpers.cmp(
                       SUBTEST_NAME+': user sources must be updated',
-                      JSON.parse(e)["1"],
+                      JSON.parse(e)[0],
                       {
                         "id": "1",
                         "source_type": "meta-article",
