@@ -157,10 +157,11 @@ GRASP.GraphElementEditor.prototype = {
     this.eventListener(this.currentEvent);
   },
 
-  _createHead: function(graphId, nodeId, node, nodeTypes) {
+  _createHead: function(graphId, nodeId, node, nodeTypes, isEditable) {
     var c = GRASP.createElement('div', {class:'head', style:'color: ' + nodeTypes[node.type]})
     var label = GRASP.createElement('span', {class:'label'}, GRASP.ucfirst(this.i18n.__(node.type)));
     var remove = this.UI.createButton({
+      disabled: !isEditable,
       name: 'removeNode',
       type: 'icon delete grey',
       callback: this._removeNode.bind(this, graphId, nodeId)
@@ -179,11 +180,12 @@ GRASP.GraphElementEditor.prototype = {
       node,
       parentNodeContents
   ){
+    isEditable = typeof isEditable === 'undefined' ? true : isEditable;
     var that = this;
 
-    var head = this._createHead(graphId, nodeId, node, nodeTypes);
+    var head = this._createHead(graphId, nodeId, node, nodeTypes, isEditable);
 
-    var label = this._createLabel(graphId, nodeContentId, node);
+    var label = this._createLabel(graphId, nodeContentId, node, isEditable);
 
     var accordionItems = [];
     accordionItems.push({
@@ -197,6 +199,7 @@ GRASP.GraphElementEditor.prototype = {
         content: this._createSources(graphId, nodeContentId, node, isEditable),
         labelButtons: [
           this.UI.createButton({
+            disabled: !isEditable,
             name: 'editConditionals',
             type: 'icon plusCircle grey',
             callback: that._addListItem.bind(this, graphId, nodeContentId, node)
@@ -451,7 +454,7 @@ GRASP.GraphElementEditor.prototype = {
     // create HTMLElements from list
     var list = node.alternatives[node.active_alternative_id]['list'];
     var htmllist = {};
-    for(var i in list) htmllist[i] = this._createHTMLFromListItem(list[i], node.type);
+    for(var i in list) htmllist[i] = this._createHTMLFromListItem(list[i], node.type, isEditable);
 
     var updateListItem = function(id, el){
       that._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, list[id],
@@ -607,7 +610,8 @@ GRASP.GraphElementEditor.prototype = {
     return c;
   },
 
-  _createLabel: function(graphId, nodeContentId, node){
+  _createLabel: function(graphId, nodeContentId, node, isEditable){
+    isEditable = typeof(isEditable) === 'undefined' ? true : isEditable;
     var that = this;
     var c = GRASP.createElement('div',{}); // container
     var alternatives = {};
@@ -623,11 +627,12 @@ GRASP.GraphElementEditor.prototype = {
         defaultValue: node.active_alternative_id,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
         dropType: 'single',
-        map: this._alternativeToSelectBoxItem.bind(this, graphId, nodeContentId, node),
+        map: this._alternativeToSelectBoxItem.bind(this, graphId, nodeContentId, node, isEditable),
         selectedItemMap: function(alternative){
           var c = GRASP.createElement('div',{class:'nodeLabel inSelectBox'});
           var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
           var l = that.UI.createTextareaBox({
+            disabled: !isEditable,
             name:'label',
             value:alternative.label,
             callback: that._attrChange.bind(that, graphId, nodeContentId, node),
@@ -635,6 +640,7 @@ GRASP.GraphElementEditor.prototype = {
           });
           // create buttons to add and remove alternatives
           var add = that.UI.createButton({
+            disabled: !isEditable,
             name: 'addAlternative',
             type: 'icon plusCircle grey',
             callback: that._addAlternative.bind(that, graphId, nodeContentId)
@@ -652,6 +658,7 @@ GRASP.GraphElementEditor.prototype = {
       var label = GRASP.createElement('div',{class:'nodeLabel'});
       var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
       var l = this.UI.createTextareaBox({
+        disabled: !isEditable,
         name:'label',
         class:'notInSelectLabel',
         value:alternative.label,
@@ -666,11 +673,12 @@ GRASP.GraphElementEditor.prototype = {
     return c;
   },
 
-  _alternativeToSelectBoxItem: function(graphId, nodeContentId, node, alternative){
+  _alternativeToSelectBoxItem: function(graphId, nodeContentId, node, isEditable, alternative){
     var c = GRASP.createElement('div',{class:'nodeLabel inSelectBox'});
     var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
     var l = GRASP.createElement('div',{class:'alternativeLabel'}, alternative.label);
     var remove = this.UI.createButton({
+      disabled: !isEditable,
       name: 'removeAlternative',
       type: 'icon delete grey',
       callback: this._removeAlternative.bind(this, graphId, nodeContentId, node, alternative)
@@ -799,7 +807,7 @@ GRASP.GraphElementEditor.prototype = {
    * @returns {HTMLElement}
    * @private
    */
-  _createHTMLFromListItem: function(item, nodeType){
+  _createHTMLFromListItem: function(item, nodeType, isEditable){
     var c = GRASP.createElement('div',{class:'sourceItem'});
     if(nodeType == GRASP.GraphViewNode.NODE_TYPE_FACT){
       var leftC = GRASP.createElement('div',{class:'leftC'});

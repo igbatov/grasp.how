@@ -470,7 +470,12 @@ GRASP.UIElements.prototype = {
     var uniqId = this.generateId();
     var div = GRASP.createElement('div',{id:uniqId},'');
     if(typeof(attrs.addLabel) != 'undefined' && typeof(attrs.addCallback) != 'undefined') {
-      div.appendChild(this.createButton({name:'', label:attrs.addLabel, callback: attrs.addCallback, disabled: attrs.disabled}));
+      div.appendChild(this.createButton({
+        name:'',
+        label:attrs.addLabel,
+        callback: attrs.addCallback,
+        disabled: attrs.disabled
+      }));
     }
     if(typeof(attrs.items)!='undefined' && GRASP.getObjectKeys(attrs.items).length > 0){
        var HTMLList = this.createList(attrs.items, attrs.itemActions, attrs.disabled);
@@ -917,7 +922,7 @@ GRASP.UIElements.prototype = {
         name: action.name,
         label: action.label,
         type: action.type,
-        disabled: action.disabled,
+        disabled: disabled
       };
       var button = this.createButton(buttonOptions);
       (function(button, callback, id, li){
