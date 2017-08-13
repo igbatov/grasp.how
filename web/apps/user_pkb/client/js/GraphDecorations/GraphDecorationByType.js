@@ -54,8 +54,11 @@ GRASP.GraphDecorationByType.prototype = {
             typeof(graphNodeAttributes[nodes[i].nodeContentId].stickers) == 'undefined' ||
             graphNodeAttributes[nodes[i].nodeContentId].stickers == null ||
             graphNodeAttributes[nodes[i].nodeContentId].stickers.indexOf(stickername) == -1)
+        {
           stickers[stickername] = null;
-        else stickers[stickername] = skin.node.attr.stickers[stickername];
+        } else {
+          stickers[stickername] = skin.node.attr.stickers[stickername];
+        }
       }
       decoration.nodes[i] = {color:color, borderColor:color, opacity:Math.max(0.1,reliability/99), size:Math.max(5, size*importance/20), stickers:stickers};
       decoration.nodeLabels[i] = {opacity: 1, size:Math.max(5, labelSize*importance/50)};

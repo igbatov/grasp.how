@@ -84,23 +84,48 @@ GRASP.GraphViewNode.prototype = {
   },
 
   setStickers: function(v){
-    if(GRASP.typeof(v) != 'object') return;
+    if(GRASP.typeof(v) != 'object') {
+      return;
+    }
     // remove all old stickers
     var chs = GRASP.getObjectKeys(this.shape.getChildren());
-    for(var i in chs) if(chs[i] != this.circle.getShape().id) this.shape.remove(chs[i]);
+    for(var i in chs) {
+      if(chs[i] != this.circle.getShape().id) {
+        this.shape.remove(chs[i]);
+      }
+    }
     // add new stickers
     var nodeSize = 2*this.getSize();
-    var cnt = 0; // position icon according its number from left-top to right bottom, left to right
+    var cnt = 0;
+    /**
+     * Position icon according its number from left-bottom to right bottom:
+     * 2 3
+     * 1 4
+     */
     for(var i in v){
+      // do not count null stickers
+      if(!v[i]) continue;
       // we cannot position more than 4 stickers
       if(cnt > 3) continue;
       var sticker = this.drawer.createShape('svg', {
         svgxml:v[i]
       });
-      if(cnt == 0) sticker.setX(Number(-nodeSize)); sticker.setY(Number(-nodeSize));
-      if(cnt == 1) sticker.setX(Number(-nodeSize)); sticker.setY(0);
-      if(cnt == 2) sticker.setX(0); sticker.setY(Number(-nodeSize));
-      if(cnt == 3) sticker.setX(0); sticker.setY(0);
+      if(cnt === 0) {
+        sticker.setX(Number(-nodeSize));
+        sticker.setY(0);
+      }
+      if(cnt === 1) {
+        sticker.setX(Number(-nodeSize));
+        sticker.setY(Number(-nodeSize));
+      }
+      if(cnt === 2) {
+        sticker.setX(0);
+        sticker.setY(Number(-nodeSize));
+      }
+      if(cnt === 3) {
+        sticker.setX(0);
+        sticker.setY(0);
+      }
       cnt++;
       this.shape.add(sticker);
     }

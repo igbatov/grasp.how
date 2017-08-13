@@ -397,14 +397,41 @@ class GraphDiffCreator{
 
     // check that settings for $graphId1 is the sane as for $graphId2
     if($graph1Settings['skin'] != $graph2Settings['skin']){
-      throw new Exception('Skins are different');
+      throw new Exception('Skins are different '.var_export(array_diff_key(
+          $graph1Settings['skin'],
+          $graph2Settings['skin']
+          ),
+          true
+        )
+      );
     }
 
     // add to skin modification stickers (icons from http://www.flaticon.com/)
-    $graph1Settings['skin']['node']['attr']['stickers']['absent'] = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 42 42" style="enable-background:new 0 0 42 42;" xml:space="preserve" width="25" height="25"><path d="M37.059,16H26H16H4.941C2.224,16,0,18.282,0,21s2.224,5,4.941,5H16h10h11.059C39.776,26,42,23.718,42,21  S39.776,16,37.059,16z"  fill="#ecff45"/></svg>';
-    $graph1Settings['skin']['node']['attr']['stickers']['added'] = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 42 42" style="enable-background:new 0 0 42 42;"  width="25" height="25"><path style="fill:#ecff45;" d="M37.059,16H26V4.941C26,2.224,23.718,0,21,0s-5,2.224-5,4.941V16H4.941C2.224,16,0,18.282,0,21s2.224,5,4.941,5H16v11.059C16,39.776,18.282,42,21,42s5-2.224,5-4.941V26h11.059C39.776,26,42,23.718,42,21S39.776,16,37.059,16z"  fill="#ecff45"/></svg>';
-    $graph1Settings['skin']['node']['attr']['stickers']['modified'] = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 296.026 296.026" style="enable-background:new 0 0 296.026 296.026;" xml:space="preserve" width="25" height="25"><path d="M265.778,256.026h-0.678l0.159-236.013C265.266,8.968,256.318,0.008,245.272,0c-0.005,0-0.01,0-0.014,0  c-7.875,0-14.668,4.564-17.93,11.182c-0.074,0.146-0.158,0.283-0.227,0.433l-79.088,171.238L68.925,11.614  c-0.028-0.061-0.07-0.112-0.101-0.171C65.615,4.685,58.748,0,50.768,0c-11.046,0-20,8.954-20,20v236.026h-0.52  c-11.046,0-20,8.954-20,20s8.954,20,20,20h41.039c11.046,0,20-8.954,20-20s-8.954-20-20-20h-0.52V111.002l59.088,127.934  c3.27,7.081,10.358,11.614,18.157,11.614c7.799,0,14.887-4.533,18.157-11.614l59.027-127.802l-0.098,144.891h-0.361  c-11.046,0-20,8.954-20,20s8.954,20,20,20h41.039c11.046,0,20-8.954,20-20S276.824,256.026,265.778,256.026z" fill="#ecff45"/></svg>';
-    $graph1Settings['skin']['node']['attr']['stickers']['unmodified'] = '<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'></svg>';
+    $graph1Settings['skin']['node']['attr']['stickers']['absent'] = '
+ <svg version="1.1" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 24 24;" xml:space="preserve">
+<path fill="none" d="M0,0h24v24H0V0z"/>
+<path fill="#848BA8" d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M17,13H7v-2h10V13z"/>
+<rect x="7" y="11" width="10" height="2"/>
+</svg>
+    ';
+    $graph1Settings['skin']['node']['attr']['stickers']['added'] = '
+<svg version="1.1" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 24 24;" xml:space="preserve">
+<path fill="none" d="M0,0h24v24H0V0z"/>
+<path fill="#848BA8" d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z"/>
+<polygon points="17,13 13,13 13,17 11,17 11,13 7,13 7,11 11,11 11,7 13,7 13,11 17,11 "/>
+</svg>
+';
+    $graph1Settings['skin']['node']['attr']['stickers']['modified'] = '
+<svg version="1.1" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 24 24;" xml:space="preserve">
+<circle fill="#848BA8" cx="12" cy="12.4" r="10"/>
+<path d="M7.2,14.9V17h2.1l6.2-6.2l-2.1-2.1L7.2,14.9z M17.2,9.2c0.2-0.2,0.2-0.6,0-0.8l-1.3-1.3c-0.2-0.2-0.6-0.2-0.8,0l-1,1
+	l2.1,2.1C16.1,10.2,17.2,9.2,17.2,9.2z"/>
+<path fill="none" d="M0,0h24v24H0V0z"/>
+</svg>    
+ ';
+    $graph1Settings['skin']['node']['attr']['stickers']['unmodified'] = '
+<svg xmlns=\'http://www.w3.org/2000/svg\'  width=\'25\' height=\'25\'></svg>
+';
 
     $graph1Settings['position'] = 'rightGraphView';
 
