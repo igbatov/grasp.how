@@ -641,6 +641,7 @@ GRASP.UIElements.prototype = {
     if(rowAttrs['rowType'] == 'string') fieldDOM = GRASP.createElement('div',{class:'string'},rowAttrs['value']);
     if(rowAttrs['rowType'] == 'list') fieldDOM = this.createListBox({name:name,items:rowAttrs['items'], itemActions:rowAttrs['itemActions'], addLabel: rowAttrs['addLabel'], addCallback:rowAttrs['addCallback']});
     if(rowAttrs['rowType'] == 'tabs') fieldDOM = this.createTabs({name:name, items:rowAttrs['items'], defaultItem:rowAttrs['defaultItem']});
+    if(rowAttrs['rowType'] == 'checkbox') fieldDOM = this.createSwitch({name:name, value:rowAttrs['value'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled']});
 
     var uniqId = this.generateId();
     var formRow = GRASP.createElement('div',{
@@ -660,6 +661,31 @@ GRASP.UIElements.prototype = {
     this.formRows.insertRow({id:uniqId, formname:form.id, name:name, type:rowAttrs['rowType'], definition:rowAttrs, dom:formRow});
 
     return formRow;
+  },
+
+  /**
+   * Creates checkbox
+   * @param attrs - {name:string, value:string, disabled:boolean, callback}
+   */
+  createSwitch: function (attrs) {
+    var c = GRASP.createElement('label',{class:'ui_switch'});
+    var checkboxSettings = {
+      type:'checkbox',
+      name:attrs.name,
+      disabled:attrs.disabled
+    };
+    if(attrs.value) {
+      checkboxSettings['checked'] = attrs.value;
+    }
+    var checkbox = GRASP.createElement('input', checkboxSettings, '');
+    var slider = GRASP.createElement('span',{class:'slider round'},'');
+    c.appendChild(checkbox);
+    c.appendChild(slider);
+    checkbox.addEventListener('change',function(evt){
+      attrs.callback(attrs.name,checkbox.checked);
+    });
+
+    return c;
   },
 
   /**

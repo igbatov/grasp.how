@@ -261,6 +261,7 @@ Modules['Mediator'].setSubscriptions(
 
       'get_elements_attributes':[Modules['GraphElementsContent']],
       'get_graph_node_content':[Modules['GraphElementsContent']],
+      'get_graph_edge_content':[Modules['GraphElementsContent']],
       'request_for_graph_element_content_change':[Modules['GraphElementsContent']],
 
       'load_graph_models':[Modules['GraphModelsPubSub']],

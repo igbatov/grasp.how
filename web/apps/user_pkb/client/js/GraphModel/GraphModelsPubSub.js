@@ -97,7 +97,9 @@ GRASP.GraphModelsPubSub.prototype = {
       case "request_for_graph_model_change":
 
         var graphId = event.getData()['graphId'];
-        if(typeof(this.graphModels[graphId]) == 'undefined') GRASP.errorHandler.throwError('graphModel with graphId '+graphId+' not found');
+        if(typeof(this.graphModels[graphId]) == 'undefined') {
+          GRASP.errorHandler.throwError('graphModel with graphId '+graphId+' not found');
+        }
         var graphModel = this.graphModels[graphId];
 
         if(!graphModel.getIsEditable()) return;
@@ -109,7 +111,10 @@ GRASP.GraphModelsPubSub.prototype = {
           c = event.getData()['changes'];
         // add new node
         }else if(event.getData()['type'] == 'addNode'){
-          if(event.getData()['parentNodeId'] == null){
+          if(
+              (typeof(event.getData()['parentNodeId']) === 'undefined' || event.getData()['parentNodeId'] === null)
+              && (typeof(event.getData()['childNodeId']) === 'undefined' || event.getData()['childNodeId'] === null)
+          ){
             c.nodes.add = {'newNode': {nodeContentId: event.getData()['nodeContentId']}};
 
           }else{
@@ -117,7 +122,23 @@ GRASP.GraphModelsPubSub.prototype = {
               .publish(["request_for_graph_element_content_change", {type: 'addEdge', graphId:graphId, elementType: graphModel.getEdgeDefaultType()}])
               .then(function(edgeContent){
                 c.nodes.add = {'newNode': {nodeContentId: event.getData()['nodeContentId']}};
-                c.edges.add = {'newEdge': {edgeContentId: edgeContent.edgeContentId, source: event.getData()['parentNodeId'], target:'newNode'}};
+                if (typeof(event.getData()['parentNodeId']) !== 'undefined' && event.getData()['parentNodeId'] !== null) {
+                  c.edges.add = {
+                    'newEdge': {
+                      edgeContentId: edgeContent.edgeContentId,
+                      source: event.getData()['parentNodeId'],
+                      target: 'newNode'
+                    }
+                  };
+                } else {
+                  c.edges.add = {
+                    'newEdge': {
+                      edgeContentId: edgeContent.edgeContentId,
+                      source: 'newNode',
+                      target: event.getData()['childNodeId']
+                    }
+                  };
+                }
                 that.applyChanges(event.getData()['type'], c, graphModel);
                 changesApplied = true;
               });
@@ -138,7 +159,9 @@ GRASP.GraphModelsPubSub.prototype = {
 
         // If changes not applied yet, apply it now
         var changes = {};
-        if(!changesApplied) changes = this.applyChanges(event.getData()['type'], c, graphModel);
+        if(!changesApplied) {
+          changes = this.applyChanges(event.getData()['type'], c, graphModel);
+        }
 
         event.setResponse(changes);
         break;

@@ -220,3 +220,25 @@
 .graphElementEditorContainer .sourceItem .publisherReliability{
     color: #4fce69;
 }
+
+.edgeEditorContainer {
+
+}
+.edgeEditorContainer .ui_form{
+    padding-right: 2em;
+    text-align: left;
+    padding-left: 1em;
+}
+.edgeEditorContainer .ui_form .formRow{
+    margin-top: 1em;
+    align-items: center;
+}
+.edgeEditorContainer .ui_form .formRow .label{
+    width: 30%;
+}
+.edgeEditorContainer .ui_form .formRow .ui_select{
+    width: 70%;
+}
+.edgeEditorContainer .head{
+    padding-left: 2em;
+}

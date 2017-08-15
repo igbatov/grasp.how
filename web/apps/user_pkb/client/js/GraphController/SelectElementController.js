@@ -29,9 +29,15 @@ GRASP.SelectElementController.prototype = {
        */
       graphId = event.getData()['graphId'];
 
-      if(typeof(event.getData().decoration) != 'undefined') that.initDecorations(graphId, event.getData().decoration);
+      if(typeof(event.getData().decoration) != 'undefined') {
+        that.initDecorations(graphId, event.getData().decoration);
+      }
 
-      if(selectedElement && selectedElement.element){
+      if(
+        selectedElement
+        && selectedElement.element
+        && selectedElement.elementType === 'node'
+      ){
         that.selectedDecoration[graphId] = that.enlargeNodes(
             event.getData().decoration,
             that.initialDecoration[graphId],

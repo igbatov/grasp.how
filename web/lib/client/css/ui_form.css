@@ -8,6 +8,8 @@
 }
 
 .ui_form .formRow {
+    align-items: baseline;
+    display: flex;
     font-family: 'Roboto';
     font-size: 14px;
     line-height: 1.43;

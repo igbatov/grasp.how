@@ -15,7 +15,7 @@ GRASP.ShowEditorController.prototype = {
     if(eventName === 'mouseenternode' && !selectedElement.element){
       this._showNodeEditor(event.getData().graphId, event.getData().element.id, event.getData().element.nodeContentId);
     }else if(eventName === 'mouseenteredge' && !selectedElement.element){
-      this._showEdgeEditor(event.getData().graphId, event.getData().element);
+      this._showEdgeEditor(event.getData().graphId, event.getData().element.id, event.getData().element.edgeContentId);
     }else if(eventName === 'clickbackground' && selectedElement.element) {
       this.publisher.publish(["hide_graph_element_editor", selectedElement]);
     }else if(
@@ -62,20 +62,24 @@ GRASP.ShowEditorController.prototype = {
       });
   },
 
-  _showEdgeEditor: function(graphId, edge){
+  _showEdgeEditor: function(graphId, edgeId, edgeContentId){
     var that = this;
     this.publisher
-      .publish(["get_graph_models", [graphId]],
-            ["get_selected_positions", [graphId]])
-      .then(function(graphModels, positions){
+      .publish(
+            ["get_graph_models", [graphId]],
+            ["get_selected_positions", [graphId]],
+            ["get_selected_skin", graphId]
+      )
+      .then(function(graphModels, positions, skin){
             var graphModel = graphModels[graphId];
             that.publisher.publish(["show_graph_element_editor", {
               graphId: graphId,
               position: positions[graphId],
               isEditable: graphModel.getIsEditable(),
               elementType: 'edge',
-              edge: {id: edge.id, type: edge.type, edgeContentId: edge.edgeContentId, label: edge.label},
-              edgeTypes: graphModel.getEdgeTypes()
+              edgeId: edgeId,
+              edgeContentId: edgeContentId,
+              edgeTypes: skin['edge']['attr']['typeColors']
             }]);
       });
   }

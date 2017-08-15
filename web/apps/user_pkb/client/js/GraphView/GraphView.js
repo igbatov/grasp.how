@@ -471,10 +471,10 @@ GRASP.GraphView.prototype = {
         elEdge.getWidth() != this.decoration.edges[edgeId].width
       ){
         doNeedRedraw = true;
+        elEdge.setColor(this.decoration.edges[edgeId].color);
         elEdge.setEdgeType(edges[edgeId].type);
         elEdge.setStart(p1);
         elEdge.setStop(p2);
-        elEdge.setColor(this.decoration.edges[edgeId].color);
         elEdge.setOpacity(this.decoration.edges[edgeId].opacity);
         elEdge.setWidth(this.decoration.edges[edgeId].width);
       }

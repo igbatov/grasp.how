@@ -22,7 +22,6 @@ GRASP.GraphViewEdge = function(drawer, graphViewElement, args){
 
   this.shape = this.drawer.createShape('path', {
     data: this._getQuadPathData(this.start, this.stop, this.directionType,this.sourceNodeRadius, this.targetNodeRadius),
-    //hitData: this._getQuadPathData(args.start, args.stop, 10),
     stroke: args.color,
     opacity: args.opacity,
     width: this.width,
@@ -34,6 +33,10 @@ GRASP.GraphViewEdge = function(drawer, graphViewElement, args){
   graphViewElement.setDrawerShape(this.shape);
   this.setEdgeType(this.edgeType);
 };
+
+GRASP.GraphViewEdge.EDGE_TYPE_LINK = 'link';
+GRASP.GraphViewEdge.EDGE_TYPE_CAUSAL = 'causal';
+GRASP.GraphViewEdge.EDGE_TYPE_CONDITIONAL = 'conditional';
 
 GRASP.GraphViewEdge.prototype = {
   remove: function(){

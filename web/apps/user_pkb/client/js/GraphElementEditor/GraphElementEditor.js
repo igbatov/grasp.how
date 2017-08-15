@@ -53,14 +53,26 @@ GRASP.GraphElementEditor.prototype = {
     {
       case "graph_element_content_changed":
         if(this.currentElement == null) break;
-        if(event.getData().graphId != this.currentElement.graphId) break;
+        var graphId = event.getData().graphId;
+        if(graphId != this.currentElement.graphId) break;
 
         // reload editor if some reliabilities changed
         if(event.getData().type == 'updateNodesReliabilities'){
           this._reloadEvent();
           break;
 
-        }else{
+        } else if (
+            event.getData().type == 'updateEdgeAttribute'
+            && event.getData().edgeAttribute.name == 'type'
+            && event.getData().edgeContentId == this.currentElement.elementId
+        ) {
+          /**
+           * If edge type was changed we want to reload edge editor (if it is opened)
+           */
+          this._reloadEvent();
+          break;
+
+        } else {
           // If this is update of opened node, then reload it
           if(event.getData().nodeContentId == this.currentElement.elementId
               && this._getEventElementType(event) == this.currentElement.elementType)
@@ -88,7 +100,7 @@ GRASP.GraphElementEditor.prototype = {
         var currentElement = {
           graphId:event.getData().graphId,
           elementType:event.getData().elementType,
-          elementId:event.getData().elementType == 'node' ? event.getData().nodeContentId : event.getData().edge.id
+          elementId:event.getData().elementType == 'node' ? event.getData().nodeContentId : event.getData().edgeContentId
         };
 
         // we do not want to open another editor, we let renew this one
@@ -130,13 +142,29 @@ GRASP.GraphElementEditor.prototype = {
               });
 
         }else if(event.getData().elementType == 'edge'){
-          document.getElementById(v.attr('id')).appendChild(
-            this._createEdgeForm(
-              event.getData().graphId,
-              event.getData().isEditable,
-              event.getData().edgeTypes,
-              event.getData().edge
-          ));
+          var graphId = event.getData().graphId;
+          var model = this.publisher.getInstant('get_graph_models', [graphId])[graphId];
+          var edge = model.getEdge(event.getData().edgeId);
+          var sourceNode = model.getNode(edge.source);
+          var targetNode = model.getNode(edge.target);
+
+          this.publisher
+          .publish(
+              ['get_graph_edge_content', {graphId:graphId, edgeContentIds:[edge.edgeContentId]}]
+          ).then(function(edgeContents){
+            document.getElementById(v.attr('id')).appendChild(
+                that._createEdgeForm(
+                    graphId,
+                    event.getData().isEditable,
+                    event.getData().edgeTypes,
+                    edge,
+                    edgeContents[edge.edgeContentId],
+                    sourceNode,
+                    targetNode
+                ));
+          });
+
+
         }
 
         GRASP.setDisplay(document.getElementById(v.attr('id')), 'block');
@@ -157,7 +185,30 @@ GRASP.GraphElementEditor.prototype = {
     this.eventListener(this.currentEvent);
   },
 
-  _createHead: function(graphId, nodeId, node, nodeTypes, isEditable) {
+  _createEdgeHead: function(graphId, edge, edgeContent, edgeTypes, isEditable) {
+    var that = this;
+    var c = GRASP.createElement('div', {class:'head', style:'color: ' + edgeTypes[edgeContent.type]})
+    var label = GRASP.createElement('span', {class:'label'}, GRASP.ucfirst(this.i18n.__(edgeContent.type)));
+    var remove = this.UI.createButton({
+      disabled: !isEditable,
+      name: 'removeEdge',
+      type: 'icon delete grey',
+      callback:function(){
+        if(confirm('Are you sure?')){
+          that.publisher.publish(["request_for_graph_element_content_change", {
+            graphId: graphId,
+            type: 'removeEdge',
+            edge:edge
+          }]);
+        }
+      }
+    });
+    c.appendChild(label);
+    c.appendChild(remove);
+    return c;
+  },
+
+  _createNodeHead: function(graphId, nodeId, node, nodeTypes, isEditable) {
     var c = GRASP.createElement('div', {class:'head', style:'color: ' + nodeTypes[node.type]})
     var label = GRASP.createElement('span', {class:'label'}, GRASP.ucfirst(this.i18n.__(node.type)));
     var remove = this.UI.createButton({
@@ -183,7 +234,7 @@ GRASP.GraphElementEditor.prototype = {
     isEditable = typeof isEditable === 'undefined' ? true : isEditable;
     var that = this;
 
-    var head = this._createHead(graphId, nodeId, node, nodeTypes, isEditable);
+    var head = this._createNodeHead(graphId, nodeId, node, nodeTypes, isEditable);
 
     var label = this._createLabel(graphId, nodeContentId, node, isEditable);
 
@@ -783,25 +834,6 @@ GRASP.GraphElementEditor.prototype = {
   },
 
   /**
-   * http://www.colorzilla.com/gradient-editor/
-   * @param percent
-   * @returns {string}
-   * @private
-   */
-  _getPartialGradientStyle: function(percent){
-    var str = '';
-    /*
-    str += 'background: -moz-linear-gradient(top, rgba(30,87,153,0) 0%, rgba(41,137,216,0) '+percent+'%, rgba(255,48,48,1) '+(percent+1)+'%, rgba(255,0,0,1) 100%); '; // FF3.6+
-    str += 'background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(30,87,153,0)), color-stop('+percent+'%,rgba(41,137,216,0)), color-stop('+(percent+1)+'%,rgba(255,48,48,1)), color-stop(100%,rgba(255,0,0,1))); '; // Chrome,Safari4+
-    str += 'background: -webkit-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; // Chrome10+,Safari5.1+
-    str += 'background: -o-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; // Opera 11.10+
-    str += 'background: -ms-linear-gradient(top, rgba(30,87,153,0) 0%,rgba(41,137,216,0) '+percent+'%,rgba(255,48,48,1) '+(percent+1)+'%,rgba(255,0,0,1) 100%); '; // IE10+
-    */
-    str += 'background: linear-gradient(90deg, rgba(30,87,153,1) 0%,rgba(78,137,193,1) '+percent+'%,rgba(79,138,194,0) '+(parseInt(percent)+1)+'%,rgba(125,185,232,0) 100%); '; // W3C
-    return str;
-  },
-
-  /**
    * Creating HTMLElement from node's list item
    * @param item - is a source (= {author:<string>, url:<string>, name:<string>, publisher:<string>}) or falsification
    * @returns {HTMLElement}
@@ -865,9 +897,12 @@ GRASP.GraphElementEditor.prototype = {
     return text.replace("\r\n","&#013;");
   },
 
-  _createEdgeForm: function(graphId, isEditable, edgeTypes, edge){
+  _createEdgeForm: function(graphId, isEditable, edgeTypes, edge, edgeContent, sourceNode, targetNode){
     var that = this;
     if(!isEditable) return '';
+
+    var head = this._createEdgeHead(graphId, edge, edgeContent, edgeTypes, isEditable);
+
     var onchange = function(name, value){
       that.publisher.publish(['request_for_graph_element_content_change', {
         graphId: graphId,
@@ -876,30 +911,90 @@ GRASP.GraphElementEditor.prototype = {
         edgeAttribute: {name:name, value:value}
       }]);
     };
-    var form = this.UI.createForm({
-      'label':{
-        rowType:'text',
-        value:edge.label,
-        callback:onchange
-      },
+
+    var edgeTypeLabels = {};
+    for (var type in edgeTypes) {
+      edgeTypeLabels[type] = this.i18n.__(type);
+    }
+    var formSettings = {
       'type':{
         rowType:'select',
-        items:edgeTypes.reduce(function(prev,curr){ prev[curr]=curr; return prev; },{}),
-        value:edge.type,
+        rowLabel:'Edge type',
+        items:edgeTypeLabels,
+        value:edgeContent.type,
+        withDownArrow: true,
         callback:onchange
-      },
-      'removeButton':{
-        rowType:'button',
-        label:'Remove edge',
-        callback:function(){
-          if(confirm('Are you sure?')){
-            that.publisher.publish(["request_for_graph_element_content_change", {graphId: graphId, type: 'removeEdge', edge:edge}]);
-          }
-        }
       }
-    });
+    };
+    if (edgeContent.type !== GRASP.GraphViewEdge.EDGE_TYPE_LINK){
+      formSettings['changeDirection'] = {
+        rowType:'checkbox',
+        rowLabel: 'Change direction',
+        value:false
+      };
+    }
+    var form = this.UI.createForm(formSettings);
 
-    return form;
+    if (edgeContent.type !== GRASP.GraphViewEdge.EDGE_TYPE_LINK){
+      this.UI.updateForm(form, 'changeDirection', {
+        callback: this._changeDirection.bind(this, form, graphId, edge, targetNode)
+      });
+    }
+
+    var c = GRASP.createElement('div',{class:'edgeEditorContainer'});
+    c.appendChild(head);
+    c.appendChild(form);
+
+    return c;
+  },
+
+  _changeDirection: function(form, graphId, edge, targetNode,  name, value){
+    var that = this;
+    if (value === false) {
+      return;
+    }
+    that.publisher
+        .publish(
+            ['get_graph_node_content', {graphId:graphId, nodeContentIds:[targetNode.nodeContentId]}]
+        )
+        .then(function(targetNodes){
+          var targetNodeContent = targetNodes[targetNode.nodeContentId];
+          that.UI.showConfirm(
+              that.i18n.__(
+                  'This action will' +
+                  '<BR>1. Remove edge and all conditional probabilities from node "%s"' +
+                  '<BR>2. Add new edge of opposite direction.'+
+                  '<BR>Are you sure you want to do this?',
+                  targetNodeContent.alternatives[targetNodeContent.active_alternative_id].label
+              ),
+              function(answer){
+                if(answer === 'no') {
+                  that.UI.updateForm(form, name, {value: false});
+                  return false;
+                }
+                // remove this edge
+                that.publisher.publish(["request_for_graph_element_content_change", {
+                  graphId: graphId,
+                  type: 'removeEdge',
+                  edge:edge
+                }])
+                // create new one with opposite direction
+                    .then(function(){
+                      that.publisher.publish(
+                          ["request_for_graph_model_change",
+                            {
+                              graphId: graphId,
+                              type: 'addEdge',
+                              edgeContentId:edge.edgeContentId,
+                              fromNodeId:edge.target,
+                              toNodeId:edge.source
+                            }
+                          ]
+                      );
+                    });
+              }
+          );
+        });
   },
 
   /**

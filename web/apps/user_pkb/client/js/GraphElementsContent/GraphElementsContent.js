@@ -362,6 +362,24 @@ GRASP.GraphElementsContent.prototype = {
         }
         break;
 
+      case "get_graph_edge_content":
+        var data = event.getData();
+        var i, edgeContentId;
+        var cachedContents = {};
+
+        /**
+         * We assume here that "get_elements_attributes" was already called
+         * and thus this.cacheContent contains all necessary data.
+         */
+        for(i in data['edgeContentIds']){
+          edgeContentId = data['edgeContentIds'][i];
+          var rows = this.cacheContent.get({elementType:'edge', contentId:edgeContentId});
+          cachedContents[edgeContentId] = rows[0]['content'];
+        }
+        event.setResponse(cachedContents);
+
+        break;
+
       case "get_graph_node_content":
         var data = event.getData();
         var i, nodeContentId;
