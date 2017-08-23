@@ -170,7 +170,7 @@ GRASP.SVGDrawer.prototype = {
       var arrayLength = els.length;
       for(i=0; i<arrayLength; i++){
         el = els[i];
-        shapesUnderPoint.push(this._getShapeIdByEventTargetId(this.shapes[el.getAttribute('id')]));
+        shapesUnderPoint.push(this._getShapeIdByEventTarget(el));
       }
     }
     // hack for firefox (ver 43.0.4 still does not support getIntersectionList)
@@ -181,7 +181,7 @@ GRASP.SVGDrawer.prototype = {
       while(id != this.svgroot.getAttribute('id') && count<10){
         count++;
         el = document.elementFromPoint(x, y);
-        id = this._getShapeIdByEventTargetId(el.getAttribute('id'));
+        id = this._getShapeIdByEventTarget(el);
 
         if(typeof(this.shapes[id]) != 'undefined'){
           if(!GRASP.isObjectInArray(shapesUnderPoint, this.shapes[id])) shapesUnderPoint.push(this.shapes[id]);
@@ -275,22 +275,24 @@ GRASP.SVGDrawer.prototype = {
    * @private
    */
   _eventHandler: function(e, that, opt_shapeId){
-    var j, targetId, xy, eventType;
+    var j, targetId, target, xy, eventType;
     // console.log(e.type, e);
     // e.preventDefault(); 
 
     // our custom events
     if(['dragstart', 'dragging', 'dragend', 'dbltap'].indexOf(e.type) != -1){
       targetId = e.detail.id;
+      target = e.detail.target;
       xy = {x:e.detail.x, y:e.detail.y};
     }
     // standard double click events
     else {
       targetId = e.target.id;
+      target = e.target;
       xy = this._getEventAbsXY(e);
     }
 
-    targetId = that._getShapeIdByEventTargetId(targetId);
+    targetId = that._getShapeIdByEventTarget(target);
     var shape = that.shapes[targetId];
 
     if(e.type == 'dbltap'){
@@ -386,9 +388,14 @@ GRASP.SVGDrawer.prototype = {
       if((timesince < 600) && (timesince > 0)){
         // this is doubletap, baby
         evt.preventDefault();
-        var targetId = that._getShapeIdByEventTargetId(evt.target.id);
+        var targetId = that._getShapeIdByEventTarget(evt.target);
         var shape = that.shapes[targetId];
-        var myEvent = new CustomEvent("dbltap", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
+        var myEvent = new CustomEvent("dbltap", {detail:{
+            id: shape.getId(),
+            x:xy.x,
+            y:xy.y,
+            target:shape.getShape()
+        }});
         that.svgroot.dispatchEvent(myEvent);
       }else{
         // too much time to be a doubletap
@@ -413,7 +420,7 @@ GRASP.SVGDrawer.prototype = {
       // if not mousemove
       if(evt.type == "mousedown" || evt.type == "mouseup" || evt.type == "touchstart" || evt.type == "touchend"){
 
-        var targetId = that._getShapeIdByEventTargetId(evt.target.id);
+        var targetId = that._getShapeIdByEventTarget(evt.target);
         shape = that.shapes[targetId];
 
         if(!shape) return;
@@ -427,7 +434,12 @@ GRASP.SVGDrawer.prototype = {
         if((evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
           shape.mousedown = false;
           if(that.dragstartEventSend === true){
-            var myEvent = new CustomEvent("dragend", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
+            var myEvent = new CustomEvent("dragend", {detail:{
+              id: shape.getId(),
+              x:xy.x,
+              y:xy.y,
+              target:shape.getShape()
+            }});
             that.svgroot.dispatchEvent(myEvent);
             that.dragstartEventSend = false;
             evt.preventDefault();
@@ -445,11 +457,21 @@ GRASP.SVGDrawer.prototype = {
             // do not drag screen on touch device
             evt.preventDefault();
             if(!that.dragstartEventSend){
-              var myEvent = new CustomEvent("dragstart", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
+              var myEvent = new CustomEvent("dragstart", {detail:{
+                id: shape.getId(),
+                x:xy.x,
+                y:xy.y,
+                target:shape.getShape()
+              }});
               that.dragstartEventSend = true;
               that.svgroot.dispatchEvent(myEvent);
             }
-            var myEvent = new CustomEvent("dragging", {detail:{id: shape.getId(), x:xy.x, y:xy.y}});
+            var myEvent = new CustomEvent("dragging", {detail:{
+              id: shape.getId(),
+              x:xy.x,
+              y:xy.y,
+              target: shape.getShape()
+            }});
             that.svgroot.dispatchEvent(myEvent);
           }
         }
@@ -496,13 +518,22 @@ GRASP.SVGDrawer.prototype = {
   /**
    * Sometimes event.target.id points to svg element which is only part of the shape.
    * The whole shape is represented by parent element - svg group.
-   * @param targetId
+   * @param target - DOM element
    * @returns {*}
    * @private
    */
-  _getShapeIdByEventTargetId: function(targetId){
-    if(typeof(this.shapes[targetId]) != 'undefined') return targetId;
-    else return document.getElementById(targetId) ? (typeof(this.shapes[document.getElementById(targetId).parentNode.id]) != 'undefined' ? document.getElementById(targetId).parentNode.id : targetId) : targetId;
+  _getShapeIdByEventTarget: function(target){
+    // check element and every parent until shapeId is found
+    var el = target;
+    while(el){
+      if (el.id && typeof(this.shapes[el.id]) !== 'undefined') {
+        return el.id;
+      } else {
+        el = el.parentNode;
+      }
+    }
+
+    return null;
   }
 };
 
@@ -522,7 +553,7 @@ GRASP.SVGDrawer.BaseShape = function(args){
   this.strokeWidth = args.strokeWidth;
   this.draggable = args.draggable;
   this.mousedown = false;
-  this.shape = null; // should be redefined in final shape class
+  this.shape = null; // DOM (SVG) element, should be redefined in final shape class
 };
 
 GRASP.SVGDrawer.BaseShape.prototype = {
