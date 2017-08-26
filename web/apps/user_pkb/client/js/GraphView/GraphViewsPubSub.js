@@ -272,12 +272,18 @@ GRASP.GraphViewsPubSub.prototype = {
             that.publisher.publish([eventData.eventType, eventData]);
           }
 
+          var graphArea = that.graphViewList[droppedOnGraphId].getNodeMapping().area;
+          // convert global x, y into relative to graph area
+          var y = e.draggedModelElementXY.y - (graphArea.centerY - graphArea.height/2);
+          var x = e.draggedModelElementXY.x - (graphArea.centerX - graphArea.width/2);
+
           eventData = {
             eventType: e.eventType,
             fromGraphId: e.fromGraphId,
             draggedModelElement: e.draggedModelElement,
             droppedOnGraphId: droppedOnGraphId,
-            droppedOnModelElement: droppedOnElement
+            droppedOnModelElement: droppedOnElement,
+            draggedModelElementXY: {x:x, y:y}
           }
         }else{
           eventData = e;

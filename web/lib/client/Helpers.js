@@ -1841,3 +1841,21 @@ GRASP.copyToClipboard = function(elementId, type) {
   // Remove the input from the body
   document.body.removeChild(aux);
 }
+
+GRASP.getElementFontSize = function ( context ) {
+  // Returns a number
+  return parseFloat(
+      // of the computed font-size, so in px
+      getComputedStyle(
+          // for the given context
+          context
+          // or the root <html> element
+          || document.documentElement
+      )
+          .fontSize
+  );
+}
+
+GRASP.convertEm = function (value, context) {
+  return value * GRASP.getElementFontSize(context);
+}

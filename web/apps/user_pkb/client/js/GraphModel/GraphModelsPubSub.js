@@ -115,7 +115,19 @@ GRASP.GraphModelsPubSub.prototype = {
               (typeof(event.getData()['parentNodeId']) === 'undefined' || event.getData()['parentNodeId'] === null)
               && (typeof(event.getData()['childNodeId']) === 'undefined' || event.getData()['childNodeId'] === null)
           ){
+            // they do not want us to create edge between new node and some other
             c.nodes.add = {'newNode': {nodeContentId: event.getData()['nodeContentId']}};
+
+            if (event.getData()['newNodeXY']){
+              // they want us to set also mapping for new node,
+              // so add extra {x,y} to 'graph_model_changed'
+              // to event
+              var changes = GRASP.clone(graphModel.applyChanges(c));
+              var newNodeId = GRASP.getObjectKeys(changes.nodes.add)[0];
+              changes.nodes.add[newNodeId]['xy'] = event.getData()['newNodeXY'];
+              that._fireGraphModelEvent(event.getData()['type'], changes, graphModel);
+              changesApplied = true;
+            }
 
           }else{
             this.publisher
@@ -198,6 +210,11 @@ GRASP.GraphModelsPubSub.prototype = {
     //  apply changes
     var changes = graphModel.applyChanges(c);
 
+    this._fireGraphModelEvent(type, changes, graphModel);
+    return changes;
+  },
+
+  _fireGraphModelEvent: function(type, changes, graphModel){
     // if changes are not empty fire event that model was successfully changed
     if(GRASP.compare(changes, GRASP.iGraphModelChanges) !== true){
       this.publisher.publish([
@@ -206,7 +223,6 @@ GRASP.GraphModelsPubSub.prototype = {
         true
       ]);
     }
-    return changes;
   },
 
   /**

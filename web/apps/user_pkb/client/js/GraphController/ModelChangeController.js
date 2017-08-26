@@ -91,8 +91,8 @@ GRASP.ModelChangeController.prototype = {
           // - original graphModel
           // - nnGraph (new nodes graph) - graph that user can use as a source of the new nodes for original graph
 
-          // Cut some space for nnGraph area
-          var newNodesGraphHeight = 0.07 * graphArea.height,
+          // Cut some space for new nodes panel area
+          var newNodesGraphHeight = GRASP.convertEm(1.5),
               nnGraphArea = {
                 centerX: graphArea.centerX,
                 centerY: newNodesGraphHeight / 2,

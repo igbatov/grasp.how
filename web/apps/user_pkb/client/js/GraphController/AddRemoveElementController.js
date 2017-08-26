@@ -86,8 +86,9 @@ GRASP.AddRemoveElementController.prototype = {
           }
         });
 
-      // else add new node to graph
-      }else{
+      } else {
+        // else add new node to graph and edge if it was dropped on another node
+
         var graphId = data['droppedOnGraphId'];
 
         if(typeof(graphId) == 'undefined') {
@@ -107,35 +108,35 @@ GRASP.AddRemoveElementController.prototype = {
               }
             ]
           ).then(function(graphModels, nodeContent){
+
             var connectWithNodeId = typeof(data['droppedOnModelElement']) === 'undefined' ? null : data['droppedOnModelElement'].element.id;
             var droppedOnModelElementType = typeof(data['droppedOnModelElement']) === 'undefined' ? null : data['droppedOnModelElement'].element.type;
             var direction = that._getEdgeDirection(
                 nodeContent.type,
                 droppedOnModelElementType
             );
+
             if (direction === that.FROM_DRAGGED){
-              that.publisher.publish(
-                  ["request_for_graph_model_change",
-                    {
-                      graphId: graphId,
-                      type: 'addNode',
-                      childNodeId: connectWithNodeId,
-                      nodeContentId: nodeContent.nodeContentId
-                    }
-                  ]
-              );
+              var eData = {
+                graphId: graphId,
+                type: 'addNode',
+                childNodeId: connectWithNodeId,
+                nodeContentId: nodeContent.nodeContentId,
+                newNodeXY: data['draggedModelElementXY']
+              };
             } else {
-              that.publisher.publish(
-                  ["request_for_graph_model_change",
-                    {
-                      graphId: graphId,
-                      type: 'addNode',
-                      parentNodeId: connectWithNodeId,
-                      nodeContentId: nodeContent.nodeContentId
-                    }
-                  ]
-              );
+              var eData = {
+                graphId: graphId,
+                type: 'addNode',
+                parentNodeId: connectWithNodeId,
+                nodeContentId: nodeContent.nodeContentId,
+                newNodeXY: data['draggedModelElementXY']
+              };
             }
+
+            that.publisher.publish(
+              ["request_for_graph_model_change", eData]
+            );
           }
         );
       }

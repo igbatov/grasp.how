@@ -75,6 +75,15 @@ GRASP.GraphHistory.prototype = {
       // get node mapping from previous step
       var node_mapping = this.history.getRows({graphId: graphModel.getGraphId(), step: step})[0]['node_mapping'];
 
+      if (event.getData()['changes'].nodes && event.getData()['changes'].nodes.add){
+        for(var addedNodeId in event.getData()['changes'].nodes.add){
+          var addedNode = event.getData()['changes'].nodes.add[addedNodeId];
+          if (addedNode.xy) {
+            node_mapping.mapping[addedNodeId] = {id:parseInt(addedNodeId), x:addedNode.xy.x, y:addedNode.xy.y};
+          }
+        }
+      }
+
       step++;
       this._setLastStep(graphModel.getGraphId(), step);
       var item = {

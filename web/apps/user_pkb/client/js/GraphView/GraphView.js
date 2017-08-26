@@ -773,7 +773,8 @@ GRASP.GraphView.prototype = {
           eventType: eventType,
           fromGraphId: that.draggedElement.getGraphId(),
           draggedModelElement: that.draggedModelElement,
-          droppedOnShapeIds: that.droppedOnShapeIds
+          droppedOnShapeIds: that.droppedOnShapeIds,
+          draggedModelElementXY: {x:evt.x, y:evt.y}
         });
         that._dragEndNodeHandler(evt);
       }

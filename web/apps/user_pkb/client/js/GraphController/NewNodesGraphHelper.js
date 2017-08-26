@@ -28,6 +28,11 @@ GRASP.NewNodesGraphHelper.prototype = {
       nnGraphViewSettings.dragMode = 'connect';
 
       // create node for each nodeType
+      var icon = '<svg cursor="pointer" version="1.1" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" style="enable-background:new 0 0 24 24;" xml:space="preserve">\n' +
+          '<path fill="none" d="M0,0h24v24H0V0z"/>\n' +
+          '<path fill="#2b2f47" d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z"/>\n' +
+          '<polygon fill="~color~" points="17,13 13,13 13,17 11,17 11,13 7,13 7,11 11,11 11,7 13,7 13,11 17,11 "/>\n' +
+          '</svg>';
       for(i in nodeTypes){
         nodes[i] =
         {
@@ -36,8 +41,9 @@ GRASP.NewNodesGraphHelper.prototype = {
           label:nodeTypes[i],
           type:nodeTypes[i],
           reliability: 99,
-          importance: 50,
-          stickers: []
+          importance: 100,
+          stickers: [],
+          icon: icon
         };
       }
 
@@ -45,12 +51,12 @@ GRASP.NewNodesGraphHelper.prototype = {
       // create color scheme
       var scale = Math.min(nnGraphViewSettings.graphArea.width, nnGraphViewSettings.graphArea.height);
       // we want extra size for the panel nodes
-      var size = scale/6;
+      var size = scale/3;
       // create node mapping
       var x, l = nnGraphViewSettings.graphArea.width/nodeTypes.length, nodeMapping = {};
       for(i in nodeTypes){
         x = i*l+2*size;
-        nodeMapping[i] = {id: i, x: x,  y: nnGraphViewSettings.graphArea.height/2};
+        nodeMapping[i] = {id: i, x: x,  y: 0};
       }
       nnGraphViewSettings.nodeMapping = {
         area: {
@@ -62,7 +68,13 @@ GRASP.NewNodesGraphHelper.prototype = {
         mapping: nodeMapping
       };
       // node label mapping
-      nnGraphViewSettings.nodeLabelMapping = nnGraphViewSettings.nodeMapping;
+      nnGraphViewSettings.nodeLabelMapping = GRASP.clone(nnGraphViewSettings.nodeMapping);
+      var yOffset = GRASP.convertEm(1)/4;
+      var xOffset = GRASP.convertEm(3/2);
+      for(var i in nnGraphViewSettings.nodeLabelMapping.mapping){
+        nnGraphViewSettings.nodeLabelMapping.mapping[i].y += yOffset;
+        nnGraphViewSettings.nodeLabelMapping.mapping[i].x += xOffset;
+      }
 
       // skin
       this.publisher.publish(["get_selected_skin", graphId]).then(function(s){
@@ -79,6 +91,10 @@ GRASP.NewNodesGraphHelper.prototype = {
         for(i in nnGraphViewSettings.decoration.nodes){
           nnGraphViewSettings.decoration.nodes[i].size = size;
           nnGraphViewSettings.decoration.nodeLabels[i].size = 2*size;
+        }
+
+        for (i in nodeTypes) {
+          nodes[i].icon = nodes[i].icon.replace('~color~', s.node.attr.typeColors[nodeTypes[i]]);
         }
 
         e.setResponse(nnGraphViewSettings);

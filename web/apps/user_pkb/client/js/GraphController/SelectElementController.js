@@ -20,21 +20,22 @@ GRASP.SelectElementController.prototype = {
     var i, that = this,
     eventName = event.getName(),
     e = event.getData() ? event.getData().element : undefined;
-
+    var graphId = event.getData()['graphId'];
+    var isNewNodeGraph = that.publisher.getInstant("is_new_node_graph_id", {'graphId':graphId});
     if(
       eventName == 'draw_graph_view'
     ){
       /**
        * Change draw_graph_view event to enlarge selected node
        */
-      graphId = event.getData()['graphId'];
 
       if(typeof(event.getData().decoration) != 'undefined') {
         that.initDecorations(graphId, event.getData().decoration);
       }
 
       if(
-        selectedElement
+        selectedElement.graphId === graphId
+        && selectedElement
         && selectedElement.element
         && selectedElement.elementType === 'node'
       ){
@@ -53,7 +54,7 @@ GRASP.SelectElementController.prototype = {
         eventName === 'mouseenteredge'){
       var graphId = event.getData().graphId;
 
-      if(eventName === 'clicknode' || eventName === 'clickedge'){
+      if(!isNewNodeGraph && (eventName === 'clicknode' || eventName === 'clickedge')){
         selectedElement.graphId = graphId;
         selectedElement.elementType = event.getData().elementType;
         selectedElement.element = event.getData().element;
@@ -66,7 +67,7 @@ GRASP.SelectElementController.prototype = {
 
       if(eventName === 'mouseenternode'){
         var model = this.publisher.getInstant('get_graph_models', [graphId])[graphId];
-        nodesToSelect = [e.id];
+        nodesToSelect = [parseInt(e.id)];
         if(model){
           nodesToSelect = nodesToSelect.concat(model.getNeighbourIds([e.id]));
           edgesToSelect = model.getNeighbourEdgeIds(e.id);
@@ -77,10 +78,15 @@ GRASP.SelectElementController.prototype = {
 
       // now highlight them depending on event type
       if(eventName === 'mouseenternode'){
-        this.selectedDecoration[graphId] = this.lowerOpacity(that.initialDecoration[graphId], nodesToSelect, edgesToSelect, true);
+        this.selectedDecoration[graphId] = this.lowerOpacity(
+            that.initialDecoration[graphId],
+            nodesToSelect,
+            edgesToSelect,
+            true
+        );
       }
 
-      if(selectedElement.element){
+      if(graphId === selectedElement.graphId && selectedElement.element){
         if(selectedElement.elementType === 'node'){
           this.selectedDecoration[graphId] = this.enlargeNodes(
               that.selectedDecoration[graphId],

@@ -11,17 +11,33 @@ GRASP.GraphViewNodeImage = function(drawer, graphViewElement, args){
   this.graphViewElement = graphViewElement;
   GRASP.mixin(graphViewElement, this);
 
-  this.args = args;
-  this.image = this.getIconImage(args.icon, args.color);
-
-  this.shape = this.drawer.createShape('image', {
+  this.shape = this.drawer.createGroup({
     x: args.x,
     y: args.y,
-    image: this.image,
-    width: 0,
-    height: 0,
+    opacity: 1,
     draggable: true
   });
+
+  this.args = args;
+
+  this.isSVG = args.icon.substr(0,4) === '<svg';
+
+  if (this.isSVG){
+    this.iconImage = this.drawer.createShape('svg', {
+      svgxml: args.icon
+    });
+  } else {
+    this.img = this.getIconImage(args.icon, args.color);
+    this.iconImage = this.drawer.createShape('image', {
+      x: args.x,
+      y: args.y,
+      image: this.img,
+      width: 0,
+      height: 0
+    });
+  }
+
+  this.shape.add(this.iconImage);
 
   //set original values, so we can use it later in image processing
   this.color = args.color;
@@ -31,11 +47,14 @@ GRASP.GraphViewNodeImage = function(drawer, graphViewElement, args){
   this.size = args.size;
   this.graphViewElement.setDrawerShape(this.shape);
 
-  var dim = this.convertSizeToDim(args.size, this.image.width, this.image.height);
-  this.shape.setSize(dim);
-  this.shape.setOpacity(args.opacity);
-  this.shape.setX(args.x - dim.width/2);
-  this.shape.setY(args.y - dim.height/2);
+
+  if(!this.isSVG) {
+    var dim = this.convertSizeToDim(args.size, this.img.width, this.img.height);
+    this.iconImage.setSize(dim);
+    this.iconImage.setOpacity(args.opacity);
+    this.iconImage.setX(args.x - dim.width/2);
+    this.iconImage.setY(args.y - dim.height/2);
+  }
   graphViewElement.setDrawerShape(this.shape);
 };
 
@@ -74,13 +93,13 @@ GRASP.GraphViewNodeImage.prototype = {
   },
 
   setSize: function(v){
-    if(v != this.size){
+    if(v != this.size && !this.isSVG){
       var k = v/this.size;
       this.size = v;
 
-      this.shape.setSize({width: k*this.shape.getWidth(), height: k*this.shape.getHeight()});
-      this.shape.setX(this.x - this.shape.getWidth()/2);
-      this.shape.setY(this.y - this.shape.getHeight()/2);
+      this.iconImage.setSize({width: k*this.iconImage.getWidth(), height: k*this.iconImage.getHeight()});
+      this.iconImage.setX(this.x - this.iconImage.getWidth()/2);
+      this.iconImage.setY(this.y - this.iconImage.getHeight()/2);
     }
   },
 
@@ -90,8 +109,10 @@ GRASP.GraphViewNodeImage.prototype = {
 
 
   setColor: function(color){
-    // if this is image of plain color setted in constructor (i.e. not user icon)
-    if(this.image.src.substr(1, 10) == 'data:image') this.image.src = GRASP.changeColorInImage(this.image.src, this.color, color);
+    if (!this.isSVG){
+      // if this is image of plain color setted in constructor (i.e. not user icon)
+      if(this.img.src.substr(1, 10) == 'data:image') this.img.src = GRASP.changeColorInImage(this.img.src, this.color, color);
+    }
     this.color = color;
   },
 
@@ -103,8 +124,10 @@ GRASP.GraphViewNodeImage.prototype = {
     this.x = x;
     this.y = y;
 
-    x = x - this.shape.getWidth()/2;
-    y = y - this.shape.getHeight()/2;
+    if(!this.isSVG){
+      x = x - this.iconImage.getWidth()/2;
+      y = y - this.iconImage.getHeight()/2;
+    }
 
     if(x != this.shape.getX()) this.shape.setX(x);
     if(y != this.shape.getY()) this.shape.setY(y);
@@ -116,6 +139,7 @@ GRASP.GraphViewNodeImage.prototype = {
 
   clone: function (){
     return new GRASP.GraphViewNodeImage(
+      this.drawer,
       new GRASP.GraphViewElement({graphId:this.getGraphId(), elementId:this.getElementId(), elementType:'node'}),
       {
         nodeId: this.getElementId(),
@@ -136,5 +160,13 @@ GRASP.GraphViewNodeImage.prototype = {
     var newW = 2*size/Math.sqrt(1+k*k);
     var newH = newW*k;
     return {width:2*parseInt(newW), height:2*parseInt(newH)};
+  },
+
+  getStickers: function(){
+    return this.stickers;
+  },
+
+  setStickers: function(v){
+
   }
 };
