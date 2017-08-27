@@ -11,13 +11,6 @@ GRASP.BayesPubSub.prototype = {
     var that = this;
 
     switch (eventName){
-      /*
-      case "graph_element_content_changed":
-        if(event.getData()['type'] == 'updateNodeAlternativesP'){
-
-        }
-        break;
-*/
       case "calculate_bayes_probabilities":
         this.bayesCalculator.calculateNodeAlternativeProbabilities(graphId, function(d){
           console.log('BayesPubSub got response',GRASP.clone(d));
@@ -32,19 +25,32 @@ GRASP.BayesPubSub.prototype = {
               'request_for_graph_element_content_change',
               {graphId:graphId, type:'node_stickers_add_request', stickers: stickers}
             ]);
-            return;
-          }
-          // normalize probabilities to be in [1,100] interval
-          for(var i in d.data){
-            var node = d.data[i];
-            for(var j in node){
-              d.data[i][j] = Math.round(100*node[j]);
+
+          } else {
+            // normalize probabilities to be in [1,100] interval
+            for(var i in d.data){
+              var node = d.data[i];
+              for(var j in node){
+                d.data[i][j] = Math.round(100*node[j]);
+              }
             }
+
+            // remove bayes_error stickers from all nodes
+            var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
+            var stickers = {};
+            for(var i in model.getNodes()){
+              stickers[model.getNodes()[i].nodeContentId] = ['bayes_error'];
+            }
+            that.publisher.publish([
+              'request_for_graph_element_content_change',
+              {graphId:graphId, type:'node_stickers_remove_request', stickers:stickers}
+            ]);
+            that.publisher.publish([
+              'request_for_graph_element_content_change',
+              {graphId:graphId, type:'updateNodesReliabilities', data: d.data}
+            ]);
           }
-          that.publisher.publish([
-            'request_for_graph_element_content_change',
-            {graphId:graphId, type:'updateNodesReliabilities', data: d.data}
-          ]);
+
         });
         break;
     }

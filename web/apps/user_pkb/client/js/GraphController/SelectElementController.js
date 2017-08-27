@@ -20,8 +20,8 @@ GRASP.SelectElementController.prototype = {
     var i, that = this,
     eventName = event.getName(),
     e = event.getData() ? event.getData().element : undefined;
-    var graphId = event.getData()['graphId'];
-    var isNewNodeGraph = that.publisher.getInstant("is_new_node_graph_id", {'graphId':graphId});
+    var graphId = event.getData() && event.getData()['graphId'] ? event.getData()['graphId'] : void 0;
+
     if(
       eventName == 'draw_graph_view'
     ){
@@ -52,7 +52,7 @@ GRASP.SelectElementController.prototype = {
         eventName === 'clickedge' ||
         eventName === 'mouseenternode' ||
         eventName === 'mouseenteredge'){
-      var graphId = event.getData().graphId;
+      var isNewNodeGraph = that.publisher.getInstant("is_new_node_graph_id", {'graphId':graphId});
 
       if(!isNewNodeGraph && (eventName === 'clicknode' || eventName === 'clickedge')){
         selectedElement.graphId = graphId;
