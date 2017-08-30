@@ -17,7 +17,8 @@
  * @param drawerFactory
  * @constructor
  */
-GRASP.GraphViewsPubSub = function (publisher, graphViewFactory, viewManager, drawerFactory) {
+GRASP.GraphViewsPubSub = function (publisher, graphViewFactory, viewManager, drawerFactory, i18n) {
+  this.i18n = i18n;
   this.publisher = publisher;
   this.graphViewFactory = graphViewFactory;
   var container = viewManager.getViewContainer('graphViews');
@@ -146,15 +147,18 @@ GRASP.GraphViewsPubSub.prototype = {
           this._setBottomPanelSwitchClass(this.dragMode);
           return;
         }
-
         this.bottomPanel = {};
         this.bottomPanel['area'] = event.getData()['area'];
         var switchsvg = '<svg cursor="pointer" version="1.1" id="graphModeSwitch" class="graphModeSwitch" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"\n' +
-            '\t viewBox="0 0 41 18"  height="18" width="41" style="enable-background:new 0 0 41 18;" xml:space="preserve">\n' +
-            '<path class="slot" d="M8.8,0.1C6.9,0.4,5.3,1.3,3.9,2.7c-1.4,1.4-2.3,3.1-2.6,5C0.6,12.5,3.8,17,8.6,17.9C9,18,11.5,18,20.5,18\n' +
-            '\tc10.8,0,11.4,0,12-0.1c4.7-1,7.8-5.4,7.1-10.2c-0.3-2-1.1-3.6-2.6-5c-1.4-1.4-3.1-2.3-5-2.6C31.1,0,9.8,0,8.8,0.1z"/>\n' +
-            '<path class="circle" d="M12.2,2.8c2.3,0.7,3.9,2.3,4.5,4.6c0.1,0.5,0.2,0.8,0.2,1.6c0,0.8,0,1.1-0.2,1.6c-0.6,2.3-2.3,4-4.6,4.7\n' +
+            '\t viewBox="0 0 200 18"  height="18" width="200" style="enable-background:new 0 0 200 18;" xml:space="preserve">\n' +
+            '<path class="slot" d="M24.5,13.4H8.2c-2.3,0-4.1-1.8-4.1-4.1V8.6c0-2.3,1.8-4.1,4.1-4.1h16.3c2.3,0,4.1,1.8,4.1,4.1v0.7\n' +
+            '\tC28.6,11.6,26.7,13.4,24.5,13.4z"/>\n' +
+            '<path class="knob" d="M12.2,2.8c2.3,0.7,3.9,2.3,4.5,4.6c0.1,0.5,0.2,0.8,0.2,1.6c0,0.8,0,1.1-0.2,1.6c-0.6,2.3-2.3,4-4.6,4.7\n' +
             '\tc-0.8,0.2-2.3,0.2-3.2,0c-2.3-0.6-4-2.4-4.7-4.7C4,9.7,4,8.2,4.3,7.4C4.9,4.9,7,3,9.6,2.6C10.3,2.5,11.5,2.6,12.2,2.8z"/>\n' +
+            '<text visibility="hidden" id="164" class="offText" fill="#BBBBBB" opacity="1" font-family="Roboto" font-size="12" pointer-events="none" transform="matrix(1 0 0 1 45 4)">' +
+            '<tspan x="0" dy="0.8em">'+this.i18n.__('Drag mode')+'</tspan></text>' +
+            '<text visibility="hidden" id="164" class="onText" fill="#BBBBBB" opacity="1" font-family="Roboto" font-size="12" pointer-events="none" transform="matrix(1 0 0 1 45 4)">' +
+            '<tspan x="0" dy="0.8em">'+this.i18n.__('Connect mode')+'</tspan></text>' +
             '</svg>';
         this.bottomPanel['layer'] = this.drawer.addLayer("graph_bottom_panel");
         var panel = this.drawer.createGroup({

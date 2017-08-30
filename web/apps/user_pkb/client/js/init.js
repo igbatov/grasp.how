@@ -110,7 +110,7 @@ var DI = {
   CanvasDrawerFactory:['kinetic', 'jQuery'],
   SVGDrawerFactory:[],
   GraphViewFactory:[],
-  GraphViewsPubSub:['Publisher', 'GraphViewFactory', 'ViewManager', 'SVGDrawerFactory'],
+  GraphViewsPubSub:['Publisher', 'GraphViewFactory', 'ViewManager', 'SVGDrawerFactory', 'I18n'],
 
   AddRemoveElementController:['Publisher'],
   HistoryController:['Publisher'],

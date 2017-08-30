@@ -1,28 +1,33 @@
-.graphModeSwitch .circle {
-    fill: #FFFFFF;
+.graphModeSwitch .knob {
+    fill: #6b6e7e;
     -webkit-transition: .4s;
     transition: .4s;
 }
 
 .graphModeSwitch .slot {
-    fill: #cdb876;
+    fill: #6b6e7e;
 }
 
-.graphModeSwitch.on .circle {
-    transform: translateX(20px);
+.graphModeSwitch.on .knob {
+    transform: translateX(12px);
+    fill: #b363d2;
 }
 
-.graphModeSwitch.off .circle {
+.graphModeSwitch.off .knob {
     transform: translateX(0);
+    fill: #bdbdbd;
 }
 
-/*@keyframes switchCircle {*/
-    /*0%   {transform: translateX(0)}*/
-    /*25%  {transform: translateX(-25px)}*/
-    /*75%  {transform: translateX(25px)}*/
-    /*100% {transform: translateX(0)}*/
-/*}*/
+.graphModeSwitch.off .offText {
+    visibility: visible;
+}
+.graphModeSwitch.off .onText {
+    visibility: hidden;
+}
 
-/*.graphModeSwitch .circle {*/
-    /*animation: switchCircle 5s linear infinite;*/
-/*}*/
+.graphModeSwitch.on .offText {
+    visibility: hidden;
+}
+.graphModeSwitch.on .onText {
+    visibility: visible;
+}

@@ -49,5 +49,7 @@
   "copy HTML":"скопировать HTML",
   "This map was copied from:":"Скопировано из:",
   "This map was copied by:":"Скопировано в:",
-  "Difference":"Различия"
+  "Difference":"Различия",
+  "Drag mode": "Перетаскивание",
+  "Connect mode": "Связывание"
 }
