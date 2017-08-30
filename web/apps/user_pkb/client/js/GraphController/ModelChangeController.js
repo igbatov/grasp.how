@@ -92,18 +92,28 @@ GRASP.ModelChangeController.prototype = {
           // - nnGraph (new nodes graph) - graph that user can use as a source of the new nodes for original graph
 
           // Cut some space for new nodes panel area
-          var newNodesGraphHeight = GRASP.convertEm(1.5),
+          var newNodesPanelHeight = GRASP.convertEm(1.5),
               nnGraphArea = {
                 centerX: graphArea.centerX,
-                centerY: newNodesGraphHeight / 2,
+                centerY: newNodesPanelHeight / 2,
                 width: graphArea.width,
-                height: newNodesGraphHeight
+                height: newNodesPanelHeight
               };
           that._drawNodesPanel(graphModel, nnGraphArea);
 
+          // Cut some space for bottom panel area (with drag mode switch)
+          var bottomPanelHeight = GRASP.convertEm(1.5),
+              bottomPanelArea = {
+                centerX: graphArea.centerX + 5*GRASP.convertEm(1),
+                centerY: graphArea.height - bottomPanelHeight,
+                width: graphArea.width,
+                height: bottomPanelHeight
+              };
+          that._drawBottomPanel(graphModel.getGraphId(), bottomPanelArea);
+
           // Calculate area for original graph
-          graphArea.height = graphArea.height - nnGraphArea.height;
-          graphArea.centerY = graphArea.centerY + nnGraphArea.height;
+          graphArea.height = graphArea.height - nnGraphArea.height - bottomPanelArea.height;
+          graphArea.centerY = graphArea.centerY + nnGraphArea.height - bottomPanelArea.height;
           // Create data nnGraph view
           that._drawGraphView(graphModel, graphArea);
         }
@@ -217,6 +227,10 @@ GRASP.ModelChangeController.prototype = {
     ]).then(function(nnGraphViewSettings){
       that.publisher.publish(["draw_graph_view", nnGraphViewSettings, true]);
     });
-  }
+  },
 
+  // draws panel with drag mode switcher
+  _drawBottomPanel: function(graphId, area){
+    this.publisher.publish(["draw_graph_bottom_panel", {graphId:graphId, area:area}]);
+  }
 };

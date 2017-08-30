@@ -8,6 +8,8 @@
 @import "../../../../lib/client/css/ui.css";
 @import "general_buttons.css";
 @import "graph_element_editor.css";
+@import "graph_mode_switch_panel.css";
+
 /**
  * Font definitions
  */

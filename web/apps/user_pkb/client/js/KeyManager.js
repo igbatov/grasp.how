@@ -43,6 +43,7 @@ GRASP.KeyManager = function(publisher){
     else if(!that.altPushed && e.altKey){
       that.altPushed = true;
       that.publisher.publish(['alt_on',{}]);
+      e.preventDefault(); // otherwise alt will change browser focus on menu
     }
   }
 

@@ -28,6 +28,10 @@ GRASP.GraphViewsPubSub = function (publisher, graphViewFactory, viewManager, dra
 
   // GraphView that is used to get text width and height (event get_graph_view_label_area)
   this.dummyGraphView = this.graphViewFactory.create('dummyGraphView', this.drawer);
+
+  // panel under the graph
+  this.bottomPanel = null;
+  this.dragMode = GRASP.DragModeChangeController.MOVE;
 };
 
 GRASP.GraphViewsPubSub.prototype = {
@@ -70,6 +74,8 @@ GRASP.GraphViewsPubSub.prototype = {
           this.graphViewList[graphId].setSkin(graphViewSettings['skin']);
           this.graphViewList[graphId].setDragMode(graphViewSettings['dragMode']);
           this.graphViewList[graphId].drawGraph();
+
+          this.dragMode = graphViewSettings['dragMode'];
 
           //bind event fire for various graphView manipulations
           this.bindPublishers(graphId, graphViewSettings['eventsToListen']);
@@ -119,27 +125,76 @@ GRASP.GraphViewsPubSub.prototype = {
         event.setResponse(this.graphViewList[graphId].getDecoration());
         break;
 
-      case 'set_graph_view_drag_mode':
-        this.graphViewList[graphId].setDragMode(event.getData()['mode']);
-        break;
-
       case 'get_graph_view_drag_mode':
         event.setResponse(this.graphViewList[graphId].getDragMode());
         break;
 
       case 'set_drag_mode':
+        this.dragMode = event.getData()['drag_mode'];
         for(var i in this.graphViewList){
           var isNewNodeGraph = this.publisher.getInstant("is_new_node_graph_id", {'graphId':this.graphViewList[i].getId()});
           if(!isNewNodeGraph){
-            this.graphViewList[this.graphViewList[i].getId()].setDragMode(event.getData()['drag_mode']);
+            this.graphViewList[this.graphViewList[i].getId()].setDragMode(this.dragMode);
           }
         }
+        this._setBottomPanelSwitchClass(this.dragMode);
+        break;
+
+      case 'draw_graph_bottom_panel':
+        if (this.bottomPanel){
+          // already created, just set switch in correct position
+          this._setBottomPanelSwitchClass(this.dragMode);
+          return;
+        }
+
+        this.bottomPanel = {};
+        this.bottomPanel['area'] = event.getData()['area'];
+        var switchsvg = '<svg cursor="pointer" version="1.1" id="graphModeSwitch" class="graphModeSwitch" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"\n' +
+            '\t viewBox="0 0 41 18"  height="18" width="41" style="enable-background:new 0 0 41 18;" xml:space="preserve">\n' +
+            '<path class="slot" d="M8.8,0.1C6.9,0.4,5.3,1.3,3.9,2.7c-1.4,1.4-2.3,3.1-2.6,5C0.6,12.5,3.8,17,8.6,17.9C9,18,11.5,18,20.5,18\n' +
+            '\tc10.8,0,11.4,0,12-0.1c4.7-1,7.8-5.4,7.1-10.2c-0.3-2-1.1-3.6-2.6-5c-1.4-1.4-3.1-2.3-5-2.6C31.1,0,9.8,0,8.8,0.1z"/>\n' +
+            '<path class="circle" d="M12.2,2.8c2.3,0.7,3.9,2.3,4.5,4.6c0.1,0.5,0.2,0.8,0.2,1.6c0,0.8,0,1.1-0.2,1.6c-0.6,2.3-2.3,4-4.6,4.7\n' +
+            '\tc-0.8,0.2-2.3,0.2-3.2,0c-2.3-0.6-4-2.4-4.7-4.7C4,9.7,4,8.2,4.3,7.4C4.9,4.9,7,3,9.6,2.6C10.3,2.5,11.5,2.6,12.2,2.8z"/>\n' +
+            '</svg>';
+        this.bottomPanel['layer'] = this.drawer.addLayer("graph_bottom_panel");
+        var panel = this.drawer.createGroup({
+          x: this.bottomPanel['area'].centerX - this.bottomPanel['area'].width/2,
+          y: this.bottomPanel['area'].centerY
+        });
+        this.bottomPanel['switch'] = this.drawer.createShape('svg', {
+          svgxml: switchsvg
+        });
+        panel.add(this.bottomPanel['switch']);
+        this.drawer.addShape(this.bottomPanel['layer'], panel);
+        this.bottomPanel['switchDefaultClass'] = this.bottomPanel['switch'].getShape().getAttribute('class');
+        this._setBottomPanelSwitchClass(this.dragMode);
+        var that = this;
+        this.bottomPanel['switch'].getShape().addEventListener('click', function(){
+          var newDragMode = that.dragMode === GRASP.DragModeChangeController.MOVE ?
+              GRASP.DragModeChangeController.CONNECT : GRASP.DragModeChangeController.MOVE;
+          that._setBottomPanelSwitchClass(newDragMode);
+          that.publisher.publish(['set_drag_mode', {drag_mode:newDragMode}, true]);
+        });
         break;
 
       default:
         break;
     }
     return true;
+  },
+
+  _setBottomPanelSwitchClass: function(dragMode){
+    if (dragMode === GRASP.DragModeChangeController.MOVE) {
+      this.bottomPanel['switch'].getShape().setAttribute(
+          'class',
+          this.bottomPanel['switchDefaultClass']+' off'
+      );
+    } else {
+      this.bottomPanel['switch'].getShape().setAttribute(
+          'class',
+          this.bottomPanel['switchDefaultClass']+' on'
+      );
+    }
   },
 
   /**

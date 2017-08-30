@@ -1,0 +1,28 @@
+.graphModeSwitch .circle {
+    fill: #FFFFFF;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.graphModeSwitch .slot {
+    fill: #cdb876;
+}
+
+.graphModeSwitch.on .circle {
+    transform: translateX(20px);
+}
+
+.graphModeSwitch.off .circle {
+    transform: translateX(0);
+}
+
+/*@keyframes switchCircle {*/
+    /*0%   {transform: translateX(0)}*/
+    /*25%  {transform: translateX(-25px)}*/
+    /*75%  {transform: translateX(25px)}*/
+    /*100% {transform: translateX(0)}*/
+/*}*/
+
+/*.graphModeSwitch .circle {*/
+    /*animation: switchCircle 5s linear infinite;*/
+/*}*/

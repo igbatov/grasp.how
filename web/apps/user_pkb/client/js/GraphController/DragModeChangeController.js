@@ -8,6 +8,9 @@ GRASP.DragModeChangeController = function(publisher){
   this.currentDragMode = 'move';
 };
 
+GRASP.DragModeChangeController.CONNECT = 'connect';
+GRASP.DragModeChangeController.MOVE = 'move';
+
 GRASP.DragModeChangeController.prototype = {
   /**
    *
@@ -16,19 +19,27 @@ GRASP.DragModeChangeController.prototype = {
    */
   execute: function(event, selectedElement){
     var eventName = event.getName(),
-      acceptedEvents = ['dblclickbackground', 'ctrl_on', 'ctrl_off'];
+      acceptedEvents = ['dblclickbackground', 'alt_on', 'alt_off'];
 
     // reject in the explicit form all events except those in acceptedEvents
-    if(acceptedEvents.indexOf(eventName) == -1) return;
+    if(acceptedEvents.indexOf(eventName) == -1) {
+      return;
+    }
 
-    if(eventName === 'alt_on') this.currentDragMode = 'connect';
-    if(eventName === 'alt_off') this.currentDragMode = 'move';
+    if(eventName === 'alt_on') {
+      this.currentDragMode = GRASP.DragModeChangeController.CONNECT;
+    }
+    if(eventName === 'alt_off') {
+      this.currentDragMode = GRASP.DragModeChangeController.MOVE;
+    }
     if(eventName === 'dblclickbackground'){
-      if(this.currentDragMode == 'move') this.currentDragMode = 'connect';
-      else if(this.currentDragMode == 'connect') this.currentDragMode = 'move';
+      if(this.currentDragMode === GRASP.DragModeChangeController.MOVE) {
+        this.currentDragMode = GRASP.DragModeChangeController.CONNECT;
+      } else if(this.currentDragMode === GRASP.DragModeChangeController.CONNECT) {
+        this.currentDragMode = GRASP.DragModeChangeController.MOVE;
+      }
     }
 
     this.publisher.publish(['set_drag_mode', {drag_mode:this.currentDragMode}, true]);
   }
-
 };

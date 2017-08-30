@@ -70,7 +70,8 @@ var Modules = {
   BayesCalculator: GRASP.BayesCalculatorGRain,
 
   I18n: GRASP.I18n,
-  UserSettings: GRASP.UserSettings
+  UserSettings: GRASP.UserSettings,
+  GraphBottomPanel: GRASP.GraphBottomPanel
 };
 
 /**
@@ -212,8 +213,8 @@ Modules['Mediator'].setSubscriptions(
 
       // model events
       'graph_model_changed':[
-        Modules['GraphControllerPubSub'],
         Modules['GraphHistory'],
+        Modules['GraphControllerPubSub'],
         Modules['BayesPubSub']
       ],
       'graph_history_item_added':[
@@ -256,6 +257,8 @@ Modules['Mediator'].setSubscriptions(
       'redo_pressed':[Modules['GraphControllerPubSub']],
       'ctrl_on':[Modules['GraphControllerPubSub']],
       'ctrl_off':[Modules['GraphControllerPubSub']],
+      'alt_on':[Modules['GraphControllerPubSub']],
+      'alt_off':[Modules['GraphControllerPubSub']],
 
       'get_graph_decoration':[Modules['GraphDecorationsPubSub']],
 
@@ -289,7 +292,6 @@ Modules['Mediator'].setSubscriptions(
       'get_graph_view_node_mapping':[Modules['GraphViewsPubSub']],
       'get_graph_view_node_label_mapping':[Modules['GraphViewsPubSub']],
       'get_graph_view_decoration':[Modules['GraphViewsPubSub']],
-      'set_graph_view_drag_mode':[Modules['GraphViewsPubSub']],
       'get_graph_view_drag_mode':[Modules['GraphViewsPubSub']],
       'set_drag_mode':[
         Modules['GraphViewsPubSub'],
@@ -345,6 +347,8 @@ Modules['Mediator'].setSubscriptions(
 
       'init_user_settings':[Modules['UserSettings']],
       'get_user_settings':[Modules['UserSettings']],
-      'set_user_settings':[Modules['UserSettings']]
+      'set_user_settings':[Modules['UserSettings']],
+
+      'draw_graph_bottom_panel':[Modules['GraphViewsPubSub']]
     }
 );
