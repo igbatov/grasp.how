@@ -656,6 +656,7 @@ GRASP.GraphElementEditor.prototype = {
       step: 1,
       value: node.importance,
       callback: this._attrChange.bind(this, graphId, nodeContentId, node),
+      callback_delay:200,
       disabled: !isEditable
     }));
     return c;

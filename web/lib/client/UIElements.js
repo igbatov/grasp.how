@@ -303,9 +303,30 @@ GRASP.UIElements.prototype = {
     range.appendChild(label);
     range.appendChild(output);
     range.appendChild(input);
+
+    // if attrs.callback_delay>0 they want us to call callback
+    // only after attrs.callback_delay ms after user finished typing
+    var CALLBACK_DELAY = typeof(attrs.callback_delay) != 'undefined' ? attrs.callback_delay : 0;
+    // internal state variables of element
+    var state = {
+      timer: null
+    };
+    var cb = function(name, value){
+      if(typeof(attrs.callback) != 'undefined') {
+        if(CALLBACK_DELAY>0){
+          if(state.timer) clearTimeout(state.timer);
+          state.timer = setTimeout(function(){
+            attrs.callback(name, value)
+          }, CALLBACK_DELAY)
+        }else{
+          attrs.callback(name, value)
+        }
+      }
+    };
+
     input.addEventListener('input',function(evt){
       output.innerText = input.value;
-      attrs.callback(attrs.name,input.value);
+      cb(attrs.name,input.value);
     });
 
     return range;
