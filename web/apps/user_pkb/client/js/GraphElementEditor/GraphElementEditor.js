@@ -705,7 +705,7 @@ GRASP.GraphElementEditor.prototype = {
         withDownArrow: true
       });
       c.appendChild(select);
-    } else {
+    } else if (node.type == GRASP.GraphViewNode.NODE_TYPE_FACT) {
       var alternative = alternatives[node.active_alternative_id];
       var label = GRASP.createElement('div',{class:'nodeLabel'});
       var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
@@ -718,6 +718,19 @@ GRASP.GraphElementEditor.prototype = {
         isContentEditable: true
       });
       label.appendChild(r);
+      label.appendChild(l);
+      c.appendChild(label);
+    } else {
+      var alternative = alternatives[node.active_alternative_id];
+      var label = GRASP.createElement('div',{class:'nodeLabel'});
+      var l = this.UI.createTextareaBox({
+        disabled: !isEditable,
+        name:'label',
+        class:'notInSelectLabel',
+        value:alternative.label,
+        callback: this._attrChange.bind(this, graphId, nodeContentId, node),
+        isContentEditable: true
+      });
       label.appendChild(l);
       c.appendChild(label);
     }
