@@ -81,6 +81,9 @@ abstract class App
       case "uploads":
           return $app_root."/../../../uploads";
           break;
+      case "embed_cache":
+          return $app_root."/../../../embed_cache";
+          break;
       case "img":
           return $app_root."/client/img";
           break;

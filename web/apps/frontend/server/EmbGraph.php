@@ -18,15 +18,16 @@ class EmbGraph{
 
   /**
    * Select graphs data from db
-   * @param $graph_ids
+   * @param $snaps - in a form {"graphId":graphId,"step":step,"ts":Date.now()}
    * @return array
    */
-  public function getGraphsData($graph_ids){
-    $graph = array();
-    foreach ($graph_ids as $graph_id) {
-      $this->graphIdConverter->throwIfNotGlobal($graph_id);
-      $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
-      $authId = $this->graphIdConverter->getAuthId($graph_id);
+  public function getGraphsData($snaps){
+    $graphs = array();
+    foreach ($snaps as $snap) {
+      $graphId = $snap['graphId'];
+      $this->graphIdConverter->throwIfNotGlobal($graphId);
+      $localGraphId = $this->graphIdConverter->getLocalGraphId($graphId);
+      $authId = $this->graphIdConverter->getAuthId($graphId);
       $graph_settings_row = $this->db->exec($authId, "SELECT * FROM graph_settings WHERE graph_id = '".$localGraphId."'")[0];
 
       // get node types
@@ -46,21 +47,24 @@ class EmbGraph{
       // get names and node types
       $graph_row = $this->db->exec($authId, "SELECT * FROM graph WHERE id = '".$localGraphId."'")[0];
       $graph_settings = json_decode($graph_row['graph'], true);
-      $graph[$graph_id] = array("name"=>$graph_settings["name"], "nodeTypes"=>$graph_settings["nodeTypes"], "edgeTypes"=>$graph_settings["edgeTypes"]);
+      $graphs[$graphId] = array("name"=>$graph_settings["name"], "nodeTypes"=>$graph_settings["nodeTypes"], "edgeTypes"=>$graph_settings["edgeTypes"]);
 
       // get nodes and edges
       $local_content_ids = array();
-      $rows = $this->db->exec($authId, "SELECT * FROM graph_history WHERE graph_id = '".$graph_row['id']."' ORDER BY step DESC LIMIT 1");
+      $query = "SELECT * FROM graph_history "
+          ."WHERE graph_id = '".$graph_row['id']."'"
+          ." AND ".(empty($snap['step']) ? "ORDER BY step DESC LIMIT 1" : "step = :step");
+      $rows = $this->db->exec($authId, $query, ['step'=>$snap['step']]);
       foreach($rows as $row){
         $elements = json_decode($row['elements'], true);
         $mapping = json_decode($row['node_mapping'], true);
 
-        if(!$elements){ error_log("EmbGraph:: No elements in graph history, graph_id=".$graph_id); return false;}
-        if(!$mapping){ error_log("EmbGraph:: No mapping in graph history, graph_id=".$graph_id); return false;}
+        if(!$elements){ error_log("EmbGraph:: No elements in graph history, graph_id=".$graph_row['id']); return false;}
+        if(!$mapping){ error_log("EmbGraph:: No mapping in graph history, graph_id=".$graph_row['id']); return false;}
 
-        $graph[$graph_id]["nodes"] = $elements['nodes'];
-        $graph[$graph_id]["edges"] = $elements['edges'];
-        $graph[$graph_id]["area"] = $mapping["area"];
+        $graphs[$graphId]["nodes"] = $elements['nodes'];
+        $graphs[$graphId]["edges"] = $elements['edges'];
+        $graphs[$graphId]["area"] = $mapping["area"];
 
         foreach($elements['nodes'] as $node){
           $local_content_id = $this->contentIdConverter->decodeContentId($node['nodeContentId'])['local_content_id'];
@@ -71,7 +75,7 @@ class EmbGraph{
       if(!count($local_content_ids)) continue; 
      
       // get nodes contents
-      $graph[$graph_id]["nodeContents"] = array();
+      $graphs[$graphId]["nodeContents"] = array();
       foreach(array_keys($local_content_ids) as $local_content_id){
         $global_content_ids[] = $this->contentIdConverter->createGlobalContentId(
           $this->graphIdConverter->createGlobalGraphId($authId, $graph_row['id']),
@@ -82,16 +86,16 @@ class EmbGraph{
       foreach($this->graphs->getGraphNodeContent($global_content_ids) as $global_content_id => $content){
         $local_content_id = $this->contentIdConverter->decodeContentId($global_content_id)['local_content_id'];
         $content['nodeId'] = $global_content_id;
-        $graph[$graph_id]["nodeContents"][$local_content_ids[$local_content_id]] = $content;
+        $graphs[$graphId]["nodeContents"][$local_content_ids[$local_content_id]] = $content;
       }
 
       // set active_alternative_id of alternative with max reliability
-      foreach($graph[$graph_id]["nodeContents"] as $node_id => $content){
+      foreach($graphs[$graphId]["nodeContents"] as $node_id => $content){
         $max_reliability = 0;
         foreach($content['alternatives'] as $alternative_id => $alternative){
           if($alternative['reliability'] > $max_reliability){
             $max_reliability = $alternative['reliability'];
-            $graph[$graph_id]["nodeContents"][$node_id]['active_alternative_id'] = $alternative_id;
+            $graphs[$graphId]["nodeContents"][$node_id]['active_alternative_id'] = $alternative_id;
           }
         }
 
@@ -99,16 +103,16 @@ class EmbGraph{
 
       // convert data to the appropriate format
       $base_size = min(min($mapping["area"]["width"], $mapping["area"]["height"])/(2*count($elements['nodes'])), 5);
-      $graph[$graph_id]["nodes"] = $this->convertNodes($graph[$graph_id]["nodes"], $mapping["mapping"], $graph[$graph_id]["nodeContents"], $nodeDecoration[$graph_row['id']], $base_size);
-      $graph[$graph_id]["nodeTypes"] = $this->convertNodeTypes($graph[$graph_id]["nodeTypes"], $nodeTypes[$graph_row['id']], $nodeDecoration[$graph_row['id']]);
-      $graph[$graph_id]["edgeTypes"] = $this->convertEdgeTypes($graph[$graph_id]["edgeTypes"], $edgeDecoration[$graph_row['id']]);
+      $graphs[$graphId]["nodes"] = $this->convertNodes($graphs[$graphId]["nodes"], $mapping["mapping"], $graphs[$graphId]["nodeContents"], $nodeDecoration[$graph_row['id']], $base_size);
+      $graphs[$graphId]["nodeTypes"] = $this->convertNodeTypes($graphs[$graphId]["nodeTypes"], $nodeTypes[$graph_row['id']], $nodeDecoration[$graph_row['id']]);
+      $graphs[$graphId]["edgeTypes"] = $this->convertEdgeTypes($graphs[$graphId]["edgeTypes"], $edgeDecoration[$graph_row['id']]);
 
       // add edge types
       $edgeContentIds = array();
-      foreach($graph[$graph_id]["edges"] as $edge) $edgeContentIds[] = $edge['edgeContentId'];
+      foreach($graphs[$graphId]["edges"] as $edge) $edgeContentIds[] = $edge['edgeContentId'];
       foreach($this->graphs->getEdgeAttributes($edgeContentIds) as $global_content_id => $attr){
-        foreach($graph[$graph_id]["edges"] as $k => $edge){
-          if($edge['edgeContentId'] == $global_content_id) $graph[$graph_id]["edges"][$k]['type'] = $attr['type'];
+        foreach($graphs[$graphId]["edges"] as $k => $edge){
+          if($edge['edgeContentId'] == $global_content_id) $graphs[$graphId]["edges"][$k]['type'] = $attr['type'];
         }
       }
 
@@ -120,9 +124,9 @@ class EmbGraph{
             $local_content_id
         );
       }
-      $graph[$graph_id]["node_id_global_content_id_map"] = $node_id_global_content_id_map;
+      $graphs[$graphId]["node_id_global_content_id_map"] = $node_id_global_content_id_map;
     }
-    return $graph;
+    return $graphs;
   }
 
   private function convertEdgeTypes($graph_edge_types, $decoration){

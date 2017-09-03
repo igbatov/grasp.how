@@ -42,28 +42,24 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
    *    alternative: {label:string, reliability: number}
    *    type: string
    * }
+   * @param withoutProbability - show probability or not
    * @returns {HTMLElement}
    */
-  function createLabelHTML(item){
+  function createLabelHTML(item, withoutProbability){
     var alternative = item['alternative'], type = item['type'];
     var label =  GRASP.createElement('div', {class:'altLabel ' + type});
     var title = GRASP.createElement('div', {class:'alternativeLabel'}, alternative.label);
-    var pr = GRASP.createElement('div', {class:'alternativePr'}, (alternative.reliability/100).toFixed(2));
-    label.appendChild(pr);
+    if (!withoutProbability) {
+      var pr = GRASP.createElement('div', {class:'alternativePr'}, (alternative.reliability/100).toFixed(2));
+      label.appendChild(pr);
+    }
     label.appendChild(title);
     return label;
 
   }
 
   function createLabels(content){
-    if(content.type === 'fact'){
-      // create one label
-      return createLabelHTML({
-        alternative: content['alternatives'][0],
-        type: content.type
-      });
-
-    } else if (content.type === 'proposition') {
+    if (content.type === 'proposition') {
       // create menu from labels
       var items = {}
       for(var i in content['alternatives']){
@@ -83,6 +79,12 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
       var c = GRASP.createElement('div',{});
       c.appendChild(selectBox);
       return c;
+    } else {
+      // create one label
+      return createLabelHTML({
+        alternative: content['alternatives'][0],
+        type: content.type
+      }, content.type !== 'fact');
     }
   }
 
@@ -245,7 +247,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
         var maxHeight = $(view.parentNode).height()
         - $(h).outerHeight()
         - $(labels).outerHeight()
-        - $(altContentLabel.parentNode).outerHeight()*labelsNum
+        - (altContentLabel ? $(altContentLabel.parentNode).outerHeight()*labelsNum : 0)
         - textBoxPadding;
         var applyMaxHeight = function(v){
           if(v.parentNode.querySelectorAll('input')[0].checked){

@@ -47,8 +47,7 @@ class AppFrontend extends App{
       case 'embed.js':
         $r = $this->getRequest();
         //var_dump($r);
-        $graphIds = $r['graphIds'];
-        $uniqId = $r['uniqId'];
+        $snaps = $r['snaps'];
 
         $withFbShare = $r['withFbShare'];
         if($withFbShare === NULL) $withFbShare = true;
@@ -57,31 +56,65 @@ class AppFrontend extends App{
         if($editMapRibbon === NULL) $editMapRibbon = true;
 
         // sanity check
-        if(count($graphIds)>50 || strlen($uniqId)>255) throw new Exception('Too long params');
+        if(count($snaps)>50) throw new Exception('Too long params');
 
         include($this->getAppDir("template", false)."/embedjs.php");
         break;
 
       case 'show':
       case 'embed':
+        $hash_source = var_export($_SERVER['REQUEST_URI'], true);
+        $hash = md5($hash_source);
+        $cachePath = $this->getAppDir('embed_cache', false)."/".$hash.".html";
+        if(file_exists($cachePath)) {
+          echo file_get_contents($cachePath);
+          return;
+        }
+
+      /**
+       * If there is no cache - make it and output
+       */
         // sanity check
-        if(strlen($vars[1])>255) exit('Too many graph_ids');
+        if(strlen($vars[1])>255) exit('Too many snaps');
 
-        $graph_ids = json_decode($vars[1],true);
-        if(!is_array($graph_ids)) exit('Bad JSON');
+        $snaps = json_decode(urldecode($vars[1]),true);
+        if(!is_array($snaps)) exit('Bad JSON');
 
-        $options = json_decode($_REQUEST['p'], true);
-        $withFbShare = $options['withFbShare'] === NULL ? true : $options['withFbShare'];
-        $editMapRibbon = $options['editMapRibbon'] === NULL ? true : $options['editMapRibbon'];
+        $options = isset($_REQUEST['p']) ? json_decode($_REQUEST['p'], true) : null;
+        $withFbShare = isset($options['withFbShare']) ? $options['withFbShare'] : true;
+        $editMapRibbon = isset($options['editMapRibbon']) ? $options['editMapRibbon'] : true;
 
-        foreach($graph_ids as $graph_id) $this->graphIdConverter->throwIfNotGlobal($graph_id);
+        $graph_ids = [];
+        foreach($snaps as $snap) {
+          $this->graphIdConverter->throwIfNotGlobal($snap['graphId']);
+          $graph_ids[] = $snap['graphId'];
+        }
 
-        $graphs = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
-        $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $graphs);
-        $graph = $emb_graph->getGraphsData($graph_ids);
-        //var_dump($graph); exit();
-        $url = 'http://www.grasp.how/show/['.$graph_ids[0].']';
+        $service = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
+        $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $service);
+        $graphsData = $emb_graph->getGraphsData($snaps);
+        $url = 'http://www.grasp.how/show/'.$vars[1].'';
+
+        // just want to save original request for future possible usage
+        $pageInfo = [
+            'hash_source'=>$hash_source
+        ];
+
+        // Turn on output buffering
+        ob_start();
         include($this->getAppDir("template", false)."/embed.php");
+        //  Return the contents of the output buffer
+        $htmlStr = ob_get_contents();
+        // Clean (erase) the output buffer and turn off output buffering
+        ob_end_clean();
+        // Write final string to file
+        file_put_contents($cachePath, $htmlStr);
+        echo $htmlStr;
+        return;
+      break;
+
+      case 'graphImageShot':
+
       break;
 
       // input: svg text, output: jpeg
@@ -107,6 +140,11 @@ class AppFrontend extends App{
         include($this->getAppDir("template", false)."/index.php");
       break;
     }
+  }
+
+  public function requestToFilename($r)
+  {
+
   }
 
   public function getAppDir($type="app_root", $isWeb = true){

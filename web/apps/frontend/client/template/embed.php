@@ -7,13 +7,13 @@
     <!--  Customize snippet with https://developers.facebook.com/tools/debug/sharing  -->
     <meta property="og:url"           content="<?php echo $url ?>" />
     <meta property="og:type"          content="website" />
-    <meta property="og:title"         content="<?php echo $graph[$graph_ids[0]]['name']; ?>" />
-    <meta property="og:description"   content="Look at rationale behind '<?php echo $graph[$graph_ids[0]]['name']; ?>'" />
-    <meta property="og:image"         content="http://www.grasp.how/img/graph_shots/<?php echo $graph_ids[0]; ?>.jpg" />
+    <meta property="og:title"         content="<?php echo $graphsData[$graph_ids[0]]['name']; ?>" />
+    <meta property="og:description"   content="Look at rationale behind '<?php echo $graphsData[$graph_ids[0]]['name']; ?>'" />
+    <meta property="og:image"         content="http://www.grasp.how/img/graph_shots/<?php echo $snaps[0]['graphId'].'_'.$snaps[0]['step'].'_'.$snaps[0]['ts']; ?>.jpg" />
     <meta property="og:image:width"   content="1280" />
     <meta property="og:image:height"  content="960" />
 
-    <title><?php echo $graph[$graph_ids[0]]['name']; ?></title>
+    <title><?php echo $graphsData[$graph_ids[0]]['name']; ?></title>
 
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/embed.css">
 
@@ -71,8 +71,10 @@
   </div>
   <?php endif ?>
   <div style="display: none;" id="graphsData">
-    <?php echo $graph ? json_encode($graph) : ""; ?>
+    <?php echo $graphsData ? json_encode($graphsData) : ""; ?>
   </div>
-
+  <div id="pageInfo" style="display: none;">
+    <?php echo json_encode($pageInfo); ?>
+  </div>
   </body>
 </html>

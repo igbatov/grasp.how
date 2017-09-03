@@ -106,13 +106,14 @@ body{
 
 .alternativeLabel {
     /* float: left; */
-    margin-left: 4em;
+    /* margin-left: 4em; */
     /* width: 85%; */
     /* margin-left: 17px; */
     display: inline-block;
 }
 .alternativePr {
-    position: absolute;
+    margin-right: 2em;
+    position: relative;
     display: inline-block;
     font-size: 16px;
     font-weight: bold;
