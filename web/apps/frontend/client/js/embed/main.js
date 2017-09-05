@@ -56,6 +56,7 @@ var withFbShare = withFbShare || false;
     graph = convertIdsToGlobal(graph);
 
     // draw graph SVG in wrapper
+    graphDrawer.setD3(d3);
     graphDrawer.setOptions({
       wrapper: wrapper.div,
       wrapperArea: wrapper.dims,

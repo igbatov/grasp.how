@@ -14,11 +14,13 @@ var graphDrawer = (function(){
   var _svgc;
   var _nodes;
   var _options;
+  var _d3;
 
   return {
     setOptions: setOptions,
     eventListener: eventListener,
     showGraph: showGraph,
+    setD3: setD3,
     moduleName: 'graphDrawer'
   };
 
@@ -36,18 +38,21 @@ var graphDrawer = (function(){
    * }
    */
   function setOptions(options) {
-console.log('---------------',options);
     _options = options;
+  }
+
+  function setD3(d3) {
+    _d3 = d3;
   }
 
   function eventListener(e){
     var eventName = e.getName();
     var eventData = e.getData();
     if(eventName == 'hide_all_labels'){
-      d3.selectAll('.graphLabel').style("visibility", "hidden");
+      _d3.selectAll('.graphLabel').style("visibility", "hidden");
 
     }else if(eventName == 'show_all_labels'){
-      d3.selectAll('.graphLabel').style("visibility", "visible");
+      _d3.selectAll('.graphLabel').style("visibility", "visible");
 
     }else if(eventName == 'add_labels'){
       for(var i in eventData){
@@ -57,22 +62,22 @@ console.log('---------------',options);
 
     }else if(eventName == 'remove_labels'){
       for(var i in eventData){
-        d3.selectAll('[key = "'+eventData[i]+'"]').remove();
+        _d3.selectAll('[key = "'+eventData[i]+'"]').remove();
       }
       updateNodeXY();
 
     }else if(eventName == 'highlight_edges'){
-      d3.selectAll('path').attr('stroke-opacity', 0.1);
-      var paths = d3.selectAll('path')[0];
+      _d3.selectAll('path').attr('stroke-opacity', 0.1);
+      var paths = _d3.selectAll('path')[0];
       for(var i in paths) {
-        var path = d3.select(paths[i]);
+        var path = _d3.select(paths[i]);
         makePathTransparent(path, true);
       }
 
       for(var j in eventData['edges']){
         var edge = eventData['edges'][j];
         for(var i in paths) {
-          var path = d3.select(paths[i]);
+          var path = _d3.select(paths[i]);
           // direction insensitive
           if (
               (edge.source === path.attr('source') && edge.target === path.attr('target'))
@@ -86,50 +91,50 @@ console.log('---------------',options);
     }else if(eventName == 'highlight_nodes'){
       var pickOutNodes = eventData['nodeIds'];
 
-      d3.selectAll('circle').filter(function (x) {
-        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) === -1;
+      _d3.selectAll('circle').filter(function (x) {
+        return pickOutNodes.indexOf(_d3.select(this).attr('nodeId')) === -1;
       }).attr('fill-opacity', 0.1);
-      d3.selectAll('circle').filter(function (x) {
-        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) !== -1;
+      _d3.selectAll('circle').filter(function (x) {
+        return pickOutNodes.indexOf(_d3.select(this).attr('nodeId')) !== -1;
       }).attr('fill-opacity', 1);
 
-      d3.selectAll('.graphLabel').filter(function (x) {
-        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) === -1;
+      _d3.selectAll('.graphLabel').filter(function (x) {
+        return pickOutNodes.indexOf(_d3.select(this).attr('nodeId')) === -1;
       }).attr('fill-opacity', 0.1);
-      d3.selectAll('.graphLabel').filter(function (x) {
-        return pickOutNodes.indexOf(d3.select(this).attr('nodeId')) !== -1;
+      _d3.selectAll('.graphLabel').filter(function (x) {
+        return pickOutNodes.indexOf(_d3.select(this).attr('nodeId')) !== -1;
       }).attr('fill-opacity', 1);
 
-      var paths = d3.selectAll('path')[0];
+      var paths = _d3.selectAll('path')[0];
       for(var i in paths) {
-        var path = d3.select(paths[i]);
-        makePathTransparent(d3.select(paths[i]), true);
+        var path = _d3.select(paths[i]);
+        makePathTransparent(_d3.select(paths[i]), true);
       }
 
     }else if(eventName == 'remove_highlights'){
       // nodes
       if(eventData.indexOf('nodes') !== -1) {
         var nodes = _options['orig_nodes'];
-        var circles = d3.selectAll('circle')[0];
+        var circles = _d3.selectAll('circle')[0];
         for(var i in circles){
           var circle = circles[i];
-          var nodeId = d3.select(circle).attr('nodeId');
-          if(nodeId && nodes[nodeId]) d3.select(circle).attr('fill-opacity', nodes[nodeId].opacity);
+          var nodeId = _d3.select(circle).attr('nodeId');
+          if(nodeId && nodes[nodeId]) _d3.select(circle).attr('fill-opacity', nodes[nodeId].opacity);
         }
       }
 
       // edges
       if(eventData.indexOf('edges') !== -1) {
-        var paths = d3.selectAll('path')[0];
+        var paths = _d3.selectAll('path')[0];
         for(var i in paths) {
-          makePathTransparent(d3.select(paths[i]), false);
+          makePathTransparent(_d3.select(paths[i]), false);
         }
-//        d3.selectAll('marker').attr('fill-opacity', 1);
+//        _d3.selectAll('marker').attr('fill-opacity', 1);
       }
 
       // labels
       if(eventData.indexOf('labels') !== -1) {
-        d3.selectAll('.graphLabel').attr('fill-opacity', 1);
+        _d3.selectAll('.graphLabel').attr('fill-opacity', 1);
       }
 
     }else if(eventName == 'change_options'){
@@ -186,23 +191,23 @@ console.log('---------------',options);
 
   function updateNodeXY(){
     // update nodes
-    var circles = d3.selectAll('circle')[0];
+    var circles = _d3.selectAll('circle')[0];
     for(var i in circles){
       var circle = circles[i];
-      var nodeId = d3.select(circle).attr('nodeId');
+      var nodeId = _d3.select(circle).attr('nodeId');
       if(nodeId && _nodes[nodeId]) {
         // update nodes
         var node = _nodes[nodeId];
-        d3.select(circle)
+        _d3.select(circle)
             .attr('cx', node.x)
             .attr('cy', node.y);
       }
     }
 
     // update labels
-    var labels = d3.selectAll('.graphLabel')[0];
+    var labels = _d3.selectAll('.graphLabel')[0];
     for(var i in labels){
-      var label = d3.select(labels[i]);
+      var label = _d3.select(labels[i]);
       var nodeId = label.attr('nodeId');
       if(nodeId && _nodes[nodeId]) {
         var node = _nodes[nodeId];
@@ -211,9 +216,9 @@ console.log('---------------',options);
     }
 
     // update edges
-    var edges = d3.selectAll('path')[0];
+    var edges = _d3.selectAll('path')[0];
     for(var i in edges) {
-      var edge = d3.select(edges[i]);
+      var edge = _d3.select(edges[i]);
       var source = edge.attr('source');
       var target = edge.attr('target');
       if(source && target && _nodes[source] && _nodes[source]) {
