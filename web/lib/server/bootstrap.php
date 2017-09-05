@@ -79,6 +79,7 @@ require_once ($path.'/'.'GraphIdConverter.php');
 require_once ($path.'/'.'GraphDiffCreator.php');
 require_once ($path.'/'.'Graphs.php');
 require_once ($path.'/'.'OAuthUser.php');
+require_once ($path.'/'.'Helper.php');
 require_once ($path.'/'.'../../apps/frontend/server/AppFrontend.php');
 require_once ($path.'/'.'../../apps/user_pkb/server/AppUserPkb.php');
 

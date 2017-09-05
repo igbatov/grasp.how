@@ -1,6 +1,8 @@
 <?php
 
 include("EmbGraph.php");
+$p = dirname(__FILE__)."/../../../../scripts/graphImageGenerator/GraphImageGenerator.php";
+include($p);
 
 class AppFrontend extends App{
   private $contentIdConverter;
@@ -113,9 +115,27 @@ class AppFrontend extends App{
         return;
       break;
 
-      case 'graphImageShot':
+      case 'img':
+        // if image exists, nginx will show it
 
-      break;
+        // if not - create it and show
+        $extensionFree = substr($vars[2],0, strrpos($vars[2], "."));
+        $a = explode('_', $extensionFree);
+        $snap = [
+          'graphId'=>$a[0],
+          'step'=>$a[1],
+          'ts'=>$a[2],
+        ];
+
+        $graphHelper = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
+        $embGraph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $graphHelper);
+
+        $helper = new Helper();
+        $graphImageGenerator = new GraphImageGenerator($embGraph, $helper);
+        $filepath = $graphImageGenerator->getImage($snap);
+        $this->showImage($filepath);
+        return;
+        break;
 
       // input: svg text, output: jpeg
       case 'svg2jpeg':

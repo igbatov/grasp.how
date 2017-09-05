@@ -2,7 +2,6 @@
 <?php
 $curdir = dirname(__FILE__);
 $root = $curdir."/../..";
-$node = '/root/.nvm/versions/node/v4.4.3/bin/node';
 
 chdir($curdir);
 
@@ -21,8 +20,8 @@ include($root.'/web/lib/server/GraphIdConverter.php');
 include($root.'/web/lib/server/Graphs.php');
 include($root.'/web/lib/server/ErrorHandler.php');
 include($root.'/web/lib/server/Logger.php');
+include($root.'/web/lib/server/Helper.php');
 include($root."/web/apps/frontend/server/EmbGraph.php");
-$image = new Imagick();
 
 $c = new Config();
 $db = new MultiTenantDB(
@@ -52,6 +51,8 @@ if($graph_id){
 }
 $graphs = new Graphs($db, $contentIdConverter, $graphIdConverter, $logger);
 $emb_graph = new EmbGraph($db, $contentIdConverter, $graphIdConverter, $graphs);
+$helper = new Helper();
+$graphImageGenerator = new GraphImageGenerator($emb_graph, $helper);
 // for each user
 foreach ($authIds as $authId){
 // for each graph generate its jpeg image with #node converter.js graph.svg
@@ -60,24 +61,11 @@ foreach ($authIds as $authId){
     $globalGraphId = $graphIdConverter->createGlobalGraphId($authId, $row['id']);
     // wrap in try-catch for one bad graph could not stop all proccess
     try{
-      file_put_contents($curdir.'/graph.json', json_encode(
-          $emb_graph->getGraphsData(array($globalGraphId))[$globalGraphId])
-      );
-      exec($node.' '.$curdir.'/converter.js '.$curdir.'/graph.json '.$curdir.'/'.$globalGraphId);
-
-      $svg = file_get_contents($curdir.'/'.$globalGraphId.'.svg');
-      $svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'.$svg;
-      $image->readImageBlob($svg);
-      $image->setImageFormat('jpg');
-      $image->setImageCompressionQuality(90);
-      $image->writeImage($curdir.'/'.$globalGraphId.".jpg");
-
-      // mv jpeg to its directory
-      exec('mv '.$curdir.'/'.$globalGraphId.".jpg"." ".$root."/web/img/graph_shots");
-
-      // remove tmp files
-      unlink($curdir.'/'.$globalGraphId.'.svg');
-      unlink($curdir.'/graph.json');
+      $graphImageGenerator->getImage([
+        'graphId' => $globalGraphId,
+        'step'=>null, // last step
+        'ts'=>time()
+      ]);
     }catch (Exception $e) {
       error_log('generator.php, graph_id='.$globalGraphId.' '.$e->getMessage());
     }
