@@ -49,10 +49,12 @@ class GraphImageGenerator {
     file_put_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.json', json_encode(
         $this->embGraph->getGraphsData([$snap])
     ));
-    exec($this->node
+    $cmd = $this->node
         .' '.$this->currentDir.'/converter.js '
         .$this->tmpDir.'/'.$this->snapToFilename($snap).'.json '
-        .$this->tmpDir.'/'.$this->snapToFilename($snap));
+        .$this->tmpDir.'/'.$this->snapToFilename($snap);
+    error_log($cmd);
+    exec($cmd);
 
 
     $svg = file_get_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.svg');

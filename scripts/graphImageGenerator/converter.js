@@ -14,7 +14,8 @@ var graph = null;
 fs.readFile(arg1, (err, data) => {
   if (err) throw err;
   graph = JSON.parse(data);
-//  console.log(graph);
+  graph = graph[Object.keys(graph)[0]]
+  console.log(graph);
 
 
 //console.log(arg);
@@ -31,7 +32,18 @@ fs.readFile(arg1, (err, data) => {
                 var wrapper = window.d3.select("body").append("div").attr("id", "mainSVG").attr('style','background: #2C3338;');
 
                 // draw graph SVG in wrapper
-                var svg = graphDrawer.showGraph(wrapper, wrapperArea, graph["area"], graph["nodes"], graph["edges"], graph["nodeContents"], graph["nodeTypes"], graph["edgeTypes"]);
+		graphDrawer.setOptions({
+      		  wrapper: wrapper,
+      		  wrapperArea: wrapperArea,
+      		  mappingArea: graph["area"],
+      		  orig_nodes: graph["nodes"],
+      		  edges: graph["edges"],
+      		  nodeContents: graph["nodeContents"],
+      		  nodeTypes: graph["nodeTypes"],
+      		  edgeTypes: graph["edgeTypes"],
+      		  graphAreaSidePadding: 0
+    		});
+                var svg = graphDrawer.showGraph();
 
                 svg.attr({xmlns:'http://www.w3.org/2000/svg'});
 

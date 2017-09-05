@@ -36,6 +36,7 @@ var graphDrawer = (function(){
    * }
    */
   function setOptions(options) {
+console.log('---------------',options);
     _options = options;
   }
 
