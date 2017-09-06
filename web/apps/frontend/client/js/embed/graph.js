@@ -191,7 +191,7 @@ var graphDrawer = (function(){
 
   function updateNodeXY(){
     // update nodes
-    var circles = _d3.selectAll('circle')[0];
+    var circles = _d3.selectAll('.graphNode')[0];
     circles.forEach(function (circle) {
       var nodeId = _d3.select('#'+circle.id).attr('nodeId');
       if(nodeId && _nodes[nodeId]) {
@@ -206,7 +206,7 @@ var graphDrawer = (function(){
     // update labels
     var labels = _d3.selectAll('.graphLabel')[0];
     labels.forEach(function (label) {
-      var label = _d3.select(label.id);
+      var label = _d3.select('#'+label.id);
       var nodeId = label.attr('nodeId');
       if(nodeId && _nodes[nodeId]) {
         var node = _nodes[nodeId];
@@ -215,9 +215,9 @@ var graphDrawer = (function(){
     });
 
     // update edges
-    var edges = _d3.selectAll('path')[0];
+    var edges = _d3.selectAll('.edges')[0];
     edges.forEach(function (edge) {
-      var edge = _d3.select(edge.id);
+      var edge = _d3.select('#'+edge.id);
       var source = edge.attr('source');
       var target = edge.attr('target');
       if(source && target && _nodes[source] && _nodes[source]) {
@@ -309,11 +309,9 @@ var graphDrawer = (function(){
     adjustNodeXY(_nodes, mappingArea, wrapperArea, graphAreaSidePadding);
 
     // draw edges
-    var edgePathId=0;
     for(var i in edges){
-      edgePathId++;
       var edge = _svgc.append("path")
-          .attr("id", 'edgePath'+edgePathId)
+          .attr("id", guid())
           .attr("stroke", edgeTypes[edges[i].type].color)
           .attr("stroke-width", "1")
           .attr("stroke-opacity", "1")
@@ -329,13 +327,11 @@ var graphDrawer = (function(){
     }
 
     // draw nodes
-    var nodeCircleId = 0;
     for(var i in _nodes){
       var node = _nodes[i];
-      nodeCircleId++;
       var circle = _svgc.append("circle")
-	  .attr("id", 'nodeCircle'+nodeCircleId)          
-	  .attr("class", 'graphNode')
+	        .attr("id", guid())
+	        .attr("class", 'graphNode')
           .attr("nodeId", node.id)
           .attr("nodeType", node.type)
           .attr("r", node.size*NODE_SIZE_FACTOR)
@@ -349,13 +345,11 @@ var graphDrawer = (function(){
     }
 
     // draw labels
-    var labelGroupId=0;
     for(var i in _nodes){
-      labelGroupId++;
       var node = _nodes[i];
 
       var active_alternative_id = nodeContents[node.id]['active_alternative_id'];
-      addLabel(node, nodeContents[node.id]['alternatives'][active_alternative_id].label, 'default', labelGroupId);
+      addLabel(node, nodeContents[node.id]['alternatives'][active_alternative_id].label, 'default');
     }
 
     updateNodeXY();
@@ -363,10 +357,10 @@ var graphDrawer = (function(){
     return _svgc;
   }
 
-  function addLabel(node, str, key, labelGroupId){
+  function addLabel(node, str, key){
     var g = _svgc.append('g')
         .attr("class", 'graphLabel')
-        .attr("id", "labelGroupId"+labelGroupId)
+        .attr("id", guid())
         .attr("key", key)
         .attr("nodeId", node.id)
         .attr("nodeType", node.type)
@@ -438,6 +432,16 @@ var graphDrawer = (function(){
     }
 
     return adjustedMappingCoordinates;
+  }
+
+  function guid() {
+    return 'g' + s4() + s4() + s4() + s4() +  s4() + s4() + s4() + s4();
+  }
+
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
   }
 
   /**
