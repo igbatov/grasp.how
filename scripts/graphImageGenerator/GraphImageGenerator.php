@@ -49,12 +49,16 @@ class GraphImageGenerator {
     file_put_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.json', json_encode(
         $this->embGraph->getGraphsData([$snap])
     ));
+    $cmd = 'whoami';
+    exec($cmd." 2>&1", $output);
+    error_log(var_export($output, true));
     $cmd = $this->node
         .' '.$this->currentDir.'/converter.js '
         .$this->tmpDir.'/'.$this->snapToFilename($snap).'.json '
         .$this->tmpDir.'/'.$this->snapToFilename($snap);
     error_log($cmd);
-    exec($cmd);
+    exec($cmd." 2>&1", $output);
+    error_log(var_export($output, true));
 
 
     $svg = file_get_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.svg');
@@ -66,12 +70,17 @@ class GraphImageGenerator {
       $this->imagick->setImageCompressionQuality(90);
       $this->imagick->writeImage($this->tmpDir.'/'.$this->snapToFilename($snap).".jpg");
       // mv jpeg to its directory
-      exec('mv '.$this->tmpDir.'/'.$this->snapToFilename($snap).".jpg"
-          ." ".$this->rootDir."/web/img/graph_shots");
+      rename(
+        $this->tmpDir.'/'.$this->snapToFilename($snap).".jpg",
+        $this->rootDir."/web/img/graph_shots".'/'.$this->snapToFilename($snap).".jpg"
+      );
     }
+    rename(
+      $this->tmpDir.'/'.$this->snapToFilename($snap).".svg",
+      $this->rootDir."/web/img/graph_shots".'/'.$this->snapToFilename($snap).".svg"
+    );
 
     // remove tmp files
-    unlink($this->tmpDir.'/'.$this->snapToFilename($snap).".jpg");
     unlink($this->tmpDir.'/'.$this->snapToFilename($snap).'.json');
 
     return $this->rootDir."/web/img/graph_shots/".$this->snapToFilename($snap).".jpg";
