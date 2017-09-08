@@ -5,6 +5,7 @@ var graphDrawer = require('/var/www/html/grasp.how/web/apps/frontend/client/js/e
 
 var arg1 = process.argv[2];
 var arg2 = process.argv[3];
+var imgDims = process.argv[4]; // in a form 960x450
 
 var graph = null;
 fs.readFile(arg1, (err, data) => {
@@ -18,28 +19,34 @@ fs.readFile(arg1, (err, data) => {
 	    features:{ QuerySelector:true }, //you need query selector for D3 to work
 	    done:function(errors, window){
 	    	window.d3 = d3.select(window.document); //get d3 into the dom
-          var wrapperArea = {width: 1280, height: 960, centerX: 1280/2, centerY: 960/2};
 
-          var wrapper = window.d3.select("body").append("div").attr("id", "mainSVG").attr('style','background: #2C3338;');
+        if (!imgDims) {
+          var wrapperArea = {width: 960, height: 450, centerX: 960/2, centerY: 450/2};
+        } else {
+          var dims = imgDims.split('x');
+          var wrapperArea = {width: dims[0], height: dims[1], centerX: dims[0]/2, centerY: dims[1]/2};
+        }
 
-          // draw graph SVG in wrapper
-          graphDrawer.setD3(window.d3);
-          graphDrawer.setOptions({
-              wrapper: wrapper,
-              wrapperArea: wrapperArea,
-              mappingArea: graph["area"],
-              orig_nodes: graph["nodes"],
-              edges: graph["edges"],
-              nodeContents: graph["nodeContents"],
-              nodeTypes: graph["nodeTypes"],
-              edgeTypes: graph["edgeTypes"],
-              graphAreaSidePadding: 0
-          });
-          var svg = graphDrawer.showGraph();
+        var wrapper = window.d3.select("body").append("div").attr("id", "mainSVG").attr('style','background: #2C3338;');
 
-          svg.attr({xmlns:'http://www.w3.org/2000/svg'});
+        // draw graph SVG in wrapper
+        graphDrawer.setD3(window.d3);
+        graphDrawer.setOptions({
+            wrapper: wrapper,
+            wrapperArea: wrapperArea,
+            mappingArea: graph["area"],
+            orig_nodes: graph["nodes"],
+            edges: graph["edges"],
+            nodeContents: graph["nodeContents"],
+            nodeTypes: graph["nodeTypes"],
+            edgeTypes: graph["edgeTypes"],
+            graphAreaSidePadding: 0
+        });
+        var svg = graphDrawer.showGraph();
 
-          fs.writeFileSync(outputLocation, window.d3.select('#mainSVG').html());
+        svg.attr({xmlns:'http://www.w3.org/2000/svg'});
+
+        fs.writeFileSync(outputLocation, window.d3.select('#mainSVG').html());
 	    }
 	});
 });

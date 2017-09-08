@@ -77,3 +77,25 @@ Case 1.
 
 Из-за этого нам нужен список всех источников с возможностью "удалить с заменой" - в этом случае он удаляется
 из sources и все ссылки на него из node_content_source заменяются на эту "замену".
+
+----------------------------------------------------------------------
+Если exec ругается на права
+Try the following things:
+
+try to run test command, if it works:
+- php -r "echo exec('whoami');"
+- all parent directories and the file have r-x:
+chmod 755 dir; chmod 755 file,
+- make sure that owner of the file is your nginx user (output of whoami command)
+- try also to add +s flag to the file:
+chmod u+s file,
+- your PHP is not running in safe_mode
+make sure that the script is inside your web root,
+if not - move the script inside it,
+or add that directory to your Apache configuration,
+or add this directory to your include_path:
+php.ini: include_path ".:/usr/local/lib/php:/your/dir"
+or .htaccess: php_value include_path ".:/usr/local/lib/php:/your/dir"
+- check as well if giving proper shell (/bin/sh) to your apache user make any difference (check with: finger),
+make sure that your php.ini doesn't use: disable_functions for exec function
+- if using SELinux or having selinux-utils installed (a Security-enhanced Linux system), check getenforce/setenforce configuration as described in @Tonin answer

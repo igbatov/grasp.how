@@ -119,19 +119,14 @@ class AppFrontend extends App{
         // if image exists, nginx will show it
 
         // if not - create it and show
-        $extensionFree = substr($vars[2],0, strrpos($vars[2], "."));
-        $a = explode('_', $extensionFree);
-        $snap = [
-          'graphId'=>$a[0],
-          'step'=>$a[1],
-          'ts'=>$a[2],
-        ];
-
         $graphHelper = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
         $embGraph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $graphHelper);
 
         $helper = new Helper();
         $graphImageGenerator = new GraphImageGenerator($embGraph, $helper);
+        $extensionFree = substr($vars[2],0, strrpos($vars[2], "."));
+
+        $snap = $graphImageGenerator->filenameToSnap($extensionFree);
         $filepath = $graphImageGenerator->getImage($snap);
         $this->showImage($filepath);
         return;
