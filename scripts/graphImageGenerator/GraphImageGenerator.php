@@ -31,10 +31,15 @@ class GraphImageGenerator {
     if (!$preparedSnap['step']){
       $preparedSnap['step'] = 'null';
     }
-    $filename = implode('_', array_values($preparedSnap));
+
     if (isset($preparedSnap['dims']) && $preparedSnap['dims']) {
-      $filename .= '('.$preparedSnap['dims']['width'].'x'.$preparedSnap['dims']['height'].')';
+      $dims = '('.$preparedSnap['dims']['width'].'x'.$preparedSnap['dims']['height'].')';
+      unset($preparedSnap['dims']);
+    } else {
+      $dims = '';
     }
+    $filename = implode('_', array_values($preparedSnap)).$dims;
+
     return $filename;
   }
 
@@ -48,6 +53,7 @@ class GraphImageGenerator {
     preg_match('/\((.+)\)/', $filename, $match);
     if (!empty($match)) {
       $m = explode('x',$match[1]);
+      $filename = str_replace($match[0], '', $filename);
       $imageDims = [
           'width'=>$m[0],
           'height'=>$m[1]
@@ -77,8 +83,9 @@ class GraphImageGenerator {
     $cmd = $this->node
         .' '.$this->currentDir.'/converter.js '
         .$this->tmpDir.'/'.$this->snapToFilename($snap).'.json '
-        .$this->tmpDir.'/'.$this->snapToFilename($snap).
-        isset($snap['dims']) ? $snap['dims']['width'].'x'.$snap['dims']['height'] : '';
+        .$this->tmpDir.'/'.$this->snapToFilename($snap)
+        .' '.(isset($snap['dims']) ? $snap['dims']['width'].'x'.$snap['dims']['height'] : '');
+    error_log($cmd);
     exec($cmd." 2>&1", $output);
 
     $svg = file_get_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.svg');
