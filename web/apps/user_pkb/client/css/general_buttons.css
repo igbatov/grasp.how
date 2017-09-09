@@ -16,32 +16,46 @@
 }
 
 .share .jsTitle {
-
-font-family: 'Roboto-Bold';
-
-margin-top: 2em;
+    font-family: 'Roboto-Bold';
+    margin-top: 2em;
 }
 
 .share .jsCode {
-
-color: #788d98;
+    color: #788d98;
 }
 
+.share .imgTitle::before{
+    content: '';
+    clear: both;
+}
 .share .imgTitle {
+    display: inline-block;
+    font-family: 'Roboto-Bold';
+    margin-top: 2.5em;
+}
 
-font-family: 'Roboto-Bold';
+.share .imgSizeSelect{
+    margin-left: 1em;
+    display: inline-block;
+}
 
-margin-top: 2.5em;
+.share .imgSizeSelectPostfix{
+    margin-left: 0.5em;
+    font-family: 'Roboto-Bold';
+}
+
+.share .imgSizeSelect ul a {
+    font-family: 'Roboto';
+    font-size: 14px;
 }
 
 .share .imgCode {
-
-color: #788d98;
+    color: #788d98;
 }
 
 .share .ui_button {
-
-margin-top: 1em;
+    display: block;
+    margin-top: 1em;
 }
 
 .GeneralButtons {
@@ -160,5 +174,6 @@ margin-top: 1em;
 }
 
 .cloneItem button {
-max-width: 20em;
+
+max-width: 20em;
 }

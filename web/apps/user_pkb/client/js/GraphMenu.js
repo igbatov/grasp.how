@@ -522,11 +522,31 @@ GRASP.GraphMenu.prototype = {
           {class:'imgTitle'},
           that.i18n.__('HTML code for non-interactive image')
       );
-      var imgCode =  GRASP.createElement(
+      var defaultImgSize = '500x250';
+      var imgSizeSelect = that.UI.createSelectBox({
+        name: 'imgSizeSelect',
+        items: {
+          '250x250': '250x250',
+          '500x250': '500x250',
+          '720x380': '720x380',
+          '1280x960': '1280x960',
+        },
+        defaultValue: defaultImgSize,
+        callback: function(name, key){
+          var imgCode = document.getElementById(imgId);
+          imgCode.innerText = imgCode.innerText.replace(new RegExp('\\(.+\\)'), '('+key+')');
+        },
+        dropType: 'single',
+        withDownArrow: true
+      });
+      imgSizeSelect.className = imgSizeSelect.className+' imgSizeSelect';
+      var imgSizeSelectPostfix = GRASP.createElement('span',{class:'imgSizeSelectPostfix'},'px');
+      var imgCode = GRASP.createElement(
           'div',
           {id:imgId, class:'imgCode'},
           '<a target="_blank" href=\'http://www.grasp.how/embed/['+JSON.stringify(data)+']\'>' +
-          '<img src=\'http://www.grasp.how/img/graph_shots/'+data.graphId+'_'+data.step+'_'+data.ts+'.jpg\'>' +
+          '<img src=\'http://www.grasp.how/img/graph_shots/'
+          +data.graphId+'_'+data.step+'_'+data.ts+'('+defaultImgSize+')'+'.jpg\'>' +
           '</a>',
           null,
           true
@@ -545,6 +565,8 @@ GRASP.GraphMenu.prototype = {
       c.appendChild(jsCode);
       c.appendChild(jsButton);
       c.appendChild(imgTitle);
+      c.appendChild(imgSizeSelect);
+      c.appendChild(imgSizeSelectPostfix);
       c.appendChild(imgCode);
       c.appendChild(imgButton);
       that.UI.setModalContent(m, c);

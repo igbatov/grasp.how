@@ -44,7 +44,7 @@
   "in nodes":"в узлах",
   "To place the \"%s\" in a web page, copy one of the snippets:":"Чтобы разместить карту «%s» на свой сайт — скопируйте один из фрагментов:",
   "Javascript code for interactive map":"Javascript код для показа интерактивной карты",
-  "HTML code for non-interactive image":"Код карты для показа картинки без интерактива",
+  "HTML code for non-interactive image":"HTML код для показа картинки без интерактива",
   "copy javascript":"скопировать javascript",
   "copy HTML":"скопировать HTML",
   "This map was copied from:":"Скопировано из:",
