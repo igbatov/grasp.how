@@ -10,6 +10,7 @@ GRASP.SVGDrawer = function(stageContainerId, stageContainerWidth, stageContainer
   this.svgroot.setAttribute("id", this.id);
   this.svgroot.setAttribute("width", stageContainerWidth);
   this.svgroot.setAttribute("height", stageContainerHeight);
+  this.svgroot.setAttribute("display", "block");
   this.shapes = {}; // all shapes added by addShape()
   this.shapeCallbacks = {};
   this.stageCallbacks = {};

@@ -125,7 +125,7 @@ body {
     left: 0;
     bottom: 0;
     right: 0;
-    margin: 3em auto 1.2em auto;
+    margin: 3em auto 0 auto;
 
     /* prevent selection of div while draggin */
     -webkit-touch-callout: none;
