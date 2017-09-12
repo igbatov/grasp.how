@@ -24,7 +24,7 @@ fs.readFile(arg1, (err, data) => {
           var wrapperArea = {width: 960, height: 450, centerX: 960/2, centerY: 450/2};
         } else {
           var dims = imgDims.split('x');
-          var wrapperArea = {width: dims[0], height: dims[1], centerX: dims[0]/2, centerY: dims[1]/2};
+          var wrapperArea = {width: parseInt(dims[0]), height: parseInt(dims[1]), centerX: parseInt(dims[0])/2, centerY: parseInt(dims[1])/2};
         }
 
         var wrapper = window.d3.select("body").append("div").attr("id", "mainSVG").attr('style','background: #2C3338;');
