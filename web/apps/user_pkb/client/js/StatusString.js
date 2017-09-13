@@ -33,12 +33,12 @@ GRASP.StatusString.prototype = {
       GRASP.setDisplay(this.ajaxIndicator, 'none');
     }
     if(e.getName() === 'repository_requests_send'){
-      this.serverStatusContainer.html('All changes saved');
-      //GRASP.setDisplay(this.ajaxIndicator, 'none');
+      this.serverStatusContainer.html('');
+      GRASP.setDisplay(this.ajaxIndicator, 'none');
     }
     if(e.getName() === 'repository_processing'){
-      this.serverStatusContainer.html('Working with server...');
-      GRASP.setDisplay(this.ajaxIndicator);
+      this.serverStatusContainer.html('working with server...');
+      GRASP.setDisplay(this.ajaxIndicator, 'inline-block');
     }
     e.setResponse();
   }
