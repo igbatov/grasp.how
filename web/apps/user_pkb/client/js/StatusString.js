@@ -5,20 +5,18 @@
  * @param publisher
  * @param viewManager
  * @param jQuery
- * @param ajaxLoaderId - id of icon that can be used as process indicator
  * @constructor
  */
-GRASP.StatusString = function (publisher, viewManager, jQuery, ajaxLoaderId) {
+GRASP.StatusString = function (publisher, viewManager, jQuery, UIElements) {
   this.publisher = publisher;
+  this.UI = UIElements;
   this.container = jQuery("#"+viewManager.getViewContainer('statusString').id);
   this.jQuery = jQuery;
-  this.container.append('<div id="dragModeStatus"></div>');
+  this.ajaxIndicator = this.UI.createLoadingIndicator('inline small');
+  this.container.append(this.ajaxIndicator);
   this.container.append('<div id="serverStatus"></div>');
   this.serverStatusContainer = this.container.find('#serverStatus');
-  this.dragModeStatusContainer = this.container.find('#dragModeStatus');
-  this.ajaxIndicator = GRASP.createElement('img',{'src':$('#'+ajaxLoaderId).attr('src')});
   GRASP.setDisplay(this.ajaxIndicator, 'none');
-  this.dragModeStatusContainer.append(this.ajaxIndicator);
 };
 
 GRASP.StatusString.prototype = {
@@ -36,14 +34,11 @@ GRASP.StatusString.prototype = {
     }
     if(e.getName() === 'repository_requests_send'){
       this.serverStatusContainer.html('All changes saved');
-      GRASP.setDisplay(this.ajaxIndicator, 'none');
+      //GRASP.setDisplay(this.ajaxIndicator, 'none');
     }
     if(e.getName() === 'repository_processing'){
       this.serverStatusContainer.html('Working with server...');
-      GRASP.setDisplay(this.ajaxIndicator, 'inline');
-    }
-    if(e.getName() === 'set_drag_mode'){
-      this.dragModeStatusContainer.html('Drag mode: '+ e.getData()['drag_mode']+'; ');
+      GRASP.setDisplay(this.ajaxIndicator);
     }
     e.setResponse();
   }

@@ -855,8 +855,12 @@ GRASP.UIElements.prototype = {
     f(0);
   },
 
-  createLoadingIndicator: function(){
-    return GRASP.createElement('div',{class:'ui_spinner'},'');
+  createLoadingIndicator: function(className){
+    var el = GRASP.createElement('div',{class:'ui_spinner'},'');
+    if(className){
+      el.className += ' '+className;
+    }
+    return el;
   },
 
   /**

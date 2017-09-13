@@ -47,3 +47,14 @@
         border-right-color: #7fc4d1;
     }
 }
+
+.ui_spinner.inline {
+    display: inline-block;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
+.ui_spinner.small {
+    width: 1em;
+    height: 1em;
+}

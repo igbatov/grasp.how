@@ -102,7 +102,7 @@ var DI = {
   UIElements: ['I18n'],
 
   KeyManager: ['Publisher'],
-  StatusString: ['Publisher', 'ViewManager', 'jQuery', 'miniAjaxLoader'],
+  StatusString: ['Publisher', 'ViewManager', 'jQuery', 'UIElements'],
 
   GraphViewNodeFactory:[],
   GraphViewEdgeFactory:[],

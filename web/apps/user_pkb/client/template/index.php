@@ -14,7 +14,6 @@
       <img class="ajax" id="ajaxLoader" src="<?php echo $this->getAppDir('img'); ?>/ajax.gif">
     </div>
     <div id="statusString"></div>
-    <img id="miniAjaxLoader" style="display: none;" src="<?php echo $this->getAppDir('img'); ?>/ajax_clock_small.gif">
   </div>
 
   <!-- General js libs -->
