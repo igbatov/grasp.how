@@ -51,10 +51,10 @@ class AppFrontend extends App{
         //var_dump($r);
         $snaps = $r['snaps'];
 
-        $withFbShare = $r['withFbShare'];
+        $withFbShare = isset($r['withFbShare']) ? $r['withFbShare'] : null;
         if($withFbShare === NULL) $withFbShare = true;
 
-        $editMapRibbon = $r['editMapRibbon'];
+        $editMapRibbon = isset($r['editMapRibbon']) ? $r['editMapRibbon'] : null;
         if($editMapRibbon === NULL) $editMapRibbon = true;
 
         // sanity check

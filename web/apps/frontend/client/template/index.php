@@ -81,8 +81,8 @@
       Помогаем анализировать информацию
       <span>Покажем вероятность ваших гипотез исходя из фактов и их достоверности</span>
     </h1>
-    <div id="grasp-how-8866" style="height: 500px;">
-      <script src='/embed.js?data={"graphIds":[1.155],"uniqId":"grasp-how-8866","withFbShare":false,"editMapRibbon":false}'></script>
+    <div id="grasp-how-501cb8beb66019e90ed669caadbe7ad4" style="height: 500px;">
+      <script src="http://www.grasp.how/embed.js?data={&quot;snaps&quot;:[{&quot;graphId&quot;:&quot;1.155&quot;,&quot;step&quot;:28,&quot;ts&quot;:1505413982593}]}"></script>
     </div>
   </div>
 </div>
