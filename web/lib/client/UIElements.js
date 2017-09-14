@@ -148,8 +148,11 @@ GRASP.UIElements.prototype = {
           li.addEventListener('mouseover', function(){
             submenu.style.display = 'block';
           })
-          li.addEventListener('mouseout', function(){
-            submenu.style.display = 'none';
+          li.addEventListener('mouseout', function(e){
+            // if mouseout event was not on submenu element, hide submenu
+            if (!submenu.contains(e.target)){
+              submenu.style.display = 'none';  
+            }
           })
         }else{
           // behaviour: click on item - select new one
@@ -158,6 +161,16 @@ GRASP.UIElements.prototype = {
             selectBox.selectItem(value);
           });
         }
+        
+        // for all li in list except this, hide theirs submenu
+        li.addEventListener('mouseover', function(){
+          var children = [].slice.call(li.parentNode.children);
+          children.forEach(function(ch){
+            if(li !== ch && ch.getElementsByTagName('ul').length){
+              ch.getElementsByTagName('ul')[0].style.display = 'none';
+            }
+          });
+        })
 
         return li;
       });

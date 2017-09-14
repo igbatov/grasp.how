@@ -77,10 +77,12 @@
 }
 /* for multi-level menu */
 .ui_select ul ul, .ui_select ul ul ul, .ui_select ul ul ul ul {
+    overflow-y: auto;
     position:absolute;
     display: none;
     left: 100%; /* Pushes the menu to the right of it's parent */
     top: 0; /* Make it appear at the same level as it's parent */
+    max-height: 20em;
 }
 
 /* for dropType='multiple' case*/
