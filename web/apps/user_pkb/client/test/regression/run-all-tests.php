@@ -14,10 +14,9 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
   <div id="leftGraphElementEditorContainer" class="graphElementEditorContainer"></div>
   <div id="rightGraphElementEditorContainer" class="graphElementEditorContainer"></div>
   <div id="graphViews">
-    <img class="ajax" id="ajaxLoader" src="<?php echo $app->getAppDir('img'); ?>/ajax.gif">
+    <img class="ajax" id="frontalLoader" src="<?php echo $app->getAppDir('img'); ?>/ajax.gif">
   </div>
   <div id="statusString"></div>
-  <img id="miniAjaxLoader" style="display: none;" src="<?php echo $app->getAppDir('img'); ?>/ajax_clock_small.gif">
 </div>
 
 <!-- General js libs -->

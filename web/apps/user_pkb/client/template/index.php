@@ -11,7 +11,9 @@
     <div id="graphViews">
       <div id="leftGraphElementEditorContainer" class="graphElementEditorContainer"></div>
       <div id="rightGraphElementEditorContainer" class="graphElementEditorContainer"></div>
-      <img class="ajax" id="ajaxLoader" src="<?php echo $this->getAppDir('img'); ?>/ajax.gif">
+      <div id="frontalLoader">
+        <?php  include($this->getAppDir('template', false).'/_frontalLoader.php'); ?>
+      </div>
     </div>
     <div id="statusString"></div>
   </div>

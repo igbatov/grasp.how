@@ -9,10 +9,9 @@
  * @param formFields
  * @param i18n
  * @param jQuery
- * @param ajaxIndicator
  * @constructor
  */
-GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, i18n, jQuery, ajaxIndicator){
+GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, i18n, jQuery){
   this.publisher = publisher;
   this.ViewManager = ViewManager;
   this.jQuery = jQuery;
@@ -22,8 +21,6 @@ GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, i18n
 
   this.currentElement = null;
   this.currentEvent = null;
-
-  this.ajaxIndicator = ajaxIndicator;
 
   this.leftContainer = this.ViewManager.getViewContainer('leftGraphElementEditor');
   this.rightContainer = this.ViewManager.getViewContainer('rightGraphElementEditor');

@@ -37,7 +37,7 @@ GRASP.ModelChangeController.prototype = {
         for(var i in positions){
           if(positions[i] == 'not to be shown') countNoToBeShown++;
         }
-        if(countNoToBeShown == GRASP.getObjectLength(positions)) that.viewManager.hideAjaxLoader();
+        if(countNoToBeShown == GRASP.getObjectLength(positions)) that.viewManager.hideFrontalLoader();
       });
 
     }else if(eventName == 'graph_model_changed'){
@@ -214,7 +214,7 @@ GRASP.ModelChangeController.prototype = {
           that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
 
           // hide ajax loader
-          that.viewManager.hideAjaxLoader();
+          that.viewManager.hideFrontalLoader();
       });
   },
 

@@ -54,7 +54,7 @@ GRASP.ViewManager.prototype = {
     }
   },
 
-  hideAjaxLoader: function(){
-    this.jQuery('#ajaxLoader').hide();
+  hideFrontalLoader: function(){
+    this.jQuery('#frontalLoader').hide();
   }
 };

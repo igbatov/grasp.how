@@ -200,3 +200,9 @@ body {
     display: none;
 }
 
+#frontalLoader {
+    left: calc(50% - 40px);
+    position: absolute;
+    top: calc(50% - 40px);
+}
+
