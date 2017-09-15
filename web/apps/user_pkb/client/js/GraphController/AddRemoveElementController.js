@@ -43,12 +43,20 @@ GRASP.AddRemoveElementController.prototype = {
 
         this.publisher.publish(["get_graph_models", [data['droppedOnGraphId']]]).then(function(graphModels){
           var graphModel = graphModels[data['droppedOnGraphId']];
+          var edgeType = graphModel.getEdgeDefaultType();
+          var baseNodes = [GRASP.GraphViewNode.NODE_TYPE_FACT, GRASP.GraphViewNode.NODE_TYPE_PROPOSITION];
+          if (
+              baseNodes.indexOf(data['draggedModelElement'].element.type) === -1
+              || baseNodes.indexOf(data['droppedOnModelElement'].element.type) === -1
+          ){
+            edgeType = GRASP.GraphViewEdge.EDGE_TYPE_LINK;
+          }
           return that.publisher.publish(
             ["request_for_graph_element_content_change",
               {
                 type: 'addEdge',
                 graphId: data['droppedOnGraphId'],
-                elementType: graphModel.getEdgeDefaultType()
+                elementType: edgeType
               }
             ]
           );
