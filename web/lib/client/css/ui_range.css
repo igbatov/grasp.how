@@ -1,9 +1,11 @@
 .ui_range{
-    display: inline-block;
+    margin-top: 1em;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
     margin-left: 1em;
 }
 
 .ui_range input{
-    margin: 0;
     display: inline;
 }

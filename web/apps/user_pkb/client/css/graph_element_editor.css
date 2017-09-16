@@ -220,6 +220,9 @@
 .graphElementEditorContainer .sourceItem .publisherReliability{
     color: #4fce69;
 }
+.graphElementEditorContainer .ui_select .textareaContainer{
+    width:100%;
+}
 
 .edgeEditorContainer {
 

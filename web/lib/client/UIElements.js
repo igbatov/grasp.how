@@ -433,7 +433,7 @@ GRASP.UIElements.prototype = {
             contenteditable: !attrs.disabled,
             id:uniqId,
             name:attrs.name,
-            class:attrs.class
+            class:'ui_textarea '+attrs.class
           },
           attrs.value,
           cb
@@ -444,7 +444,8 @@ GRASP.UIElements.prototype = {
         {
           name:attrs.name,
           placeholder:attrs.placeholder,
-          disabled:attrs.disabled
+          disabled:attrs.disabled,
+          class:'ui_textarea '+attrs.class
         },
         attrs.value,
         cb

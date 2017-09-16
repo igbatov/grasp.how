@@ -680,6 +680,7 @@ GRASP.GraphElementEditor.prototype = {
         selectedItemMap: function(alternative){
           var c = GRASP.createElement('div',{class:'nodeLabel inSelectBox'});
           var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
+          var lc = GRASP.createElement('div',{class:'textareaContainer'});
           var l = that.UI.createTextareaBox({
             disabled: !isEditable,
             name:'label',
@@ -687,6 +688,7 @@ GRASP.GraphElementEditor.prototype = {
             callback: that._attrChange.bind(that, graphId, nodeContentId, node),
             isContentEditable: true
           });
+          lc.appendChild(l);
           // create buttons to add and remove alternatives
           var add = that.UI.createButton({
             disabled: !isEditable,
@@ -695,7 +697,7 @@ GRASP.GraphElementEditor.prototype = {
             callback: that._addAlternative.bind(that, graphId, nodeContentId)
           });
           c.appendChild(r);
-          c.appendChild(l);
+          c.appendChild(lc);
           c.appendChild(add);
           return c;
         },
