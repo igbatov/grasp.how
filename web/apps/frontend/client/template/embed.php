@@ -1,3 +1,6 @@
+<?php
+  $cloneUrl = 'http://my.grasp.how/cloneGraph/'.$snaps[0]['graphId'].'/'.$snaps[0]['step'].'/'.$snaps[0]['ts'];
+?>
 <!doctype html>
 <html>
   <head>
@@ -59,7 +62,7 @@
   <?php if($withFbShare) include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
 
   <?php if ($editMapRibbon) : ?>
-  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' title="edit map on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
+  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='<?php echo $cloneUrl; ?>' title="edit map on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
   <?php endif ?>
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
 
@@ -74,7 +77,7 @@
     <?php echo $graphsData ? json_encode($graphsData) : ""; ?>
   </div>
   <?php if (!$editMapRibbon) : ?>
-    <div class="editMapButton"><a target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' class="btn">Edit map</a></div>
+    <div class="editMapButton"><a target="_blank" href='<?php echo $cloneUrl; ?>' class="btn">Edit map</a></div>
   <?php endif ?>
   <div id="pageInfo" style="display: none;">
     <?php echo json_encode($pageInfo); ?>

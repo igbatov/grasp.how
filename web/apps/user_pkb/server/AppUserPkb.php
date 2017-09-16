@@ -2,6 +2,7 @@
 
 include("TextDiff.php");
 include("GRainQuerier.php");
+include("../../../lib/server/Snap.php");
 
 /**
  * Controller - entry point for all requests
@@ -66,6 +67,8 @@ class AppUserPkb extends App
       if(!$this->getAuthId()){
         return $this->redirect('/?fromUrl=/cloneGraph/'.$vars[1]);
       }
+
+      // request must be in a form $vars[1] = graphId, $vars[2] = historyStep|null, $vars[3] = ts|null
 
       $fromGraphId = $vars[1];
       if(!$this->graphIdConverter->isGraphIdGlobal($fromGraphId)){
