@@ -891,7 +891,7 @@ GRASP.compare = (function() {
 
       // this is magic for grasp tests
     } else if (usingTestDummies && customTypeof(expected) === 'object' && /function (.{1,})\(/.exec(expected.constructor.toString())[1] === 'likeRegexp') {
-      var regexp = new RegExp(expected.regexp);
+      var regexp = expected.regexp instanceof RegExp ? expected.regexp : new RegExp(expected.regexp);
       if (regexp.test(actual)){
         return true;
       } else {

@@ -360,12 +360,13 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         );
       })
       .then(function(e){
+        var svgRegexp ='<svg [^]*svg>'; // [^] - means any character and newline
         originalSettings['skin']['node']['attr']['stickers'] = {
-          "bayes_error": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
-          "absent": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
-          "added": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
-          "modified": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
-          "unmodified": new GRASP.TestHelpers.likeRegexp('^<svg (.*)svg>$'),
+          "bayes_error": new GRASP.TestHelpers.likeRegexp(svgRegexp),
+          "absent": new GRASP.TestHelpers.likeRegexp(svgRegexp),
+          "added": new GRASP.TestHelpers.likeRegexp(svgRegexp),
+          "modified": new GRASP.TestHelpers.likeRegexp(svgRegexp),
+          "unmodified": new GRASP.TestHelpers.likeRegexp(svgRegexp),
         };
         originalSettings['position'] = 'rightGraphView';
             GRASP.TestHelpers.cmp(
