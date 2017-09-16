@@ -177,3 +177,27 @@ body{
 .altLabel.fact{
     padding-bottom: 0.7em;
 }
+
+.editMapButton a.btn {
+    font-weight: 100;
+    text-decoration: none;
+    font-family: DINPro;
+    font-size: 18px;
+    width: 241px;
+    height: 40px;
+    border-radius: 20px;
+    background-image: linear-gradient(99deg, #a52cff, #a52cff);
+    color: #fff;
+    padding: 8px 40px 9px 40px;
+    margin-bottom: 5px;
+}
+.editMapButton .btn:hover {
+    color: #fff;
+    background-image: linear-gradient(to bottom, #fbbf61, #fbbf61);
+}
+.editMapButton {
+ position: absolute;
+ width: 100%;
+ text-align: center;
+ bottom: 15px;
+}

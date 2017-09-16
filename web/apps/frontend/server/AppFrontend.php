@@ -48,7 +48,6 @@ class AppFrontend extends App{
       // generates javascript to insert /embed iframe
       case 'embed.js':
         $r = $this->getRequest();
-        //var_dump($r);
         $snaps = $r['snaps'];
 
         $withFbShare = isset($r['withFbShare']) ? $r['withFbShare'] : null;
@@ -68,6 +67,8 @@ class AppFrontend extends App{
         $hash_source = var_export($_SERVER['REQUEST_URI'], true);
         $hash = md5($hash_source);
         $cachePath = $this->getAppDir('embed_cache', false)."/".$hash.".html";
+
+        // comment this to turn cache off
         if(file_exists($cachePath)) {
           echo file_get_contents($cachePath);
           return;

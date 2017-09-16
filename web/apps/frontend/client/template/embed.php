@@ -73,6 +73,9 @@
   <div style="display: none;" id="graphsData">
     <?php echo $graphsData ? json_encode($graphsData) : ""; ?>
   </div>
+  <?php if (!$editMapRibbon) : ?>
+    <div class="editMapButton"><a target="_blank" href='http://my.grasp.how/cloneGraph/<?php echo $graph_ids[0]; ?>' class="btn">Edit map</a></div>
+  <?php endif ?>
   <div id="pageInfo" style="display: none;">
     <?php echo json_encode($pageInfo); ?>
   </div>

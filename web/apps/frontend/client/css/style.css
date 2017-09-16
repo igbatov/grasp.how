@@ -7,6 +7,26 @@
     font-family:'DINPro';
     src:url(DINPro.ttf);
 }
+@font-face {
+    font-family: 'Roboto';
+    src: url(Roboto-Regular.ttf);
+}
+@font-face {
+    font-family: 'Roboto-Light';
+    src: url(Roboto-Light.ttf);
+}
+@font-face {
+    font-family: 'Roboto-Medium';
+    src: url(Roboto-Medium.ttf);
+}
+@font-face {
+    font-family: 'Roboto-Bold';
+    src: url(Roboto-Bold.ttf);
+}
+@font-face {
+    font-family: 'Roboto-Thin';
+    src: url(Roboto-Thin.ttf);
+}
 body{
     font-family: arial;
 }
@@ -79,15 +99,15 @@ a {
 .header .navbar-default .navbar-nav > li > .btn{
     width: 241px;
     height: 36px;
-    border-radius: 4px;
-    background-image: linear-gradient(99deg, #8d33d2, #c96dd8);
+    border-radius: 20px;
+    background-image: linear-gradient(99deg, #a52cff, #a52cff);
     color: #fff;
     padding: 7px 15px;
     margin-top: -3px;
 }
 .header .navbar-default .navbar-nav > li > .btn:hover{
     color: #fff;
-    background-image: linear-gradient(to bottom, #fbbf61, #f05c08);
+    background-image: linear-gradient(to bottom, #fbbf61, #fbbf61);
 }
 
 .box1{
@@ -108,18 +128,19 @@ a {
 }
 .box1 h1{
     color: #fff;
-    font-size: 44px;
+    font-size: 38px;
     text-align: center;
     margin-top: -8px;
-    font-family:'SFNSDisplay';
+    font-family: 'Roboto-Light';
 }
 .box1 h1 span{
     display: block;
-    font-size: 24px;
+    font-size: 16px;
     font-weight: 300;
     letter-spacing: 1px;
     margin-top: 20px;
-    font-family:'DINPro';
+    line-height: 1.5;
+    font-family: 'Roboto-Light';
 }
 .box1 img{
     margin: 50px auto 0;

@@ -78,18 +78,18 @@
     <p>Редактировать данную карту</p>
 
     <h1>
-      Помогаем анализировать информацию
-      <span>Покажем вероятность ваших гипотез исходя из фактов и их достоверности</span>
+      Визуальные карты для анализа информации
+      <span>Показываем вероятность ваших гипотез исходя из фактов и их достоверности</span>
     </h1>
     <div id="grasp-how-501cb8beb66019e90ed669caadbe7ad4" style="height: 500px;">
-      <script src="http://www.grasp.how/embed.js?data={&quot;snaps&quot;:[{&quot;graphId&quot;:&quot;1.155&quot;,&quot;step&quot;:28,&quot;ts&quot;:1505413982593}]}"></script>
+      <script src='http://www.grasp.how/embed.js?data={"snaps":[{"graphId":"1.155","step":28,"ts":1505413982593}],"withFbShare":false,"editMapRibbon":false}'></script>
     </div>
   </div>
 </div>
 <div class="box2">
   <div class="container padding50">
     <div id="goal" class="col-sm-12 nopadding">
-      <h2>Зачем?</h2>
+      <h2>Зачем нужны визуальные карты</h2>
     </div>
     <div class="col-sm-7 noleft">
 
