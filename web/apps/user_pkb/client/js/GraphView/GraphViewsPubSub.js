@@ -101,6 +101,7 @@ GRASP.GraphViewsPubSub.prototype = {
           }
           this.graphViewList[graphId].drawGraph();
         }
+        event.setResponse(true);
         break;
 
       case "get_graph_view_label_area":

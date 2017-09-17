@@ -25,6 +25,7 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <script src="<?php echo $app->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>xor4096.min.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>Helpers.js"></script>
+<script src="<?php echo $app->getDefaultDir('js'); ?>I18n.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>TestHelpers.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>Ajax.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>UIElements.js"></script>
@@ -54,7 +55,9 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testUser.js"></script>
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testGraphRemove.js"></script>
 <!-- this runs all tests. you can comment/uncomment .js here to run exact tests exclusively -->
+<!--
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testBackend.js"></script>
+ -->
 <script src="<?php echo $app->getAppDir('js'); ?>/../test/regression/testGraphSnapClone.js"></script>
 
 </body>

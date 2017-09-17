@@ -14,6 +14,7 @@ class AppUserPkb extends App
   private $contentIdConverter;
   private $graphIdConverter;
   private $graphs;
+  private $snapBuilder;
 
   function __construct(
       Config $c, Session $s, MultiTenantDB $db,
@@ -70,7 +71,8 @@ class AppUserPkb extends App
 
     }elseif($vars[0] === 'cloneGraph'){
       if(!$this->getAuthId()){
-        return $this->redirect('/?fromUrl=/cloneGraph/'.$vars[1]);
+        return $this->redirect('/?fromUrl=/cloneGraph/'.$vars[1]
+            .(isset($vars[2]) ? '/'.$vars[2] : '').(isset($vars[3]) ? '/'.$vars[3] : ''));
       }
 
       // request must be in a form $vars[1] = graphId, $vars[2] = historyStep|null, $vars[3] = ts|null
@@ -1246,6 +1248,8 @@ class AppUserPkb extends App
       'Bayes/BayesPubSub.js',
       'Bayes/BayesCalculatorGRain.js',
       //'Bayes/BayesCalculatorTree.js',
+
+      'Starter.js',
     );
   }
 }

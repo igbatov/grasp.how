@@ -26,7 +26,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   return  addSource()
       /** first of all retrieve original graph to compare it then with cloned one */
       .then(function(){
-        return getGraphData(originalGraphId, 2);
+        return GRASP.TestHelpers.getGraphData(originalGraphId, 2);
       })
       .then(function(e){
         original = e;
@@ -52,7 +52,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                 window.location.origin+'/cloneGraph/'+originalGraphId
             );
           }).then(function(){
-            return getGraphData(cloneGraphId, 1);
+            return GRASP.TestHelpers.getGraphData(cloneGraphId, 1);
           }).then(function(e){
             var clone = e;
             // substitute nodeContentId with respect to new graphId
@@ -94,51 +94,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           });
         });
       });
-
-  function getGraphData(graphId, historyStep){
-    var graph={};
-    var nodeContent={};
-    var elementAttributes={};
-
-    var data = {};
-    data[graphId]=historyStep;
-    return GRASP.TestHelpers.fetch(
-        TEST_NAME,
-        '/getGraphsHistoryChunk',
-        data
-    )
-    .then(function(e){
-      graph.elements = JSON.parse(e)[0]['elements'];
-      graph.node_mapping = JSON.parse(e)[0]['node_mapping'];
-      return Promise.resolve();
-    })
-    .then(function(){
-      return GRASP.TestHelpers.fetch(
-          TEST_NAME,
-          '/getGraphNodeContent',
-          {"graphId":graphId,"nodeContentIds":[graphId+"-1",graphId+"-2"]}
-      );
-    })
-    .then(function(e){
-      nodeContent = JSON.parse(e);
-      return GRASP.TestHelpers.fetch(
-          TEST_NAME,
-          '/getGraphElementsAttributes',
-          {"nodes":[graphId+"-1",graphId+"-2"],"edges":[graphId+["-1"]]}
-      );
-    })
-    .then(function(e){
-      elementAttributes = JSON.parse(e);
-      return Promise.resolve();
-    })
-    .then(function(){
-      return Promise.resolve({
-        graph: graph,
-        nodeContent: nodeContent,
-        elementAttributes: elementAttributes
-      });
-    });
-  }
 
   function addSource() {
     return GRASP.TestHelpers.fetch(

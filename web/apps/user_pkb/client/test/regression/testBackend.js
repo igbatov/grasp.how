@@ -60,6 +60,7 @@ GRASP.TestHelpers.fetch(
       window.location.origin+'/clearTest');
   })
   .then(function() {
+    // we need to logout because otherwise every other request will be for removed user
     return GRASP.TestHelpers.fetch(
       TEST_NAME,
       window.location.origin + '/logout');

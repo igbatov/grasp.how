@@ -281,7 +281,7 @@ GRASP.GraphElementsContent.prototype = {
             var newNode = GRASP.clone(GRASP.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
             newNode.alternatives[0].reliability = 50;
-            newNode.alternatives[1].label = that.DEFAULT_ALTERNATIVE_LABEL_PREFIX+event.getData().element.label;
+            newNode.alternatives[1].label = that.DEFAULT_ALTERNATIVE_LABEL_PREFIX + event.getData().element.label;
             newNode.alternatives[1].reliability = 50;
 
             newNode.type = event.getData().element.type;

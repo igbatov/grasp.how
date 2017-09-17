@@ -26,10 +26,11 @@ GRASP.ModelChangeController.prototype = {
         return that.publisher.publish(['get_selected_positions', graphIds]);
 
       }).then(function(positions){
+        var showGraphPromises = [];
         for(var i in graphModels){
           if(positions[graphModels[i].getGraphId()] != 'not to be shown'){
             selectedElement.graphId = graphModels[i].getGraphId();
-            that.showGraph(graphModels[i]);
+            showGraphPromises.push(that.showGraph(graphModels[i]));
           }
         }
         // hide loader if there so no graph to show
@@ -38,6 +39,10 @@ GRASP.ModelChangeController.prototype = {
           if(positions[i] == 'not to be shown') countNoToBeShown++;
         }
         if(countNoToBeShown == GRASP.getObjectLength(positions)) that.viewManager.hideFrontalLoader();
+
+        return Promise.all(showGraphPromises);
+      }).then(function(){
+        return event.setResponse(true);
       });
 
     }else if(eventName == 'graph_model_changed'){
@@ -79,13 +84,13 @@ GRASP.ModelChangeController.prototype = {
    // console.log('=======================showGraph');
     // Choose left or right side of canvas for this GraphView
     var that = this;
-    this.publisher
+    return this.publisher
       .publish(["get_selected_positions", [graphModel.getGraphId()]])
       .then(function(graphPositions){
         var graphArea = that.viewManager.getViewContainer(graphPositions[graphModel.getGraphId()]);
 
         if (!graphModel.getIsEditable()) {
-          that._drawGraphView(graphModel, graphArea);
+          return that._drawGraphView(graphModel, graphArea);
         } else {
           // We want to fit in graphArea 2 graphs:
           // - original graphModel
@@ -99,7 +104,7 @@ GRASP.ModelChangeController.prototype = {
                 width: graphArea.width,
                 height: newNodesPanelHeight
               };
-          that._drawNodesPanel(graphModel, nnGraphArea);
+          var nodesPanelPromise = that._drawNodesPanel(graphModel, nnGraphArea);
 
           // Cut some space for bottom panel area (with drag mode switch)
           var bottomPanelHeight = GRASP.convertEm(1.5),
@@ -109,15 +114,17 @@ GRASP.ModelChangeController.prototype = {
                 width: graphArea.width,
                 height: bottomPanelHeight
               };
-          that._drawBottomPanel(graphModel.getGraphId(), bottomPanelArea);
+          var bottomPanelPromise = that._drawBottomPanel(graphModel.getGraphId(), bottomPanelArea);
 
           // Calculate area for original graph
           graphArea.height = graphArea.height - nnGraphArea.height - bottomPanelArea.height;
           graphArea.centerY = graphArea.centerY + nnGraphArea.height - bottomPanelArea.height;
           // Create data nnGraph view
-          that._drawGraphView(graphModel, graphArea);
+          var graphViewPromise = that._drawGraphView(graphModel, graphArea);
+
+          return Promise.all([nodesPanelPromise, bottomPanelPromise, graphViewPromise]);
         }
-      });
+    });
   },
 
   /**
@@ -135,7 +142,7 @@ GRASP.ModelChangeController.prototype = {
     var graphId = graphModel.getGraphId();
     for(i in graphModel.getNodes()) nodeContentIds.push(graphModel.getNodes()[i].nodeContentId);
     for(i in graphModel.getEdges()) edgeContentIds.push(graphModel.getEdges()[i].edgeContentId);
-    this.publisher
+    return this.publisher
       .publish(["get_selected_skin", graphId],
         ["get_selected_layout", graphId],
         ["get_elements_attributes", {nodes:nodeContentIds, edges:edgeContentIds}])
@@ -211,26 +218,25 @@ GRASP.ModelChangeController.prototype = {
               dragMode:'move'
           };
 
-          that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
-
-          // hide ajax loader
-          that.viewManager.hideFrontalLoader();
+        // hide ajax loader
+        that.viewManager.hideFrontalLoader();
+        return  that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
       });
   },
 
   // get data to init mini-graphView that draws just node types of the graphModel
   _drawNodesPanel: function(graphModel, graphArea){
     var that = this;
-    that.publisher.publish([
+    return that.publisher.publish([
         "get_new_nodes_graph_view_settings",
         {'graphModel':graphModel, 'graphArea':graphArea}
     ]).then(function(nnGraphViewSettings){
-      that.publisher.publish(["draw_graph_view", nnGraphViewSettings, true]);
+      return that.publisher.publish(["draw_graph_view", nnGraphViewSettings, true]);
     });
   },
 
   // draws panel with drag mode switcher
   _drawBottomPanel: function(graphId, area){
-    this.publisher.publish(["draw_graph_bottom_panel", {graphId:graphId, area:area}]);
+    return this.publisher.publish(["draw_graph_bottom_panel", {graphId:graphId, area:area}]);
   }
 };

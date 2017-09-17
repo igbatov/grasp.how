@@ -123,6 +123,13 @@ GRASP.TestHelpers = {
       return response.text();
     });
   },
+  wait: function(millisecs){
+    return new Promise(function(resolve){
+      setTimeout(function(){
+        resolve(true);
+      }, millisecs);
+    });
+  },
   exit: function(testName){
     return GRASP.TestHelpers.fetch(
         testName,
@@ -133,5 +140,80 @@ GRASP.TestHelpers = {
   },
   getFetchStat: function(){
     return this.fetchStat;
+  },
+  createNode: function(publisher, graphId, params) {
+    /**
+     * Add node content
+     */
+    var NODE_CONTENT = {};
+    return p.publish(["request_for_graph_element_content_change",
+      {
+        type: 'addNode',
+        graphId: graphId,
+        element: {label: params.label, type: params.type}
+      }
+    ]).then(function (nodeContent) {
+      NODE_CONTENT = nodeContent;
+      /**
+       * Add node with nodeContent to graph
+       */
+      return p.publish(
+          ["request_for_graph_model_change", {
+            graphId: GRAPH_ID,
+            type: 'addNode',
+            nodeContentId: nodeContent.nodeContentId
+          }]
+      )
+    }).then(function () {
+      return NODE_CONTENT;
+    });
+  },
+  getGraphData: function(graphId, historyStep){
+    var graph={};
+    var nodeContent={};
+    var nodeContentIds=[];
+    var edgeContentIds=[];
+    var elementAttributes={};
+
+    var data = {};
+    data[graphId]=historyStep;
+    return GRASP.TestHelpers.fetch(
+        TEST_NAME,
+        '/getGraphsHistoryChunk',
+        data
+    )
+    .then(function(e){
+      graph.elements = JSON.parse(e)[0]['elements'];
+      graph.node_mapping = JSON.parse(e)[0]['node_mapping'];
+      return Promise.resolve();
+    })
+    .then(function(){
+      graph.elements.nodes.forEach(function (t) { nodeContentIds.push(t.nodeContentId) });
+      graph.elements.edges.forEach(function (t) { edgeContentIds.push(t.edgeContentId) });
+      return GRASP.TestHelpers.fetch(
+          TEST_NAME,
+          '/getGraphNodeContent',
+          {"graphId":graphId,"nodeContentIds":nodeContentIds}
+      );
+    })
+    .then(function(e){
+      nodeContent = JSON.parse(e);
+      return GRASP.TestHelpers.fetch(
+          TEST_NAME,
+          '/getGraphElementsAttributes',
+          {"nodes":nodeContentIds,"edges":edgeContentIds}
+      );
+    })
+    .then(function(e){
+      elementAttributes = JSON.parse(e);
+      return Promise.resolve();
+    })
+    .then(function(){
+      return Promise.resolve({
+        graph: graph,
+        nodeContent: nodeContent,
+        elementAttributes: elementAttributes
+      });
+    });
   }
 };

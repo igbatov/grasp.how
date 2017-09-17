@@ -71,7 +71,8 @@ var Modules = {
 
   I18n: GRASP.I18n,
   UserSettings: GRASP.UserSettings,
-  GraphBottomPanel: GRASP.GraphBottomPanel
+  GraphBottomPanel: GRASP.GraphBottomPanel,
+  Starter: GRASP.Starter
 };
 
 /**
@@ -195,7 +196,9 @@ var DI = {
 
   BayesCalculator: ['Publisher'],
   BayesPubSub: ['Publisher','BayesCalculator'],
-  UserSettings: ['Publisher','I18n']
+  UserSettings: ['Publisher','I18n'],
+
+  Starter: ['Publisher']
 };
 
 // Creating and wiring modules according to DI array.

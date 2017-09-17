@@ -34,6 +34,9 @@ GRASP.I18n.prototype = {
   __: function(phrase){
     var data = [].slice.call(arguments);
     data.shift();
+    if (!this._translations) {
+      return phrase;
+    }
     var tr = this._translations[this._currentLang];
     if (typeof tr === 'undefined') return phrase;
     var trPhrase = this._translations[this._currentLang][phrase];
