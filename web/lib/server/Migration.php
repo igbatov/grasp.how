@@ -131,7 +131,7 @@ class MigrationRoller{
     if(!$this->checkMigration($authId, $migrationName, $direction)){
       if($direction == 'up') $this->mylog($migrationName." already rolled up according to migration_status table. skipping...");
       if($direction == 'down') $this->mylog($migrationName." is not rolled up according to migration_status table. skipping...");
-      return;
+      return false;
     }
 
     $m = new $migrationName($this->db, $this->config, $this->logger);
@@ -142,11 +142,13 @@ class MigrationRoller{
     }catch(Exception $e){
       $this->mylog($e->getMessage());
       $this->db->rollbackTransaction();
+      return false;
     }
     $this->db->commitTransaction();
     $timestamp = $this->getFileRevisionDate($migrationName.'.php');
     $this->updateMigrationStatus($authId, $migrationName, $direction, $timestamp);
     $this->mylog(($authId ? 'authId = '.$authId : 'general db').': successfully rolled '.$direction.' '.$migrationName);
+    return true;
   }
 
   function updateMigrationStatus($authId, $migrationName, $status, $timestamp){

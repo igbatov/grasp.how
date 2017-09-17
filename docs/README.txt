@@ -16,9 +16,17 @@ http://grasp.local/lib/client/jasmine/jasmin.php
 Запуск - http://grasp.local/apps/user_pkb/client/test/regression/run-all-tests.php
 Чистка тестовой базы перед следующим запуском - http://grasp.local/rollbackTestChanges?TEST_NAME=testBackend
 Удаление тестовой базы - http://grasp.local/clearTest?TEST_NAME=testBackend
+Все запросы в тесте идут через прокси TestableApp который имеет дополнительные API вызовы:
+createTestUser, loginTestUser, clearTest.
+Запрос createTestUser создает пользователя с отдельной базой.
+Под этим пользователем можно залогиниться с помощью loginTestUser.
+В этой базе будут проходить все тесты.
+Запрос clearTest удаляет текущего пользователя и базу.
 
 Rollup/down migrations:
 scripts/migrations.php
+Roll single migration:
+php scripts\migrations.php -m=D20170917ChangeContentHistoryGraphIdIndex -d=up
 Debug migrations:
 php -dxdebug.remote_autostart=On  -dxdebug.remote_enable=1 -dxdebug.remote_mode=req -dxdebug.remote_port=9000 -dxdebug.remote_host=grasp.local  scripts/
 migrations.php -m=D20170601AddDataColumnToSubscribeTable -d=up

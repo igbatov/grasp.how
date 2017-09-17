@@ -15,48 +15,41 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
   /** remove node with nodeId=2 */
   currentHistoryStep++;
 
-      // save changes in db, because otherwise they will be rollbacked
-      // and testCloneUpdate will not work properly
-      return GRASP.TestHelpers.fetch(
-          TEST_NAME,
-          window.location.origin+'/commitTestChanges'
-      ).then(function(){
-        // imitate removal of node and edge
-        return  GRASP.TestHelpers.fetch(
-            TEST_NAME,
-            '/addGraphHistoryItem',
-            {
-              "graphId":cloneGraphId,
-              "step":currentHistoryStep,
-              "timestamp":Math.round((new Date).getTime() / 1000),
-              "elements":{
-                "nodes":{
-                  "0":{
-                    "id":0,
-                    "nodeContentId":cloneGraphId+"-1"
-                  }
-                },
-                "edges":{
+  // imitate removal of node and edge
+  return  GRASP.TestHelpers.fetch(
+      TEST_NAME,
+      '/addGraphHistoryItem',
+      {
+        "graphId":cloneGraphId,
+        "step":currentHistoryStep,
+        "timestamp":Math.round((new Date).getTime() / 1000),
+        "elements":{
+          "nodes":{
+            "0":{
+              "id":0,
+              "nodeContentId":cloneGraphId+"-1"
+            }
+          },
+          "edges":{
 
-                }
-              },
-              "node_mapping":{
-                "area":{
-                  "id":"graphViews",
-                  "centerX":187,
-                  "centerY":349,
-                  "width":375,
-                  "height":571
-                },
-                "mapping":{
-                  "0":{
-                    "id":0,
-                    "x":157,
-                    "y":398
-                  }
-                }
-              }
-            });
+          }
+        },
+        "node_mapping":{
+          "area":{
+            "id":"graphViews",
+            "centerX":187,
+            "centerY":349,
+            "width":375,
+            "height":571
+          },
+          "mapping":{
+            "0":{
+              "id":0,
+              "x":157,
+              "y":398
+            }
+          }
+        }
       })
       .then(function(e){
         /** change nodeId=1 text */

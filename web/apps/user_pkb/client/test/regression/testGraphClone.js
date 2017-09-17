@@ -33,14 +33,6 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         return Promise.resolve();
       })
       .then(function(){
-        // save changes in db, because otherwise they will be rollbacked
-        // and there will be nothing to clone
-        return GRASP.TestHelpers.fetch(
-          TEST_NAME,
-          window.location.origin+'/commitTestChanges'
-        );
-      })
-      .then(function(){
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             window.location.origin+'/createTestUser'

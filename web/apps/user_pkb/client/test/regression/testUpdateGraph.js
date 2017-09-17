@@ -3,7 +3,7 @@ SUBTEST_NAME='testUpdateGraph';
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 /**
- * Test publisher finder
+ * Test update of graph mapping, name and position
  */
 // test run
 GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(){

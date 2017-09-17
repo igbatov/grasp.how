@@ -2,7 +2,7 @@
 
 include("TextDiff.php");
 include("GRainQuerier.php");
-include("../../../lib/server/Snap.php");
+include(__DIR__."/../../../lib/server/NodeContentSnapBuilder.php");
 
 /**
  * Controller - entry point for all requests
@@ -23,6 +23,7 @@ class AppUserPkb extends App
     $this->contentIdConverter = new ContentIdConverter();
     $this->graphIdConverter = new GraphIdConverter($this->logger);
     $this->graphs = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
+    $this->snapBuilder = new NodeContentSnapBuilder($this->db);
   }
 
   public function showView(){
@@ -62,6 +63,10 @@ class AppUserPkb extends App
       if($vars[2] != $this->getAdminSecret()) return $this->showRawData('wrong secret!');
       var_dump($this->graphs->removeGraph($vars[1]));
       return $this->showRawData();
+
+    }elseif($vars[0] === 'createNodeContentSnapshots'){
+      $timestamp = $this->snapBuilder->createSnapshots($this->getAuthId());
+      return $this->showRawData(json_encode(['timestamp'=>$timestamp]));
 
     }elseif($vars[0] === 'cloneGraph'){
       if(!$this->getAuthId()){

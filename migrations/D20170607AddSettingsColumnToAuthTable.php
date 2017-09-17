@@ -2,7 +2,7 @@
 
 
 /**
- * up() and down() will be executed for EVER user ($authId argument)
+ * up() and down() will be executed for EVERY user ($authId argument)
  * and general DB ($authId = NULL)
  */
 class D20170607AddSettingsColumnToAuthTable extends Migration

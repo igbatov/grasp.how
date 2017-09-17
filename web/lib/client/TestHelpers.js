@@ -104,7 +104,7 @@ GRASP.TestHelpers = {
   },
   fetch: function(testName, url, obj){
     if (typeof this.fetchStat[url] === 'undefined') {
-      this.fetchStat[url] = 0;
+      this.fetchStat[url] = 1;
     } else {
       this.fetchStat[url]++;
     }

@@ -152,7 +152,7 @@ class TestableApp{
     };
 
     /**
-     * TODO: It ois better for DO_ROLLBACK value to be in a request.
+     * TODO: It is better for DO_ROLLBACK value to be in a request.
      * Something like ?TEST={"name":"testBackend","DO_ROLLBACK":false}
      */
     if (self::DO_ROLLBACK) {

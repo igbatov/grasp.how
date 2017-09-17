@@ -2,7 +2,7 @@
 
 
 /**
- * up() and down() will be executed for EVER user and NULL (= general DB)
+ * up() and down() will be executed for EVERY user and NULL (= general DB)
  */
 class D20170601AddDataColumnToSubscribeTable extends Migration
 {
