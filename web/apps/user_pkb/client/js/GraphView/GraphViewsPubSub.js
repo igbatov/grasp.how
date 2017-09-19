@@ -45,6 +45,7 @@ GRASP.GraphViewsPubSub.prototype = {
         for(var i in this.graphViewList){
           this.graphViewList[i].hide();
         }
+        event.setResponse(true);
         break;
 
       case "update_graph_view_decoration":
@@ -146,6 +147,7 @@ GRASP.GraphViewsPubSub.prototype = {
         if (this.bottomPanel){
           // already created, just set switch in correct position
           this._setBottomPanelSwitchClass(this.dragMode);
+          event.setResponse(true);
           return;
         }
         this.bottomPanel = {};
@@ -180,6 +182,7 @@ GRASP.GraphViewsPubSub.prototype = {
           that._setBottomPanelSwitchClass(newDragMode);
           that.publisher.publish(['set_drag_mode', {drag_mode:newDragMode}, true]);
         });
+        event.setResponse(true);
         break;
 
       default:

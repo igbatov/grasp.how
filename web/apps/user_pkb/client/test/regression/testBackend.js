@@ -2,6 +2,10 @@
 TEST_NAME='testBackend';
 DEBUG_MODE = true;
 
+// register test (to be force all tests run one, by one, not in parallel)
+
+
+
 var p = Modules['Publisher'];
 if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
 

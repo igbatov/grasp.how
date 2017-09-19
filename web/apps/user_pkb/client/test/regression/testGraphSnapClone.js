@@ -67,9 +67,48 @@ GRASP.TestHelpers.fetch(
         text: 'text 1'
       }]
   );
+}).then(function(nodeContent){
+  /**
+   * Wait for all events to be resolved
+   */
+  var allEvents = p.getAllEvents();
+  return Modules['Promise'].when.apply(Modules['Promise'], allEvents);
+
 }).then(function(){
   /**
    * Create snapshot of node contents
+   */
+  return GRASP.TestHelpers.fetch(
+      TEST_NAME,
+      window.location.origin+'/createNodeContentSnapshots');
+}).then(function(e){
+  /**
+   * Wait for sometime
+   */
+  return GRASP.TestHelpers.wait(1000);
+}).then(function(){
+  /**
+   * Change node text once again
+   */
+  return p.publish(
+      ["request_for_graph_element_content_change", {
+        graphId: GRAPH_ID,
+        type: 'updateNodeText',
+        nodeContentId: NODE_CONTENT1.nodeContentId,
+        node_alternative_id: NODE_CONTENT1.active_alternative_id,
+        text: 'text 2'
+      }]
+  );
+}).then(function(nodeContent){
+  /**
+   * Wait for all events to be resolved
+   */
+  var allEvents = p.getAllEvents();
+  return Modules['Promise'].when.apply(Modules['Promise'], allEvents);
+
+}).then(function(){
+  /**
+   * Create second snapshot of node contents
    */
   return GRASP.TestHelpers.fetch(
       TEST_NAME,
@@ -92,7 +131,7 @@ GRASP.TestHelpers.fetch(
   );
 }).then(function(nodeContent){
     /**
-     * Change node 1 text
+     * Change node 1 text for the third time
      */
     return p.publish(
         ["request_for_graph_element_content_change", {
@@ -100,9 +139,16 @@ GRASP.TestHelpers.fetch(
           type: 'updateNodeText',
           nodeContentId: NODE_CONTENT1.nodeContentId,
           node_alternative_id: NODE_CONTENT1.active_alternative_id,
-          text: 'text 2'
+          text: 'text 3'
         }]
     );
+}).then(function(nodeContent){
+  /**
+   * Wait for all events to be resolved
+   */
+  var allEvents = p.getAllEvents();
+  return Modules['Promise'].when.apply(Modules['Promise'], allEvents);
+
 }).then(function(){
   /**
    * Create clone of graph snapshot
@@ -111,6 +157,7 @@ GRASP.TestHelpers.fetch(
       TEST_NAME,
       window.location.origin+'/cloneGraph/'+GRAPH_ID+'/2/'+SNAPSHOT_TIMESTAMP
   );
+
 }).then(function(){
   /**
    * Get first step of the cloned graph
@@ -122,19 +169,36 @@ GRASP.TestHelpers.fetch(
 
 }).then(function(e){
   var clone = e;
-
+  /**
+   * Check that edges is empty and nodes have only one element (it is history step 2, not 3)
+   */
+  GRASP.TestHelpers.cmp('edges is empty', clone.graph.elements.edges, []);
+  GRASP.TestHelpers.cmp(
+      'nodes contains one element',
+      clone.graph.elements.nodes,
+      [{
+        id: 0,
+        nodeContentId: new GRASP.TestHelpers.likeRegexp('.+')
+      }]
+  );
+  var nodeContentId = clone.graph.elements.nodes[0].nodeContentId;
+  GRASP.TestHelpers.cmp(
+      'node content contains text version closest to but not greater than snap timestamp',
+      clone.nodeContent[nodeContentId].alternatives[0].text,
+      'text 2'
+  );
 }).then(function(){
   /**
    * Remove test user and print test statistic
    */
   var allEvents = p.getAllEvents();
   Modules['Promise'].when.apply(Modules['Promise'], allEvents)
-      // .then(function(){
-      //   console.log('clearing test DB');
-      //   return GRASP.TestHelpers.fetch(
-      //       TEST_NAME,
-      //       window.location.origin+'/clearTest');
-      // })
+      .then(function(){
+        console.log('clearing test DB');
+        return GRASP.TestHelpers.fetch(
+            TEST_NAME,
+            window.location.origin+'/clearTest');
+      })
       .then(function() {
         // we need to logout because otherwise every other request will be for removed user
         return GRASP.TestHelpers.fetch(

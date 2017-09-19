@@ -84,7 +84,8 @@ class AppUserPkb extends App
       }
       $history_step = isset($vars[2]) ? $vars[2] : null;
       if(!$history_step) $history_step = $this->getGraphLastStep($fromGraphId);
-      $new_graph_id = $this->graphs->cloneGraph($fromGraphId, $history_step, $this->getAuthId());
+      $timestamp = isset($vars[3]) ? $vars[3] : null;
+      $new_graph_id = $this->graphs->cloneGraph($fromGraphId, $history_step, $timestamp, $this->getAuthId());
       $user_graph_ids = $this->getGraphIds($this->getAuthId());
       $this->graphs->changeGraphPosition($new_graph_id, 'leftGraphView', $user_graph_ids);
       return $this->redirect('/');

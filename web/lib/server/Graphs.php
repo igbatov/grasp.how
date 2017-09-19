@@ -11,7 +11,12 @@ class Graphs {
   private $node_alternative_attribute_names;
   private $edge_attribute_names;
 
-  public function __construct(MultiTenantDB $db, ContentIdConverter $contentIdConverter, GraphIdConverter $graphIdConverter, Logger $logger){
+  public function __construct(
+      MultiTenantDB $db,
+      ContentIdConverter $contentIdConverter,
+      GraphIdConverter $graphIdConverter,
+      Logger $logger
+  ){
     $this->db = $db;
     $this->logger = $logger;
     $this->contentIdConverter = $contentIdConverter;
@@ -767,6 +772,26 @@ class Graphs {
     return $newP;
   }
 
+  private function getInsertQuery(
+      $row,
+      $new_graph_id,
+      $node_alternative_attr_names_without_time,
+      $localGraphId,
+      $fromAuthId
+  ){
+    $q = "INSERT INTO node_content SET graph_id=".$new_graph_id.", "
+        ."local_content_id=".$row['local_content_id'].", "
+        ."alternative_id=".$row['alternative_id'].", "
+        .$this->getQueryPart($this->node_attribute_names, $row).", "
+        .$this->getQueryPart($node_alternative_attr_names_without_time, $row).", "
+        ." `text`='".$this->db->escape($row['text'])."', "
+        ." cloned_from_graph_id='".$localGraphId."', "
+        ." cloned_from_local_content_id='".$row['local_content_id']."', "
+        ." cloned_from_auth_id='".$fromAuthId."', "
+        ." updated_at=NOW(), created_at=NOW()";
+    return $q;
+  }
+
   private function getQueryPart($names, $values){
     $str = "";
     foreach ($names as $name) {
@@ -781,12 +806,13 @@ class Graphs {
    * simplify process of cloning from clones itself
    * @param $graph_id - original graph id in a global format
    * @param $graph_history_step - step in history of original graph
+   * @param $ts - timestamp that determine node content version in node_content_history
    * @param $auth_id - user who clones graph
    * @return array|bool|int|mysqli_result|string
    * @throws Exception
    *
    */
-  public function cloneGraph($graph_id, $graph_history_step, $auth_id){
+  public function cloneGraph($graph_id, $graph_history_step, $ts, $auth_id){
     if(!$this->graphIdConverter->isGraphIdGlobal($graph_id)){
       throw new Exception("Error in ".__CLASS__."::".__METHOD__.": graph_id must be in a global format, but got ".$graph_id);
     }
@@ -827,29 +853,7 @@ class Graphs {
     $this->logger->log($q);
     $this->db->exec($auth_id, $q);
 
-    // Copy node_contents
-    $node_alternative_attr_names_without_time = $this->node_alternative_attribute_names;
-    unset($node_alternative_attr_names_without_time[array_search('created_at', $this->node_alternative_attribute_names)]);
-    unset($node_alternative_attr_names_without_time[array_search('updated_at', $this->node_alternative_attribute_names)]);
-    $q ="SELECT id, local_content_id, alternative_id,	"
-        .implode(',', $this->node_attribute_names).", "
-        .implode(',', $node_alternative_attr_names_without_time)
-        .", text"
-        ." FROM node_content WHERE graph_id = '".$localGraphId."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
-    $rows = $this->db->exec($fromAuthId, $q);
-    foreach ($rows as $row) {
-      $q = "INSERT INTO node_content SET graph_id=".$new_graph_id.","
-          ."local_content_id=".$row['local_content_id'].","
-          ."alternative_id=".$row['alternative_id'].", "
-          .$this->getQueryPart($this->node_attribute_names, $row).","
-          .$this->getQueryPart($node_alternative_attr_names_without_time, $row).","
-          ." `text`='".$this->db->escape($row['text'])."',"
-          ." cloned_from_graph_id='".$localGraphId."',"
-          ." cloned_from_local_content_id='".$row['local_content_id']."',"
-          ." cloned_from_auth_id='".$fromAuthId."',"
-          ." updated_at=NOW(), created_at=NOW()";
-      $this->db->exec($auth_id, $q);
-    }
+    $this->copyNodeContents($fromAuthId, $auth_id, $new_graph_id, $localGraphId, $local_content_ids, $ts);
 
     // transform conditional probabilities to respect new nodeContentIds
     $q = "SELECT local_content_id, alternative_id, p FROM node_content WHERE graph_id = '".$new_graph_id."'";
@@ -960,6 +964,59 @@ class Graphs {
     $this->db->exec($fromAuthId, $q);
 
     return $this->graphIdConverter->createGlobalGraphId($auth_id, $new_graph_id);
+  }
+
+  public function copyNodeContents($fromAuthId, $auth_id, $new_graph_id, $localGraphId, $local_content_ids, $ts)
+  {
+    $node_alternative_attr_names_without_time = $this->node_alternative_attribute_names;
+    unset($node_alternative_attr_names_without_time[array_search('created_at', $this->node_alternative_attribute_names)]);
+    unset($node_alternative_attr_names_without_time[array_search('updated_at', $this->node_alternative_attribute_names)]);
+
+    // if timestamp is set copy node_contents from node_content_history
+    $historyNodeContentIds = [];
+    if ($ts) {
+      $subq = "SELECT MAX(id) FROM node_content_history "
+          ."WHERE graph_id='".$localGraphId."' AND snap_timestamp <= '".$ts."' GROUP BY local_content_id, alternative_id";
+      $q = "SELECT * FROM node_content_history WHERE id IN (".$subq.")";
+      $rows = $this->db->exec($fromAuthId, $q);
+      foreach ($rows as $row) {
+        $historyNodeContentIds[] = $row['local_content_id'];
+        $this->db->exec(
+            $auth_id,
+            $this->getInsertQuery(
+                $row,
+                $new_graph_id,
+                $node_alternative_attr_names_without_time,
+                $localGraphId,
+                $fromAuthId
+            )
+        );
+      }
+    }
+
+    // there maybe still exists some nodeContents that is not in history yet - copy them from node_content table
+    $rest_local_content_ids = array_diff($local_content_ids, $historyNodeContentIds);
+    if (!empty($rest_local_content_ids)) {
+      $q ="SELECT id, local_content_id, alternative_id,	"
+          .implode(',', $this->node_attribute_names).", "
+          .implode(',', $node_alternative_attr_names_without_time)
+          .", text"
+          ." FROM node_content "
+          ."WHERE graph_id = '".$localGraphId."' AND local_content_id IN ('".implode("','",$rest_local_content_ids)."')";
+      $rows = $this->db->exec($fromAuthId, $q);
+      foreach ($rows as $row) {
+        $this->db->exec(
+            $auth_id,
+            $this->getInsertQuery(
+                $row,
+                $new_graph_id,
+                $node_alternative_attr_names_without_time,
+                $localGraphId,
+                $fromAuthId
+            )
+        );
+      }
+    }
   }
 
   /**

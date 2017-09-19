@@ -137,7 +137,7 @@ class MigrationRoller{
     $m = new $migrationName($this->db, $this->config, $this->logger);
     $this->db->startTransaction();
     try{
-      $this->mylog('try rolling '.$direction.' '.$migrationName.'...');
+      $this->mylog('try rolling '.$direction.' '.$migrationName.' on authId = '.$authId.'...');
       $m->$direction($authId);
     }catch(Exception $e){
       $this->mylog($e->getMessage());
