@@ -49,6 +49,7 @@ foreach ($authIds as $authId) {
     }
 
     $revdate = $roller->getRevisionDate();
+    echo 'current revdate = '.$revdate."\n";
     $migrationDates = [];
     foreach ($files as $file){
       $timestamp = $roller->getFileRevisionDate($file);

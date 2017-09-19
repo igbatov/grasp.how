@@ -68,7 +68,7 @@ class MigrationRoller{
     asort($migrations);
     $rolled_migrations = $this->getRolledMigrationNames($authId);
     foreach ($migrations as $migration => $ts) {
-      if($ts<=$timestamp && !in_array($migration, $rolled_migrations)){
+    if((int)$ts<=(int)$timestamp && !in_array($migration, $rolled_migrations)){
         $this->roll($authId, $migration, 'up');
       }
     }
