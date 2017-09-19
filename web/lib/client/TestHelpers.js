@@ -159,7 +159,7 @@ GRASP.TestHelpers = {
        */
       return p.publish(
           ["request_for_graph_model_change", {
-            graphId: GRAPH_ID,
+            graphId: graphId,
             type: 'addNode',
             nodeContentId: nodeContent.nodeContentId
           }]
@@ -215,5 +215,19 @@ GRASP.TestHelpers = {
         elementAttributes: elementAttributes
       });
     });
+  },
+  register: function (test) {
+    if(!GRASP.implements(test, GRASP.TestHelpers.iTest)) {
+      GRASP.errorHandler.throwError('test must implement GRASP.iTest');
+    }
+    GRASP.TestHelpers.curTestPromise = GRASP.TestHelpers.curTestPromise
+        .then(function(){
+          return new Promise(test.run);
+        });
+  },
+  curTestPromise: Promise.resolve(),
+  iTest: {
+    name: String(),
+    run: function (next) {}
   }
 };

@@ -6,7 +6,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test clone graph update
  */
 // test run
-GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
   var diffGraphId = "diff_"+originalGraphId+"_"+cloneGraphId;
   var newNodeContentId = null;
   var newEdgeContentId = null;
@@ -175,7 +175,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         /** login under user #1 */
         return GRASP.TestHelpers.fetch(
           TEST_NAME,
-          window.location.origin+'/loginTestUser?username='+USERNAME
+          window.location.origin+'/loginTestUser?username='+GLOBALS.USERNAME
         );
       })
       .then(function(){

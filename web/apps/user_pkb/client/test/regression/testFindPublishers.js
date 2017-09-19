@@ -6,7 +6,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test publisher finder
  */
 // test run
-GRASP[TEST_NAME][SUBTEST_NAME] = function testFindPublishers(){
+GRASP[TEST_NAME][SUBTEST_NAME] = function testFindPublishers(GLOBALS){
   return  GRASP.TestHelpers.fetch(
         TEST_NAME,
         '/findPublishers',

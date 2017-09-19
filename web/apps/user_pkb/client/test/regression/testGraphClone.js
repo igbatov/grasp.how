@@ -15,11 +15,11 @@ var cloneUserName;
 var cloneUserId;
 
 // test run
-GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
-  originalGraphId = GRAPH_ID;
+GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
+  originalGraphId = GLOBALS.GRAPH_ID;
   cloneGraphId = null;
-  originalUserName = USERNAME;
-  originalUserId = USER_ID;
+  originalUserName = GLOBALS.USERNAME;
+  originalUserId = GLOBALS.USER_ID;
   cloneUserName = null;
   cloneUserId = null;
   var original = {};

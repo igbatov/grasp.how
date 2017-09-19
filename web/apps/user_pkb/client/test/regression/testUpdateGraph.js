@@ -6,8 +6,8 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test update of graph mapping, name and position
  */
 // test run
-GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(){
-  var graphId = GRAPH_ID;
+GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(GLOBALS){
+  var graphId = GLOBALS.GRAPH_ID;
   var historyStep = 2;
   var nodeMapping = {
     "area":{

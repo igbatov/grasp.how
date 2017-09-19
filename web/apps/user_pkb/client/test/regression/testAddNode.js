@@ -6,12 +6,12 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test graph adding two nodes and edge between them
  */
 // test run
-GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+GRASP[TEST_NAME][SUBTEST_NAME] = function testAddNode(GLOBALS){
   return  GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/updateGraphElementContent',
       {
-        "graphId": GRAPH_ID,
+        "graphId": GLOBALS.GRAPH_ID,
         "type": "addNode",
         "node": {
           "nodeContentId": "",
@@ -43,7 +43,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         GRASP.TestHelpers.cmp(
             'response from addNode should have nodeContentId',
             response['nodeContentId'],
-            GRAPH_ID+'-1'
+            GLOBALS.GRAPH_ID+'-1'
         );
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
@@ -53,7 +53,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       })
       .then(function(e){
         var expected = {nodes:{}, edges:{}};
-        expected['nodes'][GRAPH_ID+"-1"] = {
+        expected['nodes'][GLOBALS.GRAPH_ID+"-1"] = {
           "type":"fact",
           "importance":"50",
           "has_icon":"0",

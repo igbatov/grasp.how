@@ -6,12 +6,12 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test graph adding two nodes and edge between them
  */
 // test run
-GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
   return GRASP.TestHelpers.fetch(
       TEST_NAME,
       '/updateGraphElementContent',
       {
-        "graphId":GRAPH_ID,
+        "graphId":GLOBALS.GRAPH_ID,
         "type":"addNode",
         "node":{
           "nodeContentId":"",
@@ -43,7 +43,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             TEST_NAME,
             '/updateGraphElementContent',
             {
-              "graphId":GRAPH_ID,
+              "graphId":GLOBALS.GRAPH_ID,
               "type":"addEdge",
               "edge":{
                 "edgeContentId":"",
@@ -57,12 +57,12 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/getGraphElementsAttributes',
-            {'nodes':[GRAPH_ID + "-1", GRAPH_ID + "-2"],'edges':[GRAPH_ID + "-1"]}
+            {'nodes':[GLOBALS.GRAPH_ID + "-1", GLOBALS.GRAPH_ID + "-2"],'edges':[GLOBALS.GRAPH_ID + "-1"]}
         );
       })
       .then(function(e){
         var expected = {nodes:{},edges:{}};
-        expected['nodes'][GRAPH_ID + '-1'] = {
+        expected['nodes'][GLOBALS.GRAPH_ID + '-1'] = {
           "type":"fact",
           "importance":"50",
           "has_icon":"0",
@@ -85,7 +85,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             }
           ]
         };
-        expected['nodes'][GRAPH_ID + '-2'] = {
+        expected['nodes'][GLOBALS.GRAPH_ID + '-2'] = {
           "type":"proposition",
           "importance":"50",
           "has_icon":"0",
@@ -108,8 +108,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
             }
           ]
         };
-        expected['edges'][GRAPH_ID + '-1'] = {
-          "edgeContentId":GRAPH_ID+"-1",
+        expected['edges'][GLOBALS.GRAPH_ID + '-1'] = {
+          "edgeContentId":GLOBALS.GRAPH_ID+"-1",
           "type":"causal",
           "label":"causal",
           "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
@@ -127,18 +127,18 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           TEST_NAME,
           '/addGraphHistoryItem',
           {
-            "graphId": GRAPH_ID,
+            "graphId": GLOBALS.GRAPH_ID,
             "step": 2,
             "timestamp": Math.round((new Date).getTime() / 1000),
             "elements": {
               "nodes": {
                 "0": {
                   "id": 0,
-                  "nodeContentId": GRAPH_ID + "-1"
+                  "nodeContentId": GLOBALS.GRAPH_ID + "-1"
                 },
                 "1": {
                   "id": 1,
-                  "nodeContentId": GRAPH_ID + "-2"
+                  "nodeContentId": GLOBALS.GRAPH_ID + "-2"
                 }
               },
               "edges": {
@@ -146,7 +146,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                   "id": 0,
                   "source": 1,
                   "target": 0,
-                  "edgeContentId": GRAPH_ID + "-1"
+                  "edgeContentId": GLOBALS.GRAPH_ID + "-1"
                 }
               }
             },
@@ -176,7 +176,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       })
       .then(function(e){
         var data = {};
-        data[GRAPH_ID]=2;
+        data[GLOBALS.GRAPH_ID] = 2;
         return GRASP.TestHelpers.fetch(
             TEST_NAME,
             '/getGraphsHistoryChunk',
@@ -189,18 +189,18 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
           JSON.parse(e),
           [
             {
-              "graphId":GRAPH_ID,
+              "graphId":GLOBALS.GRAPH_ID,
               "step":2,
               "timestamp":GRASP.TestHelpers.likeTimestamp(),
               "elements":{
                 "nodes":[
                   {
                     "id":0,
-                    "nodeContentId":GRAPH_ID+"-1"
+                    "nodeContentId":GLOBALS.GRAPH_ID+"-1"
                   },
                   {
                     "id":1,
-                    "nodeContentId":GRAPH_ID+"-2"
+                    "nodeContentId":GLOBALS.GRAPH_ID+"-2"
                   }
                 ],
                 "edges":[
@@ -208,7 +208,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
                     "id":0,
                     "source":1,
                     "target":0,
-                    "edgeContentId":GRAPH_ID+"-1"
+                    "edgeContentId":GLOBALS.GRAPH_ID+"-1"
                   }
                 ]
               },

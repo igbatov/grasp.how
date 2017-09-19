@@ -7,7 +7,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  */
 // test run
 (function(SUBTEST_NAME){
-  GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(){
+  GRASP[TEST_NAME][SUBTEST_NAME] = function testSources(GLOBALS){
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
         '/findSources',

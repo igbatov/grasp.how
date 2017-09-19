@@ -57,6 +57,9 @@ GRASP.isDOMElement = function(o) {
  * @return {Boolean} - true if objToCheck implements interface(s) and false otherwise
  */
 GRASP.implements = function(objToCheck, iFaces){
+  if (GRASP.typeof(objToCheck) !== 'object') {
+    return false;
+  }
   for(var i = 1, l = arguments.length; i < l; i++){
     var iFace = arguments[i];
     for(var m in iFace){

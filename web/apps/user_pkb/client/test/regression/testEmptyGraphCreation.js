@@ -7,7 +7,7 @@ if (typeof(GRASP[TEST_NAME]) == 'undefined') GRASP[TEST_NAME] = {};
  * Test empty graph creation
  */
 // test run function
-GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
+GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
   var testGraphId = null;
   return p.publish(['create_new_graph', {name:'testGraph'}])
   /**
@@ -18,10 +18,10 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
       })
       .then(function(e){
         testGraphId = Math.max.apply(null, GRASP.getObjectKeys(e))+"";
-        GRAPH_ID = testGraphId;
+        GLOBALS.GRAPH_ID = testGraphId;
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_model_settings',
-            e[GRAPH_ID],
+            e[GLOBALS.GRAPH_ID],
             getData('repository_get_graphs_model_settings')
         );
       })
@@ -29,12 +29,12 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
        *  Check that repository_get_graphs_history_timeline is OK
        */
       .then(function(){
-        return p.publish(['repository_get_graphs_history_timeline',{ids:[GRAPH_ID]}]);
+        return p.publish(['repository_get_graphs_history_timeline',{ids:[GLOBALS.GRAPH_ID]}]);
       })
       .then(function(e){
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_history_timeline',
-            e[GRAPH_ID],
+            e[GLOBALS.GRAPH_ID],
             getData('repository_get_graphs_history_timeline')
         );
       })
@@ -42,14 +42,14 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(){
        *  Check that repository_get_graphs_model_elements is OK
        */
       .then(function(){
-        var data = {}; data[GRAPH_ID]=1;
+        var data = {}; data[GLOBALS.GRAPH_ID]=1;
         return p.publish(['repository_get_graphs_model_elements',data]);
       })
       .then(function(e){
         GRASP.TestHelpers.cmp(
             'repository_get_graphs_model_elements',
             e ,
-           getData('repository_get_graphs_model_elements', {graphId:GRAPH_ID})
+           getData('repository_get_graphs_model_elements', {graphId:GLOBALS.GRAPH_ID})
         );
       });
   function getData(name, params) {
