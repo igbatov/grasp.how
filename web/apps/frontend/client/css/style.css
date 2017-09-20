@@ -155,7 +155,7 @@ a {
     padding:0 128px;
 }
 .box2 h2{
-    font-size: 48px;
+    font-size: 38px;
     font-weight: 300;
     line-height: 1.42;
     text-align: left;
@@ -163,10 +163,9 @@ a {
     margin-top: 0;
     margin-bottom: 0;
     font-family:'DINPro';
-
 }
 .box2 .noleft p{
-    font-size: 24px;
+    font-size: 18px;
     line-height: 1.5;
     text-align: left;
     color: #000;
@@ -181,7 +180,6 @@ a {
     font-family:'DINPro';
     margin-top: 15px;
     position: relative;
-
 }
 .box2 .noright p img{
     position: absolute;
@@ -199,7 +197,7 @@ a {
     margin-top: 40px;
 }
 .box2 .noright .last span{
-    font-size: 21px;
+    font-size: 18px;
     line-height: 1.33;
     display: block;
     color: #000000;
@@ -210,7 +208,7 @@ a {
     padding:50px 0;
 }
 .box3 h1{
-    font-size: 48px;
+    font-size: 38px;
     line-height: 1.42;
     color: #000;
     margin-top: 0;
@@ -222,7 +220,7 @@ a {
     margin-top: 50px;
 }
 .box3 .item .head{
-    font-size: 33px;
+    font-size: 24px;
     line-height: 1.09;
     color: #343953;
     font-family:'DINPro';
@@ -282,7 +280,7 @@ a {
 }
 .box4 h1{
     color: #000;
-    font-size: 45px;
+    font-size: 38px;
     font-weight: 300;
     line-height: 1.51;
     margin-bottom: 0px;

@@ -179,4 +179,13 @@ class EmbGraph{
 
     return $decorated_nodes;
   }
+
+  public function snapsToFilename($snaps)
+  {
+    $filename = '';
+    foreach ($snaps as $snap) {
+      $filename .= implode('_', $snap);
+    }
+    return $filename;
+  }
 }

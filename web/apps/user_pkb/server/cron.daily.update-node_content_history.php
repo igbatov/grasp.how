@@ -1,5 +1,5 @@
 <?php
-include(__DIR__."../../../lib/server/NodeContentSnapBuilder.php");
+include_once(__DIR__."../../../lib/server/NodeContentSnapBuilder.php");
 /**
  * This file is running by script/cron.php
  *

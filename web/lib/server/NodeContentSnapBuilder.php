@@ -15,15 +15,30 @@ class NodeContentSnapBuilder{
    * from $updatedInPeriod till now
    * @param $authId
    * @param $updatedInPeriod - in a form that strtotime understands
+   * @param $localGraphId
+   * @param $timestamp - unix timestamp epoch
    * @return int
    */
-  public function createSnapshots($authId, $updatedInPeriod=null)
+  public function createSnapshots($authId, $updatedInPeriod=null, $localGraphId=null, $timestamp=null)
   {
-    $timestamp = time();
-    $q = 'SELECT * FROM node_content';
-    if ($updatedInPeriod) {
-      $q .= ' WHERE updated_at LIKE "'.date('Y-m-d', strtotime($updatedInPeriod)).' %" ';
+    if (!$timestamp) {
+      $timestamp = time();
     }
+
+    $q = 'SELECT * FROM node_content';
+    $where = '';
+    if ($updatedInPeriod) {
+      $where = ' updated_at LIKE "'.date('Y-m-d', strtotime($updatedInPeriod)).' %" ';
+    }
+
+    if (!empty($localGraphId)) {
+      $where .= ($where ? ' AND ' : '')." graph_id = '".$localGraphId."'";
+    }
+
+    if ($where) {
+      $q .= ' WHERE '.$where;
+    }
+
     foreach($this->db->exec($authId, $q) as $row){
       try{
         $q = $this->getInsertQuery($row, $timestamp);
@@ -47,8 +62,8 @@ class NodeContentSnapBuilder{
         .'local_content_id = "'.$row['local_content_id'].'", '
         .'alternative_id = "'.$row['alternative_id'].'", '
         .'active_alternative_id = "'.$row['active_alternative_id'].'", '
-        .'p = "'.$row['p'].'", '
-        .'stickers = "'.$row['stickers'].'", '
+        .'p = "'.$this->db->escape($row['p']).'", '
+        .'stickers = "'.$this->db->escape($row['stickers']).'", '
         .'datetime = "'.$row['updated_at'].'", '
         .'type = "'.$row['type'].'", '
         .'reliability = "'.$row['reliability'].'", '
@@ -57,7 +72,7 @@ class NodeContentSnapBuilder{
         .'`text` = "'.$this->db->escape($row['text']).'", '
         .'has_icon = "'.$row['has_icon'].'", '
         .'created_at = "'.date('Y-m-d H:i:s', time()).'", '
-        .'snap_timestamp = "'.$timestamp.'"';
+        .'snap_timestamp = "'.$this->db->escape($timestamp).'"';
 
     return $q;
   }

@@ -1,12 +1,14 @@
 <?php
 
-include("EmbGraph.php");
-$p = dirname(__FILE__)."/../../../../scripts/graphImageGenerator/GraphImageGenerator.php";
-include($p);
+include_once("EmbGraph.php");
+include_once(dirname(__FILE__)."/../../../../scripts/graphImageGenerator/GraphImageGenerator.php");
+include_once(dirname(__FILE__)."/../../../../web/lib/server/NodeContentSnapBuilder.php");
 
 class AppFrontend extends App{
   private $contentIdConverter;
   private $graphIdConverter;
+  private $snapBuilder;
+
   function __construct(
       Config $c, Session $s, MultiTenantDB $db,
       Logger $logger, I18N $i18n, OAuthUser $oauth=null
@@ -14,6 +16,7 @@ class AppFrontend extends App{
     parent::__construct($c, $s, $db, $logger, $i18n, $oauth);
     $this->contentIdConverter = new ContentIdConverter();
     $this->graphIdConverter = new GraphIdConverter($this->logger);
+    $this->snapBuilder = new NodeContentSnapBuilder($db);
   }
 
   public function showView(){
@@ -64,8 +67,19 @@ class AppFrontend extends App{
 
       case 'show':
       case 'embed':
-        $hash_source = var_export($_SERVER['REQUEST_URI'], true);
-        $hash = md5($hash_source);
+        // sanity check
+        if(strlen($vars[1])>255) exit('Too many snaps');
+
+        $snaps = json_decode(urldecode($vars[1]),true);
+        if(!is_array($snaps)) exit('Bad JSON');
+
+      /**
+       * If there is no cache - make it and output
+       */
+        $service = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
+        $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $service);
+
+        $hash = $emb_graph->snapsToFilename($snaps);
         $cachePath = $this->getAppDir('embed_cache', false)."/".$hash.".html";
 
         // comment this to turn cache off
@@ -73,15 +87,6 @@ class AppFrontend extends App{
           echo file_get_contents($cachePath);
           return;
         }
-
-      /**
-       * If there is no cache - make it and output
-       */
-        // sanity check
-        if(strlen($vars[1])>255) exit('Too many snaps');
-
-        $snaps = json_decode(urldecode($vars[1]),true);
-        if(!is_array($snaps)) exit('Bad JSON');
 
         $options = isset($_REQUEST['p']) ? json_decode($_REQUEST['p'], true) : null;
         $withFbShare = isset($options['withFbShare']) ? $options['withFbShare'] : true;
@@ -93,14 +98,21 @@ class AppFrontend extends App{
           $graph_ids[] = $snap['graphId'];
         }
 
-        $service = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
-        $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $service);
         $graphsData = $emb_graph->getGraphsData($snaps);
         $url = 'http://www.grasp.how/show/'.$vars[1].'';
 
+        // create snapshot of node_contents for each snap
+        foreach ($snaps as $snap) {
+          $authId = $this->graphIdConverter->getAuthId($snap['graphId']);
+          $local_graph_id = $this->graphIdConverter->getLocalGraphId($snap['graphId']);
+          $timestamp = $snap['ts'];
+
+          $this->snapBuilder->createSnapshots($authId, null, $local_graph_id, $timestamp);
+        }
+
         // just want to save original request for future possible usage
         $pageInfo = [
-            'hash_source'=>$hash_source
+            'hash_source'=>var_export($_SERVER['REQUEST_URI'], true)
         ];
 
         // Turn on output buffering

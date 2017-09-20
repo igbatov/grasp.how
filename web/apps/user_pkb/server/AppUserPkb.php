@@ -2,7 +2,7 @@
 
 include("TextDiff.php");
 include("GRainQuerier.php");
-include(__DIR__."/../../../lib/server/NodeContentSnapBuilder.php");
+include_once(__DIR__."/../../../lib/server/NodeContentSnapBuilder.php");
 
 /**
  * Controller - entry point for all requests

@@ -75,14 +75,12 @@
 </div>
 <div class="box1">
   <div class="container">
-    <p>Редактировать данную карту</p>
-
     <h1>
       Визуальные карты для анализа информации
       <span>Показываем вероятность ваших гипотез исходя из фактов и их достоверности</span>
     </h1>
     <div id="grasp-how-501cb8beb66019e90ed669caadbe7ad4" style="height: 500px;">
-      <script src='http://www.grasp.how/embed.js?data={"snaps":[{"graphId":"1.155","step":28,"ts":1505413982594}],"withFbShare":false,"editMapRibbon":false}'></script>
+      <script src='http://www.grasp.how/embed.js?data={"snaps":[{"graphId":"1.155","step":28,"ts":1505413982595}],"withFbShare":false,"editMapRibbon":false}'></script>
     </div>
   </div>
 </div>
