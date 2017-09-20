@@ -1,10 +1,9 @@
 <?php
 
-
 /**
  * up() and down() will be executed for EVERY user and NULL (= general DB)
  */
-class D201708031hangedGraphColors extends Migration
+class D20170831ChangedGraphColors extends Migration
 {
   public function up($authId)
   {
