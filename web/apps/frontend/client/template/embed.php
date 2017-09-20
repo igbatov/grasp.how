@@ -74,7 +74,7 @@
   </div>
   <?php endif ?>
   <div style="display: none;" id="graphsData">
-    <?php echo $graphsData ? json_encode($graphsData) : ""; ?>
+    <?php echo $graphsData ? htmlspecialchars(json_encode($graphsData)) : ""; ?>
   </div>
   <?php if (!$editMapRibbon) : ?>
     <div class="editMapButton"><a target="_blank" href='<?php echo $cloneUrl; ?>' class="btn">Edit map</a></div>
