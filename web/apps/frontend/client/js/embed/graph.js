@@ -183,10 +183,14 @@ var graphDrawer = (function(){
   function makePathTransparent(path, doTransparent){
     if (doTransparent) {
       path.attr('stroke-opacity', 0.1);
-      path.attr("marker-end", "url(#triangle_"+path.attr('type')+"_transparent)");
+      if(ARROW_EDGE_TYPES.indexOf(path.attr('type')) !== -1) {
+        path.attr("marker-end", "url(#triangle_" + path.attr('type') + "_transparent)");
+      }
     } else {
       path.attr('stroke-opacity', 1);
-      path.attr("marker-end", "url(#triangle_"+path.attr('type')+")");
+      if(ARROW_EDGE_TYPES.indexOf(path.attr('type')) !== -1) {
+        path.attr("marker-end", "url(#triangle_"+path.attr('type')+")");
+      }
     }
   }
 

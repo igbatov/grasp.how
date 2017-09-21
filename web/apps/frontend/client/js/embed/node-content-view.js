@@ -256,7 +256,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
             v.style.maxHeight = 0;
           }
         };
-        altAccordion.querySelectorAll('label').forEach(function(v){
+        [].forEach.call(altAccordion.querySelectorAll('label'), function(v){
           v.addEventListener('click', function(){
             this.parentNode.parentNode.querySelectorAll('input').forEach(function(input){
               input.checked = false;
@@ -264,12 +264,12 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
             this.parentNode.querySelectorAll('input').forEach(function(input){
               input.checked = 'checked';
             });
-            altAccordion.querySelectorAll('.tab-content').forEach(function(v){
+            [].forEach.call(altAccordion.querySelectorAll('.tab-content'), function(v){
               applyMaxHeight(v);
             });
           });
         });
-        altAccordion.querySelectorAll('.tab-content').forEach(function(v){
+        [].forEach.call(altAccordion.querySelectorAll('.tab-content'), function(v){
           applyMaxHeight(v);
         });
       },timeout);

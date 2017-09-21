@@ -12,14 +12,14 @@
     iframe.onload = function(){
       this.contentWindow.postMessage({from:document.location.href}, iframe.src);
     };
-    el.append(iframe);
+    el.appendChild(iframe);
   }catch(e){
     if (window.XMLHttpRequest) {
       var xhr = new XMLHttpRequest();
       var data = "msg="+encodeURIComponent(e.message)
-      +"&url="+
-      +"&line="+
-      +"&col="+
+      +"&url="
+      +"&line="
+      +"&col="
       +"&stack="+e.stack
       +"&href="+encodeURIComponent(window.location.href);
       xhr.open("GET", "/logger?"+data, true);
