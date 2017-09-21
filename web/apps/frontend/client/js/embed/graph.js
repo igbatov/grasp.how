@@ -9,6 +9,7 @@ var graphDrawer = (function(){
   var NODE_SIZE_FACTOR = 1.6;
   var ANIMATION_TICK = 2; // in ms
   var ANIMATION_INCREMENT = 5; // in pixels
+  var ARROW_EDGE_TYPES = ['causal', 'conditional']; // in pixels
 
   // private module vars
   var _svgc;
@@ -266,7 +267,8 @@ var graphDrawer = (function(){
 
     // add definition for triangle arrow marker for every edge type
     var markerScale = 0.6;
-    for(var type in edgeTypes){
+    for(var i in ARROW_EDGE_TYPES){
+      var type=ARROW_EDGE_TYPES[i];
       // full-opacity version
       _svgc.append("svg:defs").append("svg:marker")
           .attr("id", "triangle_"+type)
@@ -321,7 +323,7 @@ var graphDrawer = (function(){
           .attr("target", edges[i].target)
           .attr("class", "edges")
           .attr("type", edges[i].type);
-      if(edges[i].type == 'causal' || edges[i].type == 'conditional'){
+      if(ARROW_EDGE_TYPES.indexOf(edges[i].type) !== -1){
         edge.attr("marker-end", "url(#triangle_"+edges[i].type+")");
       }
     }
