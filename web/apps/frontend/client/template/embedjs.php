@@ -8,7 +8,9 @@
     iframe.scrolling = "no";
     iframe.class = 'grasphow-iframe';
     iframe.src = '/embed/<?php echo json_encode($snaps).('?p={"withFbShare":'.($withFbShare?'true':'false').',"editMapRibbon":'.($editMapRibbon?'true':'false').'}'); ?>';
-    iframe.style = 'border: 0; width: '+width+'; height: '+height;
+    iframe.style.width = width;
+    iframe.style.height = height;
+    iframe.style.border = '0';
     iframe.onload = function(){
       this.contentWindow.postMessage({from:document.location.href}, iframe.src);
     };

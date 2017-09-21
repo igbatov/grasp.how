@@ -258,10 +258,10 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
         };
         [].forEach.call(altAccordion.querySelectorAll('label'), function(v){
           v.addEventListener('click', function(){
-            this.parentNode.parentNode.querySelectorAll('input').forEach(function(input){
+            [].forEach.call(this.parentNode.parentNode.querySelectorAll('input'), function(input){
               input.checked = false;
             });
-            this.parentNode.querySelectorAll('input').forEach(function(input){
+            [].forEach.call(this.parentNode.querySelectorAll('input'), function(input){
               input.checked = 'checked';
             });
             [].forEach.call(altAccordion.querySelectorAll('.tab-content'), function(v){
