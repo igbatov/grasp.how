@@ -115,7 +115,7 @@ var DI = {
 
   AddRemoveElementController:['Publisher'],
   HistoryController:['Publisher'],
-  NewNodesGraphHelper:['Publisher'],
+  NewNodesGraphHelper:['Publisher', 'I18n'],
   ModelChangeController:['Publisher','ViewManager'],
   MappingChangeController:['Publisher'],
   SelectElementController:['Publisher'],

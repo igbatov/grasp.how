@@ -4,8 +4,9 @@
  * It contains node of every type without edges.
  * @constructor
  */
-GRASP.NewNodesGraphHelper = function (publisher) {
+GRASP.NewNodesGraphHelper = function (publisher, i18n) {
   this.publisher = publisher;
+  this.i18n = i18n;
 };
 
 GRASP.NewNodesGraphHelper.prototype = {
@@ -38,7 +39,7 @@ GRASP.NewNodesGraphHelper.prototype = {
         {
           id:i,
           nodeContentId:i,
-          label:nodeTypes[i],
+          label:this.i18n.__(nodeTypes[i]),
           type:nodeTypes[i],
           reliability: 99,
           importance: 100,

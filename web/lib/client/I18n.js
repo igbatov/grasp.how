@@ -38,7 +38,7 @@ GRASP.I18n.prototype = {
       return phrase;
     }
     var tr = this._translations[this._currentLang];
-    if (typeof tr === 'undefined') return phrase;
+    if (!tr) return phrase;
     var trPhrase = this._translations[this._currentLang][phrase];
     trPhrase = typeof trPhrase !== 'undefined' ? trPhrase : phrase;
     data.forEach(function (v) {
