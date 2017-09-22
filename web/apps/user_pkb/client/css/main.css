@@ -203,6 +203,6 @@ body {
 #frontalLoader {
     left: calc(50% - 40px);
     position: absolute;
-    top: calc(50% - 40px);
+    top: calc(50% - 80px);
 }
 
