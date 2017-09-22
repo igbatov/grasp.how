@@ -364,9 +364,10 @@ var graphDrawer = (function(){
   }
 
   function addLabel(node, str, key){
+    var gId = guid();
     var g = _svgc.append('g')
         .attr("class", 'graphLabel')
-        .attr("id", guid())
+        .attr("id", gId)
         .attr("key", key)
         .attr("nodeId", node.id)
         .attr("nodeType", node.type)
@@ -374,17 +375,27 @@ var graphDrawer = (function(){
 
     var strs = str.split("\n");
     var offset = 0;
+
+    /**
+     * IE11 do not like g.append, so we use gNode.appendChild here
+     * @type {string}
+     */
+    var svgNS = "http://www.w3.org/2000/svg";
+    var gNode = document.getElementById(gId);
     for(var j in strs){
       var str = strs[j];
-      g.append("text")
-          .attr("class", 'graphLabelString')
-          .attr("dx", 0)
-          .attr("dy", offset)
-          .style("font-family", LABEL_FONT_FAMILY)
-          .style("font-size", LABEL_FONT_SIZE_FACTOR*node.size)
-          .style("fill", "#BBBBBB")
-          .style("opacity", node.opacity)
-          .html(str);
+      var newText = document.createElementNS(svgNS,"text");
+      newText.setAttributeNS(null,"class","graphLabelString");
+      newText.setAttributeNS(null,"dx",0);
+      newText.setAttributeNS(null,"dy",offset);
+      newText.setAttributeNS(null,"font-family", LABEL_FONT_FAMILY);
+      newText.setAttributeNS(null,"font-size",LABEL_FONT_SIZE_FACTOR*node.size);
+      newText.setAttributeNS(null,"fill","#BBBBBB");
+      newText.setAttributeNS(null,"opacity",node.opacity);
+      var textNode = document.createTextNode(str);
+      newText.appendChild(textNode);
+      gNode.appendChild(newText);
+
       offset += LABEL_FONT_SIZE_FACTOR*node.size;
     }
   }
