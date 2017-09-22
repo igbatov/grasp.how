@@ -7,6 +7,7 @@
 GRASP.NewNodesGraphHelper = function (publisher, i18n) {
   this.publisher = publisher;
   this.i18n = i18n;
+  this.nnGraphViewSettings = {};
 };
 
 GRASP.NewNodesGraphHelper.prototype = {
@@ -98,11 +99,16 @@ GRASP.NewNodesGraphHelper.prototype = {
           nodes[i].icon = nodes[i].icon.replace('~color~', s.node.attr.typeColors[nodeTypes[i]]);
         }
 
+        that.nnGraphViewSettings = nnGraphViewSettings;
         e.setResponse(nnGraphViewSettings);
       });
 
     } else if (name == 'is_new_node_graph_id') {
       e.setResponse(this.isNewNodeGraph(e.getData()['graphId']));
+
+    } else if (name == 'get_new_node_graph_area') {
+      e.setResponse(this.nnGraphViewSettings.nodeMapping.area);
+
     }
   },
 

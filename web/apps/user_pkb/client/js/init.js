@@ -210,6 +210,7 @@ Modules['Mediator'].setSubscriptions(
     {
       'get_new_nodes_graph_view_settings':[Modules['NewNodesGraphHelper']],
       'is_new_node_graph_id':[Modules['NewNodesGraphHelper']],
+      'get_new_node_graph_area':[Modules['NewNodesGraphHelper']],
 
       'show_graphs':[Modules['GraphControllerPubSub']],
 

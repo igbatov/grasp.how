@@ -103,8 +103,12 @@ GRASP.AddRemoveElementController.prototype = {
           GRASP.errorHandler.throwError('no droppedOnGraphId');
         }
 
+        var newNodeXY = data['draggedModelElementXY'];
         if(that.publisher.getInstant("is_new_node_graph_id", {'graphId':data['fromGraphId']})) {
           data['draggedModelElement'].element.nodeContentId = null;
+          // because we dragged it from other graph, we must subtract from dy offset from bottom
+          var area = that.publisher.getInstant('get_new_node_graph_area');
+          newNodeXY.y -= area.height;
         }
         this.publisher
           .publish(["get_graph_models", [data['droppedOnGraphId']]],
@@ -130,7 +134,7 @@ GRASP.AddRemoveElementController.prototype = {
                 type: 'addNode',
                 childNodeId: connectWithNodeId,
                 nodeContentId: nodeContent.nodeContentId,
-                newNodeXY: data['draggedModelElementXY']
+                newNodeXY: newNodeXY
               };
             } else {
               var eData = {
@@ -138,7 +142,7 @@ GRASP.AddRemoveElementController.prototype = {
                 type: 'addNode',
                 parentNodeId: connectWithNodeId,
                 nodeContentId: nodeContent.nodeContentId,
-                newNodeXY: data['draggedModelElementXY']
+                newNodeXY: newNodeXY
               };
             }
 
