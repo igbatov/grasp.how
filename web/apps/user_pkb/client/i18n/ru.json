@@ -51,5 +51,8 @@
   "This map was copied by:":"Скопировано в:",
   "Difference":"Различия",
   "Drag mode": "Перетаскивание",
-  "Connect mode": "Связывание"
+  "Connect mode": "Связывание",
+  "Language": "Язык интерфейса",
+  "New password": "Новый пароль",
+  "Confirm new password": "Подтвердить новый пароль"
 }

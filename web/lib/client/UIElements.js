@@ -1024,13 +1024,15 @@ GRASP.UIElements.prototype = {
    * @param options? - {
    *    firstOpened: boolean // show first tab opened, default false
    *    multiple: boolean // do not hide previously opened tabs, default false
-   *    callback: function
+   *    callback: function,
+   *    adjustToHeight?: function, // if set, should return height (int in pixels) that accordion must adjust to
    * }
    */
   createAccordion: function(items, options){
     if(GRASP.typeof(items) !== 'array') return false;
     var uniqId = this.generateId(), that=this;
     var c = GRASP.createElement('div',{class:'ui_accordion', id:uniqId});
+
     items.forEach(function (v, k) {
       var tab = GRASP.createElement('div',{class:'tab'});
       var uid = that.generateId();
@@ -1042,7 +1044,14 @@ GRASP.UIElements.prototype = {
       });
       if(options['firstOpened'] && k === 0) input.checked = 'checked';
       var label = GRASP.createElement('label',{for:uid});
-      if(options.callback) label.addEventListener('click', options.callback);
+      if(options.callback) {
+        label.addEventListener('click', options.callback);
+      }
+      if (options.adjustToHeight){
+        label.addEventListener('click', function(){
+          that._setAccordionTabHeight(c, options.adjustToHeight);
+        });
+      }
       label.appendChild(that.stringToDom(v.label));
       var content = GRASP.createElement('div',{class:'tab-content'});
       content.appendChild(that.stringToDom(v.content));
@@ -1056,8 +1065,47 @@ GRASP.UIElements.prototype = {
       tab.appendChild(content);
       c.appendChild(tab);
     });
+
+    if (options.adjustToHeight){
+      this._setAccordionTabHeight(c, options.adjustToHeight);
+    }
     return c;
   },
+
+  /**
+   * Dynamically set accordion tab height
+   * @param accordion
+   * @param getHeight - function that return int
+   * @private
+   */
+  _setAccordionTabHeight: function(accordion, getHeight){
+    var that = this;
+    //GRASP.setDisplay(accordion,'none');
+    var f = function(timeout) {
+      setTimeout(function () {
+        // if accordion was not mounted yet, then wait and repeat
+        var accordionDOM = document.getElementById(accordion.id);
+        if(accordionDOM === null) return f(100);
+        // ok, it was mounted, so calculate tab content max height
+        var tabs = document.querySelectorAll('#'+accordion.parentElement.id+' .tab');
+        GRASP.setDisplay(accordion,'block'); // we must show it, because getHeight can use calculation of accordion
+        var parent = accordion.parentElement;
+        var firstLabel = document.querySelectorAll('#'+parent.id+' .tab>label')[0];
+        var allAccordionLabelsHeight = parseInt(window.getComputedStyle(firstLabel, null).getPropertyValue("height").match(/\d+/))*tabs.length;
+        var tabContentHeight = getHeight() - allAccordionLabelsHeight;
+        for (var i=0; i<tabs.length; i++) {
+          var tabContent = tabs[i].querySelectorAll('.tab-content')[0];
+          if(tabContent.parentNode.querySelectorAll('input')[0].checked){
+            tabContent.style.maxHeight = tabContentHeight+'px';
+          } else {
+            tabContent.style.maxHeight = 0;
+          }
+        }
+      }, timeout);
+    };
+    f(0);
+  },
+
 
   stringToDom: function(s){
     return GRASP.typeof(s)=='string' ? GRASP.createElement('div',{class:'label-text'},s): s;

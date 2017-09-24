@@ -289,53 +289,25 @@ GRASP.GraphElementEditor.prototype = {
       });
     }
 
-    var accordion = null;
-    accordion = this.UI.createAccordion(accordionItems,{firstOpened: true, callback:function(){
-      that._setAccordionTabHeight(accordion)
-    }});
-    this._setAccordionTabHeight(accordion);
-    return [head, label, accordion];
-  },
-
-  /**
-   * Dynamically set accordion tab height
-   * @param accordion
-   * @private
-   */
-  _setAccordionTabHeight: function(accordion){
-    var that = this;
-    GRASP.setDisplay(accordion,'none');
-    var f = function(timeout) {
-      setTimeout(function () {
-        // if accordion was not mounted yet, then wait and repeat
-        if(document.getElementById(accordion.id) === null) return f(100);
-        // ok, it was mounted, so calculate tab content max height
-        GRASP.setDisplay(accordion,'block');
-        var editor = accordion.parentNode;
-        var graphViews = document.getElementById(
-            that.ViewManager.getViewContainer('graphViews').id
-        );
-        var maxContainerHeight = parseInt(window.getComputedStyle(graphViews, null).getPropertyValue("height").match(/\d+/));
-        var cTop = that.jQuery('#'+editor.id).offset().top;
-        var tabs = that.jQuery('#'+editor.id+' .tab');
-        var aboveAccordionHeight = that.jQuery(tabs[0]).offset().top - cTop;
-        var firstLabel = that.jQuery('#'+editor.id+' .tab>label')[0];
-        var allAccordionLabelsHeight = that.jQuery(firstLabel).outerHeight()*tabs.length;
-        var editorPadding = parseInt(
-            window.getComputedStyle(editor,null).getPropertyValue("padding-bottom").match(/\d+/)
-        );
-        var tabContentHeight = maxContainerHeight - aboveAccordionHeight - allAccordionLabelsHeight - editorPadding;
-        for (var i=0; i<tabs.length; i++) {
-          var tabContent = that.jQuery(tabs[i]).find('.tab-content')[0];
-          if(tabContent.parentNode.querySelectorAll('input')[0].checked){
-            tabContent.style.maxHeight = tabContentHeight+'px';
-          } else {
-            tabContent.style.maxHeight = 0;
-          }
+    var accordion = this.UI.createAccordion(
+      accordionItems,
+      {
+        firstOpened: true,
+        adjustToHeight: function(){
+          var e = document.getElementById('graphViews');
+          var maxContainerHeight = parseInt(window.getComputedStyle(e, null).getPropertyValue("height").match(/\d+/));
+          var parent = accordion.parentElement;
+          var cTop = document.querySelector('#'+parent.id).getBoundingClientRect().top;
+          var tabs = document.querySelectorAll('#'+parent.id+' .tab');
+          var aboveAccordionHeight = tabs[0].getBoundingClientRect().top - cTop;
+          var parentPadding = parseInt(
+              window.getComputedStyle(parent,null).getPropertyValue("padding-bottom").match(/\d+/)
+          );
+          return maxContainerHeight - aboveAccordionHeight - parentPadding;
         }
-      }, timeout);
-    };
-    f(0);
+      }
+    );
+    return [head, label, accordion];
   },
 
   /**
