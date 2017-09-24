@@ -29,7 +29,7 @@
     font-family: 'Roboto-Bold';
     width: 69%;
 }
-.ui_form .formRow input[type=text]{
+.ui_form .formRow input[type=text], .ui_form .formRow input[type=password] {
     height: 33px;
     width: 69%;
     display: inline-block;
@@ -44,6 +44,10 @@
     border: none;
     border-bottom: solid 1px #788d98;
     color: #788d98;
+}
+
+.ui_form .formRow.red{
+    color: red;
 }
 
 .ui_form .formRow .ui_search{

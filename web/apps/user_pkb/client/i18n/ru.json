@@ -54,5 +54,6 @@
   "Connect mode": "Связывание",
   "Language": "Язык интерфейса",
   "New password": "Новый пароль",
-  "Confirm new password": "Подтвердить новый пароль"
+  "Confirm new password": "Подтвердите новый пароль",
+  "Passwords do not match":"Пароли не совпадают"
 }

@@ -390,6 +390,18 @@ GRASP.UIElements.prototype = {
 
   /**
    *
+   * @param attrs - {name:, value:, label:, disabled:, callback:, classname:}
+   * @returns {HTMLElement}
+   */
+  createPasswordBox: function(attrs){
+    var uniqId = this.generateId();
+    var el = GRASP.createElement('input',{id:uniqId, type:'password', name:attrs.name, value:attrs.value, disabled:attrs.disabled},'',attrs.callback);
+
+    return el;
+  },
+
+  /**
+   *
    * @param attrs - {
    *    name: string,
    *    value: string,
@@ -641,6 +653,7 @@ GRASP.UIElements.prototype = {
   createFormRow: function(form, name, rowAttrs){
     var fieldDOM;
     if(rowAttrs['rowType'] == 'text') fieldDOM = this.createTextBox({name:name, value:rowAttrs['value'], placeholder:rowAttrs['placeholder'], disabled:rowAttrs['disabled'], callback:rowAttrs['callback']});
+    if(rowAttrs['rowType'] == 'password') fieldDOM = this.createPasswordBox({name:name, value:rowAttrs['value'], disabled:rowAttrs['disabled'], callback:rowAttrs['callback']});
     if(rowAttrs['rowType'] == 'textarea') fieldDOM = this.createTextareaBox({name:name, value:rowAttrs['value'], placeholder:rowAttrs['placeholder'], disabled:rowAttrs['disabled'], callback:rowAttrs['callback'], callback_delay:rowAttrs['callback_delay']});
     if(rowAttrs['rowType'] == 'date') fieldDOM = this.createDate({name:name, value:rowAttrs['value'], disabled:rowAttrs['disabled'], callback:rowAttrs['callback']});
     if(rowAttrs['rowType'] == 'select') fieldDOM = this.createSelectBox({name:name, items:rowAttrs['items'], defaultValue:rowAttrs['value'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled'], dropType:rowAttrs['dropType'], withDownArrow:rowAttrs['withDownArrow']});
@@ -677,6 +690,7 @@ GRASP.UIElements.prototype = {
     if(rowAttrs['rowType'] == 'list') fieldDOM = this.createListBox({name:name,items:rowAttrs['items'], itemActions:rowAttrs['itemActions'], addLabel: rowAttrs['addLabel'], addCallback:rowAttrs['addCallback']});
     if(rowAttrs['rowType'] == 'tabs') fieldDOM = this.createTabs({name:name, items:rowAttrs['items'], defaultItem:rowAttrs['defaultItem']});
     if(rowAttrs['rowType'] == 'checkbox') fieldDOM = this.createSwitch({name:name, value:rowAttrs['value'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled']});
+    if(rowAttrs['rowType'] == 'DOMElement') fieldDOM = rowAttrs['element'];
 
     var uniqId = this.generateId();
     var formRow = GRASP.createElement('div',{
@@ -825,7 +839,47 @@ GRASP.UIElements.prototype = {
 
     GRASP.setDisplay(modalWindow, 'none');
 
+    this._updateModalDimsOnContentChange(modalWindow);
+
     return modalWindow;
+  },
+
+  /**
+   * updates modal height on any modal content child add or remove
+   * @private
+   */
+  _updateModalDimsOnContentChange: function(modalWindow){
+    var that = this;
+    // create an observer instance
+    var observer = new MutationObserver(function(mutations) {
+      that._updateModalHeight(modalWindow);
+    });
+
+    // configuration of the observer:
+    var config = {childList: true, subtree: true };
+
+    // pass in the target node, as well as the observer options
+    observer.observe(modalWindow, config);
+  },
+
+  _updateModalHeight: function(modalWindow){
+    /**
+     * When modal is mounted adjust its height to content
+     */
+    var wrapper = modalWindow.getElementsByClassName('ui_modal_wrapper')[0];
+    var f = function(timeout) {
+      setTimeout(function () {
+        // if modal was not mounted yet, then wait and repeat
+        if (document.getElementById(modalWindow.id) === null) return f(100);
+        // 3 is because of float to int round errors
+        modalWindow.style.height = 3
+            + wrapper.children[0].clientHeight
+            + parseInt(getComputedStyle(modalWindow).paddingTop)
+            + parseInt(getComputedStyle(modalWindow).paddingBottom)
+            +'px';
+      }, timeout);
+    };
+    f(0);
   },
 
   closeModal: function(modalWindow){
@@ -850,23 +904,6 @@ GRASP.UIElements.prototype = {
     });
 
     wrapper.appendChild(content);
-
-    /**
-     * When modal is mounted adjust its height to content
-     */
-    var f = function(timeout) {
-      setTimeout(function () {
-        // if modal was not mounted yet, then wait and repeat
-        if (document.getElementById(modalWindow.id) === null) return f(100);
-        // 3 is because of float to int round errors
-        modalWindow.style.height = 3
-            + wrapper.children[0].clientHeight
-            + parseInt(getComputedStyle(modalWindow).paddingTop)
-            + parseInt(getComputedStyle(modalWindow).paddingBottom)
-            +'px';
-      }, timeout);
-    };
-    f(0);
   },
 
   createLoadingIndicator: function(className){

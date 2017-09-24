@@ -299,41 +299,65 @@ GRASP.GraphMenu.prototype = {
   _showSettings: function(settings){
     var that = this;
     var m = this.UI.createModal();
-    var form = this.UI.createForm({
-      'lang':{
-        rowType:'select',
-        rowLabel:that.i18n.__('Language'),
-        withDownArrow: true,
-        items:{'en':'en', 'ru':'ru'},
-        value:settings['lang'],
-        dropType: 'single'
-      },
-      'save':{
-        rowClass:'twoColumn upMarginMiddle',
-        rowType:'button',
-        label:that.i18n.__('save'),
-        type:'bigButton uppercase',
-      },
-      'cancel':{
-        rowClass:'twoColumn upMarginMiddle',
-        rowType:'button',
-        type:'bigButton white uppercase',
-        label:that.i18n.__('cancel'),
-        callback: function(){
-          that.UI.closeModal(m);
-        }
-      }
-    },
-    function(settings){
-      // save settings and close modal
-      that.publisher.publish(['set_user_settings', settings]).then(function(){
-        that.UI.closeModal(m);
-        // redraw menu with new language
-        that._createView();
-      });
-    });
 
-    that.UI.setModalContent(m,form);
+    var form = that.UI.createForm(
+        {
+          'lang': {
+            rowType:'select',
+            rowLabel:that.i18n.__('Language'),
+            withDownArrow: true,
+            items:{'en':'en', 'ru':'ru'},
+            value:settings['lang'],
+            dropType: 'single'
+          },
+          'new_password':{
+            rowType:'password',
+            rowLabel:that.i18n.__('New password')
+          },
+          'confirm_new_password':{
+            rowType:'password',
+            rowLabel:that.i18n.__('Confirm new password')
+          },
+          'password_not_equal_error':{
+            rowType:'hidden',
+            value:that.i18n.__('Passwords do not match'),
+            rowClass: 'red'
+          },
+          'save':{
+            rowClass:'twoColumn upMarginMiddle',
+            rowType:'button',
+            label:that.i18n.__('save'),
+            type:'bigButton uppercase'
+          },
+          'cancel':{
+            rowClass:'twoColumn upMarginMiddle',
+            rowType:'button',
+            type:'bigButton white uppercase',
+            label:that.i18n.__('cancel'),
+            callback: function(){
+              that.UI.closeModal(m);
+            }
+          }
+        },
+        function(settings){
+          // sanity check
+          if (settings.new_password || settings.confirm_new_password) {
+            if (settings.new_password !== settings.confirm_new_password) {
+              that.UI.updateForm(form, 'password_not_equal_error', {rowType:'string'});
+              return;
+            }
+          }
+
+          // save settings and close modal
+          that.publisher.publish(['set_user_settings', settings]).then(function(){
+            that.UI.closeModal(m);
+            // redraw menu with new language
+            that._createView();
+          });
+        }
+    );
+
+    that.UI.setModalContent(m, form);
   },
 
   /**
