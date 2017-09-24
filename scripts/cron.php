@@ -28,4 +28,13 @@ if($type == 'daily'){
   // clear old rows from request_log
   $q = 'DELETE FROM request_log WHERE created_at < "'.date('Y-m-d H:i:s', strtotime(' -7 day')).'" ';
   $db->exec(null, $q);
+
+  // clear old files from /tmp
+  /*** cycle through all files in the directory ***/
+  foreach (glob($rootpath."/tmp/*") as $file) {
+    /*** if file is 24 hours (86400 seconds) old then delete it ***/
+    if(time() - filectime($file) > 86400){
+      unlink($file);
+    }
+  }
 }
