@@ -1857,11 +1857,16 @@ GRASP.getElementFontSize = function ( context ) {
       )
           .fontSize
   );
-}
+};
+
+GRASP.openInNewTab = function (url) {
+    var win = window.open(url, '_blank');
+    win.focus();
+};
 
 GRASP.convertEm = function (value, context) {
   return value * GRASP.getElementFontSize(context);
-}
+};
 
 GRASP.htmlspecialchars_decode = function (string, quoteStyle) { // eslint-disable-line camelcase
                                                         //       discuss at: http://locutus.io/php/htmlspecialchars_decode/
@@ -1928,4 +1933,4 @@ GRASP.htmlspecialchars_decode = function (string, quoteStyle) { // eslint-disabl
   // Put this in last place to avoid escape being double-decoded
   string = string.replace(/&amp;/g, '&')
   return string
-}
+};

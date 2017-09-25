@@ -157,6 +157,7 @@ GRASP.GraphMenu.prototype = {
             if(value === 'Trash') that._showTrash.call(that, that.trashItems);
             if(value === 'Sources') that._showSources.call(that);
             if(value === 'Settings') that._showSettings.call(that, settings);
+            if(value === 'Support') GRASP.openInNewTab('https://github.com/igbatov/grasp.how/issues');
             if(value === 'Logout') {
               window.location.href = '/logout';
             }
