@@ -54,29 +54,6 @@ GRASP.NewNodesGraphHelper.prototype = {
       var scale = Math.min(nnGraphViewSettings.graphArea.width, nnGraphViewSettings.graphArea.height);
       // we want extra size for the panel nodes
       var size = scale/3;
-      // create node mapping
-      var x, l = nnGraphViewSettings.graphArea.width/nodeTypes.length, nodeMapping = {};
-      for(i in nodeTypes){
-        x = i*l+2*size;
-        nodeMapping[i] = {id: i, x: x,  y: 0};
-      }
-      nnGraphViewSettings.nodeMapping = {
-        area: {
-          centerX: nnGraphViewSettings.graphArea.width/2,
-          centerY: nnGraphViewSettings.graphArea.height/2,
-          width: nnGraphViewSettings.graphArea.width,
-          height: nnGraphViewSettings.graphArea.height
-        },
-        mapping: nodeMapping
-      };
-      // node label mapping
-      nnGraphViewSettings.nodeLabelMapping = GRASP.clone(nnGraphViewSettings.nodeMapping);
-      var yOffset = GRASP.convertEm(1)/4;
-      var xOffset = GRASP.convertEm(3/2);
-      for(var i in nnGraphViewSettings.nodeLabelMapping.mapping){
-        nnGraphViewSettings.nodeLabelMapping.mapping[i].y += yOffset;
-        nnGraphViewSettings.nodeLabelMapping.mapping[i].x += xOffset;
-      }
 
       // skin
       this.publisher.publish(["get_selected_skin", graphId]).then(function(s){
@@ -99,6 +76,50 @@ GRASP.NewNodesGraphHelper.prototype = {
           nodes[i].icon = nodes[i].icon.replace('~color~', s.node.attr.typeColors[nodeTypes[i]]);
         }
 
+        // get nodeLabelAreaList to calc node mapping
+        var nodeLabelsT = [];
+        for(var i in nodes) {
+          nodeLabelsT.push({
+            id: i,
+            size: nnGraphViewSettings.decoration.nodeLabels[i].size,
+            label: nodes[i].label
+          });
+        }
+        var nodeLabelAreaList = GRASP.getObjectValues(that.publisher.getInstant("get_graph_view_label_area", {
+          nodeLabels:nodeLabelsT,
+          skin:nnGraphViewSettings.skin
+        }));
+        var emptySpaceLength = that._getEmptySpaceLength(
+            nnGraphViewSettings.graphArea.width,
+            nodeLabelAreaList
+        );
+
+        // create node mapping
+        var x=0, nodeMapping = {};
+        for(i in nodeLabelAreaList){
+          if (i > 0){
+            x += nodeLabelAreaList[i-1].width + emptySpaceLength/nodeTypes.length;
+          }
+          nodeMapping[i] = {id: i, x: x,  y: 0};
+        }
+        nnGraphViewSettings.nodeMapping = {
+          area: {
+            centerX: nnGraphViewSettings.graphArea.width/2,
+            centerY: nnGraphViewSettings.graphArea.height/2,
+            width: nnGraphViewSettings.graphArea.width,
+            height: nnGraphViewSettings.graphArea.height
+          },
+          mapping: nodeMapping
+        };
+        // node label mapping
+        nnGraphViewSettings.nodeLabelMapping = GRASP.clone(nnGraphViewSettings.nodeMapping);
+        var yOffset = GRASP.convertEm(1)/4;
+        var xOffset = GRASP.convertEm(3/2);
+        for(var i in nnGraphViewSettings.nodeLabelMapping.mapping){
+          nnGraphViewSettings.nodeLabelMapping.mapping[i].y += yOffset;
+          nnGraphViewSettings.nodeLabelMapping.mapping[i].x += xOffset;
+        }
+
         that.nnGraphViewSettings = nnGraphViewSettings;
         e.setResponse(nnGraphViewSettings);
       });
@@ -110,6 +131,15 @@ GRASP.NewNodesGraphHelper.prototype = {
       e.setResponse(this.nnGraphViewSettings.nodeMapping.area);
 
     }
+  },
+
+  _getEmptySpaceLength: function(graphAreaWidth, nodeLabelAreaList){
+    var usedSpaceLength = 0;
+    for(var i in nodeLabelAreaList) {
+      usedSpaceLength += nodeLabelAreaList[i].width;
+    }
+    var emptySpaceLength = graphAreaWidth - usedSpaceLength;
+    return emptySpaceLength;
   },
 
   isNewNodeGraph: function(graphId){

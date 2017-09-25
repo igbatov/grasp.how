@@ -870,8 +870,9 @@ GRASP.GraphView.prototype = {
         size: size,
         opacity: 1
       });
+    this.drawer.addShape(this.nodeLabelLayerId, label.getDrawerShape());
     var result = {width:label.getDrawerShapeWidth(), height:label.getDrawerShapeHeight()};
-   // this._removeElement(label.getDrawerShape().getId());
+    this.drawer.removeShape(label.getDrawerShape());
 
     return result;
   },
