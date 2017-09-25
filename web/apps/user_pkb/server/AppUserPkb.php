@@ -508,7 +508,32 @@ class AppUserPkb extends App
       case 'repository_set_user_settings':
         $settings = $this->getUserSettings();
         $r = $this->getRequest();
-        $settings = array_replace($settings, $r);
+        /**
+         * Process password
+         */
+        if (isset($r['new_password']) && isset($r['confirm_new_password'])) {
+          if ($r['new_password'] !== $r['confirm_new_password']) {
+            $this->logger->error('Passwords do not match!');
+            $this->showRawData(json_encode(['error'=>'Passwords do not match!']));
+            return false;
+          }
+
+          $this->updateUserPassword($this->getUsername(), $r['new_password']);
+        }
+
+        /**
+         * Process settings
+         */
+        $fields = [
+          'lang'
+        ];
+        $newSettings = [];
+        foreach ($fields as $field){
+          if(isset ($r[$field])){
+            $newSettings[$field] = $r[$field];
+          }
+        }
+        $settings = array_replace($settings, $newSettings);
         $q = "UPDATE auth SET settings = '".$this->db->escape(json_encode($settings))."' WHERE id = '".$this->getAuthId()."'";
         $this->db->exec(null, $q);
         $this->showRawData(json_encode($settings));

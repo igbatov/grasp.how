@@ -190,7 +190,9 @@ abstract class App
   }
 
   protected function updateUserPassword($login, $password){
-    return $this->session->updateUserPassword($login, $password);
+    $s = $this->session->updateUserPassword($login, $password);
+    $this->logger->log('User id = '.$this->getAuthId().', login = '.$this->getUsername(),' updated password');
+    return $s;
   }
 
   protected function updateUserInfo(array $info){
@@ -199,6 +201,10 @@ abstract class App
 
     $query = "UPDATE auth SET info = '".json_encode($info)."' WHERE username = '".$username."'";
     $this->db->exec(null, $query);
+  }
+
+  protected function getUsername(){
+    return $this->session->getUsername();
   }
 
   protected function getUserInfo(){
