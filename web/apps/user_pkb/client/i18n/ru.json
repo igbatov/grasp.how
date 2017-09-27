@@ -55,5 +55,9 @@
   "Language": "Язык интерфейса",
   "New password": "Новый пароль",
   "Confirm new password": "Подтвердите новый пароль",
-  "Passwords do not match":"Пароли не совпадают"
+  "Passwords do not match":"Пароли не совпадают",
+  "Add":"Добавить",
+  "Probability cannot be a number from 0 to 1":"Вероятность должна быть числом от 0 до 1",
+  "Probability cannot be less than 0 and greater than 1":"Вероятность не может быть меньше 0 или больше 1",
+  "Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1":"Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его условий) должна быть равна 1"
 }

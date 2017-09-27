@@ -373,8 +373,13 @@ GRASP.GraphElementEditor.prototype = {
 
             // check that every probability in [0,1]
             for(var j in node.alternatives){
+              probabilities[j][formKeyStr] = probabilities[j][formKeyStr].replace(',','.');
+              if(isNaN(probabilities[j][formKeyStr])){
+                alert(that.i18n.__('Probability cannot be a number from 0 to 1'));
+                return true;
+              }
               if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
-                alert('Probability cannot be less than 0 and greater than 1');
+                alert(that.i18n.__('Probability cannot be less than 0 and greater than 1'));
                 return true;
               }
             }
@@ -388,8 +393,7 @@ GRASP.GraphElementEditor.prototype = {
             }
             if(sum != 1){
               alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
-              //alert(alertMsg+"\n"+'Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его условий) должна быть равна 1');
-              alert(alertMsg+"\n"+'Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1');
+              alert(alertMsg+"\n"+that.i18n.__('Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1'));
               return true;
             }
 
@@ -414,10 +418,16 @@ GRASP.GraphElementEditor.prototype = {
         var alternativeIds = GRASP.getObjectKeys(node.alternatives);
         for(var j in alternativeIds){
           (function(formKeyStr, i, j, alternativeIds){
-            that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[j], {callback: function(name,value){
-              var newValue = parseFloat(Number((1 - parseFloat(value))).toFixed(15));
-              that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
-            }});
+            that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[j], {
+              callback: function(name,value){
+                value = value.replace(',','.');
+                if(isNaN(value)) {
+                  return false;
+                }
+                var newValue = parseFloat(Number((1 - parseFloat(value))).toFixed(15));
+                that.UI.updateForm(form, i+'_THEN_'+formKeyStr+'_'+alternativeIds[(parseInt(j)+1)%2], {value:newValue});
+              }
+            });
           })(formKeyStr, i, j, alternativeIds);
         }
       }
@@ -748,7 +758,11 @@ GRASP.GraphElementEditor.prototype = {
             value:'',
             callback:function(){}
           },
-          button:{rowType:'button', label:'Добавить'}
+          button:{
+            rowType:'button',
+            label:that.i18n.__('Add'),
+            type:'bigButton uppercase'
+          }
         },
         // form submit callback
         function (form) {
