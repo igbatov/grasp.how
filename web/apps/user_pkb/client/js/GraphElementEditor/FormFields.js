@@ -87,6 +87,10 @@ GRASP.FormFields.prototype = {
 
           // block source fields (they can be edited from 'Fact Sources' only)
           that.getImmutableSourceFields().forEach(function(v){
+            if (v === 'name') {
+              // do not block name field, so user can enter another source or create his own
+              return;
+            }
             that.UI.updateForm(form,v,{disabled:true});
           });
         },
@@ -155,7 +159,7 @@ GRASP.FormFields.prototype = {
    */
   getImmutableSourceFields: function(){
     var immutableSourceFields = [
-      'source_type', 'url', 'author', 'editor', 'publisher', 'publisher_reliability', 'publish_date'
+      'source_type', 'name', 'url', 'author', 'editor', 'publisher', 'publisher_reliability', 'publish_date'
     ];
     return immutableSourceFields;
   },
