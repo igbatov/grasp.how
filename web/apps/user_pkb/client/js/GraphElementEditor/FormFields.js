@@ -39,10 +39,10 @@ GRASP.FormFields.prototype = {
       var fieldname;
 
       // show only fields that is valid for 'personal experience'
-      if(value == 'personal experience'){
+      if(value === 'personal experience'){
         for(fieldname in formFields){
-          if(typeFields['personal experience'].indexOf(fieldname) == -1){
-            that.UI.updateForm(form, fieldname, {type:'hidden'});
+          if(typeFields['personal experience'].indexOf(fieldname) === -1){
+            that.UI.updateForm(form, fieldname, {rowType:'hidden'});
           }
         }
       }
@@ -50,7 +50,7 @@ GRASP.FormFields.prototype = {
       else{
         for(fieldname in formFields){
           if(fieldname == 'source_type') continue;
-          that.UI.updateForm(form, fieldname, {type:formFields[fieldname]['type']});
+          that.UI.updateForm(form, fieldname, {rowType:formFields[fieldname]['rowType']});
         }
       }
     };
@@ -153,7 +153,7 @@ GRASP.FormFields.prototype = {
    */
   getImmutableSourceFields: function(){
     var immutableSourceFields = [
-      'source_type', 'url', 'author', 'editor', 'publisher', 'publisher_reliability', 'publish_date'
+      'url', 'author', 'editor', 'publisher', 'publisher_reliability', 'publish_date'
     ];
     return immutableSourceFields;
   },

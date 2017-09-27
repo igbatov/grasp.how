@@ -8,7 +8,7 @@ GRASP.UIElements = function(i18n){
   this.SELECT_ITEM_MAX_LENGTH = 255;
   this.MODAL_WINDOW_ZINDEX = 999;
   // list of all elements created
-  this.formRows = new GRASP.Table(['id', 'type', 'formname', 'name', 'definition', 'dom', 'state']);
+  this.formRows = new GRASP.Table(['id', 'rowType', 'formname', 'name', 'definition', 'dom', 'state']);
 };
 
 GRASP.UIElements.prototype = {
@@ -707,7 +707,7 @@ GRASP.UIElements.prototype = {
     }
     formRow.appendChild(fieldDOM);
 
-    this.formRows.insertRow({id:uniqId, formname:form.id, name:name, type:rowAttrs['rowType'], definition:rowAttrs, dom:formRow});
+    this.formRows.insertRow({id:uniqId, formname:form.id, name:name, rowType:rowAttrs['rowType'], definition:rowAttrs, dom:formRow});
 
     return formRow;
   },
@@ -752,7 +752,7 @@ GRASP.UIElements.prototype = {
 
       // fill in absent attrs from old version
       for (var i in el.definition) if (typeof(attrs[i]) == 'undefined') attrs[i] = el.definition[i];
-      if (typeof(attrs.type) == 'undefined') attrs.type = el.type;
+      if (typeof(attrs.rowType) == 'undefined') attrs.rowType = el.rowType;
     }else{
       // this is for brand new element
       attrs.name = name;

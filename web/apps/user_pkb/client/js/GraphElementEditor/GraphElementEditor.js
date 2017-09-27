@@ -1049,7 +1049,9 @@ GRASP.GraphElementEditor.prototype = {
     });
 
     // update fields in a form according to item source_type
-    if(item.source_type && formFields['source_type']) formFields['source_type'].callback('',item.source_type);
+    if(item.source_type && formFields['source_type']) {
+      formFields['source_type'].callback('',item.source_type);
+    }
 
     that.UI.setModalContent(modalWindow, form);
 
