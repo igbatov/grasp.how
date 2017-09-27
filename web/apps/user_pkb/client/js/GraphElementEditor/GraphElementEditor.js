@@ -477,7 +477,7 @@ GRASP.GraphElementEditor.prototype = {
     for(var i in list) htmllist[i] = this._createHTMLFromListItem(list[i], node.type, isEditable);
 
     var updateListItem = function(id, el){
-      that._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, list[id],
+      that._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, list[id], false,
           // this callback is called on 'submit' button
           function(graphId, nodeContentId, node_alternative_id, item){
             if(!that._validateSourceListItem(item)) return false;
@@ -563,7 +563,7 @@ GRASP.GraphElementEditor.prototype = {
 
   _addListItem: function(graphId, nodeContentId, node){
     var that = this;
-    this._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, {source_type: 'article'},
+    this._editListItem(graphId, nodeContentId, node.active_alternative_id, node.type, {source_type: 'article'}, true,
         function(graphId, nodeContentId, node_alternative_id, item){
           if(!that._validateSourceListItem(item)) return false;
 
@@ -991,10 +991,11 @@ GRASP.GraphElementEditor.prototype = {
    * @param node_alternative_id - to put in callback
    * @param nodeType - to distinguish between 'fact' source form and 'proposition' falsification form
    * @param item - {name1:value1, name2:value2, ...}
+   * @param isCreate - is this form for creation of new list item
    * @param callback - arguments are (graphId, nodeContentId, item)
    * @private
    */
-  _editListItem: function(graphId, nodeContentId, node_alternative_id, nodeType, item, callback){
+  _editListItem: function(graphId, nodeContentId, node_alternative_id, nodeType, item, isCreate, callback){
     var that = this;
     item = item || {source_type: 'article'};
     var modalWindow = that.UI.createModal();
@@ -1044,9 +1045,11 @@ GRASP.GraphElementEditor.prototype = {
     }
 
     // block source fields (they can be edited from 'Fact Sources' only)
-    that.formFields.getImmutableSourceFields().forEach(function(v){
-      that.UI.updateForm(form,v,{disabled:true});
-    });
+    if (!isCreate) {
+      that.formFields.getImmutableSourceFields().forEach(function(v){
+        that.UI.updateForm(form,v,{disabled:true});
+      });
+    }
 
     // update fields in a form according to item source_type
     if(item.source_type && formFields['source_type']) {

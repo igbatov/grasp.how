@@ -91,18 +91,20 @@ GRASP.FormFields.prototype = {
           });
         },
         typeCallback:function(name, value){
-          // reset default values
-          GRASP.getObjectKeys(formFields).forEach(function(fieldName){
-            if (['name', 'source_type'].indexOf(fieldName) !== -1) {
-              return;
-            }
-            that.UI.updateForm(form,fieldName,{value:''});
-          });
+          // reset default values if we changing name already existing item
+          if (that.UI.getFormRowValue(form, 'source_id')) {
+            GRASP.getObjectKeys(formFields).forEach(function(fieldName){
+              if (['name', 'source_type'].indexOf(fieldName) !== -1) {
+                return;
+              }
+              that.UI.updateForm(form,fieldName,{value:''});
+            });
 
-          // unblock source fields
-          that.getImmutableSourceFields().forEach(function(v){
-            that.UI.updateForm(form,v,{disabled:false});
-          });
+            // unblock source fields
+            that.getImmutableSourceFields().forEach(function(v){
+              that.UI.updateForm(form,v,{disabled:false});
+            });
+          }
         }
       },
       'url':{rowType:'text', rowLabel:'URL', placeholder: ""},
@@ -153,7 +155,7 @@ GRASP.FormFields.prototype = {
    */
   getImmutableSourceFields: function(){
     var immutableSourceFields = [
-      'url', 'author', 'editor', 'publisher', 'publisher_reliability', 'publish_date'
+      'source_type', 'url', 'author', 'editor', 'publisher', 'publisher_reliability', 'publish_date'
     ];
     return immutableSourceFields;
   },

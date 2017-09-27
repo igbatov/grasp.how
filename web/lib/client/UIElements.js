@@ -737,6 +737,15 @@ GRASP.UIElements.prototype = {
     return c;
   },
 
+  getFormRowValue: function(form,name){
+    var els = this.formRows.getRows({formname:form.id, name:name});
+    if(els.length) {
+      var el = els[0];
+      var input = el.dom.getElementsByTagName('input')[0];
+      return input.value;
+    }
+  },
+
   /**
    * Updates form field with given name to given attrs
    * If element with this name is absent, create new one
