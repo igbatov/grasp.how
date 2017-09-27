@@ -191,7 +191,7 @@ GRASP.GraphElementEditor.prototype = {
       name: 'removeEdge',
       type: 'icon delete grey',
       callback:function(){
-        if(confirm('Are you sure?')){
+        if(confirm(that.i18n.__('Are you sure?'))){
           that.publisher.publish(["request_for_graph_element_content_change", {
             graphId: graphId,
             type: 'removeEdge',
@@ -736,7 +736,7 @@ GRASP.GraphElementEditor.prototype = {
   },
 
   _removeNode: function(graphId, nodeId){
-    if(confirm('Are you sure?')){
+    if(confirm(this.i18n.__('Are you sure?'))){
       this.publisher.publish([
         "request_for_graph_model_change",
         {
@@ -804,11 +804,11 @@ GRASP.GraphElementEditor.prototype = {
   _removeAlternative: function(graphId, nodeContentId, node, alternative, e){
     e.stopPropagation();
     if(GRASP.getObjectKeys(node.alternatives).length == 2){
-      alert('Sorry, you cannot have only one alternative');
+      alert(this.i18n('Sorry, you cannot have only one alternative'));
       return;
     }
 
-    if(confirm('Are you sure?')){
+    if(confirm(this.i18n.__('Are you sure?'))){
       this.publisher.publish(['request_for_graph_element_content_change', {
         graphId: graphId,
         type: 'removeAlternative',

@@ -2,9 +2,10 @@
  * Module contains field descriptions for different forms
  * @constructor
  */
-GRASP.FormFields = function(UI, publisher){
+GRASP.FormFields = function(UI, publisher, i18n){
   this.UI = UI;
   this.publisher = publisher;
+  this.i18n = i18n;
 };
 
 GRASP.FormFields.prototype = {
@@ -58,7 +59,7 @@ GRASP.FormFields.prototype = {
     var formFields = {
       'source_type':{
         rowType:'select',
-        rowLabel:'Type',
+        rowLabel:that.i18n.__('Type'),
         callback:selectSourceType,
         items:SOURCE_TYPES,
         value:'article',
@@ -66,7 +67,7 @@ GRASP.FormFields.prototype = {
       },
       'name':{
         rowType:'search',
-        rowLabel:'Title',
+        rowLabel:that.i18n.__('Title'),
         placeholder:'Title',
         findCallback:function(str){
           var source_type = that.UI.getFormValue(form, 'source_type');
@@ -112,11 +113,11 @@ GRASP.FormFields.prototype = {
         }
       },
       'url':{rowType:'text', rowLabel:'URL', placeholder: ""},
-      'author':{rowType:'text', rowLabel:'Authors', placeholder: ""},
-      'editor':{rowType:'text', rowLabel:'Reviewer', placeholder: ""},
+      'author':{rowType:'text', rowLabel:that.i18n.__('Authors'), placeholder: ""},
+      'editor':{rowType:'text', rowLabel:that.i18n.__('Editor'), placeholder: ""},
       'publisher':{
         rowType:'search',
-        rowLabel:'Publisher',
+        rowLabel:that.i18n.__('Publisher'),
         placeholder: "",
         findCallback:function(str){
           return that.publisher.publish(['find_publishers',{substring:str}]);
@@ -134,15 +135,16 @@ GRASP.FormFields.prototype = {
       'publisher_reliability':{
         rowType:'select',
         disabled:false,
-        rowLabel:'Reliability',
+        rowLabel:that.i18n.__('Reliability'),
+        value: '1',
         items: {'1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10'}
       },
       'scopus_title_list_id':{rowType:'hidden'},
-      'publish_date':{rowType:'date', rowLabel:'Publish date'},
-      'pages':{rowType:'text', rowLabel:'volume, pages', placeholder: ""},
+      'publish_date':{rowType:'date', rowLabel:that.i18n.__('Publish date')},
+      'pages':{rowType:'text', rowLabel:that.i18n.__('Volume, pages'), placeholder: ""},
       'comment':{
         rowType:'textarea',
-        rowLabel:'Comment',
+        rowLabel:that.i18n.__('Comment'),
         placeholder: ""
       },
       'source_id':{rowType:'hidden'},

@@ -103,7 +103,7 @@ var DI = {
   UIElements: ['I18n'],
 
   KeyManager: ['Publisher'],
-  StatusString: ['Publisher', 'ViewManager', 'jQuery', 'UIElements'],
+  StatusString: ['Publisher', 'ViewManager', 'jQuery', 'UIElements', 'I18n'],
 
   GraphViewNodeFactory:[],
   GraphViewEdgeFactory:[],
@@ -135,7 +135,7 @@ var DI = {
   imageLoader: ['Promise'],
   Repository: ['Publisher', 'Ajax', 'imageLoader'],
 
-  FormFields: ['UIElements', 'Publisher'],
+  FormFields: ['UIElements', 'Publisher', 'I18n'],
   GraphMenu: ['Publisher', 'ViewManager', 'UIElements', 'FormFields', 'jQuery', 'I18n'],
 
   SelectGraphLayoutModel: ['Publisher',{

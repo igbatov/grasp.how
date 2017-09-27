@@ -5,11 +5,14 @@
  * @param publisher
  * @param viewManager
  * @param jQuery
+ * @param UIElements
+ * @param i18n
  * @constructor
  */
-GRASP.StatusString = function (publisher, viewManager, jQuery, UIElements) {
+GRASP.StatusString = function (publisher, viewManager, jQuery, UIElements, i18n) {
   this.publisher = publisher;
   this.UI = UIElements;
+  this.i18n = i18n;
   this.container = jQuery("#"+viewManager.getViewContainer('statusString').id);
   this.jQuery = jQuery;
   this.ajaxIndicator = this.UI.createLoadingIndicator('inline small');
@@ -37,7 +40,7 @@ GRASP.StatusString.prototype = {
       GRASP.setDisplay(this.ajaxIndicator, 'none');
     }
     if(e.getName() === 'repository_processing'){
-      this.serverStatusContainer.html('working with server...');
+      this.serverStatusContainer.html(this.i18n.__('working with server...'));
       GRASP.setDisplay(this.ajaxIndicator, 'inline-block');
     }
     e.setResponse();

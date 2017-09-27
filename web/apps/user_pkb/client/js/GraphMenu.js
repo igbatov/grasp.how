@@ -148,7 +148,7 @@ GRASP.GraphMenu.prototype = {
           name:'Hamburger',
           items:{
             'Settings': that.i18n.__('Account settings'),
-            'Trash': that.i18n.__('Removed'),
+            'Trash': that.i18n.__('Trash bin'),
             'Sources': that.i18n.__('Fact sources'),
             'Support': that.i18n.__('Support'),
             'Logout': that.i18n.__('Logout')
@@ -220,7 +220,7 @@ GRASP.GraphMenu.prototype = {
     var m = this.UI.createModal();
     this.UI.setModalContent(m, this.UI.createForm({
       'graphId':{rowType:'hidden', value:graphId},
-      'name':{rowType:'text', rowLabel:'Name:', value:this.graphs[graphId].getGraphName()},
+      'name':{rowType:'text', rowLabel:that.i18n.__('Name')+':', value:this.graphs[graphId].getGraphName()},
       'submit':{
         rowClass:'twoColumn upMarginMiddle',
         rowType:'button',
@@ -237,6 +237,10 @@ GRASP.GraphMenu.prototype = {
         }
       }
     }, function(form){
+      if (!form['name']) {
+        alert(that.i18n.__('Sorry, name cannot be empty'));
+        return;
+      }
       // say about this event to all subscribers
       that.publisher.publish(['graph_name_changed', {graphId:form['graphId'], name:form['name']}]);
       // redraw menu
@@ -273,7 +277,7 @@ GRASP.GraphMenu.prototype = {
       m,
       this.UI.createForm(
         {
-          'name':{rowType:'text', rowLabel:'Name:'},
+          'name':{rowType:'text', rowLabel:that.i18n.__('Name')+':'},
           'submit':{
             rowClass:'twoColumn upMarginMiddle',
             rowType:'button',
@@ -282,6 +286,10 @@ GRASP.GraphMenu.prototype = {
           }
         },
         function(form){
+          if (!form['name']) {
+            alert(that.i18n.__('Sorry, name cannot be empty'));
+            return;
+          }
           that.publisher.publish(['create_new_graph', {name:form['name']}]).then(function(data){
             newGraphId = data['graphId'];
             // reload graphs models
