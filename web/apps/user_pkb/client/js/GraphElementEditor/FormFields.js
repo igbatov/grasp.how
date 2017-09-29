@@ -23,12 +23,12 @@ GRASP.FormFields.prototype = {
     var that = this;
 
     var SOURCE_TYPES = {
-      'article':'article (peer-reviewed)',
-      'meta-article':'meta-article (peer-reviewed)',
-      'textbook':'textbook',
-      'book':'book',
-      'news':'news',
-      'personal experience':'personal experience'
+      'article':this.i18n.__('article (peer-reviewed)'),
+      'meta-article':this.i18n.__('meta-article (peer-reviewed)'),
+      'textbook':this.i18n.__('textbook'),
+      'book':this.i18n.__('book'),
+      'news':this.i18n.__('news'),
+      'personal experience':this.i18n.__('personal experience')
     };
 
     // define which source type has which fields visible

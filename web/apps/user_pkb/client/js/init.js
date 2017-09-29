@@ -1,4 +1,4 @@
-var DEBUG_MODE = true;
+var DEBUG_MODE = false;
 var TEST_NAME = GRASP.getURLParameters(window.location.href)['TEST_NAME'];
 /**
  * List of modules
