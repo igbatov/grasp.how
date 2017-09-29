@@ -668,6 +668,7 @@ GRASP.GraphElementEditor.prototype = {
             name:'label',
             value:alternative.label,
             callback: that._attrChange.bind(that, graphId, nodeContentId, node),
+            callback_delay:1000,
             isContentEditable: true
           });
           lc.appendChild(l);
@@ -695,6 +696,7 @@ GRASP.GraphElementEditor.prototype = {
         name:'label',
         class:'notInSelectLabel',
         value:alternative.label,
+        callback_delay:1000,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
         isContentEditable: true
       });
@@ -709,6 +711,7 @@ GRASP.GraphElementEditor.prototype = {
         name:'label',
         class:'notInSelectLabel',
         value:alternative.label,
+        callback_delay:1000,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
         isContentEditable: true
       });
