@@ -16,7 +16,7 @@
  * @constructor
  */
 
-GRASP.GraphElementsContent = function(publisher){
+GRASP.GraphElementsContent = function(publisher, i18n){
   this.publisher = publisher;
 
   // This is filled all at once for the whole graph at the very beginning, on get_elements_attributes request
@@ -26,7 +26,8 @@ GRASP.GraphElementsContent = function(publisher){
   this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
   this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
   this.edgeAttributeNames = ['label', 'type'];
-  this.DEFAULT_ALTERNATIVE_LABEL_PREFIX = 'NOT TRUE: ';
+  this.DEFAULT_ALTERNATIVE_LABEL_PREFIX = 'NOT TRUE:';
+  this.i18n = i18n;
 
   // this will be retrieved from server only on get_graph_node_content request
   this.nodeAlternativeContentNames = ['text', 'list'];
@@ -281,7 +282,7 @@ GRASP.GraphElementsContent.prototype = {
             var newNode = GRASP.clone(GRASP.iGraphNodeContent);
             newNode.alternatives[0].label = event.getData().element.label;
             newNode.alternatives[0].reliability = 50;
-            newNode.alternatives[1].label = that.DEFAULT_ALTERNATIVE_LABEL_PREFIX + event.getData().element.label;
+            newNode.alternatives[1].label = this.i18n.__(that.DEFAULT_ALTERNATIVE_LABEL_PREFIX) + ' ' + event.getData().element.label;
             newNode.alternatives[1].reliability = 50;
 
             newNode.type = event.getData().element.type;

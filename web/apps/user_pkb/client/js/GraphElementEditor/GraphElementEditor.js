@@ -799,7 +799,10 @@ GRASP.GraphElementEditor.prototype = {
         type: 'updateNodeAttribute',
         nodeContentId: nodeContentId,
         node_alternative_id: 1,
-        nodeAttribute: {name:name, value:this.DEFAULT_ALTERNATIVE_LABEL_PREFIX+value}
+        nodeAttribute: {
+          name:name,
+          value:this.i18n.__(GRASP.GraphElementsContent.DEFAULT_ALTERNATIVE_LABEL_PREFIX) + ' ' + value
+        }
       }]);
     }
   },

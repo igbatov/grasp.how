@@ -88,7 +88,7 @@ var DI = {
   Publisher:['Mediator', 'Promise'],
 
   GraphModelFactory: [],
-  GraphElementsContent: ['Publisher'],
+  GraphElementsContent: ['Publisher', 'I18n'],
   GraphModelsPubSub: ['Publisher', 'GraphModelFactory'],
 
   GraphHistory: ['Publisher'],
