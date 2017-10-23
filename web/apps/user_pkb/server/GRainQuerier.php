@@ -122,7 +122,7 @@ class GRainQuerier {
     $cmd = '"'.$this->rscript_path.'" "'.$tmp_filename.'" 2>&1';
     $output = array();
     exec($cmd, $output, $error);
-    //error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));
+    error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));
 
     $proposition_probabilities = array();
     foreach($output as $i=>$str){
@@ -132,8 +132,11 @@ class GRainQuerier {
             $node_alternative_ids = preg_split('/\s+/', trim($output[$i+1]));
             $node_alternative_probabilities = preg_split('/\s+/', $output[$i+2]);
             $proposition_probabilities[$node_id] = array();
-            foreach($node_alternative_ids as $j=>$node_alternative_id)
-              $proposition_probabilities[$node_id][$node_alternative_id] = $node_alternative_probabilities[$j];
+            foreach($node_alternative_ids as $j=>$node_alternative_id){
+              // if grain returns NaN , we set 0.5 (aka, we don't know)
+              $p = $node_alternative_probabilities[$j] === 'NaN' ? 0.5 : $node_alternative_probabilities[$j];
+              $proposition_probabilities[$node_id][$node_alternative_id] = $p;
+            }
           }
         }
       }
