@@ -34,8 +34,10 @@
   <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
   <script src="<?php echo $this->getAppDir('js'); ?>/main.js"></script>
   <script src="<?php echo $this->getAppDir('js'); ?>/bootstrap.min.js"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/playOnView.js"></script>
 </head>
 <body>
+<div class="mainContainer">
 <div class="header">
   <div class="container">
     <nav class="navbar navbar-default">
@@ -150,8 +152,11 @@
       </div>
       <div class="col-sm-6 noright">
         <div class="inner">
-          <p>разные кружочки
-            показать</p>
+          <div class="web-cam">
+            <video class="firstVideo" loop>
+              <source src="<?php echo $this->getAppDir('img'); ?>/<?php echo $this->i18n->getLang() === 'en' ? 'graspGIFs1EN.mp4' : 'graspGIFs1.mp4' ?>" type="video/mp4">
+            </video>
+          </div>
         </div>
       </div>
     </div>
@@ -167,7 +172,11 @@
       </div>
       <div class="col-sm-6 noright">
         <div class="inner">
-          <p>гифка — заполнение источника</p>
+          <div class="web-cam">
+            <video class="secondVideo" loop>
+              <source src="<?php echo $this->getAppDir('img'); ?>/<?php echo $this->i18n->getLang() === 'en' ? 'v2en.mp4' : '2v4.mp4' ?>" type="video/mp4">
+            </video>
+          </div>
         </div>
       </div>
     </div>
@@ -196,7 +205,11 @@
       </div>
       <div class="col-sm-6 noleft">
         <div class="inner">
-          <p>гифка — как связывать узлы</p>
+          <div class="web-cam">
+            <video class="thirdVideo" loop>
+              <source src="<?php echo $this->getAppDir('img'); ?>/<?php echo $this->i18n->getLang() === 'en' ? '3v8.mp4' : '3v2.mp4' ?>" type="video/mp4">
+            </video>
+          </div>
         </div>
       </div>
     </div>
@@ -242,6 +255,7 @@
       Вопросы и предложения пишите на <a href="mailto:igbatov@gmail.com">igbatov@gmail.com</a>
     </div>
   </div>
+</div>
 </div>
 </body>
 </html>
