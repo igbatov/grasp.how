@@ -22,6 +22,7 @@ $(document).ready(function() {
         $(this).get(0).play();
       } else {
         $(this).get(0).pause();
+        $(this).get(0).currentTime = 0;
       }
     });
 
