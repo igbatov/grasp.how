@@ -924,7 +924,7 @@ GRASP.GraphElementEditor.prototype = {
     var formSettings = {
       'type':{
         rowType:'select',
-        rowLabel:'Edge type',
+        rowLabel:this.i18n.__('Edge type'),
         items:edgeTypeLabels,
         value:edgeContent.type,
         withDownArrow: true,
@@ -934,7 +934,7 @@ GRASP.GraphElementEditor.prototype = {
     if (edgeContent.type !== GRASP.GraphViewEdge.EDGE_TYPE_LINK){
       formSettings['changeDirection'] = {
         rowType:'checkbox',
-        rowLabel: 'Change direction',
+        rowLabel: this.i18n.__('Change direction'),
         value:false
       };
     }

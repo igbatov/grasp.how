@@ -1,4 +1,9 @@
 {
+  "causal":"причинная",
+  "conditional":"условная",
+  "link":"просто связь",
+  "Edge type":"Тип связи",
+  "Change direction":"Сменить направление",
   "NOT TRUE:":"НЕ ВЕРНО, ЧТО:",
   "New":"Создать новый",
   "Sorry, you cannot have only one alternative":"Извините, но альтернативы должно быть минимум две",
