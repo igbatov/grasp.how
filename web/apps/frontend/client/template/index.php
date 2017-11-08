@@ -68,7 +68,7 @@
                 <li><a href="/setLang/ru">Ru</a></li>
               </ul>
             </li>
-            <li><a href="http://my.grasp.how" class="btn"><?php echo $this->i18n->__('Create my own map') ?></a></li>
+            <li><a href="https://my.grasp.how" class="btn"><?php echo $this->i18n->__('Create my own map') ?></a></li>
           </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
