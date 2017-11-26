@@ -538,7 +538,7 @@ GRASP.GraphMenu.prototype = {
           {id:jsId, class:'jsCode'},
           '<div id="'+divId+'"><script src=\'http://www.grasp.how/embed.js?data={"snaps":['+
             JSON.stringify(data)
-          +']}\'></script></div>',
+          +'],"editMapRibbon":false}\'></script></div>',
           null,
           true
       );
@@ -577,7 +577,7 @@ GRASP.GraphMenu.prototype = {
       var imgCode = GRASP.createElement(
           'div',
           {id:imgId, class:'imgCode'},
-          '<a target="_blank" href=\'http://www.grasp.how/embed/['+JSON.stringify(data)+']\'>' +
+          '<a target="_blank" href=\'http://www.grasp.how/embed/['+JSON.stringify(data)+']?p={"editMapRibbon":false}\'>' +
           '<img src=\'http://www.grasp.how/img/graph_shots/'
           +data.graphId+'_'+data.step+'_'+data.ts+'('+defaultImgSize+')'+'.jpg\'>' +
           '</a>',
