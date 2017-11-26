@@ -50,6 +50,10 @@ body{
     margin-right: 7px;
     color: #4fce69;
 }
+.condPInfoTable{
+    table-layout: fixed;
+    width: 100%;
+}
 .condPInfo{
     cursor: default;
     position: relative;
@@ -58,20 +62,22 @@ body{
     background-color: #f6f6f6;
 }
 .conditionalProbability{
-    position: absolute;
+    /* position: absolute; */
     display: inline-block;
     color: #b363d2;
+    vertical-align: top;
 }
 .conditionalArrow{
+    vertical-align: top;
     font-family: 'LucidaGrande';
     color: #000000;
-    position: absolute;
+    /* position: absolute; */
     display: inline-block;
     margin-right: 7px;
-    margin-left: 28px;
+    margin-left: 7px;
 }
 .ifCondition{
-    margin-left: 47px;
+    /* margin-left: 47px; */
     display: inline-block;
 }
 .textBoxContent {

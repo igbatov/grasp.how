@@ -365,3 +365,44 @@ describe("GRASP.deepmerge", function(){
   })
 });
 
+describe("GRASP.roundProbabilities", function(){
+
+  it('should correctly round list of with 3 probabilities', function () {
+    var pList = [
+      0.0009890011,
+      0.999009989,
+      0.000010000
+    ];
+    var roundedPList = GRASP.roundProbabilities(pList);
+    expect(roundedPList).toBeJsonEqual([
+      '0.00099',
+      '0.99900',
+      '0.00001'
+    ]);
+  });
+
+  it('should correctly round list of probabilities with minimal max significant digit = 9', function () {
+    var pList = [
+      0.0009990011,
+      0.9990009989
+    ];
+    var roundedPList = GRASP.roundProbabilities(pList);
+    expect(roundedPList).toBeJsonEqual([
+      '0.001',
+      '0.999'
+    ]);
+  });
+
+  it('should correctly round list [1, 0, 0]', function () {
+    var pList = [
+      1, 0, 0
+    ];
+    var roundedPList = GRASP.roundProbabilities(pList);
+    expect(roundedPList).toBeJsonEqual([
+      '1.00',
+      '0.00',
+      '0.00'
+    ]);
+  });
+});
+

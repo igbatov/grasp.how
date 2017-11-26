@@ -444,6 +444,9 @@ GRASP.GraphElementEditor.prototype = {
     var c = GRASP.createElement('div',{});
     var l = GRASP.createElement('div',{class:'condPInfoLabel'},this.i18n.__('Probability of proposition is:'));
     c.appendChild(l);
+    var tableId = GRASP.getUniqId();
+    var table = GRASP.createElement('table',{class:'condPInfoTable', id:tableId});
+    c.appendChild(table);
     var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
         node,
         isEditable,
@@ -454,15 +457,15 @@ GRASP.GraphElementEditor.prototype = {
     );
 
     for(var i in f.fieldsObj){
-      var ifthenC = GRASP.createElement('div',{class:'ifThenContainer'});
+      var ifthenC = GRASP.createElement('tr',{class:'ifThenContainer'});
       var ifthen = f.fieldsObj[i];
       var p = GRASP.createElement(
-          'div',
+          'td',
           {class:'probability'},
-          parseFloat(ifthen['THEN'][node.active_alternative_id].probability).toFixed(2)
+          ifthen['THEN'][node.active_alternative_id].probability
       );
-      var iflabel = GRASP.createElement('div',{class:'iflabel'}, that.i18n.__('if'));
-      var ifcond = GRASP.createElement('div',{class:'ifcond'});
+      var iflabel = GRASP.createElement('td',{class:'iflabel'}, that.i18n.__('if'));
+      var ifcond = GRASP.createElement('td',{class:'ifcond'});
       for (var j in ifthen['IF']){
         ifcond.appendChild(
             GRASP.createElement('div', {}, ifthen['IF'][j].alternativeLabel)
@@ -471,9 +474,9 @@ GRASP.GraphElementEditor.prototype = {
       ifthenC.appendChild(p);
       ifthenC.appendChild(iflabel);
       ifthenC.appendChild(ifcond);
-      c.appendChild(ifthenC);
+      table.appendChild(ifthenC);
     }
-
+    GRASP.setTDWidthFitLongestCell(tableId, 0);
     return c;
   },
 
@@ -650,6 +653,15 @@ GRASP.GraphElementEditor.prototype = {
       alternatives[key] = node['alternatives'][key];
       alternatives[key].alternative_id = key;
     }
+
+    var reliabilityKeys = GRASP.getObjectKeys(alternatives);
+    var reliabilityArray = GRASP.roundProbabilities(GRASP.getObjectValues(alternatives).map(function(item){
+      return parseFloat(item.reliability)/100;
+    }));
+    var reliabilityHash = {};
+    for(var i in reliabilityArray){
+      reliabilityHash[reliabilityKeys[i]] = reliabilityArray[i];
+    }
     if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION) {
       // create select with alternativeLabels
       var select = this.UI.createSelectBox({
@@ -658,10 +670,14 @@ GRASP.GraphElementEditor.prototype = {
         defaultValue: node.active_alternative_id,
         callback: this._attrChange.bind(this, graphId, nodeContentId, node),
         dropType: 'single',
-        map: this._alternativeToSelectBoxItem.bind(this, graphId, nodeContentId, node, isEditable),
+        map: this._alternativeToSelectBoxItem.bind(this, graphId, nodeContentId, node, isEditable, reliabilityHash),
         selectedItemMap: function(alternative){
           var c = GRASP.createElement('div',{class:'nodeLabel inSelectBox'});
-          var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
+          var r = GRASP.createElement(
+              'div',
+              {class:'alternativeProbability'},
+              reliabilityHash[alternative.alternative_id]
+          );
           var lc = GRASP.createElement('div',{class:'textareaContainer'});
           var l = that.UI.createTextareaBox({
             disabled: !isEditable,
@@ -722,9 +738,13 @@ GRASP.GraphElementEditor.prototype = {
     return c;
   },
 
-  _alternativeToSelectBoxItem: function(graphId, nodeContentId, node, isEditable, alternative){
+  _alternativeToSelectBoxItem: function(graphId, nodeContentId, node, isEditable, reliabilityHash, alternative){
     var c = GRASP.createElement('div',{class:'nodeLabel inSelectBox'});
-    var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
+    var r = GRASP.createElement(
+        'div',
+        {class:'alternativeProbability'},
+        reliabilityHash[alternative.alternative_id]
+    );
     var l = GRASP.createElement('div',{class:'alternativeLabel'}, alternative.label);
     var remove = this.UI.createButton({
       disabled: !isEditable,

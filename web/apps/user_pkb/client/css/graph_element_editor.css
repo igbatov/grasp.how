@@ -92,6 +92,10 @@
    margin-left: 0.5em;
    margin-bottom: 0.1em;
 }
+.graphElementEditorContainer .condPInfoTable {
+    table-layout: fixed;
+    width: 100%;
+}
 .graphElementEditorContainer .condPInfoLabel {
     font-family: 'Roboto';
     font-size: 14px;
@@ -101,13 +105,14 @@
     color: #191919;
 }
 .graphElementEditorContainer .ifThenContainer {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: baseline;
+    /* display: flex; */
+    /* flex-direction: row; */
+    /* justify-content: flex-start; */
+    /* align-items: baseline; */
 }
 
 .ifThenContainer .probability {
+    vertical-align: top;
     margin-right: 0.5em;
     font-family: 'DINPro';
     font-size: 16px;
@@ -115,7 +120,7 @@
     line-height: 1.25;
     text-align: left;
     color: #b363d2;
-    display: inline;
+    display: inline-block;
 }
 .ifThenContainer .iflabel {
     margin-right: 0.5em;
@@ -123,7 +128,8 @@
     font-size: 16px;
     line-height: 1.25;
     color: #8b8b8b;
-    display: inline;
+    display: inline-block;
+    vertical-align: top;
 }
 .ifThenContainer .ifcond {
     font-family: 'Roboto';
@@ -131,13 +137,14 @@
     line-height: 1.43;
     text-align: left;
     color: #191919;
-    /* display: inline; */
+    display: inline-block;
 }
 .graphElementEditorContainer .alternativeLabel {
     margin-top: 0.2em;width: 100%;
 }
 .graphElementEditorContainer .alternativeProbability {
-    width: 3em;
+    margin-right: 1em;
+    /* width: 3em; */
     font-family: DINPro;
     font-size: 16px;
     font-weight: bold;

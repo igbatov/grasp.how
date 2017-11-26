@@ -27,11 +27,11 @@ GRASP.BayesPubSub.prototype = {
             ]);
 
           } else {
-            // normalize probabilities to be in [1,100] interval
+            // normalize probabilities to be in [0,100] interval
             for(var i in d.data){
               var node = d.data[i];
               for(var j in node){
-                d.data[i][j] = Math.round(100*node[j]);
+                d.data[i][j] = 100*node[j];
               }
             }
 

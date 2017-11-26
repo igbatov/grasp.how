@@ -37,20 +37,20 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
   }
 
   /**
-   *
+   * @param probabilities - probabilities formatted
    * @param item - {
-   *    alternative: {label:string, reliability: number}
+   *    alternative: {label:string, reliability: number, alternative_id: number
    *    type: string
    * }
    * @param withoutProbability - show probability or not
    * @returns {HTMLElement}
    */
-  function createLabelHTML(item, withoutProbability){
+  function createLabelHTML(probabilities, item, withoutProbability){
     var alternative = item['alternative'], type = item['type'];
     var label =  GRASP.createElement('div', {class:'altLabel ' + type});
     var title = GRASP.createElement('div', {class:'alternativeLabel'}, alternative.label);
     if (!withoutProbability) {
-      var pr = GRASP.createElement('div', {class:'alternativePr'}, (alternative.reliability/100).toFixed(2));
+      var pr = GRASP.createElement('div', {class:'alternativePr'}, probabilities[item.alternative_id]);
       label.appendChild(pr);
     }
     label.appendChild(title);
@@ -59,19 +59,29 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
   }
 
   function createLabels(content){
+    var items = {};
+    for(var i in content['alternatives']){
+      var alternative = content['alternatives'][i];
+      items[i] = {alternative:alternative, type:content.type, alternative_id:i};
+    }
+
+    var reliabilityKeys = GRASP.getObjectKeys(items);
+    var reliabilityArray = GRASP.roundProbabilities(GRASP.getObjectValues(items).map(function(item){
+      return parseFloat(item.alternative.reliability)/100;
+    }));
+    var reliabilityHash = {};
+    for(var i in reliabilityArray){
+      reliabilityHash[reliabilityKeys[i]] = reliabilityArray[i];
+    }
+      
     if (content.type === 'proposition') {
       // create menu from labels
-      var items = {}
-      for(var i in content['alternatives']){
-        var alternative = content['alternatives'][i];
-        items[i] = {alternative:alternative, type:content.type};
-      }
       var selectBox = UI.createSelectBox({
         name:'labels',
         withDownArrow: true,
         items:items,
         defaultValue:"0",
-        map:createLabelHTML,
+        map:createLabelHTML.bind(this, reliabilityHash),
         callback:function(name, alt_id){
           setState(content.nodeId, alt_id);
         }
@@ -81,9 +91,12 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
       return c;
     } else {
       // create one label
-      return createLabelHTML({
+      return createLabelHTML(
+      reliabilityHash,
+      {
         alternative: content['alternatives'][0],
-        type: content.type
+        type: content.type,
+        alternative_id: 0
       }, content.type !== 'fact');
     }
   }
@@ -157,22 +170,26 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
 
       if(condPInfo){
         // title
-        var title = (content.type == 'fact' ? 'This fact' : 'This proposition') + ' is truthful with probability P in case:';
+        var title = "Probability of " + (content.type == 'fact' ? 'fact' : 'proposition') + ' is';
         var altContentLabel = GRASP.createElement('div', {class: 'titleH2'}, i18n.__(title));
-        var altContentContent = GRASP.createElement('div',{},'');
+        var tableId = GRASP.getUniqId();
+        var altContentContent = GRASP.createElement(
+            'table',
+            {class:'condPInfoTable', id:tableId},
+            ''
+        );
+        GRASP.setTDWidthFitLongestCell(tableId, 0);
         // create decorated text string for each f.fields[i]
         for(var j in condPInfo.fieldsObj){
           var b = condPInfo.fieldsObj[j];
-          var el = GRASP.createElement('div',{class:'condPInfo'});
-          var probabilityDOM = GRASP.createElement('div',{class:'conditionalProbability'},b['THEN'][alt_id].probability);
+          var el = GRASP.createElement('tr',{class:'condPInfo'});
+          var probabilityDOM = GRASP.createElement('td',{class:'conditionalProbability'},b['THEN'][alt_id].probability);
           el.appendChild(probabilityDOM);
           for(var parentId in b['IF']){
-            var conditionalArrow = GRASP.createElement('span',{class:'conditionalArrow'},'&rarr;');
-            var ifCondition = GRASP.createElement('div',{class:'ifCondition'},b['IF'][parentId].alternativeLabel);
-            var newLine = GRASP.createElement('BR',{});
+            var conditionalArrow = GRASP.createElement('td',{class:'conditionalArrow'}, i18n.__('if'));
+            var ifCondition = GRASP.createElement('td',{class:'ifCondition'},b['IF'][parentId].alternativeLabel);
             el.appendChild(conditionalArrow);
             el.appendChild(ifCondition);
-            el.appendChild(newLine);
           }
 
           el.dataset.condPInfoBlockId = j;

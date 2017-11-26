@@ -223,7 +223,7 @@
       <p><?php echo $this->i18n->__("What is grasp.how and how to use it, in a nutshell"); ?></p>
     </div>
     <div class="col-sm-6 noright">
-      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/JRFGqepAnhU"); ?>" frameborder="0" allowfullscreen></iframe>
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/Dm23kNi_KYY"); ?>" frameborder="0" allowfullscreen></iframe>
       <p><?php echo $this->i18n->__("Real-life example: map of Evolution theory"); ?></p>
     </div>
     <div class="col-sm-6 noleft">

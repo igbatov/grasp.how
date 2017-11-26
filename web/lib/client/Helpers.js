@@ -1845,6 +1845,111 @@ GRASP.copyToClipboard = function(elementId, type) {
   document.body.removeChild(aux);
 }
 
+/**
+ * Calc min valid precision for an array of doubles
+ * @param context
+ */
+GRASP.getMaxPrecision = function ( numbers, numberOfSignificantDigits ) {
+  if (typeof(numberOfSignificantDigits) === 'undefined') {
+    numberOfSignificantDigits = 1;
+  }
+  var getAfterDotLength = function(num){
+    num = parseFloat(num).toFixed(20).toString();
+    if (num[0] != 0) {
+      return 0;
+    }
+    subnum = num.substr(num.indexOf('.')+1);
+    var cnt = 0;
+    while(subnum[0] == 0){
+      cnt++;
+      subnum = subnum.substr(1);
+    }
+    return cnt + numberOfSignificantDigits;
+  }
+
+  var maxPrecision = 0;
+  for(var i in numbers){
+    var cnt = getAfterDotLength(numbers[i]);
+    if(cnt > maxPrecision){
+      maxPrecision = cnt;
+    }
+  }
+
+  return maxPrecision === 0 ? 2 : maxPrecision;
+}
+
+/**
+ * Formats probabilities to show it in shorter form.
+ *
+ * Takes probabilityList (list of positive numbers that sums to 1), selects the smallest number,
+ * finds its and most significant digit (D) and cuts every number in list to have only D digits.
+ * To preserve property of sum(probabilityList)=1 it ceils up the number with the greatest
+ * second-most-significant digit.
+ *
+ * @probabilityList - list of positive numbers that sums to 1
+ *
+ * @returns rounded @probabilityList as array of strings
+ *
+ */
+GRASP.roundProbabilities = function(probabilityList){
+  var maxMostSignDP = 0;
+  var maxSecondMostSignDigit = 0;
+  var indexOfProbabilityToIncrease = 0;
+  probabilityList.forEach(function(n, i){
+    if (n<0 || n>1) {
+      GRASP.throwError('Every probability in probabilityList must be from [0, 1] interval');
+    }
+    var mostSignDP = 0;
+    var secondMostSignDigit = 0;
+    n = n.toString();
+    var afterDotPart = n.substr(n.indexOf('.')+1).split('');
+    while(afterDotPart[mostSignDP] === '0'){
+      mostSignDP++;
+      secondMostSignDigit = afterDotPart[mostSignDP + 1];
+    }
+    if (maxMostSignDP < mostSignDP){
+      maxMostSignDP = mostSignDP;
+    }
+
+    if (secondMostSignDigit > maxSecondMostSignDigit) {
+      maxSecondMostSignDigit = secondMostSignDigit;
+      indexOfProbabilityToIncrease = i;
+    }
+  });
+
+  // we want to start it from 1, not zero, to use as length
+  maxMostSignDP++;
+
+  var roundedList = probabilityList.map(function(n, i){
+    if (n === 1){
+      return '1.00';
+    }
+    if (n === 0){
+      return '0.00';
+    }
+    var np = n.toString().split(".");
+    // take Math.max just because 1.00 looks prettier than 1
+    return np[0] + '.' + np[1].substr(0, Math.max(maxMostSignDP, 2));
+  });
+
+  // if sum of rounded numbers do not equal 1, increase number with greatest second most significant digit
+  if(roundedList.reduce(function(a,b){return parseFloat(a) + parseFloat(b);}, 0) < 1){
+    var oldMostSignificantDigit = roundedList[indexOfProbabilityToIncrease].split('.')[1][maxMostSignDP - 1];
+    roundedList[indexOfProbabilityToIncrease] =
+        (parseFloat(roundedList[indexOfProbabilityToIncrease]) + 1/Math.pow(10, maxMostSignDP)).toFixed(maxMostSignDP);
+    // If second significant digit of increased number was 9 and overall sum < 1
+    // then all other numbers has trailing zero as well as increased number.
+    // Cut this zero
+    if (oldMostSignificantDigit === '9'){
+      roundedList = roundedList.map(function(item){
+        return item.toString().substr(0, item.length - 1);
+      });
+    }
+  }
+
+  return roundedList;
+};
+
 GRASP.getElementFontSize = function ( context ) {
   // Returns a number
   return parseFloat(
@@ -1933,4 +2038,63 @@ GRASP.htmlspecialchars_decode = function (string, quoteStyle) { // eslint-disabl
   // Put this in last place to avoid escape being double-decoded
   string = string.replace(/&amp;/g, '&')
   return string
+};
+
+
+GRASP.convertHTMLtoText = function(n) {
+  var rv = '';
+
+  if (n.nodeType == 3) {
+    rv = n.nodeValue;
+  } else {
+    for (var i = 0; i < n.childNodes.length; i++) {
+      rv += getText(n.childNodes[i]);
+    }
+    var d = getComputedStyle(n).getPropertyValue('display');
+    if (d.match(/^block/) || d.match(/list/) || n.tagName == 'BR') {
+      rv += "\n";
+    }
+  }
+
+  return rv;
+};
+
+/**
+ * Sets all cells of columnNum equal width = width of longest cell in this column
+ * @param tableId
+ * @param columnNum
+ */
+GRASP.setTDWidthFitLongestCell = function(tableId, columnNum){
+  var f = function(timeout){
+    setTimeout(function() {
+      var table = document.getElementById(tableId);
+      // if table was not mounted yet, then wait and repeat
+      if (table === null) return f(100);
+
+      // ok, it was mounted - find max width of cell in columnNum column
+      var maxWidth = 0;
+      var trs = table.getElementsByTagName('tr');
+      trs = Array.prototype.slice.call(trs);
+      for(var i in trs){
+        var tds = trs[i].getElementsByTagName('td');
+        tds = Array.prototype.slice.call(tds);
+        var w = parseInt(tds[columnNum].offsetWidth);
+        if (w == NaN) {
+          return f(100);
+        }
+        if(w > maxWidth){
+          maxWidth = w;
+        }
+      }
+
+      // set new width for all cells of columnNum column
+      for(i in trs) {
+        tds = trs[i].getElementsByTagName('td');
+        tds = Array.prototype.slice.call(tds);
+        tds[columnNum].style.width = maxWidth+'px';
+      }
+    }, timeout);
+  };
+
+  f(0);
 };
