@@ -376,7 +376,7 @@ class GraphDiffCreator{
       $text2 = $db->exec($authId2, "SELECT text FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
       $text1 = mb_convert_encoding($text1, 'HTML-ENTITIES', 'UTF-8');
       $text2 = mb_convert_encoding($text2, 'HTML-ENTITIES', 'UTF-8');
-      return mb_convert_encoding(TextDiff::toString(TextDiff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
+      return mb_convert_encoding(TextDiff::toHTML(TextDiff::compare($text1, $text2)), 'UTF-8', 'HTML-ENTITIES');
     }
 
     return false;

@@ -498,7 +498,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
         GRASP.TestHelpers.cmp(
             'diff graph node content text',
             JSON.parse(e)[originalGraphId + "-1/" + cloneGraphId + "-1"]['alternatives'][0]['text'],
-            "- 123\n+ bbb\n"
+            "<del>123</del><br><ins>bbb</ins><br>"
         );
 
         GRASP.TestHelpers.cmp(
