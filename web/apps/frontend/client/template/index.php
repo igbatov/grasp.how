@@ -227,7 +227,7 @@
       <p><?php echo $this->i18n->__("Real-life example: map of Evolution theory"); ?></p>
     </div>
     <div class="col-sm-6 noleft">
-      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/2Fw-zeoT2ew"); ?>" frameborder="0" allowfullscreen></iframe>
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/j0Ae1ywJfcA"); ?>" frameborder="0" allowfullscreen></iframe>
       <p><?php echo $this->i18n->__("How to share map, clone maps of others and get their modifications"); ?></p>
     </div>
   </div>
