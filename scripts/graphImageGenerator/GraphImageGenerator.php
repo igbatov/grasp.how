@@ -87,8 +87,10 @@ class GraphImageGenerator {
         .$this->tmpDir.'/'.$this->snapToFilename($snap).'.json '
         .$this->tmpDir.'/'.$this->snapToFilename($snap)
         .' '.(isset($snap['dims']) ? $snap['dims']['width'].'x'.$snap['dims']['height'] : '');
-    exec(str_replace(['(',')'], ['\(','\)'], $cmd)." 2>&1", $output);
+    $cmd = str_replace(['(',')'], ['\(','\)'], $cmd)." 2>&1";
+    exec($cmd, $output);
 
+    $this->logger->log($cmd);
     $this->logger->log(var_export($output, true));
 
     $svg = file_get_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.svg');
