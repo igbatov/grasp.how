@@ -43,7 +43,7 @@ class I18N{
 
   public function getLang()
   {
-    return $this->session->get('language') ? $this->session->get('language') : I18N::LANG_EN;
+    return $this->session->get('language') ? $this->session->get('language') : I18N::LANG_RU;
   }
 
   /**
