@@ -12,8 +12,9 @@ class GraphImageGenerator {
   private $currentDir;
   private $rootDir;
   private $helper;
+  private $logger;
 
-  public function __construct(EmbGraph $embGraph, Helper $helper)
+  public function __construct(EmbGraph $embGraph, Helper $helper, Logger $logger)
   {
     $this->embGraph = $embGraph;
     $this->imagick = $helper->getImagick();
@@ -22,6 +23,7 @@ class GraphImageGenerator {
     $this->rootDir = $this->currentDir.'/../..';
     $this->tmpDir = $this->rootDir."/tmp";
     $this->helper = $helper;
+    $this->logger = $logger;
   }
 
   public function snapToFilename($snap)
@@ -86,6 +88,8 @@ class GraphImageGenerator {
         .$this->tmpDir.'/'.$this->snapToFilename($snap)
         .' '.(isset($snap['dims']) ? $snap['dims']['width'].'x'.$snap['dims']['height'] : '');
     exec(str_replace(['(',')'], ['\(','\)'], $cmd)." 2>&1", $output);
+
+    $this->logger->log(var_export($output, true));
 
     $svg = file_get_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.svg');
     $svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'.$svg;

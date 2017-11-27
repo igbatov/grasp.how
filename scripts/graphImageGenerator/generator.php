@@ -52,7 +52,7 @@ if($graph_id){
 $graphs = new Graphs($db, $contentIdConverter, $graphIdConverter, $logger);
 $emb_graph = new EmbGraph($db, $contentIdConverter, $graphIdConverter, $graphs);
 $helper = new Helper();
-$graphImageGenerator = new GraphImageGenerator($emb_graph, $helper);
+$graphImageGenerator = new GraphImageGenerator($emb_graph, $helper, $logger);
 // for each user
 foreach ($authIds as $authId){
 // for each graph generate its jpeg image with #node converter.js graph.svg
