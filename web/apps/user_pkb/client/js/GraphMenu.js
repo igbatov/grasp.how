@@ -420,33 +420,21 @@ GRASP.GraphMenu.prototype = {
           clones[graphId]['cloned_from'],
           function(){  that.UI.closeModal(m); }
       );
-      var actions = [
-        {
-          name: 'show diff',
-          type:'bigButton uppercase',
-          label: that.i18n.__('Difference'),
-          callback: function(cloneId){
-            // get graph diff and show it
-            that.publisher.publish(['load_graph_models', {graphIds:['diff_'+cloneId+'_'+graphId]}]).then(function(){
-              // and then show them
-              that.publisher.publish('show_graphs');
-              that.UI.closeModal(m);
-            });
-          }
-        }
-      ];
-      var clonedFromList = that.UI.createList(
-        clonedFromHtmlList,
-        actions
-      );
-
-      clonedFromHtmlList = that._createHTMLFromCloneList(
+      var clonedToHtmlList = that._createHTMLFromCloneList(
           clones[graphId]['cloned_to'],
           function(){  that.UI.closeModal(m); }
       );
+      var actionsFrom = that._createCloneListActions(graphId, 'from', m);
+      var actionsTo = that._createCloneListActions(graphId, 'to', m);
+
+      var clonedFromList = that.UI.createList(
+        clonedFromHtmlList,
+        actionsFrom
+      );
+
       var clonedToList = that.UI.createList(
-          clonedFromHtmlList,
-          actions
+        clonedToHtmlList,
+        actionsTo
       );
 
       var cloneListContainer = GRASP.createElement('div', {class:'cloneListContainer'});
@@ -465,6 +453,26 @@ GRASP.GraphMenu.prototype = {
 
       that.UI.setModalContent(m, cloneListContainer);
     });
+  },
+
+  _createCloneListActions: function(graphId, direction, modalWindow){
+    var that = this;
+    return [
+      {
+        name: 'show diff',
+        type:'bigButton uppercase',
+        label: that.i18n.__('Difference'),
+        callback: function(cloneId){
+          // get graph diff and show it
+          var graphDiffId = direction === 'from' ? 'diff_'+cloneId+'_'+graphId : 'diff_'+graphId+'_'+cloneId
+          that.publisher.publish(['load_graph_models', {graphIds:[graphDiffId]}]).then(function(){
+            // and then show them
+            that.publisher.publish('show_graphs');
+            that.UI.closeModal(modalWindow);
+          });
+        }
+      }
+    ];
   },
 
   _createHTMLFromCloneList: function (clones, callback) {
@@ -555,13 +563,12 @@ GRASP.GraphMenu.prototype = {
           {class:'imgTitle'},
           that.i18n.__('HTML code for non-interactive image')
       );
-      var defaultImgSize = '500x250';
+      var defaultImgSize = '700x500';
       var imgSizeSelect = that.UI.createSelectBox({
         name: 'imgSizeSelect',
         items: {
           '250x250': '250x250',
-          '500x250': '500x250',
-          '720x380': '720x380',
+          '700x500': '700x500',
           '1280x960': '1280x960',
         },
         defaultValue: defaultImgSize,
