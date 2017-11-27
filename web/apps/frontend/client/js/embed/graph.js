@@ -15,6 +15,8 @@ var graphDrawer = (function(){
   var _svgc;
   var _nodes;
   var _options;
+  var _document = (typeof window !== 'undefined' && typeof window.document !== 'undefined') ?
+      window.document : undefined;
   var _d3;
 
   return {
@@ -22,6 +24,7 @@ var graphDrawer = (function(){
     eventListener: eventListener,
     showGraph: showGraph,
     setD3: setD3,
+    setDocument: setDocument,
     moduleName: 'graphDrawer'
   };
 
@@ -44,6 +47,10 @@ var graphDrawer = (function(){
 
   function setD3(d3) {
     _d3 = d3;
+  }
+
+  function setDocument(document) {
+    _document = document;
   }
 
   function eventListener(e){
@@ -391,10 +398,10 @@ var graphDrawer = (function(){
      * @type {string}
      */
     var svgNS = "http://www.w3.org/2000/svg";
-    var gNode = document.getElementById(gId);
+    var gNode = _document.getElementById(gId);
     for(var j in strs){
       var str = strs[j];
-      var newText = document.createElementNS(svgNS,"text");
+      var newText = _document.createElementNS(svgNS,"text");
       newText.setAttributeNS(null,"class","graphLabelString");
       newText.setAttributeNS(null,"dx",0);
       newText.setAttributeNS(null,"dy",offset);
@@ -402,7 +409,7 @@ var graphDrawer = (function(){
       newText.setAttributeNS(null,"font-size",LABEL_FONT_SIZE_FACTOR*node.size);
       newText.setAttributeNS(null,"fill","#BBBBBB");
       newText.setAttributeNS(null,"opacity",node.opacity);
-      var textNode = document.createTextNode(str);
+      var textNode = _document.createTextNode(str);
       newText.appendChild(textNode);
       gNode.appendChild(newText);
 

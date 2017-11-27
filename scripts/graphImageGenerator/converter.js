@@ -31,6 +31,7 @@ fs.readFile(arg1, (err, data) => {
 
         // draw graph SVG in wrapper
         graphDrawer.setD3(window.d3);
+        graphDrawer.setDocument(window.document);
         graphDrawer.setOptions({
             wrapper: wrapper,
             wrapperArea: wrapperArea,

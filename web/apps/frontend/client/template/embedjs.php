@@ -7,7 +7,7 @@
     var iframe = document.createElement('iframe');
     iframe.scrolling = "no";
     iframe.class = 'grasphow-iframe';
-    iframe.src = 'https://www.grasp.how/embed/<?php echo json_encode($snaps).('?p={"withFbShare":'.($withFbShare?'true':'false').',"editMapRibbon":'.($editMapRibbon?'true':'false').'}'); ?>';
+    iframe.src = 'http://www.grasp.how/embed/<?php echo json_encode($snaps).('?p={"withFbShare":'.($withFbShare?'true':'false').',"editMapRibbon":'.($editMapRibbon?'true':'false').'}'); ?>';
     iframe.style.width = width;
     iframe.style.height = height;
     iframe.style.border = '0';
@@ -24,7 +24,7 @@
       +"&col="
       +"&stack="+e.stack
       +"&href="+encodeURIComponent(window.location.href);
-      xhr.open("GET", "https://www.grasp.how/logger?"+data, true);
+      xhr.open("GET", "http://www.grasp.how/logger?"+data, true);
       xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
       xhr.send();
     }
