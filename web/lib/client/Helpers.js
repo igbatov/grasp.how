@@ -1901,7 +1901,7 @@ GRASP.roundProbabilities = function(probabilityList){
     }
     var mostSignDP = 0;
     var secondMostSignDigit = 0;
-    n = n.toString();
+    n = Number(n).toString();
     var afterDotPart = n.substr(n.indexOf('.')+1).split('');
     while(afterDotPart[mostSignDP] === '0'){
       mostSignDP++;
@@ -1927,22 +1927,23 @@ GRASP.roundProbabilities = function(probabilityList){
     if (n === 0){
       return '0.00';
     }
-    var np = n.toString().split(".");
+    var np = Number(n).toString().split(".");
     // take Math.max just because 1.00 looks prettier than 1
     return np[0] + '.' + np[1].substr(0, Math.max(maxMostSignDP, 2));
   });
 
   // if sum of rounded numbers do not equal 1, increase number with greatest second most significant digit
   if(roundedList.reduce(function(a,b){return parseFloat(a) + parseFloat(b);}, 0) < 1){
-    var oldMostSignificantDigit = roundedList[indexOfProbabilityToIncrease].split('.')[1][maxMostSignDP - 1];
+    var mostSignificantDigit = roundedList[indexOfProbabilityToIncrease].split('.')[1][maxMostSignDP - 1];
     roundedList[indexOfProbabilityToIncrease] =
-        (parseFloat(roundedList[indexOfProbabilityToIncrease]) + 1/Math.pow(10, maxMostSignDP)).toFixed(maxMostSignDP);
-    // If second significant digit of increased number was 9 and overall sum < 1
-    // then all other numbers has trailing zero as well as increased number.
-    // Cut this zero
-    if (oldMostSignificantDigit === '9'){
+      Number((parseFloat(roundedList[indexOfProbabilityToIncrease]) + 1/Math.pow(10, maxMostSignDP))).toString();
+    if (mostSignificantDigit === '9'){
       roundedList = roundedList.map(function(item){
-        return item.toString().substr(0, item.length - 1);
+        return item.substr(0, maxMostSignDP + 1);
+      });
+    } else {
+      roundedList = roundedList.map(function(item){
+        return item.substr(0, maxMostSignDP + 2);
       });
     }
   }

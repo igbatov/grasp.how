@@ -367,7 +367,7 @@ describe("GRASP.deepmerge", function(){
 
 describe("GRASP.roundProbabilities", function(){
 
-  it('should correctly round list of with 3 probabilities', function () {
+  it('should convert [0.0009890011 0.999009989 0.000010000] to [0.00099, 0.99900, 0.00001]', function () {
     var pList = [
       0.0009890011,
       0.999009989,
@@ -381,7 +381,7 @@ describe("GRASP.roundProbabilities", function(){
     ]);
   });
 
-  it('should correctly round list of probabilities with minimal max significant digit = 9', function () {
+  it('should convert [0.0009990011, 0.9990009989] to [0.001, 0.999]', function () {
     var pList = [
       0.0009990011,
       0.9990009989
@@ -393,7 +393,7 @@ describe("GRASP.roundProbabilities", function(){
     ]);
   });
 
-  it('should correctly round list [1, 0, 0]', function () {
+  it('should convert [1, 0, 0] to [1.00, 0.00, 0.00]', function () {
     var pList = [
       1, 0, 0
     ];
@@ -402,6 +402,28 @@ describe("GRASP.roundProbabilities", function(){
       '1.00',
       '0.00',
       '0.00'
+    ]);
+  });
+
+  it('should convert [0.9999", 0.00009999] to [0.9999, 0.0001]', function () {
+    var pList = [
+      "0.9999", "0.00009999"
+    ];
+    var roundedPList = GRASP.roundProbabilities(pList);
+    expect(roundedPList).toBeJsonEqual([
+      '0.9999',
+      '0.0001'
+    ]);
+  });
+
+  it('should convert [9.999e-01, 9.999e-05] to [0.9999, 0.0001]', function () {
+    var pList = [
+      "9.999e-01", "9.999e-05"
+    ];
+    var roundedPList = GRASP.roundProbabilities(pList);
+    expect(roundedPList).toBeJsonEqual([
+      '0.9999',
+      '0.0001'
     ]);
   });
 });
