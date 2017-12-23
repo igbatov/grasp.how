@@ -112,7 +112,7 @@ function getFolderExistsCreate($service, $folderName, $parentFolderId=null) {
     }
     //Create the Folder
     try {
-      $createdFile = $service->files->create($folder, $params);
+      $createdFile = $service->files->create($folder);
       // Return the created folder's id
       return $createdFile->id;
     } catch (Exception $e) {
