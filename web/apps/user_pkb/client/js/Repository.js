@@ -298,6 +298,7 @@ GRASP.Repository.prototype = {
       var reason = '';
       if(data.status == 401){
         reason = 'Unauthorized';
+        location.reload();
       }else if(data.status == 503){
         reason = 'Server unavailable';
         that.isLastRequestDone = true;
