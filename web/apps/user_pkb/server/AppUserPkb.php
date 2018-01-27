@@ -1178,7 +1178,11 @@ class AppUserPkb extends App
       }
 
       // sum of all alternatives under given parent combination must be equal to 1
-      foreach($probabilities[$node_local_id] as $row) if(array_sum($row) != 1) $imperfect_nodes['wrong_row_sum'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
+      foreach($probabilities[$node_local_id] as $row) {
+        if(round(array_sum($row)) != 1) {
+          $imperfect_nodes['wrong_row_sum'][] = $converter->createGlobalContentId($graph_id, $node_local_id);
+        }
+      }
     }
 
     foreach(array_keys($bayes_graph['nodes']) as $node_local_id){

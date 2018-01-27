@@ -385,12 +385,15 @@ GRASP.GraphElementEditor.prototype = {
             }
 
             // check that sum of probabilities by row equals 1
-            var sum = 0;
+            // using decimal.js for this because 0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1 = 0.9999999 in js
+            var sum = new Decimal(0);
             var alertMsg = '';
             for(var j in node.alternatives){
-              sum += parseFloat(probabilities[j][formKeyStr]);
+              var d = new Decimal(probabilities[j][formKeyStr])
+              sum = sum.plus(d);
               alertMsg += probabilities[j][formKeyStr]+'+';
             }
+            sum = Number(sum);
             if(sum != 1){
               alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
               alert(alertMsg+"\n"+that.i18n.__('Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1'));
@@ -655,9 +658,9 @@ GRASP.GraphElementEditor.prototype = {
     }
 
     var reliabilityKeys = GRASP.getObjectKeys(alternatives);
-    var reliabilityArray = GRASP.roundProbabilities(GRASP.getObjectValues(alternatives).map(function(item){
+    var reliabilityArray = GRASP.getObjectValues(alternatives).map(function(item){
       return parseFloat(item.reliability)/100;
-    }));
+    });
     var reliabilityHash = {};
     for(var i in reliabilityArray){
       reliabilityHash[reliabilityKeys[i]] = reliabilityArray[i];

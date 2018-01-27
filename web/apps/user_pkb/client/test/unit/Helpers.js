@@ -405,7 +405,7 @@ describe("GRASP.roundProbabilities", function(){
     ]);
   });
 
-  it('should convert [0.9999", 0.00009999] to [0.9999, 0.0001]', function () {
+  it('should convert [0.9999, 0.00009999] to [0.9999, 0.0001]', function () {
     var pList = [
       "0.9999", "0.00009999"
     ];
@@ -413,6 +413,16 @@ describe("GRASP.roundProbabilities", function(){
     expect(roundedPList).toBeJsonEqual([
       '0.9999',
       '0.0001'
+    ]);
+  });
+
+  it('should convert ["0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1"] to ["0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1"]', function () {
+    var pList = [
+      "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1"
+    ];
+    var roundedPList = GRASP.roundProbabilities(pList);
+    expect(roundedPList).toBeJsonEqual([
+      "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1"
     ]);
   });
 
