@@ -666,7 +666,6 @@ class AppUserPkb extends App
         $r = $this->getRequest();
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
         $q = "SELECT id, source_title, snip_2014 FROM scopus_title_list WHERE source_title LIKE '".$substring."'";
-        $this->logger->log($q);
         $rows = $this->db->exec(null, $q);
         $items = array();
         foreach($rows as $k=>$row){
@@ -700,7 +699,6 @@ class AppUserPkb extends App
         $substring = '%'.preg_replace('!\s+!', '% ', $r['substring']).'%';
         $q = "SELECT * FROM source WHERE name LIKE '".$substring."'";
         $q .= (isset($r['source_type']) && strlen($r['source_type']) ? " AND source_type = '".$r['source_type']."'" : '');
-        $this->logger->log($q);
         $rows = $this->db->exec($this->getAuthId(), $q);
         $items = array();
         if(count($rows) > 30) return $this->showRawData(json_encode(false));
@@ -979,7 +977,6 @@ class AppUserPkb extends App
         $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
         $authId = $this->graphIdConverter->getAuthId($graph_id);
         $query = "SELECT step, timestamp, elements, node_mapping FROM `graph_history` WHERE graph_id = '".$localGraphId."' AND step = '".$step."' ORDER BY step ASC LIMIT ".self::HISTORY_CHUNK;
-        $this->logger->log($query);
         $rows = $this->db->exec($authId, $query);
         foreach($rows as $row){
           $graphs_history[] = array(
@@ -1027,7 +1024,6 @@ class AppUserPkb extends App
     $query = "SELECT local_content_id, alternative_id, type FROM node_content WHERE graph_id = '".$localGraphId
         ."' AND type IN ('fact','proposition')"
         ." AND local_content_id IN ('".implode("','",$node_local_content_ids)."') ORDER BY local_content_id, alternative_id";
-    $this->logger->log($query);
     $graph = array('nodes'=>array(), 'edges'=>array());
     $rows = $this->db->exec($authId, $query);
     foreach($rows as $row){

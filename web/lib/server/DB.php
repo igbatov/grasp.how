@@ -5,6 +5,10 @@ class DB
   private $preExecListeners;
   private $dbConf;
 
+  private static $totalTimeInExecute = 0; // in msec
+  private static $totalTimeInQuery = 0; // in msec
+  private static $totalTimeInFetch = 0; // in msec
+
   public function __construct(dbConf $c)
   {
     $this->mysqlLink = mysqli_connect($c->host, $c->login, $c->password, $c->dbName);
@@ -19,7 +23,12 @@ class DB
 
   public function execute($query)
   {
-    error_log($query);
+    $startTimeExecute = round(microtime(true) * 1000);
+
+    if ($this->dbConf->verbose_logging) {
+      error_log($query);
+    }
+
     // notify all preexec listeners that we are going to execute query
     foreach($this->preExecListeners as $listener){
       try{
@@ -29,7 +38,13 @@ class DB
       }
     }
 
+    $startTimeQuery = round(microtime(true) * 1000);
+
     $result = mysqli_query($this->mysqlLink, $query);
+
+    $stopTimeQuery = round(microtime(true) * 1000);
+    self::$totalTimeInQuery += ($stopTimeQuery - $startTimeQuery);
+
     if($result === false){
       $error_msg = "MysqlHelper::execute ".mysqli_error($this->mysqlLink)."\n"." query='".$query."'\n";
       trigger_error($error_msg);
@@ -41,8 +56,28 @@ class DB
     if(is_bool($result))  return $result;
 
     $rows = array();
-    while ($row = mysqli_fetch_assoc($result)) $rows[] = $row;
+
+    $startTimeFetch = round(microtime(true) * 1000);
+
+    while ($row = mysqli_fetch_assoc($result)) {
+      $rows[] = $row;
+    }
+
+    $stopTimeFetch = round(microtime(true) * 1000);
+    self::$totalTimeInFetch += ($stopTimeFetch - $startTimeFetch);
+
+    $stopTimeExecute = round(microtime(true) * 1000);
+    self::$totalTimeInExecute += ($stopTimeExecute - $startTimeExecute);
+
     return $rows;
+  }
+
+  public function getTotalTimeInQuery() {
+    return json_encode([
+        'totalTimeInExecute'=>self::$totalTimeInExecute/1000,
+        'totalTimeInQuery'=>self::$totalTimeInQuery/1000,
+        'totalTimeInFetch'=>self::$totalTimeInFetch/1000,
+    ]);
   }
 
   public function escape($str)

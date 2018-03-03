@@ -4,44 +4,47 @@ class dbConf{
   public $dbName;
   public $login;
   public $password;
+  public $verbose_logging;
 }
 
 class Config{
-  public function getDbConf(){
-    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
-    $config_json = json_decode($string, true);
+  private $config_json;
 
-    if(!$config_json){
+  public function __construct()
+  {
+    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
+    $this->config_json = json_decode($string, true);
+
+    if(!$this->config_json){
       error_log(__FILE__."\n"."Cannot parse Config.json");
       return false;
     }
+  }
 
+  public function getDbConf(){
+    $config_json = $this->config_json;
     $c = new dbConf();
     $c->host = $config_json["db"]["host"];
     $c->dbName = $config_json["db"]["dbName"];
     $c->login = $config_json["db"]["login"];
     $c->password = $config_json["db"]["password"];
+    $c->verbose_logging = $config_json["db"]["verbose_logging"];
 
     return $c;
   }
 
   public function get($key){
-    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
-    $config_json = json_decode($string, true);
+    $config_json = $this->config_json;
     if(!isset($config_json[$key])) throw new Exception("Cannot find key ".$key." in Config.json");
     return $config_json[$key];
   }
 
   public function getAdminSecret(){
-    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
-    $config_json = json_decode($string, true);
-    return $config_json['admin_secret'];
+    return $this->config_json['admin_secret'];
   }
 
   public function getRscriptPath(){
-    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
-    $config_json = json_decode($string, true);
-    return $config_json['RscriptPath'];
+    return $this->config_json['RscriptPath'];
   }
 
   public function getWebDomainURL(){
@@ -80,8 +83,6 @@ class Config{
   }
 
   public function isDebugOn(){
-    $string = file_get_contents($this->getWebRootPath()."/../Config.json");
-    $config_json = json_decode($string, true);
-    return isset($config_json['is_debug_on']) ? $config_json['is_debug_on'] : false;
+    return isset($this->config_json['is_debug_on']) ? $this->config_json['is_debug_on'] : false;
   }
 }

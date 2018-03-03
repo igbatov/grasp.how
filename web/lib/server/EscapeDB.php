@@ -25,6 +25,10 @@ class EscapeDB {
     return $this->db->execute($query);
   }
 
+  public function getTotalTimeInQuery() {
+    return $this->db->getTotalTimeInQuery();
+  }
+
   public function switchDB($dbname)
   {
     return $this->db->switchDB($dbname);

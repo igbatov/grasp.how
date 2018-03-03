@@ -95,6 +95,6 @@ class Logger{
     $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null;
     $self = isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : null;
     $req_method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : null;
-    $this->fileLog('post_access.log',$this->id.';'.time().';'.date('Y-m-d H:i:s').';'.getmypid().';'.$ref.';'.$uri.';'.$self.';'.$req_method.';'.memory_get_usage().';'.(microtime(true) - $this->start_time));
+    $this->fileLog('post_access.log',$this->id.';'.time().';'.date('Y-m-d H:i:s').';'.getmypid().';'.$ref.';'.$uri.';'.$self.';'.$req_method.';'.memory_get_usage().';'.(microtime(true) - $this->start_time).';'.$this->db->getTotalTimeInQuery());
   }
 }

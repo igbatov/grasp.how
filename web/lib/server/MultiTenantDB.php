@@ -35,6 +35,10 @@ class MultiTenantDB {
     return $this->db->exec($query, $params);
   }
 
+  public function getTotalTimeInQuery() {
+    return $this->db->getTotalTimeInQuery();
+  }
+
   public function getDBName($authId)
   {
     return $authId == null ? $this->generalDBName : $this->PREFIX.$authId;
