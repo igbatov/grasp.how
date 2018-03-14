@@ -47,6 +47,10 @@ class Config{
     return $this->config_json['RscriptPath'];
   }
 
+  public function getPymc3Path(){
+    return $this->config_json['Pymc3Path'];
+  }
+
   public function getWebDomainURL(){
     return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName();
   }

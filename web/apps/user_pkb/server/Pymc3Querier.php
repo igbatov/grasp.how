@@ -109,7 +109,7 @@ class Pymc3Querier
    * Inbound - key nodeId, value - hash of inbound nodes
    * Outbound - key nodeId, value - hash of outbound nodes
    */
-  private function initEdgeHashes($graph){
+  public function initEdgeHashes($graph){
     foreach ($graph['edges'] as $edge){
       $this->outbound[$edge[0]][$edge[1]] = 1;
       $this->inbound[$edge[1]][$edge[0]] = 1;
@@ -118,17 +118,19 @@ class Pymc3Querier
   }
 
   public function createProbabilitiesPart($graph, $probabilities){
-    $text = '';
-    foreach ($probabilities as $node => $probability) {
-      if (isset($probabilities[$node]['soft'])) {
+    $text = [];
+    foreach ($probabilities as $node => $nodeProbabilities) {
+      if (isset($nodeProbabilities['soft'])) {
         // this is evidence
-        $trueProb = $probabilities[$node]['soft'][0];
+        $nodeValues = $graph['nodes'][$node];
+        sort($nodeValues);
+        $trueProb = $nodeProbabilities['soft'][reset($nodeValues)];
         $notTrueProb = 1 - $trueProb;
         if ($trueProb != 0 && $trueProb != 1) {
           // if evidence is really soft, then create virtual child that will be observed
-          $text = <<<EOT
-  e{$node}_prob = np.array([0.5, 0.5])  
-  e{$node}_virtual_prob = np.array([
+          $text[] = <<<EOT
+  {$node}_prob = np.array([0.5, 0.5])  
+  {$node}_virtual_prob = np.array([
     [$trueProb, $notTrueProb],
     [$notTrueProb, $trueProb]
   ])
@@ -143,19 +145,19 @@ EOT;
         sort($parents);
         // remake keys of nodes conditional probabilities to be in sorted order
         $sortedNodeProbs = [];
-        foreach ($probabilities[$node] as $key => $probability) {
-          $probability = json_decode($probability);
+        foreach ($nodeProbabilities as $key => $probability) {
           if ($key == 'soft') {
             continue;
           }
-          $parentsValues = json_decode($key);
+
+          $parentsValues = json_decode($key, true);
           $sortedKey = [];
           foreach ($parents as $parent){
             $sortedKey[$parent] = $parentsValues[$parent];
           }
 
           $sortedProbValues = [];
-          $nodeValues = $graph[$node];
+          $nodeValues = $graph['nodes'][$node];
           sort($nodeValues);
           foreach ($nodeValues as $v) {
             $sortedProbValues[] = $probability[$v];
@@ -163,17 +165,24 @@ EOT;
           $sortedNodeProbs[json_encode($sortedKey)] = $sortedProbValues;
         }
         $probMatrix = $this->getConditionalMatrixString($sortedNodeProbs, $parents, [], $graph);
-        $text = <<<EOT
-  e{$node}_prob = np.array($probMatrix)
+        $text[] = <<<EOT
+  {$node}_prob = np.array({$probMatrix})
 EOT;
       } else {
         // we will set `e{$node}` as observed, so this probability can be arbitrary
-        $text = <<<EOT
-  e{$node}_prob = np.array([0.5, 0.5])
+        $nodeValuesCnt = count($graph['nodes'][$node]);
+        $prob = 1/$nodeValuesCnt;
+        $valueProbs = [];
+        for($i=$nodeValuesCnt; $i>0; $i--){
+          $valueProbs[] = $prob;
+        }
+        $valueProbsStr = implode(', ', $valueProbs);
+        $text[] = <<<EOT
+  {$node}_prob = np.array([{$valueProbsStr}])
 EOT;
       }
     }
-    return $text;
+    return implode($text, "\n");
   }
 
   /**
@@ -190,11 +199,11 @@ EOT;
        $sortedNodeProbs[$this->getSortedNodeProbsKey($parents, $parentValues)]
      );
     } else {
-     $nextParentValues = $graph[$parents[count($parentValues)]];
+     $nextParentValues = $graph['nodes'][$parents[count($parentValues)]];
      sort($nextParentValues);
      $result = [];
      foreach ($nextParentValues as $nextParentValue) {
-       $newParentValues = clone($parentValues);
+       $newParentValues = $parentValues;
        $newParentValues[] = $nextParentValue;
        $result[] = $this->getTabs(count($parentValues))."[\n".
            $this->getConditionalMatrixString($sortedNodeProbs, $parents, $newParentValues, $graph).
@@ -215,7 +224,7 @@ EOT;
   private function getSortedNodeProbsKey($parents, $parentValues){
     $key = [];
     foreach ($parents as $i => $parent) {
-      $key[$parent] = $parentValues[$i];
+      $key[$parent] = (string)$parentValues[$i];
     }
 
     return json_encode($key);
