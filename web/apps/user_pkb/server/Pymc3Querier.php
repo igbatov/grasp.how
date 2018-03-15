@@ -8,6 +8,8 @@ class Pymc3Querier
   private $inboundWT;  // inbound without already traversed nodes
   private $outbound;
 
+  const TAB = "  ";
+
   public function __construct($pymc3_path, $tmp_dir)
   {
     $this->pymc3_path = $pymc3_path;
@@ -165,6 +167,7 @@ EOT;
           $sortedNodeProbs[json_encode($sortedKey)] = $sortedProbValues;
         }
         $probMatrix = $this->getConditionalMatrixString($sortedNodeProbs, $parents, [], $graph);
+        $probMatrix = $this->addTabsToMultiline($probMatrix, 1);
         $text[] = <<<EOT
   {$node}_prob = np.array({$probMatrix})
 EOT;
@@ -185,6 +188,14 @@ EOT;
     return implode($text, "\n");
   }
 
+  private function addTabsToMultiline($str, $n){
+    $tabs = '';
+    for($i=0; $i<$n; $i++){
+      $tabs .= self::TAB;
+    }
+    return str_replace("\n", "\n".$tabs, $str);
+  }
+
   /**
    * Recursively generate probability matrix from node parents and $probabilities
    * @param $sortedNodeProbs
@@ -195,9 +206,10 @@ EOT;
    */
   private function getConditionalMatrixString($sortedNodeProbs, $parents, $parentValues, $graph){
     if (count($parentValues) == count($parents)) {
-     return $this->getTabs(count($parentValues)).json_encode(
+     return $this->getTabs(count($parentValues))."[".implode(
+      ', ',
        $sortedNodeProbs[$this->getSortedNodeProbsKey($parents, $parentValues)]
-     );
+     )."]";
     } else {
      $nextParentValues = $graph['nodes'][$parents[count($parentValues)]];
      sort($nextParentValues);
@@ -205,18 +217,18 @@ EOT;
      foreach ($nextParentValues as $nextParentValue) {
        $newParentValues = $parentValues;
        $newParentValues[] = $nextParentValue;
-       $result[] = $this->getTabs(count($parentValues))."[\n".
+       $result[] = $this->getTabs(count($parentValues)).
            $this->getConditionalMatrixString($sortedNodeProbs, $parents, $newParentValues, $graph).
-           $this->getTabs(count($parentValues))."\n]";
+           $this->getTabs(count($parentValues));
      }
-     return implode(",\n", $result);
+     return "[\n".implode(",\n", $result)."\n]";
     }
   }
 
   private function getTabs($n){
     $str = '';
     for($i=0; $i<$n; $i++){
-      $str .= " ";
+      $str .= self::TAB;
     }
     return $str;
   }
