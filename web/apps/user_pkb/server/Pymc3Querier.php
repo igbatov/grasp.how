@@ -218,10 +218,11 @@ EOT;
        $newParentValues = $parentValues;
        $newParentValues[] = $nextParentValue;
        $result[] = $this->getTabs(count($parentValues)).
-           $this->getConditionalMatrixString($sortedNodeProbs, $parents, $newParentValues, $graph).
-           $this->getTabs(count($parentValues));
+           $this->getConditionalMatrixString($sortedNodeProbs, $parents, $newParentValues, $graph);
      }
-     return "[\n".implode(",\n", $result)."\n]";
+     return $this->getTabs(count($parentValues))
+         ."[\n".implode(",\n", $result)
+         ."\n".$this->getTabs(count($parentValues))."]";
     }
   }
 
