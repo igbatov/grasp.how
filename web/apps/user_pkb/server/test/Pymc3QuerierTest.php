@@ -7,6 +7,8 @@
  * Install by downloading phpunit.phar https://phpunit.de/manual/4.8/en/installation.html
  * Run by
  * #phpunit Pymc3QuerierTest.php
+ * or to debug
+ * #php -dxdebug.remote_autostart=On bin/phpunit Pymc3QuerierTest.php
  */
 $path = dirname(__FILE__);
 require_once ($path.'/../../../../../web/lib/server/Config.php');
@@ -59,7 +61,6 @@ class Pymc3QuerierTest extends PHPUnit_Framework_TestCase
     $this->pymc3_querier->initEdgeHashes($graph);
     $probs = $this->pymc3_querier->createProbabilitiesPart($graph, $probabilities);
     $mustBe = <<<EOT
-  e1_prob = np.array([0.5, 0.5])  
   e1_virtual_prob = np.array([
     [0.9, 0.1],
     [0.1, 0.9]
@@ -77,6 +78,20 @@ EOT;
 
     $this->assertMultiLineEquals($mustBe, $probs);
 
+    $mainPart = $this->pymc3_querier->createMainPart($graph, $probabilities);
+    $mustBe = <<<EOT
+  e2 = pm.Categorical('e2', p=e2_prob, observed=0)
+  h1_prob_shared = theano.shared(h1_prob)  # make it global
+  h1_prob_final = h1_prob_shared[e2]
+  h1 = pm.Categorical('h1', p=h1_prob_final)
+  e1_prob_shared = theano.shared(e1_prob)  # make it global
+  e1_prob_final = e1_prob_shared[h1]
+  e1 = pm.Categorical('e1', p=e1_prob_final)
+  e1_virtual_prob_shared = theano.shared(e1_virtual_prob)
+  e1_virtual_prob_final = e1_virtual_prob_shared[e1]
+  e1_virtual = pm.Categorical('e1_virtual', p=e1_virtual_prob_final, observed=0)
+EOT;
+    $this->assertMultiLineEquals($mustBe, $mainPart);
   }
 
   public function testTwoParents()
@@ -115,7 +130,6 @@ EOT;
     $this->pymc3_querier->initEdgeHashes($graph);
     $probs = $this->pymc3_querier->createProbabilitiesPart($graph, $probabilities);
     $mustBe = <<<EOT
-  e1_prob = np.array([0.5, 0.5])  
   e1_virtual_prob = np.array([
     [0.9, 0.1],
     [0.1, 0.9]

@@ -5,7 +5,8 @@ class Pymc3Querier
   private $tmp_dir;
 
   private $inbound;
-  private $inboundWT;  // inbound without already traversed nodes
+  private $traversedRoots;
+  private $inboundWT;  // inbound without already traversed nodes (roots)
   private $outbound;
 
   const TAB = "  ";
@@ -65,6 +66,7 @@ class Pymc3Querier
    * ])
    *
    * e2_prob = np.array([1, 0])
+   *
    * e2 = pm.Categorical('e2', p=e2_prob, observed=0)
    *
    * h1_prob_shared = theano.shared(h1_prob)  # make it global
@@ -77,7 +79,7 @@ class Pymc3Querier
    *
    * e1_virtual_prob_shared = theano.shared(e1_virtual_prob)
    * e1_virtual_prob_final = e1_virtual_prob_shared[e1]
-   * e1_virtual = pm.Categorical('e1', p=e1_virtual_prob_final, observed=0)
+   * e1_virtual = pm.Categorical('e1_virtual', p=e1_virtual_prob_final, observed=0)
    *
    */
   public function queryPymc3($graph, $probabilities){
@@ -91,14 +93,21 @@ class Pymc3Querier
   private function extractRoots($graph) {
     $roots = [];
     foreach ($graph['nodes'] as $node => $values) {
-      if (!isset($this->inboundWT[$node])) {
+      if (!isset($this->inboundWT[$node]) && !isset($this->traversedRoots[$node])) {
+        $this->traversedRoots[$node] = 1;
         $roots[] = $node;
-        // remove this `root` node from inbounds of its outbound nodes
-        foreach ($this->outbound[$node] as $outNode) {
-          unset($this->inboundWT[$outNode][$node]);
-          if (empty($this->inboundWT[$outNode])) {
-            unset($this->inboundWT[$outNode]);
-          }
+      }
+    }
+
+    foreach ($roots as $root) {
+      // remove this `root` node from inbounds of its outbound nodes
+      if (!isset($this->outbound[$root])) {
+        continue;
+      }
+      foreach ($this->outbound[$root] as $outNode => $v) {
+        unset($this->inboundWT[$outNode][$root]);
+        if (empty($this->inboundWT[$outNode])) {
+          unset($this->inboundWT[$outNode]);
         }
       }
     }
@@ -131,7 +140,6 @@ class Pymc3Querier
         if ($trueProb != 0 && $trueProb != 1) {
           // if evidence is really soft, then create virtual child that will be observed
           $text[] = <<<EOT
-  {$node}_prob = np.array([0.5, 0.5])  
   {$node}_virtual_prob = np.array([
     [$trueProb, $notTrueProb],
     [$notTrueProb, $trueProb]
@@ -172,7 +180,7 @@ EOT;
   {$node}_prob = np.array({$probMatrix})
 EOT;
       } else {
-        // we will set `e{$node}` as observed, so this probability can be arbitrary
+        // we will set `{$node}` as observed, so this probability can be arbitrary
         $nodeValuesCnt = count($graph['nodes'][$node]);
         $prob = 1/$nodeValuesCnt;
         $valueProbs = [];
@@ -243,14 +251,66 @@ EOT;
     return json_encode($key);
   }
 
-  private function createMainPart($graph, $probabilities){
-    $roots = $this->extractRoots($graph);
-    while(!empty($roots)){
-      foreach ($roots as $node) {
-
+  public function createMainPart($graph, $probabilities){
+    $text = [];
+    $nodes = $this->extractRoots($graph);
+    while(!empty($nodes)){
+      foreach ($nodes as $node) {
+        if (isset($this->inbound[$node])) {
+          $parents = array_keys($this->inbound[$node]);
+          sort($parents);
+          $parentsStr = implode(', ', $parents);
+          $text[] = <<<EOT
+  {$node}_prob_shared = theano.shared({$node}_prob)  # make it global
+  {$node}_prob_final = {$node}_prob_shared[{$parentsStr}]
+EOT;
+          if (isset($probabilities[$node]['soft'])) {
+            $firstProb = reset($probabilities[$node]['soft']);
+            if ($firstProb === 0 || $firstProb === 1) {
+              $observedValue = $firstProb ? 0 : 1;
+              $text[] = <<<EOT
+  {$node} = pm.Categorical('{$node}', p={$node}_prob_final, observed={$observedValue})
+EOT;
+            } else {
+              $text[] = <<<EOT
+  {$node} = pm.Categorical('{$node}', p={$node}_prob_final)
+  {$node}_virtual_prob_shared = theano.shared({$node}_virtual_prob)
+  {$node}_virtual_prob_final = {$node}_virtual_prob_shared[{$node}]
+  {$node}_virtual = pm.Categorical('{$node}_virtual', p={$node}_virtual_prob_final, observed=0)
+EOT;
+            }
+          } else {
+            $text[] = <<<EOT
+  {$node} = pm.Categorical('{$node}', p={$node}_prob_final)
+EOT;
+          }
+        } else {
+          if (isset($probabilities[$node]['soft'])) {
+            $firstProb = reset($probabilities[$node]['soft']);
+            if ($firstProb === 0 || $firstProb === 1) {
+              $observedValue = $firstProb ? 0 : 1;
+              $text[] = <<<EOT
+  {$node} = pm.Categorical('{$node}', p={$node}_prob, observed={$observedValue})
+EOT;
+            } else {
+              $text[] = <<<EOT
+  {$node} = pm.Categorical('{$node}', p={$node}_prob)
+  {$node}_virtual_prob_shared = theano.shared({$node}_virtual_prob)
+  {$node}_virtual_prob_final = {$node}_virtual_prob_shared[{$node}]
+  {$node}_virtual = pm.Categorical('{$node}_virtual', p={$node}_virtual_prob_final, observed=0)
+EOT;
+            }
+          } else {
+            $text[] = <<<EOT
+  {$node} = pm.Categorical('{$node}', p={$node}_prob)
+EOT;
+          }
+        }
       }
-      $roots = $this->extractRoots($graph);
+      $nodes = $this->extractRoots($graph);
     }
+
+    return implode("\n", $text);
   }
 
   private function createScriptText($graph, $probabilities){
