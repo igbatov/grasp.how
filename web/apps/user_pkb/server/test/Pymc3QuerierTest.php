@@ -149,6 +149,19 @@ EOT;
 EOT;
 
     $this->assertMultiLineEquals($mustBe, $probs);
+
+    $mainPart = $this->pymc3_querier->createMainPart($graph, $probabilities);
+    $mustBe = <<<EOT
+  e1 = pm.Categorical('e1', p=e1_prob)
+  e1_virtual_prob_shared = theano.shared(e1_virtual_prob)
+  e1_virtual_prob_final = e1_virtual_prob_shared[e1]
+  e1_virtual = pm.Categorical('e1_virtual', p=e1_virtual_prob_final, observed=0)
+  e2 = pm.Categorical('e2', p=e2_prob, observed=0)
+  h1_prob_shared = theano.shared(h1_prob)  # make it global
+  h1_prob_final = h1_prob_shared[e1, e2]
+  h1 = pm.Categorical('h1', p=h1_prob_final)
+EOT;
+    $this->assertMultiLineEquals($mustBe, $mainPart);
   }
 
 

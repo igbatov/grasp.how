@@ -84,6 +84,7 @@ class Pymc3Querier
    */
   public function queryPymc3($graph, $probabilities){
     $this->initEdgeHashes($graph);
+    $script = $this->createScriptText($graph, $probabilities);
 
   }
 
@@ -145,7 +146,6 @@ class Pymc3Querier
     [$notTrueProb, $trueProb]
   ])
 EOT;
-
         }
       }
 
@@ -314,7 +314,7 @@ EOT;
   }
 
   private function createScriptText($graph, $probabilities){
-    $header = <<<EOD
+    $header = <<<EOT
 import numpy as np
 import pandas as pd
 
@@ -324,18 +324,34 @@ from theano.compile.ops import as_op
 import theano
 
 with pm.Model() as model:
-EOD;
+EOT;
 
-    $footer = <<<EOD
+    $footer = <<<EOT
 with model:
-    SAMPLE_NUM = 20000
-    trace = pm.sample(SAMPLE_NUM)
-    print(sum(trace['h1']) / float(SAMPLE_NUM))
-EOD;
+  SAMPLE_NUM = 50000
+  trace = pm.sample(SAMPLE_NUM)
+  
+  filename = "out.txt"
+  file = open(filename, "a")
+EOT;
+    $footerPrints = [];
+    foreach ($graph['nodes'] as $node => $values) {
+      if (isset($node['soft'])) {
+        continue;
+      }
+      foreach ($values as $value) {
+        $footerPrints[] = <<<EOT
+  {$node}_value_sum = [el for el in trace['{$node}'] if el == {$value}]
+  {$node}_value_prob = sum(vsum) / float(SAMPLE_NUM)
+  file.write("{$node}[{$value}] = " + `{$node}_value_prob`)
+EOT;
+      }
+    }
 
     return $header.
         $this->createProbabilitiesPart($graph, $probabilities).
         $this->createMainPart($graph, $probabilities).
-        $footer;
+        $footer.
+        implode("\n", $footerPrints);
   }
 }
