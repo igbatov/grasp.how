@@ -41,7 +41,7 @@ class GRainQuerier {
 
     $all_children = array();
     foreach($graph['edges'] as $edge) $all_children[] = $edge[1];
-    foreach($graph['nodes'] as $node_id => $node_alternative_ids){
+    foreach($graph['nodes'] as $node_id => $node_alternative_ids) {
       // for all nodes without parents set equal prior probabilities to alternatives
       if(!in_array($node_id, $all_children)){
         $alternative_probabilities = array();
@@ -49,7 +49,7 @@ class GRainQuerier {
         $text .= "node_".$node_id." <- cptable(~node_".$node_id.",values=c(".implode(", ",$alternative_probabilities)."),levels=c('".implode("', '",$node_alternative_ids)."'))"."\n";
       }
       // for all nodes with parents set its conditional probabilities
-      else{
+      else {
         // take parents of $node_id
         foreach(array_keys($probabilities[$node_id]) as $key){
           if($key != 'soft'){

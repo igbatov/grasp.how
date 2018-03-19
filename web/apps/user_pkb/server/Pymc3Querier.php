@@ -85,7 +85,7 @@ class Pymc3Querier
   public function queryPymc3($graph, $probabilities){
     $this->initEdgeHashes($graph);
     $script = $this->createScriptText($graph, $probabilities);
-
+    return $script;
   }
 
   /**
@@ -122,6 +122,10 @@ class Pymc3Querier
    * Outbound - key nodeId, value - hash of outbound nodes
    */
   public function initEdgeHashes($graph){
+    $this->traversedRoots = [];
+    $this->outbound = [];
+    $this->inbound = [];
+    $this->inboundWT = [];
     foreach ($graph['edges'] as $edge){
       $this->outbound[$edge[0]][$edge[1]] = 1;
       $this->inbound[$edge[1]][$edge[0]] = 1;
@@ -324,26 +328,31 @@ from theano.compile.ops import as_op
 import theano
 
 with pm.Model() as model:
+
 EOT;
 
     $footer = <<<EOT
-with model:
+
   SAMPLE_NUM = 50000
   trace = pm.sample(SAMPLE_NUM)
   
   filename = "out.txt"
   file = open(filename, "a")
+  
 EOT;
     $footerPrints = [];
     foreach ($graph['nodes'] as $node => $values) {
-      if (isset($node['soft'])) {
+      if (isset($probabilities[$node]['soft'])) {
         continue;
       }
-      foreach ($values as $value) {
+      sort($values);
+      foreach ($values as $i => $value) {
         $footerPrints[] = <<<EOT
-  {$node}_value_sum = [el for el in trace['{$node}'] if el == {$value}]
-  {$node}_value_prob = sum(vsum) / float(SAMPLE_NUM)
-  file.write("{$node}[{$value}] = " + `{$node}_value_prob`)
+        
+  vsum = (trace['{$node}'] == {$i}).sum()
+  {$node}_value_prob = vsum / float(SAMPLE_NUM)
+  file.write("{$node}[{$value}] = " + str({$node}_value_prob) + '\\n')
+
 EOT;
       }
     }
