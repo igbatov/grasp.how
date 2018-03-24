@@ -37,6 +37,8 @@ class Pymc3QuerierTest extends PHPUnit_Framework_TestCase
 
     $mainPart = $this->pymc3_querier->createMainPart($graph, $probabilities);
     $this->assertMultiLineEquals($expectMain, $mainPart);
+
+    $this->pymc3_querier->queryPymc3($graph, $probabilities);
   }
 
   private function assertMultiLineEquals($mustBe, $result){
@@ -53,8 +55,8 @@ class Pymc3QuerierTest extends PHPUnit_Framework_TestCase
     $graph2 = include 'data/twoParents.php';
     $graph3 = include 'data/inconsistentEvidences.php';
     return [
-        $graph1,
-        $graph2,
+//        $graph1,
+//        $graph2,
         $graph3,
     ];
   }

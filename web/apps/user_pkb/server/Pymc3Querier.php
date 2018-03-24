@@ -84,8 +84,25 @@ class Pymc3Querier
    */
   public function queryPymc3($graph, $probabilities){
     $this->initEdgeHashes($graph);
-    $script = $this->createScriptText($graph, $probabilities);
-    return $script;
+    $text = $this->createScriptText($graph, $probabilities);
+
+    $tmp_filename = $this->tmp_dir."/Pymc3Querier.tmp.".rand(1,1000).".".time().".py";
+
+    $myfile = fopen($tmp_filename, "w");
+    if(!$myfile){
+      error_log("Unable to open file ".$tmp_filename." !");
+      return;
+    }
+    fwrite($myfile, $text);
+    fclose($myfile);
+
+    $cmd = '"'.$this->pymc3_path.'" "'.$tmp_filename.'" 2>&1';
+    $output = array();
+    exec($cmd, $output, $error);
+    error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));
+
+    $proposition_probabilities = array();
+
   }
 
   /**
@@ -358,9 +375,13 @@ EOT;
     }
 
     return $header.
-        $this->createProbabilitiesPart($graph, $probabilities).
+        "\n"."\n".
+        $this->createProbabilitiesPart($graph, $probabilities)
+        ."\n"."\n".
         $this->createMainPart($graph, $probabilities).
-        $footer.
+        "\n"."\n".
+        $footer
+        ."\n"."\n".
         implode("\n", $footerPrints);
   }
 }
