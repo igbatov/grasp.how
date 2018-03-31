@@ -7,7 +7,9 @@
 $rootpath = dirname(dirname(__FILE__));
 include($rootpath."/web/lib/server/cli.bootstrap.php");
 
-if(!in_array($argv[1], array('minute','hourly','daily','monthly'))) exit('wrong args');
+if(!in_array($argv[1], array('minute','hourly','daily','monthly'))) {
+  exit('wrong args');
+}
 $type = $argv[1];
 
 /**

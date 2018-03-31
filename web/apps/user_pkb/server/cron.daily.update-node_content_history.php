@@ -18,6 +18,8 @@ $auths = $db->exec(null, $q);
 foreach ($auths as $auth) {
   try {
     $snapBuilder->createSnapshots($auth['id'], ' -1 day');
+  } catch (Exception $e) {
+    $logger->log($e->getMessage()." ".$e->getTraceAsString());
   } catch (Throwable $e) {
     $logger->log($e->getMessage()." ".$e->getTraceAsString());
   }
