@@ -66,12 +66,52 @@ class MigrationRoller{
    */
   function rollUpTo($authId, $timestamp, $migrations){
     asort($migrations);
+
     $rolled_migrations = $this->getRolledMigrationNames($authId);
+    $migrationsToRoll = [];
     foreach ($migrations as $migration => $ts) {
-    if((int)$ts<=(int)$timestamp && !in_array($migration, $rolled_migrations)){
-        $this->roll($authId, $migration, 'up');
+      if(
+          (int)$ts<=(int)$timestamp
+          && !in_array($migration, $rolled_migrations)
+      ){
+        $migrationsToRoll[$migration] = $ts;
       }
     }
+
+    $this->checkMigrationOrder($authId, $migrationsToRoll);
+    foreach ($migrationsToRoll as $migrationToRoll => $ts) {
+      $this->roll($authId, $migrationToRoll, 'up');
+    }
+  }
+
+  /**
+   * Check that all $migrations we are going to roll
+   * are have revision timestamp and this timestamp is newer than those in database
+   * @param $authId
+   * @param $migrations - in a form ['migration_name'=>timestamp, ...]
+   * @return array
+   */
+  function checkMigrationOrder($authId, $migrations) {
+    $oldMigrations = []; //subset of $migrations that is older than migrations in db
+    $q = "SELECT migration_name, migration_timestamp FROM migration_status";
+    $rows = $this->db->exec($authId, $q);
+    foreach ($rows as $row){
+      foreach ($migrations as $name => $timestamp) {
+        if (!$timestamp && $timestamp < $row['migration_timestamp']) {
+          $oldMigrations[$name] =  $timestamp;
+        }
+      }
+    }
+
+    if (count($oldMigrations)) {
+      throw new Exception(
+        "AuthId = ".$authId
+        .". These migrations has null revision timestamp or older than those that is already in migration_status"
+        .". You can roll them manually with -m=MigrationName -d=up keys."
+        ." ".var_export($oldMigrations, true)
+      );
+    }
+    return true;
   }
 
   function getRolledMigrationNames($authId){
@@ -79,7 +119,7 @@ class MigrationRoller{
     $rows = $this->db->exec($authId, $q);
     $names = [];
     foreach ($rows as $row){
-      $names[] = $rows['migration_name'];
+      $names[] = $row['migration_name'];
     }
     return $names;
   }
@@ -126,6 +166,7 @@ class MigrationRoller{
    * @param $authId
    * @param $migrationName
    * @param $direction
+   * @return bool
    */
   function roll($authId, $migrationName, $direction){
     if(!$this->checkMigration($authId, $migrationName, $direction)){
@@ -160,7 +201,7 @@ class MigrationRoller{
   }
 
   /**
-   * Check that migration is not already rolled for up, or exists for down
+   * Check that migration is not already rolled (for up), or exists (for down)
    * @param $authId
    * @param $migrationName
    * @param $status

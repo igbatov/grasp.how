@@ -1,6 +1,6 @@
 Админские команды:
 Создать нового пользователя http://my.grasp.how/createNewUser/<login>/<password>/<admin secret>
-Удвлить пользователя и все его графы http://my.grasp.how/removeUser/<login>/<admin secret>
+Удалить пользователя и все его графы http://my.grasp.how/removeUser/<login>/<admin secret>
 Обновить пароль пользователя http://my.grasp.how/updateUserPassword/<login>/<password>/<admin_secret>
 Удалить граф http://grasp.local/removeGraph/<graph id>/<admin_secret>
 
@@ -24,12 +24,15 @@ createTestUser, loginTestUser, clearTest.
 Запрос clearTest удаляет текущего пользователя и базу.
 
 Rollup/down migrations:
-scripts/migrations.php
+php scripts/migrations.php
 Roll single migration:
 php scripts\migrations.php -m=D20170917ChangeContentHistoryGraphIdIndex -d=up
 Debug migrations:
 php -dxdebug.remote_autostart=On  -dxdebug.remote_enable=1 -dxdebug.remote_mode=req -dxdebug.remote_port=9000 -dxdebug.remote_host=grasp.local  scripts/
 migrations.php -m=D20170601AddDataColumnToSubscribeTable -d=up
+
+If you want to test migration that is not commited yet, then roll only this migration.
+If you run just "php scripts/migrations.php" then uncommited migration will run first.
 
 Изменение типа узлов
 1. Редактируем список типов в таблице graph

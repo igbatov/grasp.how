@@ -44,7 +44,7 @@ foreach ($authIds as $authId) {
     $roller->roll($authId, $classname, $keys['-d']);
   }else{
     if($roller->hasNullMigrations($authId)){
-      $roller->mylog('Cannot autoroll until there are exist migration_status rows with null migration_timestamp column. Exiting...');
+      $roller->mylog('Cannot autoroll until there are exist migration_status rows with null migration_timestamp column. authId='.$authId.' Exiting...');
       return;
     }
 
