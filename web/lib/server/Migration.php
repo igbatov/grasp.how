@@ -97,17 +97,17 @@ class MigrationRoller{
     $rows = $this->db->exec($authId, $q);
     foreach ($rows as $row){
       foreach ($migrations as $name => $timestamp) {
-        if (!$timestamp && $timestamp < $row['migration_timestamp']) {
+        if (!$timestamp || $timestamp < $row['migration_timestamp']) {
           $oldMigrations[$name] =  $timestamp;
         }
       }
     }
 
-    if (count($oldMigrations)) {
+    if (!empty($oldMigrations)) {
       throw new Exception(
         "AuthId = ".$authId
         .". These migrations has null revision timestamp or older than those that is already in migration_status"
-        .". You can roll them manually with -m=MigrationName -d=up keys."
+        .". You can roll them manually with -m=MigrationName -d=up -u=".$authId." keys."
         ." ".var_export($oldMigrations, true)
       );
     }

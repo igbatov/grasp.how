@@ -40,8 +40,16 @@ foreach ($authIds as $authId) {
     if(!in_array($keys['-d'], ['up','down'])) {
       throw new Exception('-d can be only "up" or "down", but '.$keys['-d'].' given.');
     }
+
     // roll migration
-    $roller->roll($authId, $classname, $keys['-d']);
+    if (isset($keys['-u'])) {
+      if ($keys['-u'] === $authId) {
+        $roller->roll($authId, $classname, $keys['-d']);
+      }
+    } else {
+      $roller->roll($authId, $classname, $keys['-d']);
+    }
+
   }else{
     if($roller->hasNullMigrations($authId)){
       $roller->mylog('Cannot autoroll until there are exist migration_status rows with null migration_timestamp column. authId='.$authId.' Exiting...');
@@ -49,7 +57,7 @@ foreach ($authIds as $authId) {
     }
 
     $revdate = $roller->getRevisionDate();
-    echo 'current revdate = '.$revdate."\n";
+    echo 'AuthId = '.$authId.'. Current revdate = '.$revdate."\n";
     $migrationDates = [];
     foreach ($files as $file){
       $timestamp = $roller->getFileRevisionDate($file);
