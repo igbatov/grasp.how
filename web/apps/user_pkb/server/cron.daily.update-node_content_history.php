@@ -1,5 +1,5 @@
 <?php
-include_once(__DIR__."../../../lib/server/NodeContentSnapBuilder.php");
+include_once(__DIR__."/../../../lib/server/NodeContentSnapBuilder.php");
 /**
  * This file is running by script/cron.php
  *
@@ -16,5 +16,9 @@ $q = "SELECT id FROM auth";
 $auths = $db->exec(null, $q);
 
 foreach ($auths as $auth) {
-  $snapBuilder->createSnapshots($auth['id'], ' -1 day');
+  try {
+    $snapBuilder->createSnapshots($auth['id'], ' -1 day');
+  } catch (Throwable $e) {
+    $logger->log($e->getMessage()." ".$e->getTraceAsString());
+  }
 }

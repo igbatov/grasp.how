@@ -1,4 +1,22 @@
 <?php
+
+/**
+ * There are 2 types of nodes - labelled and numerical
+ * NPT (node probability table) can set "manually" or "by expression" for both.
+ * Cases:
+ * 1. Labelled or numerical without parents - NPT are uniform in both cases
+ * 2. Labelled->Labelled. NPT set "manually" or by logical expression
+ * 3. Labelled->Numerical. NPT is set by expression of type "if (boolean on labels) then function".
+ * Every function is discretized
+ * 4. Numerical->Labelled. NPT is set by expression of type "if (function) then label".
+ * Numerical already discretized and we assume that function(x) = function(x*) where x* is the middle
+ * of interval where x lies.
+ * 5. Numerical->Numerical. NPT is set by function
+ * 6. (Numerical, Labelled) -> Labelled. NPT is set by
+ * expression of type "if (boolean on labels and function on numeric) then label".
+ * 7. (Numerical, Labelled) -> Numerical. NPT is set by function.
+ * Class GRainQuerier
+ */
 class GRainQuerier {
   private $rscript_path;
   private $tmp_dir;

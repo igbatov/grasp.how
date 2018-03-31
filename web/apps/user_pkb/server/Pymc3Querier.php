@@ -86,7 +86,9 @@ class Pymc3Querier
     $this->initEdgeHashes($graph);
     $text = $this->createScriptText($graph, $probabilities);
 
-    $tmp_filename = $this->tmp_dir."/Pymc3Querier.tmp.".rand(1,1000).".".time().".py";
+    $tmp_filename_base = $this->tmp_dir."/Pymc3Querier.tmp.".rand(1,1000).".".time();
+    $tmp_filename = $tmp_filename_base.".py";
+    $tmp_filename_result = $tmp_filename_base.".out";
 
     $myfile = fopen($tmp_filename, "w");
     if(!$myfile){
@@ -96,7 +98,7 @@ class Pymc3Querier
     fwrite($myfile, $text);
     fclose($myfile);
 
-    $cmd = '"'.$this->pymc3_path.'" "'.$tmp_filename.'" 2>&1';
+    $cmd = '"'.$this->pymc3_path.'" "'.$tmp_filename.'" "'.$tmp_filename_result.'"  2>&1';
     $output = array();
     exec($cmd, $output, $error);
     error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));
@@ -343,6 +345,12 @@ import pymc3 as pm
 import theano.tensor as tt
 from theano.compile.ops import as_op
 import theano
+import sys
+
+if not len(sys.argv[1:]):
+  print('Please, set output file path as first cli argument')
+  exit()
+outfile = sys.argv[1:][0]
 
 with pm.Model() as model:
 
@@ -353,8 +361,7 @@ EOT;
   SAMPLE_NUM = 50000
   trace = pm.sample(SAMPLE_NUM)
   
-  filename = "out.txt"
-  file = open(filename, "a")
+  file = open(outfile, "a")
   
 EOT;
     $footerPrints = [];

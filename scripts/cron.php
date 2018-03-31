@@ -16,7 +16,9 @@ $type = $argv[1];
 foreach(scandir($rootpath."/web/apps") as $app_dir){
   if($app_dir == '.' || $app_dir == '..') continue;
   foreach(scandir($rootpath."/web/apps/".$app_dir.'/server/') as $script){
-    if(substr($script,0,strlen('cron.'.$type)) == 'cron.'.$type) include($rootpath."/web/apps/".$app_dir.'/server/'.$script);
+    if(substr($script,0,strlen('cron.'.$type)) == 'cron.'.$type) {
+      include($rootpath."/web/apps/".$app_dir.'/server/'.$script);
+    }
   }
 }
 
