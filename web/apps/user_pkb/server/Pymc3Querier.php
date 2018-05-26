@@ -42,7 +42,7 @@ class Pymc3Querier
    *  h1: {
    *    // prior probability of proposition alternative is always 1/<number of alternatives>
    *    '{"e2":"1"}':{1:0.9999, 2:0.0001}, // sum must be equal to 1
-   *    '{"e2":"2"}':{1:0.99, 2:0.01}  // sum must be equal to 1
+     *    '{"e2":"2"}':{1:0.99, 2:0.01}  // sum must be equal to 1
    *   }
    * }
    *
