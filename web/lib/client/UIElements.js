@@ -645,7 +645,7 @@ GRASP.UIElements.prototype = {
 
   /**
    *
-   * @param form
+   * @param form - Node (DOM element)
    * @param name
    * @param rowAttrs - element attrs + {rowType, rowLabel, rowClass}
    * @returns {*}
@@ -686,7 +686,13 @@ GRASP.UIElements.prototype = {
     if(rowAttrs['rowType'] == 'range') fieldDOM = this.createRange({name:name, value:rowAttrs['value'], min:rowAttrs['min'], max:rowAttrs['max'], step:rowAttrs['step'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled']});
     if(rowAttrs['rowType'] == 'hidden') fieldDOM = this.createHidden({name:name,value:rowAttrs['value'], disabled:rowAttrs['disabled']});
     if(rowAttrs['rowType'] == 'title') fieldDOM = this.createTitle({value:rowAttrs['value']});
-    if(rowAttrs['rowType'] == 'string') fieldDOM = GRASP.createElement('div',{class:'string'},rowAttrs['value']);
+    if(rowAttrs['rowType'] == 'string') {
+      var className = 'string';
+      if (rowAttrs['className']) {
+        className += ' ' + rowAttrs['className'];
+      }
+      fieldDOM = GRASP.createElement('div',{class:className},rowAttrs['value']);
+    }
     if(rowAttrs['rowType'] == 'list') fieldDOM = this.createListBox({name:name,items:rowAttrs['items'], itemActions:rowAttrs['itemActions'], addLabel: rowAttrs['addLabel'], addCallback:rowAttrs['addCallback']});
     if(rowAttrs['rowType'] == 'tabs') fieldDOM = this.createTabs({name:name, items:rowAttrs['items'], defaultItem:rowAttrs['defaultItem']});
     if(rowAttrs['rowType'] == 'checkbox') fieldDOM = this.createSwitch({name:name, value:rowAttrs['value'], callback:rowAttrs['callback'], disabled:rowAttrs['disabled']});
@@ -749,11 +755,11 @@ GRASP.UIElements.prototype = {
   /**
    * Updates form field with given name to given attrs
    * If element with this name is absent, create new one
-   * @param form
+   * @param form - Node (DOM element) returned by createForm()
    * @param name
    * @param attrs
    */
-  updateForm: function(form,name,attrs){
+  updateForm: function(form, name, attrs){
     var els = this.formRows.getRows({formname:form.id, name:name});
 
     if(els.length) {

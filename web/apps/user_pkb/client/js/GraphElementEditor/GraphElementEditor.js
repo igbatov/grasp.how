@@ -118,9 +118,10 @@ GRASP.GraphElementEditor.prototype = {
           this.publisher
               .publish(
                   ['get_graph_node_content', {graphId:graphId, nodeContentIds:[nodeContentId]}],
-                  ['get_graph_node_content', {graphId:graphId, nodeContentIds:parentNodeContentIds}]
+                  ['get_graph_node_content', {graphId:graphId, nodeContentIds:parentNodeContentIds}],
+                  ['get_user_settings']
               )
-              .then(function(nodeContents, parentNodeContents){
+              .then(function(nodeContents, parentNodeContents, userSettings){
                 var nodeFormElements = that._createNodeForm(
                     graphId,
                     event.getData().isEditable,
@@ -128,7 +129,8 @@ GRASP.GraphElementEditor.prototype = {
                     nodeId,
                     nodeContentId,
                     nodeContents[nodeContentId],
-                    parentNodeContents
+                    parentNodeContents,
+                    userSettings
                 );
                 var view = document.getElementById(v.attr('id'));
                 GRASP.removeChilds(view);
@@ -205,16 +207,138 @@ GRASP.GraphElementEditor.prototype = {
     return c;
   },
 
-  _createNodeHead: function(graphId, nodeId, node, nodeTypes, isEditable) {
+  _onNodeValueTypeChange: function(form, field, value) {
+    if (value === 'discrete') {
+      this.UI.updateForm(form, 'value_range', {rowType:'textarea'});
+      this.UI.updateForm(form, 'value_range_help', {rowType:'string'});
+    } else {
+      this.UI.updateForm(form, 'value_range', {rowType:'hidden'});
+      this.UI.updateForm(form, 'value_range_help', {rowType:'hidden'});
+    }
+  },
+
+  _nodeValueTypeModal: function(
+      nodeValueType,
+      nodeValueRange,
+      isEditable,
+      graphId,
+      nodeContentId
+  ) {
+    var that = this;
+    var modalWindow = that.UI.createModal();
+
+    if (!nodeValueType) {
+      nodeValueType = 'labelled'
+    }
+
+    var form = that.UI.createForm(
+        {},
+        // form submit callback
+        function (form) {
+          that.publisher.publish(['request_for_graph_element_content_change',{
+            type: 'updateNodeAttribute',
+            graphId: graphId,
+            nodeContentId: nodeContentId,
+            nodeAttribute: {name:'value_type', value:form.value_type}
+          }]);
+          that.publisher.publish(['request_for_graph_element_content_change',{
+            type: 'updateNodeAttribute',
+            graphId: graphId,
+            nodeContentId: nodeContentId,
+            nodeAttribute: {name:'value_range', value:form.value_range}
+          }]);
+          that.UI.closeModal(modalWindow);
+        }
+    );
+
+    var fields = {};
+    fields['value_type'] = {
+      rowType:'select',
+      disabled:!isEditable,
+      items: {
+        labelled: this.i18n.__('Labelled'),
+        discrete: this.i18n.__('Discrete'),
+        continuous: this.i18n.__('Continuous')
+      },
+      value: nodeValueType,
+      callback: this._onNodeValueTypeChange.bind(this, form),
+      dropType: 'single',
+      withDownArrow: false
+    };
+    fields['value_range'] = {
+      rowType: nodeValueType === 'discrete' ? 'textarea' : 'hidden',
+      disabled:!isEditable,
+      value: nodeValueRange,
+      callback: this._onNodeValueTypeChange,
+      dropType: 'single',
+      withDownArrow: false
+    };
+    fields['value_range_help'] = {
+      className: 'value_range_help',
+      rowType: nodeValueType === 'discrete' ? 'string' : 'hidden',
+      value: that.i18n.__("You can set values as numbers separated by comma.<BR>For example: 3, 4.5, 394.0<BR>Alternatively You can set range and step in JSON format:<BR>{\"from\":\"-2\", \"to\":\"16\", \"step\":\"2\"}"),
+    };
+    fields['save'] = {
+      rowClass:'twoColumn upMarginMiddle',
+      rowType:'button',
+      label:that.i18n.__('save'),
+      disabled:!isEditable,
+      type:'bigButton uppercase',
+    };
+    fields['cancel'] = {
+      rowClass:'twoColumn upMarginMiddle',
+      rowType:'button',
+      disabled:!isEditable,
+      type:'bigButton white uppercase',
+      label:that.i18n.__('cancel'),
+      callback: function(){
+        that.UI.closeModal(modalWindow);
+      }
+    };
+
+    for (var fieldName in fields) {
+      that.UI.updateForm(form, fieldName, fields[fieldName]);
+    }
+
+    that.UI.setModalContent(modalWindow, form);
+    return form;
+  },
+
+  _createNodeHead: function(graphId, nodeId, node, nodeTypes, isEditable, bayesEngine, nodeContentId) {
+    var that = this;
     var c = GRASP.createElement('div', {class:'head', style:'color: ' + nodeTypes[node.type]})
     var label = GRASP.createElement('span', {class:'label'}, GRASP.ucfirst(this.i18n.__(node.type)));
+    if (bayesEngine !== 'gRain' && node.type === 'proposition') {
+      var nodeValueTypeButton = this.UI.createButton({
+        name:'',
+        label:'',
+        type:'icon hamburgerBlack',
+        callback: function(){
+          that._nodeValueTypeModal(
+              node['value_type'],
+              node['value_range'],
+              isEditable,
+              graphId,
+              nodeContentId
+          );
+        }
+      });
+      var nodeValueType = GRASP.createElement('div', {class:'nodeValueTypeButton'});
+      nodeValueType.appendChild(nodeValueTypeButton);
+    }
+
     var remove = this.UI.createButton({
       disabled: !isEditable,
       name: 'removeNode',
       type: 'icon delete grey',
       callback: this._removeNode.bind(this, graphId, nodeId)
     });
+
     c.appendChild(label);
+    if (bayesEngine !== 'gRain' && node.type === 'proposition') {
+      c.appendChild(nodeValueType);
+    }
+
     c.appendChild(remove);
     return c;
   },
@@ -226,12 +350,21 @@ GRASP.GraphElementEditor.prototype = {
       nodeId,
       nodeContentId,
       node,
-      parentNodeContents
+      parentNodeContents,
+      userSettings
   ){
     isEditable = typeof isEditable === 'undefined' ? true : isEditable;
     var that = this;
 
-    var head = this._createNodeHead(graphId, nodeId, node, nodeTypes, isEditable);
+    var head = this._createNodeHead(
+        graphId,
+        nodeId,
+        node,
+        nodeTypes,
+        isEditable,
+        userSettings[GRASP.UserSettings.FIELD_BAYES_ENGINE],
+        nodeContentId
+    );
 
     var label = this._createLabel(graphId, nodeContentId, node, isEditable);
 
@@ -310,6 +443,63 @@ GRASP.GraphElementEditor.prototype = {
     return [head, label, accordion];
   },
 
+  _tableProbabilityCallback: function(graphId, node, formKeys, form) {
+      var that = this;
+      var probabilities = {};
+
+      for(var j in node.alternatives){
+        probabilities[j] = {};
+        for(var i in formKeys){
+          var formKeyStr = JSON.stringify(formKeys[i]);
+          probabilities[j][formKeyStr] = form[i+'_THEN_'+formKeyStr+'_'+j] != '' ? form[i+'_THEN_'+formKeyStr+'_'+j] : 1/GRASP.getObjectLength(node.alternatives);
+        }
+      }
+
+      // sanity check of probability values
+      for(var i in formKeys){
+        var formKeyStr = JSON.stringify(formKeys[i]);
+
+        // check that every probability in [0,1]
+        for(var j in node.alternatives){
+          probabilities[j][formKeyStr] = probabilities[j][formKeyStr].replace(',','.');
+          if(isNaN(probabilities[j][formKeyStr])){
+            alert(that.i18n.__('Probability cannot be a number from 0 to 1'));
+            return true;
+          }
+          if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
+            alert(that.i18n.__('Probability cannot be less than 0 and greater than 1'));
+            return true;
+          }
+        }
+
+        // check that sum of probabilities by row equals 1
+        // using decimal.js for this because 0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1 = 0.9999999 in js
+        var sum = new Decimal(0);
+        var alertMsg = '';
+        for(var j in node.alternatives){
+          var d = new Decimal(probabilities[j][formKeyStr])
+          sum = sum.plus(d);
+          alertMsg += probabilities[j][formKeyStr]+'+';
+        }
+        sum = Number(sum);
+        if(sum != 1){
+          alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
+          alert(alertMsg+"\n"+that.i18n.__('Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1'));
+          return true;
+        }
+
+      }
+
+      that.publisher.publish(["request_for_graph_element_content_change", {
+        graphId: graphId,
+        type: 'updateNodeAlternativesP',
+        nodeContentId: nodeContentId,
+        alternatives: probabilities
+      }]);
+
+      return true;
+  },
+
   /**
    * Form of conditional probabilities editor
    */
@@ -321,6 +511,46 @@ GRASP.GraphElementEditor.prototype = {
     // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
     var formKeys = [{}];
 
+    var isParentsOnlyLabelled = true
+    for (var i in parentContents) {
+      var parentContent = parentContents[i]
+      if ( parentContent.value_type && parentContent.value_type !== 'labelled') {
+        isParentsOnlyLabelled = false;
+        break;
+      }
+    }
+
+    var canBeOnlyFormula = node.value_type && node.value_type === 'continuous' || !isParentsOnlyLabelled
+
+    // switch between probability table and formula textarea
+    fields.formulaSwitch = {
+      rowType: 'checkbox',
+      name: 'formulaSwitch',
+      disabled: !isEditable || canBeOnlyFormula,
+      value: canBeOnlyFormula || GRASP.nodeConditionalFormHelper.conditionIsFormula(node)
+    }
+
+    // probability by formula form
+    fields.formula = {
+      rowType: (canBeOnlyFormula || GRASP.nodeConditionalFormHelper.conditionIsFormula(node)) ? 'textarea' : 'hidden',
+      name: 'formula',
+      disabled: !isEditable,
+      value: node.alternatives[0].p.formula
+    }
+    var formulaCallback = function(form) {
+      that.publisher.publish(["request_for_graph_element_content_change", {
+        graphId: graphId,
+        type: 'updateNodeAlternativesP',
+        nodeContentId: nodeContentId,
+        alternatives: {
+          0: {
+            formula: form.formula
+          }
+        }
+      }]);
+    }
+
+    // probability table form
     var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
         node,
         isEditable,
@@ -330,8 +560,9 @@ GRASP.GraphElementEditor.prototype = {
         nodeId,
         that.i18n
     );
-    fields = f.fields;
+    fields = Object.assign(fields, f.fields);
     formKeys = f.formKeys;
+    var tableCallback = this._tableProbabilityCallback.bind(this, graphId, node, formKeys)
 
     var modalWindow = that.UI.createModal();
 
@@ -356,66 +587,31 @@ GRASP.GraphElementEditor.prototype = {
     var form = that.UI.createForm(
         fields,
         // form submit callback
-        function (form) {
-          var probabilities = {};
-
-          for(var j in node.alternatives){
-            probabilities[j] = {};
-            for(var i in formKeys){
-              var formKeyStr = JSON.stringify(formKeys[i]);
-              probabilities[j][formKeyStr] = form[i+'_THEN_'+formKeyStr+'_'+j] != '' ? form[i+'_THEN_'+formKeyStr+'_'+j] : 1/GRASP.getObjectLength(node.alternatives);
-            }
+        function(form) {
+          if (form.formulaSwitch) {
+            formulaCallback(form)
+          } else {
+            tableCallback()
           }
-
-          // sanity check of probability values
-          for(var i in formKeys){
-            var formKeyStr = JSON.stringify(formKeys[i]);
-
-            // check that every probability in [0,1]
-            for(var j in node.alternatives){
-              probabilities[j][formKeyStr] = probabilities[j][formKeyStr].replace(',','.');
-              if(isNaN(probabilities[j][formKeyStr])){
-                alert(that.i18n.__('Probability cannot be a number from 0 to 1'));
-                return true;
-              }
-              if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
-                alert(that.i18n.__('Probability cannot be less than 0 and greater than 1'));
-                return true;
-              }
-            }
-
-            // check that sum of probabilities by row equals 1
-            // using decimal.js for this because 0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1+0.1 = 0.9999999 in js
-            var sum = new Decimal(0);
-            var alertMsg = '';
-            for(var j in node.alternatives){
-              var d = new Decimal(probabilities[j][formKeyStr])
-              sum = sum.plus(d);
-              alertMsg += probabilities[j][formKeyStr]+'+';
-            }
-            sum = Number(sum);
-            if(sum != 1){
-              alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
-              alert(alertMsg+"\n"+that.i18n.__('Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1'));
-              return true;
-            }
-
-          }
-
-          that.publisher.publish(["request_for_graph_element_content_change", {
-            graphId: graphId,
-            type: 'updateNodeAlternativesP',
-            nodeContentId: nodeContentId,
-            alternatives: probabilities
-          }]);
-
           that.UI.closeModal(modalWindow);
-          return true;
+        }
+    );
+
+    that._switchConditionalForm(form, f.fields, (canBeOnlyFormula || GRASP.nodeConditionalFormHelper.conditionIsFormula(node)))
+
+    that.UI.updateForm(
+        form,
+        'formulaSwitch',
+        {
+          callback: function (name, value) {
+            node.alternatives[0].p = {formula:''}
+            that._switchConditionalForm(form, f.fields, value)
+          }
         }
     );
 
     // add auto-change of field values so that sum by row equals 1 (only for case of 2 alternatives)
-    if(GRASP.getObjectLength(node.alternatives) == 2){
+    if(GRASP.getObjectLength(node.alternatives) === 2){
       for(var i in formKeys){
         var formKeyStr = JSON.stringify(formKeys[i]);
         var alternativeIds = GRASP.getObjectKeys(node.alternatives);
@@ -438,6 +634,23 @@ GRASP.GraphElementEditor.prototype = {
 
     that.UI.setModalContent(modalWindow, form);
     return form;
+  },
+
+  _switchConditionalForm: function(form, fields, isFormula) {
+    var that  = this
+    
+    if (isFormula) {
+      for (var formKey in fields) {
+        that.UI.updateForm(form, formKey, {rowType: 'hidden'})
+      }
+      that.UI.updateForm(form, 'formula', {rowType: 'textarea'})
+    } else {
+      for (var formKey in fields) {
+        that.UI.updateForm(form, formKey, {rowType: fields[formKey].rowType})
+      }
+      that.UI.updateForm(form, 'formula', {rowType: 'hidden'})
+    }
+    that.UI.updateForm(form, 'formulaSwitch', {value: isFormula})
   },
   /**
    * Form of conditional probabilities editor
@@ -665,7 +878,7 @@ GRASP.GraphElementEditor.prototype = {
     for(var i in reliabilityArray){
       reliabilityHash[reliabilityKeys[i]] = reliabilityArray[i];
     }
-    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION) {
+    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type === 'labelled') {
       // create select with alternativeLabels
       var select = this.UI.createSelectBox({
         name: 'active_alternative_id',

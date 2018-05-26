@@ -525,7 +525,8 @@ class AppUserPkb extends App
          * Process settings
          */
         $fields = [
-          'lang'
+          'lang',
+          'bayesEngine'
         ];
         $newSettings = [];
         foreach ($fields as $field){

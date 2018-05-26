@@ -23,7 +23,7 @@ GRASP.GraphElementsContent = function(publisher, i18n){
   // elementType is 'node' or 'edge'
   // contentId is edgeContentId or nodeContentUd
   this.cacheContent = new GRASP.Cache(['elementType', 'contentId', 'content'], 5000000);
-  this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id'];
+``  this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id', 'value_type', 'value_range'];
   this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
   this.edgeAttributeNames = ['label', 'type'];
   this.i18n = i18n;
@@ -185,9 +185,14 @@ GRASP.GraphElementsContent.prototype = {
               that.publisher.publish(["graph_element_content_changed",  secondAlternativeEvent, true]);
             })
 
-          }else{
-            if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
-            if(this.nodeAlternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+          } else {
+            if(this.nodeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) {
+              e[event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+            } else if(this.nodeAlternativeAttributeNames.indexOf(event.getData().nodeAttribute.name) != -1) {
+              e['alternatives'][event.getData()['node_alternative_id']][event.getData().nodeAttribute.name] = event.getData().nodeAttribute.value;
+            } else {
+              throw new Error('Node alternative attribute ' + event.getData().nodeAttribute.name + ' not in GraphElementsContent.nodeAttributeNames or nodeAlternativeAttributeNames list');
+            }
             er = {};
             ed = event.getData();
           }

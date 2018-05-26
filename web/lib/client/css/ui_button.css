@@ -91,3 +91,12 @@
 .ui_button.icon.delete.grey {
     background: url("/lib/client/img/ic_delete_grey_24px.svg") no-repeat 0 center;
 }
+.ui_button.icon.hamburgerBlack {
+    display: inline-block;
+    width: 1.3em;
+    height: 1.1em;
+    padding: 0.0em;
+    content: "";
+    background: url("/lib/client/img/Hamburger_black_transparent.svg") no-repeat 0 0;
+    background-size: 100%;
+}

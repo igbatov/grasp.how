@@ -319,6 +319,14 @@ GRASP.GraphMenu.prototype = {
             value:settings['lang'],
             dropType: 'single'
           },
+          'bayesEngine': {
+            rowType:'select',
+            rowLabel:that.i18n.__('Bayes engine'),
+            withDownArrow: true,
+            items:{'gRain':'gRain', 'WebPPL':'WebPPL'},
+            value:settings['bayesEngine'] ? settings['bayesEngine'] : 'gRain',
+            dropType: 'single'
+          },
           'new_password':{
             rowType:'password',
             rowLabel:that.i18n.__('New password')

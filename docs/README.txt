@@ -124,3 +124,32 @@ or .htaccess: php_value include_path ".:/usr/local/lib/php:/your/dir"
 - check as well if giving proper shell (/bin/sh) to your apache user make any difference (check with: finger),
 make sure that your php.ini doesn't use: disable_functions for exec function
 - if using SELinux or having selinux-utils installed (a Security-enhanced Linux system), check getenforce/setenforce configuration as described in @Tonin answer
+
+----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+Варианты задания таблицы вероятностей AgenaRisk (примерные)
+
+родители                                    ребенок                                               варианты
+continuous                           boolean или "descrete real"                    expression вида "if && || == noisyand noisyor"
+continuous                           Labelled                                       expression вида "if && || == noisyand noisyor", manual
+continuous                           Continuous Interval или Integer Interval       expression вида "+,-,*,/,PDF", manual
+continuous                           Ranked                                         expression вида "TNormal"
+
+есть Labelled или discrete           Labelled или boolean или "descrete real"       expression вида "if && || == noisyand noisyor", manual, partitioned expression
+есть Labelled или discrete           Continuous Interval или Integer Interval       expression вида "+,-,*,/,PDF", manual, partitioned expression
+есть Labelled или discrete           Ranked                                         expression вида "TNormal", manual, partitioned expression
+
+
+Варианты задания таблицы вероятностей в grasp.how.
+
+Каждый из узлов может быть 3х вариантов: labelled, discrete, continuous
+Выбор каждого типа влечет способ задания мно-ва возможных значений. Для узлов у которых есть родители
+задавать область значений не обязательно, но пока пусть будет.
+
+Если ролители только labelled или discrete то можно задавать таблицей (manual) и выражением (expression).
+Результат выражения это число - sample из распределения.
+Если в родителях есть continuous, то вариант задания только expression
+
+WebPPL - подходит
+pymc3 - подходит но вместо if надо делать switch и observed встроен в PDF
+Dynamic Discretization

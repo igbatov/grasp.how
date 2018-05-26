@@ -252,3 +252,15 @@
 .edgeEditorContainer .head{
     padding-left: 2em;
 }
+.nodeValueTypeButton {
+    display: inline-block;
+    float: none;
+    margin-left: 0.5em;
+    position: relative;
+    top: 0.3em;
+    cursor: pointer;
+}
+
+.ui_form .formRow div.value_range_help {
+    width: 100%;
+}

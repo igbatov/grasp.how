@@ -1753,14 +1753,26 @@ GRASP.nodeConditionalFormHelper = (function(){
    */
   function findPByFormKey(alternativePs, formKey){
     for(var i in alternativePs){
-      if(GRASP.compare(JSON.parse(i), formKey)) return alternativePs[i];
+      try {
+        var pKey = JSON.parse(i)
+      } catch (e) {
+
+      }
+      if(pKey && GRASP.compare(pKey, formKey)) {
+        return alternativePs[i];
+      }
     }
     return false;
   }
 
+  function conditionIsFormula(node) {
+    return !!node.alternatives[0].p.formula
+  };
+
   return {
     getNodeConditionalFormFields: getNodeConditionalFormFields,
-    isNodeConditionalFieldsEmpty: isNodeConditionalFieldsEmpty
+    isNodeConditionalFieldsEmpty: isNodeConditionalFieldsEmpty,
+    conditionIsFormula: conditionIsFormula,
   };
 })();
 

@@ -10,7 +10,8 @@ GRASP.UserSettings = function(publisher, i18n){
   this._i18n = i18n;
   this._settings = {}; // store user settings, cached from backend
 };
-
+GRASP.UserSettings.FIELD_LANG = 'lang';
+GRASP.UserSettings.FIELD_BAYES_ENGINE = 'bayesEngine';
 GRASP.UserSettings.prototype = {
   eventListener: function (event) {
     var that = this;
@@ -20,7 +21,7 @@ GRASP.UserSettings.prototype = {
         that._settings = r;
         // init i18n
         if(r['lang']){
-          that._i18n.setLang(r['lang']);
+          that._i18n.setLang(r[GRASP.UserSettings.FIELD_LANG]);
         }
         event.setResponse(r);
       });
@@ -43,7 +44,7 @@ GRASP.UserSettings.prototype = {
         }
         // update i18n
         if(r['lang']){
-          that._i18n.setLang(r['lang']);
+          that._i18n.setLang(r[GRASP.UserSettings.FIELD_LANG]);
         }
         event.setResponse(r);
       });
