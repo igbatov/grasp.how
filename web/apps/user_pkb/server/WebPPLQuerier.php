@@ -50,27 +50,47 @@ class WebPPLQuerier
    *
    * Example of the WebPPL script
    *
-      var softEvidence = function(s_value, value, p) {
-        if (s_value === value) {
-          return Bernoulli({p: p})
-        }
-        return Bernoulli({p: 1-p})
+    var softEvidence = function(s_value, value, p) {
+      if (s_value === value) {
+        return bernoulli({p: p})
       }
+      return bernoulli({p: 1-p})
+    }
 
-      var e2 = function() {
+    var e2 = function() {
+      return categorical({vs:[1, 2], ps:[0.5, 0.5]})
+    }
+
+    var h1 = function(se2){
+      if (se2 === 1) {
+        return categorical({vs:[1, 2], ps:[0.0001, 0.9999]})
+      }
+      if (se2 === 2) {
         return categorical({vs:[1, 2], ps:[0.5, 0.5]})
       }
-   *
-   *  var h1 = function() {
-   *
-   *  }
-      var model = function() {
-        var se2 = e2()
-        condition(se2 === 1)
+    }
 
+    var e1 = function(sh1){
+      var e1p = {1: [0.999, 0.001], 2: [0.001, 0.999]}
+      return categorical({vs:[1, 2], ps:e1p[sh1]})
+    }
 
+    var model = function() {
+      var se2 = e2()
+      var sh1 = h1(se2)
+      var se1 = e1(sh1)
 
-      }
+      condition(se2 === 1)
+      condition(softEvidence(se1, 1, 0.99) === true);
+      return sh1
+    }
+
+    var dist = Infer(
+      {},
+      model
+    );
+
+   console.log(dist.getDist())
    *
    */
 
