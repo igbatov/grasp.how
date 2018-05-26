@@ -39,10 +39,10 @@ class WebPPLQuerier
    *  h1: {
    *    'formula':'
    *       if (e1 === 1) {
-   *         return categorical({vs:[1, 2], ps:[0.9999, 0.0001]})
+   *         return categorical({vs:[1, 2], ps:[0.0001, 0.9999]})
    *       }
    *       if (e1 === 2) {
-   *         return categorical({vs:[1, 2], ps:[0.99, 0.01]})
+   *         return categorical({vs:[1, 2], ps:[0.5, 0.5]})
    *       }
    *    ',
    *   }

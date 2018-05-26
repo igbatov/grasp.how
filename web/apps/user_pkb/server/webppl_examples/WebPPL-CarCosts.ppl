@@ -1,0 +1,58 @@
+/**
+ * car costs
+ */
+var truncatedGaussian = function(mu, sigma, lower, upper) {
+  var s = gaussian({mu:mu, sigma:sigma});
+  factor(s < lower || s > upper ? -Infinity : 0);
+  return s;
+}
+
+var maintainability = function(contValue) {
+  if (contValue < 0.33) {
+    return 0
+  }
+  if (contValue < 0.66) {
+    return 1
+  }
+  return 2
+}
+
+var annualMaintainanceCost = function(maintainability) {
+  if (maintainability === 0) {
+    return truncatedGaussian(100, 10, 0, 600)
+  }
+  if (maintainability === 1) {
+    return truncatedGaussian(200, 12, 0, 600)
+  }
+  return truncatedGaussian(500, 12, 0, 600)
+}
+
+var model = function() {
+  var carType = Categorical({vs:[0, 1, 2], ps:[0.33, 0.33, 0.34]})
+  var scarType = sample(carType)
+  condition(scarType === 1);
+
+  var reliability = Categorical({vs:[0, 1, 2], ps:[0.33, 0.33, 0.34]})
+  var sreliability = sample(reliability)
+  condition(sreliability === 0);
+  
+  var smaintainabilityCont = truncatedGaussian(
+    2/3*(2*scarType+1)/6 + 1/3*(2*sreliability+1)/6,
+    0.1,
+    0,
+    1
+  )
+  
+  var maintainability = maintainability(smaintainabilityCont)
+
+  return annualMaintainanceCost(maintainability)
+}
+
+var dist = Infer(
+  {},
+  model
+);
+
+//viz.auto(dist);
+//debugger;
+console.log(dist.getDist())

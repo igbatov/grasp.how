@@ -1,0 +1,26 @@
+/**
+ * material A or material B is faulty
+ */
+
+var model = function() {
+  var pAFaulty = Uniform({a:0, b:1})
+  var s_pAFaulty = sample(pAFaulty)
+  var AStat = Binomial({p:s_pAFaulty, n:200})
+  observe(AStat, 10);
+
+  var pBFaulty = Uniform({a:0, b:1})
+  var s_pBFaulty = sample(pBFaulty)
+  var BStat = Binomial({p:s_pBFaulty, n:200})
+  observe(BStat, 15);  
+  
+  var diff = s_pAFaulty - s_pBFaulty
+
+  return diff //sample(Binomial({p:0.46, n:200}))
+}
+
+var dist = Infer(
+  {},
+  model
+);
+
+viz.auto(dist);

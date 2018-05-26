@@ -1,0 +1,35 @@
+/**
+ * Material A or material B is faulty
+ * with soft evidence
+ */
+
+var softEvidence = function(s_value, value, p) {
+  if (s_value === value) {
+    return Bernoulli({p: p})
+  }
+  return Bernoulli({p: 1-p})
+}
+
+var model = function() {
+  var pAFaulty = Uniform({a:0, b:1})
+  var s_pAFaulty = sample(pAFaulty)
+
+  var AStat = Binomial({p:s_pAFaulty, n:200})
+  observe(softEvidence(sample(AStat), 10, 0.99), true);
+
+  var pBFaulty = Uniform({a:0, b:1})
+  var s_pBFaulty = sample(pBFaulty)
+  var BStat = Binomial({p:s_pBFaulty, n:200})
+  observe(BStat, 15);  
+  
+  var diff = s_pAFaulty - s_pBFaulty
+ 
+  return diff
+}
+
+var dist = Infer(
+  {},
+  model
+);
+
+viz.auto(dist);

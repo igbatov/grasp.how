@@ -1,0 +1,30 @@
+/**
+ * Simple soft evidence
+ */
+
+var softEvidence = function(s_value, value, p) {
+  if (s_value === value) {
+    return Bernoulli({p: p})
+  }
+  return Bernoulli({p: 1-p})
+}
+
+var model = function() {
+  var e2 = Categorical({vs:[0, 1], ps:[0.5, 0.5]})
+  var se2 = sample(e2)
+  observe(softEvidence(se2, 0, 0.9), true);
+  
+  var h1ps = {0: [0.0001, 0.9999], 1: [0.5, 0.5]} 
+  var h1 = Categorical({vs:[0, 1], ps:h1ps[se2]})
+  var sh1 = sample(h1) 
+  
+  return sh1
+}
+
+var dist = Infer(
+  {method: 'enumerate', maxExecutions: 10000},
+  model
+);
+
+console.log(dist)
+viz.auto(dist);
