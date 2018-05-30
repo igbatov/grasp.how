@@ -93,7 +93,7 @@ class WebPPLQuerier extends AbstractQuerier
     $script = "";
     $script .= $this->getHelperMethods();
     $script .= $this->getNodeMethods($probabilities);
-    $script .= $this->getMain($probabilities);
+    $script .= $this->getMain($graph, $probabilities);
     return $script;
   }
 
@@ -109,14 +109,29 @@ class WebPPLQuerier extends AbstractQuerier
   public function getNodeMethods($probabilities) {
     $text = "";
     foreach ($probabilities as $nodeName => $probs) {
-      $text .= "var function ".$nodeName."() {\n";
       if (isset($probs['formula'])) {
-        $text .= $probs['formula'];
+        $text .=<<<EOT
+      
+var function {$nodeName}(s) {
+
+EOT;
+        $text .= "\n".$probs['formula']."\n";
       } else if (isset($probs['soft']) && count($probs) === 1) {
         // fact without incoming nodes
-        $text .= "return categorical({vs:[1, 2], ps:[0.5, 0.5]})\n";
+        $text .=<<<EOT
+      
+var function {$nodeName}() {
+  return categorical({vs:[1, 2], ps:[0.5, 0.5]});
+
+EOT;
       } else {
-        $text .= "var p = {\n";
+        $text .=<<<EOT
+      
+var function {$nodeName}(s) {
+  var p = {
+
+EOT;
+
         foreach ($probs as $key => $prob) {
           if ($key === 'soft') {
             continue;
@@ -131,20 +146,80 @@ class WebPPLQuerier extends AbstractQuerier
             */
             $keys = array_map(function($key){return (int)$key;},array_keys($prob));
             $values = array_values($prob);
-            $text .= "'".$key."':{'keys':".json_encode($keys).", 'values':".json_encode($values)."},\n";
+            $jsonKeys = json_encode($keys);
+            $jsonValues = json_encode($values);
+            $text .= <<<EOT
+    '{$key}':{'keys':{$jsonKeys}, 'values':{$jsonValues}},
+
+EOT;
           }
         }
-        $text .= "}\n";
         $text .= <<<EOT
+  };
   var sp = p[objToKey(s)];
   return categorical({vs:sp['keys'], ps:sp['values']});
+
 EOT;
       }
-      $text .= "}\n";
+      $text .= <<<EOT
+}
+
+EOT;
     }
+
+    return $text;
   }
 
-  public function getMain($probabilities) {
+  public function getMain($graph, $probabilities) {
+    $returnObj = "";
+    $text = "";
+    $roots = $this->getNextRoots($graph);
+    while(!empty($roots)){
+      foreach ($roots as $nodeName) {
+        if (!isset($this->inbound[$nodeName])) {
+          $text .= "var s".$nodeName." = ".$nodeName."();\n";
+        } else {
+          $parents = $this->inbound[$nodeName];
+          $args = '';
+          foreach ($parents as $parent => $v) {
+            $args .= '"'.$parent.'":s'.$parent.',';
+          }
+          $text .= "var s".$nodeName." = ".$nodeName."({".substr($args, 0,strlen($args)-1)."});\n";
+        }
+
+        if (isset($probabilities[$nodeName]['soft'])) {
+          // this is fact, so make condition for it
+          $soft = $probabilities[$nodeName]['soft'];
+          if ($soft[1] === 1) {
+            // hard evidence
+            $text .= "condition(s".$nodeName." === 1);\n";
+          } else {
+            // soft evidence
+            $text .= "condition(softEvidence(s".$nodeName.", 1, ".$soft[1].") === true);\n";
+          }
+        } else {
+          // it is hypothesis, include it in return object
+          $returnObj .= '"'.$nodeName.'":s'.$nodeName.',';
+        }
+      }
+
+      // get next layer of nodes
+      $roots = $this->getNextRoots($graph);
+    }
+    $returnObj = "return {".substr($returnObj, 0, strlen($returnObj)-1)."};\n";
+    $text .= $returnObj;
+    return <<<EOT
+var model = function() {    
+  {$text}
+}
+
+var dist = Infer(
+  {},
+  model
+);
+
+console.log(dist.getDist())
+EOT;
 
   }
 
@@ -152,7 +227,7 @@ EOT;
 
   }
 
-  private function getHelperMethods() {
+  public function getHelperMethods() {
     return <<<EOT
   var softEvidence = function(s_value, value, p) {
     if (s_value === value) {

@@ -1,44 +1,44 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: igbatov
- * Date: 16-Mar-18
- * Time: 8:22 AM
  * Install phpunit by downloading phpunit.phar from https://phpunit.de/manual/4.8/en/installation.html
  * Run by
- * #phpunit Pymc3QuerierTest.php
+ * #phpunit WebPPLQuerierTest.php
  * or to debug
- * #php -dxdebug.remote_autostart=On bin/phpunit Pymc3QuerierTest.php
+ * On ubuntu:
+ * #php -dxdebug.remote_autostart=On bin/phpunit WebPPLQuerierTest.php
+ * On Windows:
+ * php -dxdebug.remote_autostart=On \path\to\phpunit.phar WebPPLQuerierTest.php
+ *
+ * Before debug activate "listening Debug Connections" button in PHPStorm
  */
 $path = dirname(__FILE__);
 require_once ($path.'/../../../../../web/lib/server/Config.php');
-include_once('../Pymc3Querier.php');
+include_once('../AbstractQuerier.php');
+include_once('../WebPPLQuerier.php');
 
-class Pymc3QuerierTest extends PHPUnit_Framework_TestCase
+class WebPPLQuerierTest extends PHPUnit_Framework_TestCase
 {
-  /** @var  Pymc3Querier */
-  private $pymc3_querier;
+  /** @var  WebPPLQuerier */
+  private $querier;
 
   protected function setUp()
   {
     $c = new Config();
-    $this->pymc3_querier = new Pymc3Querier($c->getPymc3Path(), $c->getDefaultPath('tmp'));
+    $this->querier = new WebPPLQuerier($c->getWebPPLPath(), $c->getDefaultPath('tmp'));
   }
 
   /**
    * @dataProvider dataProvider
    */
-  public function testPymc3($graph, $probabilities, $expectProb, $expectMain)
+  public function testQuerier($graph, $probabilities, $expectProb, $expectMain)
   {
-    $this->pymc3_querier->initEdgeHashes($graph);
+    $this->querier->initEdgeHashes($graph);
 
-    $probs = $this->pymc3_querier->createProbabilitiesPart($graph, $probabilities);
-    $this->assertMultiLineEquals($expectProb, $probs);
+    $probs = $this->querier->getNodeMethods($probabilities);
+    //$this->assertMultiLineEquals($expectProb, $probs);
 
-    $mainPart = $this->pymc3_querier->createMainPart($graph, $probabilities);
+    $mainPart = $this->querier->getMain($graph, $probabilities);
     $this->assertMultiLineEquals($expectMain, $mainPart);
-
-  //  $this->pymc3_querier->queryPymc3($graph, $probabilities);
   }
 
   private function assertMultiLineEquals($mustBe, $result){
@@ -55,9 +55,9 @@ class Pymc3QuerierTest extends PHPUnit_Framework_TestCase
     $graph2 = include 'data/twoParents.php';
     $graph3 = include 'data/inconsistentEvidences.php';
     return [
-//        $graph1,
+        $graph1,
 //        $graph2,
-        $graph3,
+//        $graph3,
     ];
   }
 }

@@ -3,13 +3,14 @@
 abstract class AbstractQuerier {
   const TAB = "  ";
   const EXT = "";
-  private $exec_path;
-  private $tmp_dir;
+  protected $exec_path;
+  protected $tmp_dir;
 
-  private $inbound;
-  private $outbound;
-  private $traversedRoots;
-  private $inboundWT;  // inbound without $traversedRoots
+  protected $inbound;
+  protected $outbound;
+
+  protected $traversedRoots;
+  protected $inboundWT;  // inbound without $traversedRoots
 
   public function __construct($exec_path, $tmp_dir)
   {
@@ -65,26 +66,26 @@ abstract class AbstractQuerier {
   /**
    * Get from inboundWT nodes that has no inbound edges and remove them from inboundWT
    * @param $graph
-   * @return array
+   * @return array - array of node names
    */
-  private function extractRoots($graph) {
+  protected function getNextRoots($graph) {
     $roots = [];
-    foreach ($graph['nodes'] as $node => $values) {
-      if (!isset($this->inboundWT[$node]) && !isset($this->traversedRoots[$node])) {
-        $this->traversedRoots[$node] = 1;
-        $roots[] = $node;
+    foreach ($graph['nodes'] as $nodeName => $values) {
+      if (!isset($this->inboundWT[$nodeName]) && !isset($this->traversedRoots[$nodeName])) {
+        $this->traversedRoots[$nodeName] = 1;
+        $roots[] = $nodeName;
       }
     }
 
-    foreach ($roots as $root) {
+    foreach ($roots as $rootName) {
       // remove this `root` node from inbounds of its outbound nodes
-      if (!isset($this->outbound[$root])) {
+      if (!isset($this->outbound[$rootName])) {
         continue;
       }
-      foreach ($this->outbound[$root] as $outNode => $v) {
-        unset($this->inboundWT[$outNode][$root]);
-        if (empty($this->inboundWT[$outNode])) {
-          unset($this->inboundWT[$outNode]);
+      foreach ($this->outbound[$rootName] as $outNodeName => $v) {
+        unset($this->inboundWT[$outNodeName][$rootName]);
+        if (empty($this->inboundWT[$outNodeName])) {
+          unset($this->inboundWT[$outNodeName]);
         }
       }
     }

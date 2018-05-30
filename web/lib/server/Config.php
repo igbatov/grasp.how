@@ -51,6 +51,10 @@ class Config{
     return $this->config_json['Pymc3Path'];
   }
 
+  public function getWebPPLPath(){
+    return $this->config_json['WebPPLPath'];
+  }
+
   public function getWebDomainURL(){
     return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName();
   }
