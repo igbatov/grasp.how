@@ -98,7 +98,7 @@ class WebPPLQuerier extends AbstractQuerier
   }
 
   public function sanityCheck($graph, $probabilities) {
-    foreach ($graph['nodes'] as $nodeName) {
+    foreach ($graph['nodes'] as $nodeName => $v) {
       // check that nodeName can be used as js function name
       if (preg_match('/^[A-Za-z_][A-Za-z_0-9]*$/', $nodeName) !== 1) {
         throw new Exception('Bad node name: '.$nodeName.'. Node name should start with letter and can contain only letters, digits, underscores.');
@@ -112,7 +112,7 @@ class WebPPLQuerier extends AbstractQuerier
       if (isset($probs['formula'])) {
         $text .=<<<EOT
       
-var function {$nodeName}(s) {
+var {$nodeName} = function(s) {
 
 EOT;
         $text .= "\n".$probs['formula']."\n";
@@ -120,14 +120,14 @@ EOT;
         // fact without incoming nodes
         $text .=<<<EOT
       
-var function {$nodeName}() {
+var {$nodeName} = function() {
   return categorical({vs:[1, 2], ps:[0.5, 0.5]});
 
 EOT;
       } else {
         $text .=<<<EOT
       
-var function {$nodeName}(s) {
+var {$nodeName} = function(s) {
   var p = {
 
 EOT;
@@ -148,6 +148,8 @@ EOT;
             $values = array_values($prob);
             $jsonKeys = json_encode($keys);
             $jsonValues = json_encode($values);
+            // convert key values to int
+            $key = json_encode($this->convertValuesToInt(json_decode($key)));
             $text .= <<<EOT
     '{$key}':{'keys':{$jsonKeys}, 'values':{$jsonValues}},
 
@@ -170,6 +172,14 @@ EOT;
     return $text;
   }
 
+  public function convertValuesToInt($o) {
+    $result = [];
+    foreach ($o as $k => $v) {
+      $result[$k] = (int)$v;
+    }
+    return $result;
+  }
+
   public function getMain($graph, $probabilities) {
     $returnObj = "";
     $text = "";
@@ -177,14 +187,14 @@ EOT;
     while(!empty($roots)){
       foreach ($roots as $nodeName) {
         if (!isset($this->inbound[$nodeName])) {
-          $text .= "var s".$nodeName." = ".$nodeName."();\n";
+          $text .= "  var s".$nodeName." = ".$nodeName."();\n";
         } else {
           $parents = $this->inbound[$nodeName];
           $args = '';
           foreach ($parents as $parent => $v) {
             $args .= '"'.$parent.'":s'.$parent.',';
           }
-          $text .= "var s".$nodeName." = ".$nodeName."({".substr($args, 0,strlen($args)-1)."});\n";
+          $text .= "  var s".$nodeName." = ".$nodeName."({".substr($args, 0,strlen($args)-1)."});\n";
         }
 
         if (isset($probabilities[$nodeName]['soft'])) {
@@ -192,10 +202,10 @@ EOT;
           $soft = $probabilities[$nodeName]['soft'];
           if ($soft[1] === 1) {
             // hard evidence
-            $text .= "condition(s".$nodeName." === 1);\n";
+            $text .= "  condition(s".$nodeName." === 1);\n";
           } else {
             // soft evidence
-            $text .= "condition(softEvidence(s".$nodeName.", 1, ".$soft[1].") === true);\n";
+            $text .= "  condition(softEvidence(s".$nodeName.", 1, ".$soft[1].") === true);\n";
           }
         } else {
           // it is hypothesis, include it in return object
@@ -206,11 +216,11 @@ EOT;
       // get next layer of nodes
       $roots = $this->getNextRoots($graph);
     }
-    $returnObj = "return {".substr($returnObj, 0, strlen($returnObj)-1)."};\n";
+    $returnObj = "  return {".substr($returnObj, 0, strlen($returnObj)-1)."};\n";
     $text .= $returnObj;
     return <<<EOT
 var model = function() {    
-  {$text}
+{$text}
 }
 
 var dist = Infer(
@@ -218,7 +228,7 @@ var dist = Infer(
   model
 );
 
-console.log(dist.getDist())
+console.log(dist.getDist());
 EOT;
 
   }
@@ -229,16 +239,17 @@ EOT;
 
   public function getHelperMethods() {
     return <<<EOT
-  var softEvidence = function(s_value, value, p) {
-    if (s_value === value) {
-      return bernoulli({p: p})
-    }
-    return bernoulli({p: 1-p})
+var softEvidence = function(s_value, value, p) {
+  if (s_value === value) {
+    return bernoulli({p: p})
   }
-    
-  var objToKey = function(o) {
-    return JSON.stringify(o)
-  }    
+  return bernoulli({p: 1-p})
+}
+  
+var objToKey = function(o) {
+  return JSON.stringify(o)
+}
+
 EOT;
 
   }
