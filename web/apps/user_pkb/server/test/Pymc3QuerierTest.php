@@ -51,9 +51,9 @@ class Pymc3QuerierTest extends PHPUnit_Framework_TestCase
 
   public function dataProvider()
   {
-    $graph1 = include 'data/factWithParent.php';
-    $graph2 = include 'data/twoParents.php';
-    $graph3 = include 'data/inconsistentEvidences.php';
+    $graph1 = include 'data/PyMC3/factWithParent.php';
+    $graph2 = include 'data/PyMC3/twoParents.php';
+    $graph3 = include 'data/PyMC3/inconsistentEvidences.php';
     return [
 //        $graph1,
 //        $graph2,
