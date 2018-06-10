@@ -1,8 +1,12 @@
 <?php
 class WebPPLQuerier extends AbstractQuerier
 {
+  const EXT = "ppl";
   /**
    * Create webppl script and execute it
+   * Debugging webppl with Chrome:
+   * http://webppl.readthedocs.io/en/master/debugging.html and
+   * https://medium.com/@paul_irish/debugging-node-js-nightlies-with-chrome-devtools-7c4a1b95ae27
    * @param $graph
    * @param $probabilities
    *
@@ -82,7 +86,8 @@ class WebPPLQuerier extends AbstractQuerier
     model
   );
 
-  console.log(dist.getDist())
+  console.log(JSON.stringify(dist.getDist()))
+   *
    *
    * @param $graph
    * @param $probabilities
@@ -92,7 +97,7 @@ class WebPPLQuerier extends AbstractQuerier
     $this->sanityCheck($graph, $probabilities);
     $script = "";
     $script .= $this->getHelperMethods();
-    $script .= $this->getNodeMethods($probabilities);
+    $script .= $this->getNodeMethods($graph, $probabilities);
     $script .= $this->getMain($graph, $probabilities);
     return $script;
   }
@@ -106,7 +111,7 @@ class WebPPLQuerier extends AbstractQuerier
     }
   }
 
-  public function getNodeMethods($probabilities) {
+  public function getNodeMethods($graph, $probabilities) {
     $text = "";
     foreach ($probabilities as $nodeName => $probs) {
       if (isset($probs['formula'])) {
@@ -116,12 +121,30 @@ var {$nodeName} = function(s) {
 
 EOT;
         $text .= "\n".$probs['formula']."\n";
+
       } else if (isset($probs['soft']) && count($probs) === 1) {
         // fact without incoming nodes
         $text .=<<<EOT
       
 var {$nodeName} = function() {
   return categorical({vs:[1, 2], ps:[0.5, 0.5]});
+
+EOT;
+
+      } else if (empty($probs)) {
+        // hypothesis without incoming nodes
+        // make uniform distribution
+        $vs = $graph['nodes'][$nodeName];
+        $prob = 1/count($vs);
+        for ($i = 0; $i<count($vs); $i++) {
+          $ps[] = $prob;
+        }
+        $ps = implode($ps, ", ");
+        $vs = implode($vs, ", ");
+        $text .=<<<EOT
+      
+var {$nodeName} = function() {
+  return categorical({vs:[{$vs}], ps:[{$ps}]});
 
 EOT;
       } else {
@@ -228,13 +251,65 @@ var dist = Infer(
   model
 );
 
-console.log(dist.getDist());
+console.log(JSON.stringify(dist.getDist()));
 EOT;
 
   }
 
+  /**
+   * Converts - [
+   *   '{"{\"h1\":2}":{"val":{"h1":2},"prob":0.0008913574803449336},"{\"h1\":1}":{"val":{"h1":1},"prob":0.9991086425196549}}',
+   *   'undefined'
+   * ]
+   * to
+   * [
+   *   'h1' => [
+   *      1 => 0.9991086425196549,
+   *      2 => 0.0008913574803449336
+   *    ]
+   * ]
+   * @param $exec_output
+   * @return array
+   */
   public function prepareScriptOutput($exec_output) {
-
+    array_pop($exec_output);
+    $json = implode($exec_output,"");
+    $data = json_decode($json, true);
+    /**
+     * Now $data looks like
+     [
+        '{"h1":2}' =>
+        [
+          'val' =>
+          [
+            'h1' => 2,
+          ],
+          'prob' => 0.0008913574803449336,
+        ],
+        '{"h1":1}' =>
+        [
+          'val' =>
+          [
+            'h1' => 1,
+          ],
+          'prob' => 0.99910864251965492,
+        ],
+     ]
+     */
+    $result = [];
+    foreach ($data as $row) {
+      foreach ($row['val'] as $name => $value) {
+        if (!isset($result[$name])) {
+          $result[$name] = [];
+        }
+        if (!isset($result[$name][$value])) {
+          $result[$name][$value] = $row['prob'];
+        } else {
+          $result[$name][$value] += $row['prob'];
+        }
+      }
+    }
+    return $result;
   }
 
   public function getHelperMethods() {

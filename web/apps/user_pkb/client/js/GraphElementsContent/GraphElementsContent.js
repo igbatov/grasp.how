@@ -136,7 +136,9 @@ GRASP.GraphElementsContent.prototype = {
         else if(event.getData()['type'] == 'updateNodeAlternativesP'){
           e = this.cacheContent.get({elementType: 'node', contentId: event.getData().nodeContentId})[0].content;
           for(var i in e.alternatives){
-            e.alternatives[i].p = event.getData().alternatives[i];
+            if (typeof event.getData().alternatives[i] !== 'undefined') {
+              e.alternatives[i].p = event.getData().alternatives[i];
+            }
           }
           er = {};
           ed = event.getData();

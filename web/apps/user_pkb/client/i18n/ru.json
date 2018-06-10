@@ -81,7 +81,7 @@
   "Add":"Добавить",
   "Bayes engine":"Рассчет вероятностей производить",
   "You can set values as numbers separated by comma.<BR>For example: 3, 4.5, 394.0<BR>Alternatively You can set range and step in JSON format:<BR>{\"from\":\"-2\", \"to\":\"16\", \"step\":\"2\"}":"Задаать область значений можно числами через запятую::<BR>3, 4.5, 394.0. Можно так же задать промежуток и шаг от начала в формате JSON:<BR>{\"from\":\"-2\", \"to\":\"16\", \"step\":\"2\"}",
-  "Probability cannot be a number from 0 to 1":"Вероятность должна быть числом от 0 до 1",
+  "Probability must be a number from 0 to 1":"Вероятность должна быть числом от 0 до 1",
   "Probability cannot be less than 0 and greater than 1":"Вероятность не может быть меньше 0 или больше 1",
   "Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1":"Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его условий) должна быть равна 1",
   "This action will<BR>1. Remove edge and all conditional probabilities from node \"%s\"<BR>2. Add new edge of opposite direction.<BR>Are you sure you want to do this?":"Эта операция<BR>1. Удалит ребро и все условные веротяности из узла \"%s\"<BR>2. Добавит новое ребро противоположного направления.<BR>Вы уверены что хотите сделать это?"

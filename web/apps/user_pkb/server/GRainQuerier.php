@@ -51,7 +51,7 @@ class GRainQuerier {
    *   }
    * }
    *
-   * Example of the R script
+   * Example of the R script - see GRainQuerierTest.php
    *
    */
   public function createScriptText($graph, $probabilities){

@@ -74,9 +74,16 @@ var dist = Infer(
 console.log(dist.getDist());
 EOT;
 
+$expectedResult = <<<EOT
+{"h1":{"2":0.00089135748034493,"1":0.99910864251965}}
+EOT;
+
 return [
     'graph' => $graph,
     'probabilities' => $probabilities,
-    'expectedProbScript' => $expectedProbScript,
-    'expectedMainScript' => $expectedMainScript,
+    'expected' => [
+        'probScript' => $expectedProbScript,
+        'mainScript' => $expectedMainScript,
+        'result' => $expectedResult,
+    ]
 ];

@@ -23,7 +23,7 @@ abstract class AbstractQuerier {
     $text = $this->createScriptText($graph, $probabilities);
 
     $tmp_filename_base = $this->tmp_dir."/querier.tmp.".rand(1,1000).".".time();
-    $tmp_filename = $tmp_filename_base.".".self::EXT;
+    $tmp_filename = $tmp_filename_base.".".static::EXT;
     $tmp_filename_result = $tmp_filename_base.".out";
 
     $myfile = fopen($tmp_filename, "w");
@@ -34,7 +34,7 @@ abstract class AbstractQuerier {
     fwrite($myfile, $text);
     fclose($myfile);
 
-    $cmd = '"'.$this->exec_path.'" "'.$tmp_filename.'" "'.$tmp_filename_result.'"  2>&1';
+    $cmd = $this->exec_path.' "'.$tmp_filename.'" "'.$tmp_filename_result.'"  2>&1';
     $output = array();
     exec($cmd, $output, $error);
     error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));

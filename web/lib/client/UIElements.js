@@ -673,7 +673,11 @@ GRASP.UIElements.prototype = {
             data[child.getAttribute('name')] = child == evt.target;
           });
           [].forEach.call(form.getElementsByTagName("input"), function(child) {
-            data[child.getAttribute('name')] = child.value;
+            if (child.type === 'checkbox') {
+              data[child.getAttribute('name')] = child.checked;
+            } else {
+              data[child.getAttribute('name')] = child.value;
+            }
           });
           if(form.submitCallback) form.submitCallback(data);
         },

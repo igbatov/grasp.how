@@ -48,11 +48,8 @@ var e2 = function(s) {
   return categorical({vs:sp['keys'], ps:sp['values']});
 }
       
-var h1 = function(s) {
-  var p = {
-  };
-  var sp = p[objToKey(s)];
-  return categorical({vs:sp['keys'], ps:sp['values']});
+var h1 = function() {
+  return categorical({vs:[1, 2], ps:[0.5, 0.5]});
 }
 
 EOT;
@@ -73,12 +70,19 @@ var dist = Infer(
   model
 );
 
-console.log(dist.getDist());
+console.log(JSON.stringify(dist.getDist()));
+EOT;
+
+$expectedResult = <<<EOT
+
 EOT;
 
 return [
     'graph' => $graph,
     'probabilities' => $probabilities,
-    'expectedProbScript' => $expectedProbScript,
-    'expectedMainScript' => $expectedMainScript,
+    'expected' => [
+        'probScript' => $expectedProbScript,
+        'mainScript' => $expectedMainScript,
+        'result' => $expectedResult,
+    ]
 ];

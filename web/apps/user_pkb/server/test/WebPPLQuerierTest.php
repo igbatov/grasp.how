@@ -30,15 +30,24 @@ class WebPPLQuerierTest extends PHPUnit_Framework_TestCase
   /**
    * @dataProvider dataProvider
    */
-  public function testQuerier($graph, $probabilities, $expectProb, $expectMain)
+  public function testQuerier($graph, $probabilities, $expected)
   {
     $this->querier->initEdgeHashes($graph);
 
-    $probs = $this->querier->getNodeMethods($probabilities);
-    $this->assertMultiLineEquals($expectProb, $probs);
+    $probs = $this->querier->getNodeMethods($graph, $probabilities);
+    $this->assertMultiLineEquals($expected['probScript'], $probs);
 
     $mainPart = $this->querier->getMain($graph, $probabilities);
-    $this->assertMultiLineEquals($expectMain, $mainPart);
+    $this->assertMultiLineEquals($expected['mainScript'], $mainPart);
+  }
+
+  /**
+   * @dataProvider dataProvider
+   */
+  public function testQuerierResults($graph, $probabilities, $expected)
+  {
+    $res = $this->querier->query($graph, $probabilities);
+    $this->assertEquals($expected['result'], json_encode($res));
   }
 
   private function assertMultiLineEquals($mustBe, $result){
@@ -57,7 +66,7 @@ class WebPPLQuerierTest extends PHPUnit_Framework_TestCase
     return [
         $graph1,
         $graph2,
-        $graph3,
+//        $graph3,
     ];
   }
 }

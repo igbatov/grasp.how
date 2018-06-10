@@ -1766,7 +1766,7 @@ GRASP.nodeConditionalFormHelper = (function(){
   }
 
   function conditionIsFormula(node) {
-    return !!node.alternatives[0].p.formula
+    return typeof node.alternatives[0].p.formula !== 'undefined'
   };
 
   return {

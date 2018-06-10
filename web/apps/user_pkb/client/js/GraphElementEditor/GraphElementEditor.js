@@ -443,7 +443,7 @@ GRASP.GraphElementEditor.prototype = {
     return [head, label, accordion];
   },
 
-  _tableProbabilityCallback: function(graphId, node, formKeys, form) {
+  _tableProbabilityCallback: function(graphId, node, formKeys, nodeContentId, form) {
       var that = this;
       var probabilities = {};
 
@@ -463,7 +463,7 @@ GRASP.GraphElementEditor.prototype = {
         for(var j in node.alternatives){
           probabilities[j][formKeyStr] = probabilities[j][formKeyStr].replace(',','.');
           if(isNaN(probabilities[j][formKeyStr])){
-            alert(that.i18n.__('Probability cannot be a number from 0 to 1'));
+            alert(that.i18n.__('Probability must be a number from 0 to 1'));
             return true;
           }
           if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
@@ -562,7 +562,7 @@ GRASP.GraphElementEditor.prototype = {
     );
     fields = Object.assign(fields, f.fields);
     formKeys = f.formKeys;
-    var tableCallback = this._tableProbabilityCallback.bind(this, graphId, node, formKeys)
+    var tableCallback = this._tableProbabilityCallback.bind(this, graphId, node, formKeys, nodeContentId)
 
     var modalWindow = that.UI.createModal();
 
@@ -591,7 +591,7 @@ GRASP.GraphElementEditor.prototype = {
           if (form.formulaSwitch) {
             formulaCallback(form)
           } else {
-            tableCallback()
+            tableCallback(form)
           }
           that.UI.closeModal(modalWindow);
         }
