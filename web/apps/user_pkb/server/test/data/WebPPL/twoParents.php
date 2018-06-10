@@ -71,7 +71,7 @@ var dist = Infer(
   model
 );
 
-console.log(dist.getDist());
+console.log(JSON.stringify(dist.getDist()));
 EOT;
 
 $expectedResult = <<<EOT

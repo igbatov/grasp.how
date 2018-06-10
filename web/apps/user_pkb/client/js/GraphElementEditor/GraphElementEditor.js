@@ -209,11 +209,17 @@ GRASP.GraphElementEditor.prototype = {
 
   _onNodeValueTypeChange: function(form, field, value) {
     if (value === 'discrete') {
-      this.UI.updateForm(form, 'value_range', {rowType:'textarea'});
-      this.UI.updateForm(form, 'value_range_help', {rowType:'string'});
+      this.UI.updateForm(form, 'value_range', {rowType: 'textarea'});
+      this.UI.updateForm(form, 'value_range_help_discrete', {rowType: 'string'});
+      this.UI.updateForm(form, 'value_range_help_continuous', {rowType: 'hidden'});
+    } else if (value === 'continuous') {
+      this.UI.updateForm(form, 'value_range', {rowType: 'textarea'});
+      this.UI.updateForm(form, 'value_range_help_discrete', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_help_continuous', {rowType: 'string'});
     } else {
       this.UI.updateForm(form, 'value_range', {rowType:'hidden'});
-      this.UI.updateForm(form, 'value_range_help', {rowType:'hidden'});
+      this.UI.updateForm(form, 'value_range_help_discrete', {rowType:'hidden'});
+      this.UI.updateForm(form, 'value_range_help_continuous', {rowType:'hidden'});
     }
   },
 
@@ -266,17 +272,23 @@ GRASP.GraphElementEditor.prototype = {
       withDownArrow: false
     };
     fields['value_range'] = {
-      rowType: nodeValueType === 'discrete' ? 'textarea' : 'hidden',
+      rowType: (nodeValueType === 'discrete' || nodeValueType === 'continuous') ? 'textarea' : 'hidden',
       disabled:!isEditable,
-      value: nodeValueRange,
-      callback: this._onNodeValueTypeChange,
-      dropType: 'single',
-      withDownArrow: false
+      value: nodeValueRange
     };
-    fields['value_range_help'] = {
+
+    var help_str_discrete = that.i18n.__("You can set values as numbers separated by comma.<BR>For example: 3, 4.5, 394.0<BR>Alternatively You can set range and step in JSON format:<BR>{\"from\":\"-2\", \"to\":\"16\", \"step\":\"2\"}");
+    fields['value_range_help_discrete'] = {
       className: 'value_range_help',
       rowType: nodeValueType === 'discrete' ? 'string' : 'hidden',
-      value: that.i18n.__("You can set values as numbers separated by comma.<BR>For example: 3, 4.5, 394.0<BR>Alternatively You can set range and step in JSON format:<BR>{\"from\":\"-2\", \"to\":\"16\", \"step\":\"2\"}"),
+      value: help_str_discrete
+    };
+
+    var help_str_continuous = that.i18n.__("Please, set range format:<BR>{\"from\":\"-2.21\", \"to\":\"16\"}");
+    fields['value_range_help_continuous'] = {
+      className: 'value_range_help',
+      rowType: nodeValueType === 'continuous' ? 'string' : 'hidden',
+      value: help_str_continuous
     };
     fields['save'] = {
       rowClass:'twoColumn upMarginMiddle',

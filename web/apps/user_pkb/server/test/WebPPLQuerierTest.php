@@ -63,10 +63,12 @@ class WebPPLQuerierTest extends PHPUnit_Framework_TestCase
     $graph1 = include 'data/WebPPL/factWithParent.php';
     $graph2 = include 'data/WebPPL/twoParents.php';
     $graph3 = include 'data/WebPPL/inconsistentEvidences.php';
+    $graph4 = include 'data/WebPPL/withContinuous.php';
     return [
-        $graph1,
-        $graph2,
-//        $graph3,
+    $graph1,
+    $graph2,
+//    $graph3,
+//      $graph4
     ];
   }
 }

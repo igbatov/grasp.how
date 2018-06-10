@@ -12,6 +12,7 @@ class WebPPLQuerier extends AbstractQuerier
    *
    * Example for graph e2 --> h1 --> e1
    * $graph = {
+   *   nodeTypes:{'h1':'continuous'}, // Type can by 'discrete', 'labelled' or 'continuous'.
    *   nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2']}, // every node contains array of its alternatives
    *   edges:[['h1','e1'],['e2','h1']]
    * };
@@ -132,21 +133,31 @@ var {$nodeName} = function() {
 EOT;
 
       } else if (empty($probs)) {
-        // hypothesis without incoming nodes
-        // make uniform distribution
-        $vs = $graph['nodes'][$nodeName];
-        $prob = 1/count($vs);
-        for ($i = 0; $i<count($vs); $i++) {
-          $ps[] = $prob;
-        }
-        $ps = implode($ps, ", ");
-        $vs = implode($vs, ", ");
-        $text .=<<<EOT
+        // hypothesis without incoming nodes - make uniform distribution for it
+        if ($graph['nodeTypes'][$nodeName] === 'continuous') {
+          $from = $graph['nodes'][$nodeName][0];
+          $to = $graph['nodes'][$nodeName][1];
+          $text .=<<<EOT
+      
+var {$nodeName} = function() {
+  return uniform({a:{$from}, b:{$to}});
+
+EOT;
+        } else {
+          $vs = $graph['nodes'][$nodeName];
+          $prob = 1/count($vs);
+          for ($i = 0; $i<count($vs); $i++) {
+            $ps[] = $prob;
+          }
+          $ps = implode($ps, ", ");
+          $vs = implode($vs, ", ");
+          $text .=<<<EOT
       
 var {$nodeName} = function() {
   return categorical({vs:[{$vs}], ps:[{$ps}]});
 
 EOT;
+        }
       } else {
         $text .=<<<EOT
       
@@ -273,7 +284,7 @@ EOT;
    */
   public function prepareScriptOutput($exec_output) {
     array_pop($exec_output);
-    $json = implode($exec_output,"");
+    $json = array_pop($exec_output);
     $data = json_decode($json, true);
     /**
      * Now $data looks like
@@ -302,6 +313,7 @@ EOT;
         if (!isset($result[$name])) {
           $result[$name] = [];
         }
+        $value = (string)$value;
         if (!isset($result[$name][$value])) {
           $result[$name][$value] = $row['prob'];
         } else {

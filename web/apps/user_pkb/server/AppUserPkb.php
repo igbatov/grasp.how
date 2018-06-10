@@ -998,6 +998,7 @@ class AppUserPkb extends App
   * Extract Bayes Graphs from Graph with id=graph_id.
   * The structure of every extracted Bayes Graph is in a form
   * {
+  *   nodeTypes:{'h1':'continuous'}, // Type can by 'discrete', 'labelled' or 'continuous'. If none is set, we assume that type is 'labelled'
   *   nodes:{'e1':['1','2'], 'e2':['1','2'], 'h1':['1','2']}, // every node contains array of its alternative_ids
   *   edges:[['h1','e1'],['e2','h1']] // first element is source, second is destination
   * };
@@ -1022,15 +1023,41 @@ class AppUserPkb extends App
     $node_local_content_ids = array();
     foreach($history[0]['elements']['nodes'] as $node) $node_local_content_ids[] = $this->contentIdConverter->getLocalContentId($node['nodeContentId']);
 
-    $query = "SELECT local_content_id, alternative_id, type FROM node_content WHERE graph_id = '".$localGraphId
+    $query = "SELECT local_content_id, alternative_id, type, value_type, value_range FROM node_content WHERE graph_id = '".$localGraphId
         ."' AND type IN ('fact','proposition')"
         ." AND local_content_id IN ('".implode("','",$node_local_content_ids)."') ORDER BY local_content_id, alternative_id";
-    $graph = array('nodes'=>array(), 'edges'=>array());
+    $graph = ['nodeTypes'=>[], 'nodes'=>[], 'edges'=>[]];
     $rows = $this->db->exec($authId, $query);
     foreach($rows as $row){
       if(!in_array($row['type'], array('fact','proposition'))) continue;
-      if($row['type'] == 'fact') $graph['nodes'][$row['local_content_id']] = ['0','1']; // fact always has only two alternatives
-      if($row['type'] == 'proposition') $graph['nodes'][$row['local_content_id']][] = $row['alternative_id'];
+      if($row['type'] == 'fact') {
+        // fact always has only two alternatives
+        $graph['nodes'][$row['local_content_id']] = ['0','1'];
+        $graph['nodeTypes'][$row['local_content_id']] = 'labelled';
+      }
+      if($row['type'] == 'proposition') {
+        // grain uses only $row['value_type'] === 'labelled'
+        if ($row['value_type'] === 'discrete') {
+          $graph['nodeTypes'][$row['local_content_id']] = 'discrete';
+          if (strpos($row['value_range'], 'from') != -1) {
+            $range = str_replace(" ", "", $row['value_range']);
+            $graph['nodes'][$row['local_content_id']] = explode(',', $range);
+          } else {
+            // assume range is set in format {'from':'', 'to':'', 'step':''}
+            $range = json_decode($row['value_range'], true);
+            for ($i = $range['from']; $i <= $range['to']; $i += $range['step']) {
+              $graph['nodes'][$row['local_content_id']][] = $i;
+            }
+          }
+        } if ($row['value_type'] === 'continuous' && $row['value_range']) {
+          $graph['nodeTypes'][$row['local_content_id']] = 'continuous';
+          $range = json_decode($row['value_range'], true);
+          $graph['nodes'][$row['local_content_id']] = [$range['from'], $range['to']];
+        } else {
+          $graph['nodes'][$row['local_content_id']][] = $row['alternative_id'];
+          $graph['nodeTypes'][$row['local_content_id']] = 'labelled';
+        }
+      }
     }
 
     // form edges
@@ -1087,7 +1114,7 @@ class AppUserPkb extends App
       $alternatives = $this->db->exec($authId, $query);
 
       $probabilities[$local_content_id] = array();
-      foreach($alternatives as $alternative){
+      foreach ($alternatives as $alternative) {
         // if node is a fact use reliability as soft evidence
         if($alternative['type'] == 'fact'){
           $probabilities[$local_content_id]['soft'][$alternative['alternative_id']] = $alternative['reliability']/100;
@@ -1096,14 +1123,18 @@ class AppUserPkb extends App
         $p = json_decode($alternative['p'], true);
         if(!is_array($p)) continue;
 
-        foreach($p as $parents_key => $prob_value){
-          // reformat $parents_key to contain only $local_content_id
-          $parents_local_key = array();
-          foreach(json_decode($parents_key, true) as $key=>$value){
-            $parents_local_key[$conv->getLocalContentId($key)] = $value;
+        if (isset($p['formula'])) {
+          $probabilities[$local_content_id]['formula'] = $p['formula'];
+        } else {
+          foreach($p as $parents_key => $prob_value){
+            // reformat $parents_key to contain only $local_content_id
+            $parents_local_key = array();
+            foreach(json_decode($parents_key, true) as $key=>$value){
+              $parents_local_key[$conv->getLocalContentId($key)] = $value;
+            }
+            $parents_local_key = json_encode($parents_local_key);
+            $probabilities[$local_content_id][$parents_local_key][$alternative['alternative_id']] = doubleval($prob_value);
           }
-          $parents_local_key = json_encode($parents_local_key);
-          $probabilities[$local_content_id][$parents_local_key][$alternative['alternative_id']] = doubleval($prob_value);
         }
       }
 
