@@ -1005,6 +1005,16 @@ GRASP.isJson = function(str) {
   return false;
 };
 
+/**
+ * Returns first element in array
+ * @param arr
+ * @return {*}
+ */
+GRASP.firstElement = function(arr) {
+  for (var i in arr) {
+    return arr[i];
+  }
+}
 
 /**
  * TODO: must move to bluebird promise, it is fast and have long stacktraces

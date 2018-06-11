@@ -513,15 +513,68 @@ GRASP.GraphElementEditor.prototype = {
   },
 
   /**
+   * Extract info about parents (formula name and value range) to show this in
+   * in formula help info
+   *
+   * @param parentContents
+   * @return {string}
+   * @private
+   */
+  _extractParentsInfo: function(parentContents) {
+    var result = []
+    for (var id in parentContents) {
+      result.push(
+          this._getWebPPLNodeName(id) + ' ' + this.i18n.__('as node') + ' "' + GRASP.firstElement(parentContents[id].alternatives).label +'" with range ' + this._getNodeRangeInfo(parentContents[id])
+      );
+    }
+    return '<br/> - ' + result.join('<br/> - ')
+  },
+
+  /**
+   * Converts id "24.121-2" to node name - "s['n2']"
+   * @param nodeId
+   * @return {string}
+   * @private
+   */
+  _getWebPPLNodeName: function(nodeId) {
+    return "s['n"+nodeId.split('-')[1]+"']";
+  },
+
+  /**
+   * Returns node value range in human readable form
+   * @param nodeContent
+   * @return {string}
+   * @private
+   */
+  _getNodeRangeInfo: function(nodeContent) {
+    if (nodeContent.value_type === 'continuous') {
+      var range = JSON.parse(nodeContent.value_range);
+      return this.i18n.__('starting from')+' '+range['from']+' '+this.i18n.__('to')+' '+range['to'];
+    } else if (nodeContent.value_type === 'discrete') {
+      if (GRASP.isJson(nodeContent.value_range)) {
+        var range = JSON.parse(nodeContent.value_range);
+        var secondValue = parseFloat(range['from']) + parseFloat(range['step']);
+        return range['from'] + ', ' + secondValue + ', ...' + 'till ' + range['to'];
+      } else {
+        return nodeContent.value_range
+      }
+    } else {
+      // assume that nodeContent.value_type === 'discrete'
+      var result = [];
+      for (var value in nodeContent.alternatives) {
+        result.push(value + ' ('+this.i18n.__('for')+' "'+ nodeContent.alternatives[value].label +'")')
+      }
+      return result.join(', ');
+    }
+
+  },
+
+  /**
    * Form of conditional probabilities editor
    */
   _createConditionalProbabilitiesModal: function(graphId, nodeContentId, nodeId, node, parentContents, isEditable){
     var that = this;
-
     var fields = {};
-    // array of each combination of parent alternatives,
-    // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
-    var formKeys = [{}];
 
     var isParentsOnlyLabelled = true
     for (var i in parentContents) {
@@ -549,6 +602,18 @@ GRASP.GraphElementEditor.prototype = {
       disabled: !isEditable,
       value: node.alternatives[0].p.formula
     }
+
+    var formulaHelp = this.i18n.__("Write expression that returns value based on values of its parent nodes."
+    + "<br/>You can use following variables as parent nodes:<br/>")
+    + this._extractParentsInfo(parentContents) + '<br/>'
+    + this.i18n.__("You should return value in range") + " " + this._getNodeRangeInfo(node);
+
+    fields.formulaHelp = {
+      rowType: (canBeOnlyFormula || GRASP.nodeConditionalFormHelper.conditionIsFormula(node)) ? 'string' : 'hidden',
+      name: 'formulaHelp',
+      value: formulaHelp
+    }
+
     var formulaCallback = function(form) {
       that.publisher.publish(["request_for_graph_element_content_change", {
         graphId: graphId,
@@ -573,7 +638,9 @@ GRASP.GraphElementEditor.prototype = {
         that.i18n
     );
     fields = Object.assign(fields, f.fields);
-    formKeys = f.formKeys;
+    // formKeys is array of each combination of parent alternatives,
+    // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
+    var formKeys = f.formKeys;
     var tableCallback = this._tableProbabilityCallback.bind(this, graphId, node, formKeys, nodeContentId)
 
     var modalWindow = that.UI.createModal();
@@ -656,11 +723,13 @@ GRASP.GraphElementEditor.prototype = {
         that.UI.updateForm(form, formKey, {rowType: 'hidden'})
       }
       that.UI.updateForm(form, 'formula', {rowType: 'textarea'})
+      that.UI.updateForm(form, 'formulaHelp', {rowType: 'string'})
     } else {
       for (var formKey in fields) {
         that.UI.updateForm(form, formKey, {rowType: fields[formKey].rowType})
       }
       that.UI.updateForm(form, 'formula', {rowType: 'hidden'})
+      that.UI.updateForm(form, 'formulaHelp', {rowType: 'hiddeni18n'})
     }
     that.UI.updateForm(form, 'formulaSwitch', {value: isFormula})
   },
