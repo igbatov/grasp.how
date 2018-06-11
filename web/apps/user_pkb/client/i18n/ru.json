@@ -85,11 +85,13 @@
   "Probability must be a number from 0 to 1":"Вероятность должна быть числом от 0 до 1",
   "Probability cannot be less than 0 and greater than 1":"Вероятность не может быть меньше 0 или больше 1",
   "Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1":"Сумма вероятностей всех альтернатив утверждения (при фиксированных значениях его условий) должна быть равна 1",
-  "This action will<BR>1. Remove edge and all conditional probabilities from node \"%s\"<BR>2. Add new edge of opposite direction.<BR>Are you sure you want to do this?":"Эта операция<BR>1. Удалит ребро и все условные веротяности из узла \"%s\"<BR>2. Добавит новое ребро противоположного направления.<BR>Вы уверены что хотите сделать это?",
-  "Write expression that returns value based on values of its parent nodes.<br/>You can use following variables as parent nodes:<br/>":"Напишите выражение которое вернет значение данного узла.<br/>Выражение может использовать значения родительских узлов:<br/>",
+  "This action will<BR>1. Remove edge and all conditional probabilities from node \"%s\"<BR>2. Add new edge of opposite direction.<BR>Are you sure you want to do this?":"Эта операция<BR>1. Удалит ребро и все условные вероятности из узла \"%s\"<BR>2. Добавит новое ребро противоположного направления.<BR>Вы уверены что хотите сделать это?",
+  "Write expression that returns value based on values of its parent nodes.":"Напишите выражение которое вернет значение данного узла.",
+  "You can use following variables as parent nodes":"Выражение может использовать значения родительских узлов",
   "You should return value in range":"Ваше выражение должно вернуть одно из чисел",
   "as node":"в качестве узла",
   "for":"для",
   "starting from":"от",
-  "to":"до"
+  "to":"до",
+  "with tolerance range":"с областью значений"
 }

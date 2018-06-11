@@ -524,7 +524,9 @@ GRASP.GraphElementEditor.prototype = {
     var result = []
     for (var id in parentContents) {
       result.push(
-          this._getWebPPLNodeName(id) + ' ' + this.i18n.__('as node') + ' "' + GRASP.firstElement(parentContents[id].alternatives).label +'" with range ' + this._getNodeRangeInfo(parentContents[id])
+          this._getWebPPLNodeName(id) + ' ' + this.i18n.__('as node') + ' "' +
+          GRASP.firstElement(parentContents[id].alternatives).label +'" '+this.i18n.__('with tolerance range')+' '
+          + this._getNodeRangeInfo(parentContents[id])
       );
     }
     return '<br/> - ' + result.join('<br/> - ')
@@ -603,9 +605,9 @@ GRASP.GraphElementEditor.prototype = {
       value: node.alternatives[0].p.formula
     }
 
-    var formulaHelp = this.i18n.__("Write expression that returns value based on values of its parent nodes."
-    + "<br/>You can use following variables as parent nodes:<br/>")
-    + this._extractParentsInfo(parentContents) + '<br/>'
+    var formulaHelp = this.i18n.__("Write expression that returns value based on values of its parent nodes.")
+    + '<br/>' + this.i18n.__("You can use following variables as parent nodes") + ':'
+    + this._extractParentsInfo(parentContents) + '<br/><br/>'
     + this.i18n.__("You should return value in range") + " " + this._getNodeRangeInfo(node);
 
     fields.formulaHelp = {
