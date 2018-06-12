@@ -1,6 +1,8 @@
 <?php
 
 include("TextDiff.php");
+include("AbstractQuerier.php");
+include("WebPPLQuerier.php");
 include("GRainQuerier.php");
 include_once(__DIR__."/../../../lib/server/NodeContentSnapBuilder.php");
 
@@ -214,20 +216,23 @@ class AppUserPkb extends App
       case 'load_translations':
         return $this->showRawData(json_encode($this->i18n->showAllTranslations()));
         break;
-      case 'query_grain':
+      case 'query_bayes_engine':
         // create text of R script for gRain
         $graph_id = $this->getRequest()['graphId'];
+        $bayesEngineType = $this->getRequest()['type'];
 
         // Note: GRain can han handle graph that actually consists from several independent, splittered subgraphs
         $graph = $this->getBayesGraph($graph_id);
         $probabilities = $this->getBayesProbabilities($graph_id, $graph, $this->contentIdConverter);
 
         // check for errors
-        $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
+        if ($bayesEngineType === 'gRain') {
+          $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
+        }
 
         // if we have a non-empty class error, output all errors to client
         foreach($imperfect_nodes as $class) if(count($class) != 0){
-          $this->logger->log('query_grain: imperfect_nodes is not empty '
+          $this->logger->log('query_bayes_engine: imperfect_nodes is not empty '
               .'graph = {"nodes":{localContentId:[alternative_id1, alternative_id2, ...], ...}, "edges":{edgeLocalContentId:[nodelocalContentId1, nodelocalContentId2], ..}} '.print_r($graph, true)
               .'$graph = '.print_r($graph, true)
               .'$probabilities = '.print_r($probabilities, true)
@@ -236,8 +241,12 @@ class AppUserPkb extends App
           return $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'error', 'data'=>$imperfect_nodes)));
         }
 
-        $grain_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
-        $probabilities = $grain_querier->queryGrain($graph, $probabilities);
+        if ($bayesEngineType === "WebPPL") {
+          $engine_querier = new WebPPLQuerier($this->config->getWebPPLPath(), $this->config->getDefaultPath('tmp'));
+        } else {
+          $engine_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
+        }
+        $probabilities = $engine_querier->query($graph, $probabilities);
 
         // reformat local_node_ids to global ids
         $data = array();
@@ -1147,8 +1156,15 @@ class AppUserPkb extends App
       }
 
       // "fact" must have only two alternatives, probability of the second is calculated automatically as (1 - first alternative)
-      if(count($alternatives) == 1 && $alternatives[0]['type'] == 'fact' && $alternatives[0]['alternative_id']==0){
+      if(
+          count($alternatives) == 1 &&
+          $alternatives[0]['type'] == 'fact' &&
+          $alternatives[0]['alternative_id']==0
+      ){
         foreach($probabilities[$local_content_id] as $key => $value){
+          if ($key === 'formula') {
+            continue;
+          }
           $probabilities[$local_content_id][$key][1] = 1 - $probabilities[$local_content_id][$key][0];
         }
       }
@@ -1304,7 +1320,7 @@ class AppUserPkb extends App
       'GraphElementEditor/GraphElementEditor.js',
 
       'Bayes/BayesPubSub.js',
-      'Bayes/BayesCalculatorGRain.js',
+      'Bayes/BayesCalculatorServer.js',
       //'Bayes/BayesCalculatorTree.js',
 
       'Starter.js',

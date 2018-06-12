@@ -38,12 +38,18 @@ $expectedProbScript = <<<EOT
       
 var e1 = function(s) {
 
-return s["h1"] * 2
+if (s["h1"] < 1.9) {
+   return 0
+}
+return 1
 }
       
 var e2 = function(s) {
 
-return s["h1"] - 5
+if (s["h1"] < 1.9) {
+   return 0
+}
+return 1
 }
       
 var h1 = function() {

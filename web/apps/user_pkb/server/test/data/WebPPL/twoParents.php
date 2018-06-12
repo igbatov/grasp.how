@@ -6,6 +6,9 @@
  */
 
 $graph = [
+    'nodeTypes' => [
+        'e1'=>'labelled', 'e2'=>'labelled', 'h1'=>'labelled'
+    ],
     'nodes' => [
       'e1'=>[1,2],
       'e2'=>[1,2],

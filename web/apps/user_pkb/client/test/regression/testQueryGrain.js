@@ -53,8 +53,8 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testQueryGrain(GLOBALS){
   .then(function(e){
     return GRASP.TestHelpers.fetch(
         TEST_NAME,
-        '/query_grain',
-        {"graphId":GLOBALS.GRAPH_ID}
+        '/query_bayes_engine',
+        {"graphId":GLOBALS.GRAPH_ID, "type":"gRain"}
     )
     .then(function(e){
       console.log(e);

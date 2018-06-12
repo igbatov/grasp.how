@@ -56,7 +56,7 @@ net <- setEvidence(net, evidence=list(node_e1=c(0.85,0.15)))\n
 querygrain(net, nodes=c('node_h1','node_h2'), type='marginal')");
 
 // =========== test 3
-$result = $grain_querier->queryGrain($graph, $probabilities);
+$result = $grain_querier->query($graph, $probabilities);
 var_dump($result, array (
     'h1' =>
         array (

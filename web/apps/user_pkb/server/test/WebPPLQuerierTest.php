@@ -67,8 +67,8 @@ class WebPPLQuerierTest extends PHPUnit_Framework_TestCase
     return [
     $graph1,
     $graph2,
-//    $graph3,
-//      $graph4
+//    $graph3, // this gives tineout
+//      $graph4 // this gives new set of values for each run
     ];
   }
 }

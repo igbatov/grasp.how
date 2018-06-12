@@ -234,8 +234,8 @@ GRASP.Repository.prototype = {
       }});
       this.sendPendingRequests()
 
-    }else if(name == 'query_grain'){
-      this.pendingRequests.push({url:'query_grain', data:e.getData(), callback:function(data){
+    }else if(name == 'query_bayes_engine'){
+      this.pendingRequests.push({url:'query_bayes_engine', data:e.getData(), callback:function(data){
         that.setEventResponse(e, data, 'JSON');
       }});
       this.sendPendingRequests();

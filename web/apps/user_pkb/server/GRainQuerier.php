@@ -125,7 +125,7 @@ class GRainQuerier {
     return !isset($probabilities[$node_id]) || !isset($probabilities[$node_id]['soft']);
   }
 
-  public function queryGrain($graph, $probabilities){
+  public function query($graph, $probabilities){
     $text = $this->createScriptText($graph, $probabilities);
     $tmp_filename = $this->tmp_dir."/GRainQuerier.tmp.".rand(1,1000).".".time().".Rmd";
 

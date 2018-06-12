@@ -95,12 +95,89 @@ class WebPPLQuerier extends AbstractQuerier
    * @return string
    */
   public function createScriptText($graph, $probabilities){
-    $this->sanityCheck($graph, $probabilities);
     $script = "";
     $script .= $this->getHelperMethods();
     $script .= $this->getNodeMethods($graph, $probabilities);
     $script .= $this->getMain($graph, $probabilities);
     return $script;
+  }
+
+  /**
+   * Modify node names so that $graph and $probabilities will pass sanityCheck
+   * (for example node name '2' is converted to 'n2')
+   * @param $inGraph
+   * @param $inProbabilities
+   * @return array
+   */
+  public function prepareInput($inGraph, $inProbabilities) {
+    $graph = [
+        'nodeTypes'=>[],
+        'nodes'=>[],
+        'edges'=>[]
+    ];
+    $probabilities = [];
+    foreach ($inGraph['nodeTypes'] as $nodeId => $type) {
+      $graph['nodeTypes'][$this->nodeIdToFuncName($nodeId)] = $type;
+    }
+    foreach ($inGraph['nodes'] as $nodeId => $values) {
+      $graph['nodes'][$this->nodeIdToFuncName($nodeId)] = $values;
+    }
+    foreach ($inGraph['edges'] as $edge) {
+      $graph['edges'][] = [
+          $this->nodeIdToFuncName($edge[0]),
+          $this->nodeIdToFuncName($edge[1])
+      ];
+    }
+    foreach ($inProbabilities as $nodeId => $inConditionals) {
+      /**
+       * $conditionals can be in form ['formula'=>'...']
+       * or in form [
+       *  '{"2":"1", "1":"1"}'=>[1=>0.9, 2=>0.1],
+       *  '{"2":"1", "1":"2"}'=>[1=>0.99, 2=>0.01],
+       *   ...
+       * ]
+       * In latter case we must rename node in keys to
+       * [
+       *  '{"n2":"1", "n1":"1"}'=>[1=>0.9, 2=>0.1],
+       *  '{"n2":"1", "n1":"2"}'=>[1=>0.99, 2=>0.01],
+       *   ...
+       * ]
+       */
+      $conditionals = [];
+      foreach ($inConditionals as $jsonKey => $value) {
+        if ($jsonKey === 'formula' || $jsonKey === 'soft') {
+          $newJsonKey = $jsonKey;
+        } else {
+          $key = json_decode($jsonKey, true);
+          $newKey = [];
+          foreach ($key as $parentNodeId => $parentNodeValue) {
+            $newKey[$this->nodeIdToFuncName($parentNodeId)] = $parentNodeValue;
+          }
+          $newJsonKey = json_encode($newKey);
+        }
+        $conditionals[$newJsonKey] = $value;
+      }
+      $probabilities[$this->nodeIdToFuncName($nodeId)] = $conditionals;
+    }
+    return [
+      'graph' => $graph,
+      'probabilities' => $probabilities,
+    ];
+  }
+
+  public function prepareOutput($output) {
+    $newOutput = [];
+    foreach ($output as $nodeName => $probs) {
+      $newOutput[$this->funcNameToNodeId($nodeName)] = $probs;
+    }
+    return $newOutput;
+  }
+
+  private function nodeIdToFuncName($nodeName) {
+    return 'n'.$nodeName;
+  }
+  private function funcNameToNodeId($funcName) {
+    return substr($funcName, 1);
   }
 
   public function sanityCheck($graph, $probabilities) {
@@ -234,7 +311,7 @@ EOT;
         if (isset($probabilities[$nodeName]['soft'])) {
           // this is fact, so make condition for it
           $soft = $probabilities[$nodeName]['soft'];
-          if ($soft[1] === 1) {
+          if (reset($soft) === 1) {
             // hard evidence
             $text .= "  condition(s".$nodeName." === 1);\n";
           } else {

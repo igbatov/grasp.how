@@ -67,7 +67,7 @@ var Modules = {
   NodeListCache: GRASP.NodeListCache,
 
   BayesPubSub: GRASP.BayesPubSub,
-  BayesCalculator: GRASP.BayesCalculatorGRain,
+  BayesCalculator: GRASP.BayesCalculatorServer,
 
   I18n: GRASP.I18n,
   UserSettings: GRASP.UserSettings,
@@ -334,7 +334,7 @@ Modules['Mediator'].setSubscriptions(
       'repository_set_user_settings':[Modules['Repository']],
       'find_publishers':[Modules['Repository']],
       'find_sources':[Modules['Repository']],
-      'query_grain':[Modules['Repository']],
+      'query_bayes_engine':[Modules['Repository']],
       'load_translations':[Modules['Repository']],
 
       'get_selected_layout':[Modules['SelectGraphLayoutModel']],

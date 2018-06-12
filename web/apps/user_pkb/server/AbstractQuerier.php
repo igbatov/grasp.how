@@ -19,10 +19,16 @@ abstract class AbstractQuerier {
   }
 
   public function query($graph, $probabilities){
+    $out = $this->prepareInput($graph, $probabilities);
+    $graph = $out['graph'];
+    $probabilities = $out['probabilities'];
+
+    $this->sanityCheck($graph, $probabilities);
+
     $this->initEdgeHashes($graph);
     $text = $this->createScriptText($graph, $probabilities);
 
-    $tmp_filename_base = $this->tmp_dir."/querier.tmp.".rand(1,1000).".".time();
+    $tmp_filename_base = $this->tmp_dir."/querier.tmp.".time().".".rand(1,1000);
     $tmp_filename = $tmp_filename_base.".".static::EXT;
     $tmp_filename_result = $tmp_filename_base.".out";
 
@@ -39,11 +45,26 @@ abstract class AbstractQuerier {
     exec($cmd, $output, $error);
     error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));
 
-    return $this->prepareScriptOutput($output);
+    $output = $this->prepareScriptOutput($output);
+    $output = $this->prepareOutput($output);
+    return $output;
   }
 
   abstract protected function createScriptText ($graph, $probabilities);
   abstract protected function prepareScriptOutput($exec_output);
+  // if needed this will modify terms of $graph and $probabilities to pass sanityCheck
+  public function prepareInput($graph, $probabilities) {
+    return [
+        'graph' => $graph,
+        'probabilities' => $probabilities,
+    ];
+  }
+  // check that input data is ok
+  public function sanityCheck($graph, $probabilities) {}
+  // this method is mirror to prepareInput and returns data back to initial terms
+  public function prepareOutput($output) {
+    return $output;
+  }
 
   /**
    * Create inbound and outbound hashes

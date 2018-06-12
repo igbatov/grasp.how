@@ -29,7 +29,16 @@ GRASP.UserSettings.prototype = {
 
     if (event.getName() === 'get_user_settings') {
       if(GRASP.getObjectLength(this._settings)) {
-        event.setResponse(this._settings);
+        if (event.getData() && event.getData()['settings']) {
+          var filteredSettings = {};
+          for(var settingName in event.getData()['settings']) {
+            filteredSettings[settingName] = this._settings[settingName];
+          }
+          event.setResponse(this._settings);
+        } else {
+          // nothing in event data - give them all settings
+          event.setResponse(this._settings);
+        }
       } else {
         GRASP.errorHandler.throwError('You should execute "init_user_settings" before requesting "get_user_settings"');
       }
