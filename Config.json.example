@@ -1,0 +1,48 @@
+{
+  "db":{
+    "host":"localhost",
+    "dbName":"yovalue",
+    "login":"yovalue",
+    "password":"somepass",
+    "verbose_logging": true
+  },
+  "db_template":"yovalue_user_template",
+  "userDBPrefix":"yovalue_user_",
+  "admin_secret":"somesecret",
+  "is_debug_on":true,
+  "channel":"alpha",
+  "RscriptPath":"/usr/bin/Rscript",
+  "WebPPLPath":"/path/to/webppl",
+  "OAuthUser":{
+    "vk":{
+      "client_id": "someid",
+      "client_secret": "vksecret",
+      "response_type": "code",
+      "scope": "email",
+      "fields": "uid,first_name,last_name,screen_name,sex,bdate,photo_big,domain",
+      "auth_url":"http://oauth.vk.com/authorize",
+      "token_url":"https://oauth.vk.com/access_token",
+      "info_url":"https://api.vk.com/method/users.get"
+    },
+    "facebook":{
+      "client_id": "fb_app_id",
+      "client_secret": "fb_app_secret",
+      "response_type": "code",
+      "scope": "email,public_profile",
+      "fields": "id,email,name,first_name,last_name,gender,middle_name,name_format,link",
+      "auth_url":"https://www.facebook.com/v2.8/dialog/oauth",
+      "token_url":"https://graph.facebook.com/v2.8/oauth/access_token",
+      "info_url":"https://graph.facebook.com/v2.8/me"
+    },
+    "google":{
+      "client_id": "google app id",
+      "client_secret": "google app secret",
+      "response_type": "code",
+      "scope": "email profile",
+      "fields": null,
+      "auth_url":"https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url":"https://accounts.google.com/o/oauth2/token",
+      "info_url":"https://www.googleapis.com/plus/v1/people/me"
+    }
+  }
+}
