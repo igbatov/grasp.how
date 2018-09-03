@@ -12,7 +12,7 @@ $c = new Config();
 $dbconf = $c->getDbConf();
 
 // array of databases to dump
-$dbnames = [$dbconf->dbName];
+$dbnames = [$dbconf->dbName, $c->get('db_template')];
 $q = "SELECT id FROM auth";
 $auths = $db->exec(null, $q);
 foreach ($auths as $auth) {
