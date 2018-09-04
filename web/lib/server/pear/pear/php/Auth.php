@@ -466,7 +466,7 @@ class Auth {
     {
         $storage_class = 'Auth_Container_' . $driver;
         include_once 'Auth/Container/' . $driver . '.php';
-        $obj =& new $storage_class($options);
+        $obj = new $storage_class($options);
         return $obj;
     }
 
@@ -1289,11 +1289,12 @@ class Auth {
             if (!class_exists('Log')) {
                 include_once 'Log.php';
             }
-            $this->logger =& Log::singleton('null',
+            $logger = Log::singleton('null',
                     null,
                     'auth['.getmypid().']',
                     array(),
                     AUTH_LOG_DEBUG);
+            $this->logger = &$logger;
             return(true);
         }
         return(false);

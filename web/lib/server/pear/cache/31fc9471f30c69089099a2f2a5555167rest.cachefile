@@ -1,0 +1,32 @@
+a:16:{s:7:"attribs";a:4:{s:5:"xmlns";s:37:"http://pear.php.net/dtd/rest.release2";s:9:"xmlns:xsi";s:41:"http://www.w3.org/2001/XMLSchema-instance";s:11:"xmlns:xlink";s:28:"http://www.w3.org/1999/xlink";s:18:"xsi:schemaLocation";s:83:"http://pear.php.net/dtd/rest.release2     http://pear.php.net/dtd/rest.release2.xsd";}s:1:"p";a:2:{s:7:"attribs";a:1:{s:10:"xlink:href";s:12:"/rest/p/pear";}s:8:"_content";s:4:"PEAR";}s:1:"c";s:12:"pear.php.net";s:1:"v";s:6:"1.10.6";s:1:"a";s:6:"1.10.1";s:2:"mp";s:5:"5.4.0";s:2:"st";s:6:"stable";s:1:"l";s:15:"New BSD License";s:1:"m";s:7:"ashnazg";s:1:"s";s:16:"PEAR Base System";s:1:"d";s:1100:"The PEAR package contains:
+ * the PEAR installer, for creating, distributing
+   and installing packages
+ * the PEAR_Exception PHP5 error handling mechanism
+ * the PEAR_ErrorStack advanced error handling mechanism
+ * the PEAR_Error error handling mechanism
+ * the OS_Guess class for retrieving info about the OS
+   where PHP is running on
+ * the System class for quick handling of common operations
+   with files and directories
+ * the PEAR base class
+  Features in a nutshell:
+  * full support for channels
+  * pre-download dependency validation
+  * new package.xml 2.0 format allows tremendous flexibility while maintaining BC
+  * support for optional dependency groups and limited support for sub-packaging
+  * robust dependency support
+  * full dependency validation on uninstall
+  * remote install for hosts with only ftp access - no more problems with
+    restricted host installation
+  * full support for mirroring
+  * support for bundling several packages into a single tarball
+  * support for static dependencies on a url-based package
+  * support for custom file roles and installation tasks";s:2:"da";s:19:"2018-08-22 15:11:51";s:1:"n";s:544:"* PR #70:  Fix notice undefined variable metadata_dir
+* PR #71:  fix Warning: count(): Parameter must be an array or an object
+* PR #74:  Bug #23744 Remove is_executable check
+  * Bug #23744:  The is_executable check in the Which method when run on Windows is unnecessary
+* PR #75:  Migrate old while(list() = each()) constructs to foreach
+* PR #76:  Fix PHP Warning: "continue" targeting switch is equivalent to "break"
+* PR #77:  proxy server auth
+  * PR #72:  Correctly authenticate at proxy server
+* PR #78:  array or Countable error in 7.2";s:1:"f";s:6:"291529";s:1:"g";s:35:"http://pear.php.net/get/PEAR-1.10.6";s:1:"x";a:1:{s:7:"attribs";a:1:{s:10:"xlink:href";s:18:"package.1.10.6.xml";}}}

@@ -16,6 +16,8 @@ if (!function_exists('http_response_code'))
 
 // do not show errors
 ini_set('display_errors', 0);
+$timeout = 604800;
+session_set_cookie_params($timeout);
 
 // path to this file
 $path = dirname(__FILE__);
@@ -93,7 +95,7 @@ class Auth_Log_Observer extends Log_observer {
 
 $options = array(
   'enableLogging' => false,
-  'dsn' => 'mysql://'.$c->getDbConf()->login.':'.$c->getDbConf()->password.'@'.$c->getDbConf()->host.'/'.$c->getDbConf()->dbName
+  'dsn' => 'mysqli://'.$c->getDbConf()->login.':'.$c->getDbConf()->password.'@'.$c->getDbConf()->host.'/'.$c->getDbConf()->dbName
 );
 
 $a = new Auth('MDB2', $options, null, false);
@@ -101,10 +103,8 @@ $debugObserver = new Auth_Log_Observer(PEAR_LOG_INFO);
 $a->attachLogObserver($debugObserver);
 
 // set auth timeout
-$timeout = 604800;
 $a->setExpire($timeout);
 $a->setIdle($timeout);
-session_set_cookie_params($timeout);
 
 // init session
 $s = new Session($a);
