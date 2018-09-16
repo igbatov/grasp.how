@@ -731,7 +731,7 @@ GRASP.GraphElementEditor.prototype = {
         that.UI.updateForm(form, formKey, {rowType: fields[formKey].rowType})
       }
       that.UI.updateForm(form, 'formula', {rowType: 'hidden'})
-      that.UI.updateForm(form, 'formulaHelp', {rowType: 'hiddeni18n'})
+      that.UI.updateForm(form, 'formulaHelp', {rowType: 'hidden'})
     }
     that.UI.updateForm(form, 'formulaSwitch', {value: isFormula})
   },
