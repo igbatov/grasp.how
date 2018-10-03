@@ -2,7 +2,7 @@
 grasp.how - online visual tool for analysis of importance and reliability of information
 
 # prepare
-install nginx, mysql, php-fpm, phpunit
+install nginx, mysql, php-fpm, phpunit, php-curl
 
 install webppl https://github.com/probmods/webppl
 
