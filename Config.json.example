@@ -12,7 +12,7 @@
   "is_debug_on":true,
   "channel":"alpha",
   "RscriptPath":"/usr/bin/Rscript",
-  "WebPPLPath":"/path/to/webppl",
+  "WebPPLPath":"/usr/local/bin/webppl",
   "OAuthUser":{
     "vk":{
       "client_id": "someid",

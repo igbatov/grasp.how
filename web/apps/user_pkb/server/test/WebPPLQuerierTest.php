@@ -5,7 +5,7 @@
  * #phpunit WebPPLQuerierTest.php
  * or to debug
  * On ubuntu:
- * #php -dxdebug.remote_autostart=On bin/phpunit WebPPLQuerierTest.php
+ * #php -dxdebug.remote_autostart=On /bin/phpunit WebPPLQuerierTest.php
  * On Windows:
  * php -dxdebug.remote_autostart=On \path\to\phpunit.phar WebPPLQuerierTest.php
  *
@@ -16,7 +16,9 @@ require_once ($path.'/../../../../../web/lib/server/Config.php');
 include_once('../AbstractQuerier.php');
 include_once('../WebPPLQuerier.php');
 
-class WebPPLQuerierTest extends PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class WebPPLQuerierTest extends TestCase
 {
   /** @var  WebPPLQuerier */
   private $querier;
@@ -67,7 +69,7 @@ class WebPPLQuerierTest extends PHPUnit_Framework_TestCase
     return [
     $graph1,
     $graph2,
-//    $graph3, // this gives tineout
+//    $graph3, // this gives timeout
 //      $graph4 // this gives new set of values for each run
     ];
   }
