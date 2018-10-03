@@ -10,6 +10,13 @@ install rscript
 # installation
 1. clone code
 2. add Config.json
+
+Write   
+
+- "RscriptPath":"/usr/bin/Rscript"
+- "WebPPLPath":"/usr/local/bin/webppl",
+
+to Config.json
 3. Add directories 
 - backups/
 - embed_cache
