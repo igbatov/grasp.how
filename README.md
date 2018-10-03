@@ -44,3 +44,5 @@ to Config.json
 */5 * *  *  *   root    /bin/date >> /var/log/pidstat/pidstatDISK.log
 */5 * *  *  *   root    /usr/bin/pidstat -l -d 300 1  | awk '$1 ~ !/Average/ { print }'  >> /var/log/pidstat/pidstatDISK.log  2>&1
 ```
+# cron scripts
+add `~/.credentials/drive-php-uploader.json` and `/var/www/html/grasp.how/scripts/google/client_secret.json` for `scripts/backup` to work properly
