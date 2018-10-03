@@ -3,6 +3,7 @@ grasp.how - online visual tool for analysis of importance and reliability of inf
 
 # prepare
 install webppl https://github.com/probmods/webppl
+
 install rscript
 - sudo apt install r-base-core
 - sudo apt install r-cran-littler
@@ -17,6 +18,7 @@ Write
 - "WebPPLPath":"/usr/local/bin/webppl",
 
 to Config.json
+
 3. Add directories 
 - backups/
 - embed_cache
