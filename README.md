@@ -2,6 +2,8 @@
 grasp.how - online visual tool for analysis of importance and reliability of information
 
 # prepare
+install nginx, mysql, php-fpm, phpunit
+
 install webppl https://github.com/probmods/webppl
 
 install rscript
