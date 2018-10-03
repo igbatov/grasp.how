@@ -14,7 +14,6 @@ try
 {
 	//Insert a file
 	$file = new Google_Service_Drive_DriveFile($client);
-
 	$file->setName($fileName);
         $file->setParents(array($generalUploadDirId));
 	$createdFile = $service->files->create($file, array(
