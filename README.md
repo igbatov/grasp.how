@@ -26,5 +26,7 @@ to Config.json
 - embed_cache
 - tmp
 - uploads
+- logs
+
 4. copy contents of nginx-config to /etc/nginx/sites-enabled/default
 5. load databases docs/init_db/yovalue.sql, docs/init_db/yovalue_user_template.sql
