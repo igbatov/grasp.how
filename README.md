@@ -4,8 +4,8 @@ grasp.how - online visual tool for analysis of importance and reliability of inf
 # prepare
 install webppl https://github.com/probmods/webppl
 install rscript
-sudo apt install r-base-core
-sudo apt install r-cran-littler
+- sudo apt install r-base-core
+- sudo apt install r-cran-littler
 
 # installation
 1. clone code
