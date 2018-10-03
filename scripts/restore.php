@@ -19,7 +19,7 @@ foreach($files as $file){
   echo $command."\n";
   var_dump(shell_exec($command));
 
-  $command = 'mysqld -u '.$dbconf->login.' -p'.$dbconf->password.' '.$dbname.' < '.$path.$dbname.'.sql';
+  $command = 'mysql -u '.$dbconf->login.' -p'.$dbconf->password.' '.$dbname.' < '.$path.$dbname.'.sql';
   echo $command."\n";
   var_dump(shell_exec($command));
 }
