@@ -53,7 +53,7 @@ class EmbGraph{
       $local_content_ids = array();
       $query = "SELECT * FROM graph_history "
           ."WHERE graph_id = '".$graph_row['id']."'"
-          .(empty($snap['step']) ? "ORDER BY step DESC LIMIT 1" : "AND step = :step");
+          .(empty($snap['step']) ? " ORDER BY step DESC LIMIT 1" : "AND step = :step");
       $rows = $this->db->exec($authId, $query, ['step'=>$snap['step']]);
       foreach($rows as $row){
         $elements = json_decode($row['elements'], true);
