@@ -27,6 +27,7 @@ to Config.json
 - tmp
 - uploads
 - logs
+- web/img/graph_shots/
 
 4. copy contents of nginx-config to /etc/nginx/sites-enabled/default
 5. load databases docs/init_db/yovalue.sql, docs/init_db/yovalue_user_template.sql
