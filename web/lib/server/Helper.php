@@ -12,7 +12,7 @@ class Helper {
 
   public function getNodeBinary(){
     if ($this->getOS() === 'linux') {
-      return '/root/.nvm/versions/node/v4.4.3/bin/node';
+      return '/usr/bin/node';
     }
 
     if ($this->getOS() === 'windows') {
