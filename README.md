@@ -12,6 +12,7 @@ install rscript:
 
 To use image generation install nvm and node v4.4.3
 - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+- nvm install 4.4.3
 - sudo apt-get install php-imagick
 - sudo apt-get install libxml2  librsvg2-bin
 
