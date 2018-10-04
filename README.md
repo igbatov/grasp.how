@@ -10,8 +10,10 @@ install rscript:
 - sudo apt install r-base-core
 - sudo apt install r-cran-littler
 
-sudo apt-get install php-imagick
-
+To use image generation install nvm and node v4.4.3
+- curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
+- sudo apt-get install php-imagick
+- sudo apt-get install libxml2  librsvg2-bin
 
 # installation
 1. clone code
