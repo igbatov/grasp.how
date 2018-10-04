@@ -6,9 +6,12 @@ install nginx, mysql, php-fpm, phpunit, php-curl
 
 install webppl https://github.com/probmods/webppl
 
-install rscript
+install rscript:
 - sudo apt install r-base-core
 - sudo apt install r-cran-littler
+
+sudo apt-get install php-imagick
+
 
 # installation
 1. clone code
