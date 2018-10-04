@@ -22,6 +22,7 @@ include($root.'/web/lib/server/ErrorHandler.php');
 include($root.'/web/lib/server/Logger.php');
 include($root.'/web/lib/server/Helper.php');
 include($root."/web/apps/frontend/server/EmbGraph.php");
+include('GraphImageGenerator.php');
 
 $c = new Config();
 $db = new MultiTenantDB(
