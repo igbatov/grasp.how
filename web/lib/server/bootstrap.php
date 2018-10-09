@@ -44,11 +44,15 @@ function shutdown() {
   // do not react on E_STRICT && E_DEPRECATED errors
   if($er['type'] == E_STRICT || $er['type'] == E_DEPRECATED) return;
 
-  // if there is other errors, send http 500 error code
-  if (!is_null($er)) http_response_code(500);
-
   // and log error to file
   error_log(print_r($er, true));
+
+  if($er['type'] == E_WARNING) {
+      return;
+  }
+
+  // if there is other errors, send http 500 error code
+  if (!is_null($er)) http_response_code(500);
 }
 register_shutdown_function('shutdown');
 

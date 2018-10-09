@@ -149,9 +149,13 @@ GRASP.GraphElementsContent.prototype = {
             var alternatives =  event.getData().data[nodeContentId];
             e = this.cacheContent.get({elementType: 'node', contentId: nodeContentId})[0].content;
             if(typeof(e) == 'undefined') continue;
-            for(var j in alternatives){
-              // TODO: check if we have any falsifications in a proposition list, then change event.getData() accordingly
-              e.alternatives[j]['reliability'] = alternatives[j];
+            if (e.value_type == 'continuous') {
+                e.alternatives[0]['reliability'] = JSON.stringify(alternatives)
+            } else {
+              for(var j in alternatives){
+                  // TODO: check if we have any falsifications in a proposition list, then change event.getData() accordingly
+                  e.alternatives[j]['reliability'] = alternatives[j];
+              }
             }
           }
           er = {};

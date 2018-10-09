@@ -452,6 +452,12 @@ GRASP.GraphElementEditor.prototype = {
         }
       }
     );
+
+    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type == 'continuous') {
+      // if we have samples for this node show them on graphics
+      console.log(node.alternatives[0]['reliability']);
+    }
+
     return [head, label, accordion];
   },
 
@@ -953,15 +959,16 @@ GRASP.GraphElementEditor.prototype = {
       alternatives[key].alternative_id = key;
     }
 
-    var reliabilityKeys = GRASP.getObjectKeys(alternatives);
-    var reliabilityArray = GRASP.getObjectValues(alternatives).map(function(item){
-      return parseFloat(item.reliability)/100;
-    });
-    var reliabilityHash = {};
-    for(var i in reliabilityArray){
-      reliabilityHash[reliabilityKeys[i]] = reliabilityArray[i];
-    }
-    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type === 'labelled') {
+    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && (node.value_type === 'labelled' || node.value_type == null)) {
+      var reliabilityKeys = GRASP.getObjectKeys(alternatives);
+      var reliabilityArray = GRASP.getObjectValues(alternatives).map(function(item){
+          return parseFloat(item.reliability)/100;
+      });
+      var reliabilityHash = {};
+      for(var i in reliabilityArray){
+          reliabilityHash[reliabilityKeys[i]] = reliabilityArray[i];
+      }
+
       // create select with alternativeLabels
       var select = this.UI.createSelectBox({
         name: 'active_alternative_id',
@@ -1002,6 +1009,7 @@ GRASP.GraphElementEditor.prototype = {
         withDownArrow: true
       });
       c.appendChild(select);
+
     } else if (node.type == GRASP.GraphViewNode.NODE_TYPE_FACT) {
       var alternative = alternatives[node.active_alternative_id];
       var label = GRASP.createElement('div',{class:'nodeLabel'});
@@ -1018,6 +1026,7 @@ GRASP.GraphElementEditor.prototype = {
       label.appendChild(r);
       label.appendChild(l);
       c.appendChild(label);
+
     } else {
       var alternative = alternatives[node.active_alternative_id];
       var label = GRASP.createElement('div',{class:'nodeLabel'});
