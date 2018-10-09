@@ -11,8 +11,11 @@ install rscript:
 - sudo apt install r-cran-littler
 
 install gRain in r:
-- sudo r
-- install.packages("gRain", dependencies=TRUE)
+`sudo r`
+`library("utils")`
+`source("http://bioconductor.org/biocLite.R")`
+`biocLite(c("graph", "RBGL", "Rgraphviz"))`
+`install.packages("gRain", dependencies=TRUE)`
 
 To use image generation install nvm and node v4.4.3
 - `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash`
