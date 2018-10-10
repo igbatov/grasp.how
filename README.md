@@ -12,7 +12,7 @@ install rscript:
 
 install gRain in r:
 ```
-apt-get install gcc g++
+sudo apt-get install gcc g++ libblas-dev liblapack-dev gfortran
 sudo r
 library("utils")
 source("http://bioconductor.org/biocLite.R")
