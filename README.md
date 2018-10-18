@@ -2,6 +2,8 @@
 grasp.how - online visual tool for analysis of importance and reliability of information
 
 # prepare
+(Ubuntu 18.04.1 LTS example)
+
 install nginx, mysql, php-fpm, phpunit, php-curl
 
 install webppl https://github.com/probmods/webppl
@@ -12,6 +14,7 @@ install rscript:
 
 install gRain in r:
 ```
+sudo apt-get install gcc g++ libblas-dev liblapack-dev gfortran
 sudo r
 library("utils")
 source("http://bioconductor.org/biocLite.R")
