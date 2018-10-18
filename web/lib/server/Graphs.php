@@ -11,6 +11,9 @@ class Graphs {
   private $node_alternative_attribute_names;
   private $edge_attribute_names;
 
+  const gRain = 'gRain';
+  const WebPPL = 'WebPPL';
+
   public function __construct(
       MultiTenantDB $db,
       ContentIdConverter $contentIdConverter,
@@ -42,6 +45,15 @@ class Graphs {
     $graph_query = "SELECT id, graph FROM graph WHERE id = '".$localGraphId."'";
     $rows = $this->db->exec($authId, $graph_query);
     return json_decode($rows[0]['graph'], true);
+  }
+
+  public function getGraphBayesEngine($graph_id) {
+    $graph = $this->getGraphProps($graph_id);
+    if (!isset($graph['bayesEngine'])) {
+      return Graphs::gRain;
+    }
+
+    return $graph['bayesEngine'];
   }
 
   /**
@@ -402,11 +414,19 @@ class Graphs {
     }else if($r['type'] == 'updateNodesReliabilities'){
       foreach($r['data'] as $node_content_id => $node){
         $local_content_id = $this->contentIdConverter->getLocalContentId($node_content_id);
-        foreach($node as $alternative_id => $reliability){
-          $value = $this->db->escape($reliability);
-          $query = "UPDATE node_content SET reliability = '".$value."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
+        $query = "SELECT value_type FROM node_content WHERE `graph_id` = '".$localGraphId."' AND  local_content_id = '".$local_content_id."' AND alternative_id = 0";
+        $rows = $this->db->exec($authId, $query);
+        if (isset($rows[0]) && $rows[0]['value_type'] == 'continuous') {
+          $query = "UPDATE node_content SET p_samples = '".json_encode($node)."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = 0";
           $this->logger->log($query);
           $this->db->exec($authId, $query);
+        } else {
+          foreach($node as $alternative_id => $reliability){
+            $value = $this->db->escape($reliability);
+            $query = "UPDATE node_content SET reliability = '".$value."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$alternative_id."'";
+            $this->logger->log($query);
+            $this->db->exec($authId, $query);
+          }
         }
       }
 

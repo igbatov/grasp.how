@@ -31,6 +31,9 @@ $authIds = [null];
 $authIds = array_merge($authIds, getChannelAuthIds($c, $db, $c->get('channel')));
 
 foreach ($authIds as $authId) {
+  if (isset($keys['-u']) && $keys['-u'] != $authId) {
+      continue;
+  }
   // check that migration_status table exists, if not - create it
   $roller->checkMigrationStatusTable($authId);
 
@@ -42,13 +45,7 @@ foreach ($authIds as $authId) {
     }
 
     // roll migration
-    if (isset($keys['-u'])) {
-      if ($keys['-u'] === $authId) {
-        $roller->roll($authId, $classname, $keys['-d']);
-      }
-    } else {
-      $roller->roll($authId, $classname, $keys['-d']);
-    }
+    $roller->roll($authId, $classname, $keys['-d']);
 
   }else{
     if($roller->hasNullMigrations($authId)){

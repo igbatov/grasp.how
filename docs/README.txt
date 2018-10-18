@@ -29,8 +29,7 @@ Roll single migration:
 php scripts\migrations.php -m=D20170917ChangeContentHistoryGraphIdIndex -d=up
 php scripts\migrations.php -m=D20170917ChangeContentHistoryGraphIdIndex -d=up -u=5
 Debug migrations:
-php -dxdebug.remote_autostart=On  -dxdebug.remote_enable=1 -dxdebug.remote_mode=req -dxdebug.remote_port=9000 -dxdebug.remote_host=grasp.local  scripts/
-migrations.php -m=D20170601AddDataColumnToSubscribeTable -d=up
+php -dxdebug.remote_autostart=On  -dxdebug.remote_enable=1 -dxdebug.remote_mode=req -dxdebug.remote_port=9000 -dxdebug.remote_host=grasp.local  scripts/migrations.php -m=D20181018AddPSampleFieldToNodeContent -d=up
 
 If you want to test migration that is not commited yet, then roll only this migration.
 If you run just "php scripts/migrations.php" then uncommited migration will run first.
