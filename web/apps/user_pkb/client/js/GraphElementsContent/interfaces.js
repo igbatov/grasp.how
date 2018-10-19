@@ -16,5 +16,6 @@ GRASP.iGraphNodeContent = {
   icon: Object(),
   stickers: Object(),
   value_type: String(),
-  value_range: String()
+  value_range: String(),
+  p_samples: String()
 };

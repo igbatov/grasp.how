@@ -455,7 +455,7 @@ GRASP.GraphElementEditor.prototype = {
 
     if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type == 'continuous') {
       // if we have samples for this node show them on graphics
-      console.log(node.alternatives[0]['reliability']);
+      console.log(node.p_samples);
     }
 
     return [head, label, accordion];

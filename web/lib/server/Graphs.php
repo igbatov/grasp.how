@@ -28,7 +28,7 @@ class Graphs {
     $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
 
     // define node and edge attributes (must be the same as db table column names)
-    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers', 'value_type', 'value_range');
+    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers', 'value_type', 'value_range', 'p_samples');
     $this->node_alternative_attribute_names = array('label', 'reliability','p','created_at','updated_at');
     $this->edge_attribute_names = array('type', 'label');
   }

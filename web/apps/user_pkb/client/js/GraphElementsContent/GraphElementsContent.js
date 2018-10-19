@@ -23,7 +23,7 @@ GRASP.GraphElementsContent = function(publisher, i18n){
   // elementType is 'node' or 'edge'
   // contentId is edgeContentId or nodeContentUd
   this.cacheContent = new GRASP.Cache(['elementType', 'contentId', 'content'], 5000000);
-  this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id', 'value_type', 'value_range'];
+  this.nodeAttributeNames = ['type', 'importance', 'has_icon', 'active_alternative_id', 'value_type', 'value_range', 'p_samples'];
   this.nodeAlternativeAttributeNames = ['label', 'reliability', 'p'];
   this.edgeAttributeNames = ['label', 'type'];
   this.i18n = i18n;
@@ -150,7 +150,7 @@ GRASP.GraphElementsContent.prototype = {
             e = this.cacheContent.get({elementType: 'node', contentId: nodeContentId})[0].content;
             if(typeof(e) == 'undefined') continue;
             if (e.value_type == 'continuous') {
-                e.alternatives[0]['reliability'] = JSON.stringify(alternatives)
+                e.p_samples = JSON.stringify(alternatives)
             } else {
               for(var j in alternatives){
                   // TODO: check if we have any falsifications in a proposition list, then change event.getData() accordingly
