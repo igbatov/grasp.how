@@ -6,6 +6,9 @@ grasp.how - online visual tool for analysis of importance and reliability of inf
 
 install nginx, mysql, php-fpm, phpunit, php-curl
 
+pear install MDB2-2.5.0b5
+pear install MDB2_Driver_mysqli-1.5.0b4
+
 install webppl https://github.com/probmods/webppl
 
 install rscript:
