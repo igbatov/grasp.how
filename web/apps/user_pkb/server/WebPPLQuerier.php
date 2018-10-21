@@ -365,24 +365,24 @@ EOT;
     $data = json_decode($json, true);
     /**
      * Now $data looks like
-     [
+     {
         '{"h1":2}' =>
-        [
+        {
           'val' =>
-          [
+          {
             'h1' => 2,
-          ],
+          },
           'prob' => 0.0008913574803449336,
-        ],
+        },
         '{"h1":1}' =>
-        [
+        {
           'val' =>
-          [
+          {
             'h1' => 1,
-          ],
+          },
           'prob' => 0.99910864251965492,
-        ],
-     ]
+        },
+     }
      */
     $result = [];
     foreach ($data as $row) {

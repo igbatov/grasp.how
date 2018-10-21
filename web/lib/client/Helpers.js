@@ -2121,3 +2121,13 @@ GRASP.setTDWidthFitLongestCell = function(tableId, columnNum){
 
   f(0);
 };
+
+GRASP.ElementRendered = function (el, cb) {
+  var observer = new MutationObserver(function(mutations) {
+    if (document.contains(el)) {
+      observer.disconnect()
+      cb();
+    }
+  })
+  observer.observe(document, {attributes: false, childList: true, characterData: false, subtree:true});
+}

@@ -381,6 +381,26 @@ GRASP.GraphElementEditor.prototype = {
     var label = this._createLabel(graphId, nodeContentId, node, isEditable);
 
     var accordionItems = [];
+
+    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type == 'continuous') {
+      // if we have samples for this node show them on graphics
+      var chartId = 'chart_' + md5(nodeContentId);
+      var chartContainer = GRASP.createElement('canvas',{'id':chartId, 'width':400, 'height':200});
+      GRASP.ElementRendered(chartContainer, function(){
+        var p_samples = JSON.parse(node.p_samples)
+        var values = [];
+        for (var i in p_samples) {
+          // TODO: remove node.p_samples[i]/100 because of ugly hack in BayesPubSub.js - 100*node[j]
+          values.push({x:parseFloat(i), y:p_samples[i]})
+        }
+        that._drawChart(chartId, values);
+      })
+      accordionItems.push({
+        label: this.i18n.__('Node values probability'),
+        content: chartContainer,
+      });
+    }
+
     accordionItems.push({
       label: this.i18n.__('Description'),
       content: this._createDescription(graphId, nodeContentId, node, isEditable)
@@ -453,12 +473,45 @@ GRASP.GraphElementEditor.prototype = {
       }
     );
 
-    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type == 'continuous') {
-      // if we have samples for this node show them on graphics
-      console.log(node.p_samples);
-    }
-
     return [head, label, accordion];
+  },
+
+  _drawChart: function(selector, values) {
+    var ctx = document.getElementById(selector).getContext('2d');
+    var yMax = 0;
+    for (var i in values) {
+      if (values[i].y > yMax) {
+        yMax = values[i].y;
+      }
+    }
+    var myChart = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Probabilities',
+          data: values,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              min: 0,
+              max: yMax*1.3
+            }
+          }],
+        },
+        showLines: true,
+        animation: {
+          duration: 0, // general animation time
+        },
+        hover: {
+          animationDuration: 0, // duration of animations when hovering an item
+        },
+        responsiveAnimationDuration: 0, // animation duration after a resize
+      }
+    });
   },
 
   _tableProbabilityCallback: function(graphId, node, formKeys, nodeContentId, form) {

@@ -19,6 +19,8 @@
   </div>
 
   <!-- General js libs -->
+  <script src="<?php echo $this->getDefaultDir('js'); ?>md5.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Chart.js"></script>t>
   <script src="<?php echo $this->getDefaultDir('js'); ?>jserrorlog.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
