@@ -385,7 +385,7 @@ GRASP.GraphElementEditor.prototype = {
     if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type == 'continuous') {
       // if we have samples for this node show them on graphics
       var chartId = 'chart_' + md5(nodeContentId);
-      var chartContainer = GRASP.createElement('canvas',{'id':chartId, 'width':400, 'height':200});
+      var chartContainer = GRASP.createElement('div',{'id':chartId});
       GRASP.ElementRendered(chartContainer, function(){
         var p_samples = JSON.parse(node.p_samples)
         var values = [];
@@ -477,23 +477,69 @@ GRASP.GraphElementEditor.prototype = {
   },
 
   _drawChart: function(selector, values) {
-    var ctx = document.getElementById(selector).getContext('2d');
-    var yMax = 0;
+    var container = document.getElementById(selector);
+    var canvas = GRASP.createElement('canvas',{width:container.offsetWidth, 'height':200});
+    var ctx = canvas.getContext('2d');
+    container.appendChild(canvas);
+
+    var xMin = Infinity;
+    var xMax = -Infinity;
     for (var i in values) {
-      if (values[i].y > yMax) {
-        yMax = values[i].y;
+      if (values[i].x > xMax) {
+        xMax = values[i].x;
+      }
+      if (values[i].x < xMin) {
+        xMin = values[i].x;
       }
     }
+
+    // split values on backets 5 pixels each
+    var backets = []
+    var backetsNum = Math.ceil(container.offsetWidth/5)
+    var backetWidth = (xMax-xMin)/backetsNum
+    // init backets
+    for (var j=0; j<backetsNum; j++) {
+      backets.push({x:xMin + j*backetWidth + backetWidth/2, y:0})
+    }
+    for (var i in values) {
+      for (var j=0; j<backetsNum; j++) {
+        if (values[i].x >= xMin + j*backetWidth && values[i].x < xMin + (j+1)*backetWidth) {
+          backets[j].y += values[i].y
+        }
+      }
+    }
+
+    // get max y value
+    var yMax = -Infinity
+    for (var i in backets) {
+      if (backets[i].y > yMax) {
+        yMax = backets[i].y;
+      }
+    }
+
     var myChart = new Chart(ctx, {
       type: 'scatter',
       data: {
         datasets: [{
           label: 'Probabilities',
-          data: values,
+          data: backets,
           borderWidth: 1
         }]
       },
       options: {
+        tooltips: {
+          callbacks: {
+            label: function(tooltipItem, data) {
+              var from = tooltipItem.xLabel - backetWidth/2;
+              var to = tooltipItem.xLabel + backetWidth/2;
+              return [
+                'Probability of value to be',
+                'from ' + from + ' to ' + to ,
+                'is ' + tooltipItem.yLabel
+              ];
+            }
+          }
+        },
         scales: {
           yAxes: [{
             ticks: {
