@@ -391,7 +391,7 @@ GRASP.GraphElementEditor.prototype = {
         var values = [];
         for (var i in p_samples) {
           // TODO: remove node.p_samples[i]/100 because of ugly hack in BayesPubSub.js - 100*node[j]
-          values.push({x:parseFloat(i), y:p_samples[i]})
+          values.push({x:parseFloat(i), y:p_samples[i]/100})
         }
         that._drawChart(chartId, values);
       })
@@ -425,16 +425,21 @@ GRASP.GraphElementEditor.prototype = {
         (node.type == GRASP.GraphViewNode.NODE_TYPE_FACT || node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION)
         && this.hasFactOrProposition(parentNodeContents)
     ) {
+      if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && node.value_type == 'continuous') {
+        var content = GRASP.createElement('div',{}, node.alternatives[0].p.formula);
+      } else {
+        var content = this._createAlternatriveCondPInfo(
+          graphId,
+          nodeContentId,
+          nodeId,
+          node,
+          parentNodeContents,
+          isEditable
+        );
+      }
       accordionItems.push({
         label: this.i18n.__('Conditional probabilities'),
-        content: this._createAlternatriveCondPInfo(
-            graphId,
-            nodeContentId,
-            nodeId,
-            node,
-            parentNodeContents,
-            isEditable
-        ),
+        content: content,
         labelButtons: [
             this.UI.createButton({
               name: 'editConditionals',
