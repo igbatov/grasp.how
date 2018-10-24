@@ -653,7 +653,7 @@ class Graphs {
       $reliability_array[] = $rs[0]['publisher_reliability'];
     }
 
-    return min(array_sum($reliability_array)*10,100);
+    return min(array_sum($reliability_array)*10,100)/100;
   }
 
   public function removeGraph($graph_id){

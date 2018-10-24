@@ -67,7 +67,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
 
     var reliabilityKeys = GRASP.getObjectKeys(items);
     var reliabilityArray = GRASP.roundProbabilities(GRASP.getObjectValues(items).map(function(item){
-      return parseFloat(item.alternative.reliability)/100;
+      return parseFloat(item.alternative.reliability);
     }));
     var reliabilityHash = {};
     for(var i in reliabilityArray){

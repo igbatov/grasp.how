@@ -3,7 +3,7 @@
  * It encapsulates read/write from/to repository and caching
  * You can think of it as extra layer above repository that implements caching and some extra logic for:
  * - addNode: copy from existsing ot from empty node
- * - updateNodeAttribute, for attribute 'reliability' of "fact": for alternative #1 it changes alternative #2 as (1 - reliability/100)
+ * - updateNodeAttribute, for attribute 'reliability' of "fact": for alternative #1 it changes alternative #2 as (1 - reliability)
  * - TODO: updateNodeAttribute, for attribute 'reliability' of "proposition": if node doesn't has alternative with falsification, it sets reliability of alternatives as equally possible
  * - addIcon: upload file and creates Image object
  *
@@ -176,7 +176,7 @@ GRASP.GraphElementsContent.prototype = {
 
           }else if(event.getData().nodeAttribute.name == 'reliability' && e.type == 'fact'){
             e['alternatives'][0]['reliability'] = event.getData().nodeAttribute.value;
-            e['alternatives'][1]['reliability'] = parseFloat(100-parseFloat(event.getData().nodeAttribute.value));
+            e['alternatives'][1]['reliability'] = parseFloat(1-parseFloat(event.getData().nodeAttribute.value));
             var secondAlternativeEvent = GRASP.clone(event.getData());
             secondAlternativeEvent.node_alternative_id = 1;
             secondAlternativeEvent.nodeAttribute.value = e['alternatives'][1]['reliability'];

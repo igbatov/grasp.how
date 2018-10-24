@@ -1126,7 +1126,7 @@ class AppUserPkb extends App
       foreach ($alternatives as $alternative) {
         // if node is a fact use reliability as soft evidence
         if($alternative['type'] == 'fact'){
-          $probabilities[$local_content_id]['soft'][$alternative['alternative_id']] = $alternative['reliability']/100;
+          $probabilities[$local_content_id]['soft'][$alternative['alternative_id']] = $alternative['reliability'];
         }
 
         $p = json_decode($alternative['p'], true);

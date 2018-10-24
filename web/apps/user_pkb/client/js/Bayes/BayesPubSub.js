@@ -27,16 +27,6 @@ GRASP.BayesPubSub.prototype = {
             ]);
 
           } else {
-            // normalize probabilities to be in [0,100] interval
-            // TODO: this is ugly hack because fact reliability is from 0 to 100
-            // We need to store hypothesis probability as well as fact reliability in uniform format - from 0 to 1
-            for(var i in d.data){
-              var node = d.data[i];
-              for(var j in node){
-                d.data[i][j] = 100*node[j];
-              }
-            }
-
             // remove bayes_error stickers from all nodes
             var model = that.publisher.getInstant('get_graph_models', [graphId])[graphId];
             var stickers = {};

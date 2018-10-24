@@ -60,7 +60,7 @@ GRASP.GraphDecorationByType.prototype = {
           stickers[stickername] = skin.node.attr.stickers[stickername];
         }
       }
-      decoration.nodes[i] = {color:color, borderColor:color, opacity:Math.max(0.1,reliability/99), size:Math.max(5, size*importance/20), stickers:stickers};
+      decoration.nodes[i] = {color:color, borderColor:color, opacity:Math.max(0.1,reliability), size:Math.max(5, size*importance/20), stickers:stickers};
       decoration.nodeLabels[i] = {opacity: 1, size:Math.max(5, labelSize*importance/50)};
     }
     for(i in edges){

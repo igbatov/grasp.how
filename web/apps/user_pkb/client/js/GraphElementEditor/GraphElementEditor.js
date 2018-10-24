@@ -390,8 +390,7 @@ GRASP.GraphElementEditor.prototype = {
         var p_samples = JSON.parse(node.p_samples)
         var values = [];
         for (var i in p_samples) {
-          // TODO: remove node.p_samples[i]/100 because of ugly hack in BayesPubSub.js - 100*node[j]
-          values.push({x:parseFloat(i), y:p_samples[i]/100})
+          values.push({x:parseFloat(i), y:p_samples[i]})
         }
         that._drawChart(chartId, values);
       })
@@ -1066,7 +1065,7 @@ GRASP.GraphElementEditor.prototype = {
     if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && (node.value_type === 'labelled' || node.value_type == null)) {
       var reliabilityKeys = GRASP.getObjectKeys(alternatives);
       var reliabilityArray = GRASP.getObjectValues(alternatives).map(function(item){
-          return parseFloat(item.reliability)/100;
+          return parseFloat(item.reliability);
       });
       var reliabilityHash = {};
       for(var i in reliabilityArray){
@@ -1117,7 +1116,7 @@ GRASP.GraphElementEditor.prototype = {
     } else if (node.type == GRASP.GraphViewNode.NODE_TYPE_FACT) {
       var alternative = alternatives[node.active_alternative_id];
       var label = GRASP.createElement('div',{class:'nodeLabel'});
-      var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability/100).toFixed(2));
+      var r = GRASP.createElement('div',{class:'alternativeProbability'}, (alternative.reliability*1).toFixed(2));
       var l = this.UI.createTextareaBox({
         disabled: !isEditable,
         name:'label',

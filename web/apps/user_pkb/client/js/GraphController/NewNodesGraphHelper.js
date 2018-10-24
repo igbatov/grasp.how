@@ -42,7 +42,7 @@ GRASP.NewNodesGraphHelper.prototype = {
           nodeContentId:i,
           label:this.i18n.__(nodeTypes[i]),
           type:nodeTypes[i],
-          reliability: 99,
+          reliability: 0.99,
           importance: 100,
           stickers: [],
           icon: icon
