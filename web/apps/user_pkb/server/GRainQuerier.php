@@ -127,7 +127,7 @@ class GRainQuerier {
 
   public function query($graph, $probabilities){
     $text = $this->createScriptText($graph, $probabilities);
-    $tmp_filename = $this->tmp_dir."/GRainQuerier.tmp.".rand(1,1000).".".time().".Rmd";
+    $tmp_filename = $this->tmp_dir."/GRainQuerier.tmp.".time().".".rand(1,1000).".Rmd";
 
     $myfile = fopen($tmp_filename, "w");
     if(!$myfile){
@@ -143,17 +143,24 @@ class GRainQuerier {
     error_log($cmd.' '.print_r($output, true).' '.print_r($error, true));
 
     $proposition_probabilities = array();
-    foreach($output as $i=>$str){
-      foreach($graph['nodes'] as $node_id=>$node_alternative_ids){
-        if($this->isProposition($node_id, $probabilities)){
+
+    foreach($graph['nodes'] as $node_id=>$node_alternative_ids){
+      if($this->isProposition($node_id, $probabilities)){
+        foreach($output as $i=>$str){
           if($str == 'node_'.$node_id){
-            $node_alternative_ids = preg_split('/\s+/', trim($output[$i+1]));
-            $node_alternative_probabilities = preg_split('/\s+/', $output[$i+2]);
+            $gatheredProbsCnt = 0;
+            $k = 0;
             $proposition_probabilities[$node_id] = array();
-            foreach($node_alternative_ids as $j=>$node_alternative_id){
-              // if grain returns NaN , we set 0.5 (aka, we don't know)
-              $p = $node_alternative_probabilities[$j] === 'NaN' ? 0.5 : $node_alternative_probabilities[$j];
-              $proposition_probabilities[$node_id][$node_alternative_id] = $p;
+            while ($gatheredProbsCnt < count($node_alternative_ids)) {
+              $output_alternative_ids = preg_split('/\s+/', trim($output[$i + 2*$k + 1]));
+              $output_alternative_probabilities = preg_split('/\s+/', $output[$i + 2*$k + 2]);
+              foreach($output_alternative_ids as $j=>$output_alternative_id){
+                // if grain returns NaN , we set 0.5 (aka, we don't know)
+                $p = $output_alternative_probabilities[$j] === 'NaN' ? 0.5 : $output_alternative_probabilities[$j];
+                $proposition_probabilities[$node_id][$output_alternative_id] = $p;
+              }
+              $gatheredProbsCnt += count($output_alternative_probabilities);
+              $k++;
             }
           }
         }
