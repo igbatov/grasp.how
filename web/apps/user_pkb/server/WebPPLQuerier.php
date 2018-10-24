@@ -205,7 +205,7 @@ EOT;
         $text .=<<<EOT
       
 var {$nodeName} = function() {
-  return categorical({vs:[1, 2], ps:[0.5, 0.5]});
+  return categorical({vs:[0, 1], ps:[0.5, 0.5]});
 
 EOT;
 
