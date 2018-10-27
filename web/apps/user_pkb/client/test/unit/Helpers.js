@@ -199,8 +199,8 @@ describe("GRASP.extend", function(){
       funcB: function(){}
     });
 
-    expect(child.funcA.toString()).toEqual('function (){}');
-    expect(child.funcB.toString()).toEqual('function (){}');
+    expect(child.funcA.toString()).toEqual('function(){}');
+    expect(child.funcB.toString()).toEqual('function(){}');
   });
 });
 
