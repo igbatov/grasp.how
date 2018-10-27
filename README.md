@@ -4,7 +4,7 @@ grasp.how - online visual tool for analysis of importance and reliability of inf
 # prepare
 (Ubuntu 18.04.1 LTS example)
 
-install nginx, mysql, php-fpm, phpunit, php-curl
+install nginx, mysql, php-fpm, phpunit, php-curl, php-mbstring
 
 pear install MDB2-2.5.0b5
 
