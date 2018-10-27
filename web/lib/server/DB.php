@@ -151,7 +151,8 @@ class DB
 
   public function getCurrentDB(){
     $rows = $this->execute('SELECT DATABASE()');
-    return reset(reset($rows));
+    $rows = reset($rows);
+    return reset($rows);
   }
 
   public function getTableNames(){

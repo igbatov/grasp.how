@@ -499,7 +499,19 @@ GRASP.SVGDrawer.prototype = {
       that.dragShapeLayer = null;
     });
 
+    // evt.x evt.y is coordinates relative to top left corner of page (pageX, pageY)
+    // This value is relative to the left edge of the entire document, regardless
+    // of the current horizontal scrolling offset of the document.
     this.addEventListener('dragstart', function(evt, shape){
+
+      // move element center under mouse pointer
+      // (this hack is to avoid bug when sometimes element slips away from mouse)
+      var shapeBoundRect = shape.getShape().getBoundingClientRect();
+      shape.setXY({
+        x: shape.getX() - (shapeBoundRect.left + shapeBoundRect.width/2 - evt.x),
+        y: shape.getY() - (shapeBoundRect.top + shapeBoundRect.height/2 - evt.y)
+      });
+
       that.dragPointerStartXY = {x:evt.x, y:evt.y};
       that.dragShapeStartXY = {x: shape.getX(), y: shape.getY()};
       // move shape to front
