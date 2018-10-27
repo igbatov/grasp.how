@@ -90,30 +90,6 @@ class DB
   }
 
   /**
-   * @param $table
-   * @param $keys
-   * @param $fields
-   * @return boolean
-   */
-  public function executeInsertUpdate($table, $keys, $fields)
-  {
-    $query = "INSERT INTO `".$table."` SET ";
-    $key_part = "";
-    foreach ($keys as $k => $v) {
-      $key_part .= "`".$k."` = '".$this->escape($v)."', ";
-    }
-
-    $fields_part = "";
-    foreach ($fields as $k => $v) {
-      $fields_part .= "`".$k."` = '".$this->escape($v)."', ";
-    }
-
-    $query .= $key_part.$fields_part." ON DUPLICATE KEY UPDATE ".$update_part;
-
-    return $this->execute($query);
-  }
-
-  /**
    * Example:
    *      $this->db->startTransaction();
    *      foreach($nodes as $node){
