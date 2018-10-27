@@ -79,14 +79,14 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
                   "0":{
                     "label":"proposition",
                     "p":{},
-                    "reliability":50,
+                    "reliability":0.5,
                     "text":"",
                     "list":[]
                   },
                   "1":{
                     "label":"NOT TRUE: proposition",
                     "p":{},
-                    "reliability":50,
+                    "reliability":0.5,
                     "text":"",
                     "list":[]
                   }
@@ -94,7 +94,10 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
                 "type":"proposition",
                 "importance":50,
                 "icon":null,
-                "stickers":null
+                "stickers":null,
+                "p_samples":null,
+                "value_range": null,
+                "value_type": null,
               }
             }
         );
@@ -390,17 +393,20 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           "stickers": [
             "absent"
           ],
+          "value_range": null,
+          "value_type": null,
+          "p_samples":null,
           "alternatives": [
             {
               "label": "proposition",
-              "reliability": "50",
+              "reliability": "0.5",
               "p": "",
               "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
             },
             {
               "label": "NOT TRUE: proposition",
-              "reliability": "50",
+              "reliability": "0.5",
               "p": "",
               "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
@@ -416,14 +422,14 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           "alternatives": [
             {
               "label": "proposition",
-              "reliability": "50",
+              "reliability": "0.5",
               "p": "",
               "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
             },
             {
               "label": "NOT TRUE: proposition",
-              "reliability": "50",
+              "reliability": "0.5",
               "p": "",
               "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
@@ -432,7 +438,10 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           "nodeContentId": "-/"+cloneGraphId+"-3",
           "stickers": [
             "added"
-          ]
+          ],
+          "value_range": null,
+          "value_type": null,
+          "p_samples":null,
         };
         var p1 = {}
         p1["{\""+cloneGraphId+"-2\":\"0\"}"] = "1";
@@ -448,10 +457,13 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           "stickers": [
             "modified"
           ],
+          "value_range": null,
+          "value_type": null,
+          "p_samples":null,
           "alternatives": [
             {
               "label": "123",
-              "reliability": "100",
+              "reliability": "1",
               "p": p1,
               "created_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at": GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()

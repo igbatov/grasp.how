@@ -20,22 +20,25 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testAddNode(GLOBALS){
             {
               "label": "fact",
               "p": [],
-              "reliability": 50,
+              "reliability": 0.5,
               "text": "",
               "list": []
             },
             {
               "label": "NOT TRUE: fact",
               "p": [],
-              "reliability": 50,
+              "reliability": 0.5,
               "text": "",
               "list": []
             }
           ],
           "type": "fact",
           "importance": 50,
+          "p_samples": null,
           "icon": null,
-          "stickers": null
+          "stickers": null,
+          "value_range": null,
+          "value_type": null,
         }
       })
       .then(function(e){
@@ -59,17 +62,20 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testAddNode(GLOBALS){
           "has_icon":"0",
           "active_alternative_id":"0",
           "stickers":null,
+          "p_samples": null,
+          "value_range": null,
+          "value_type": null,
           "alternatives":[
             {
               "label":"fact",
-              "reliability":"50",
+              "reliability":"0.5",
               "p":"",
               "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
             },
             {
               "label":"NOT TRUE: fact",
-              "reliability":"50",
+              "reliability":"0.5",
               "p":"",
               "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()

@@ -35,7 +35,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testQueryGrain(GLOBALS){
           "graphId":GLOBALS.GRAPH_ID,
           "nodeContentId":GLOBALS.GRAPH_ID + "-1",
           "node_alternative_id":0,
-          "nodeAttribute":{"name":"reliability","value":100}
+          "nodeAttribute":{"name":"reliability","value":1}
         })
         .then(function(e){
           GRASP.TestHelpers.fetch(

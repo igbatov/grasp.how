@@ -151,7 +151,6 @@ class Graphs {
           $global_content_id = $this->contentIdConverter->createGlobalContentId($contentId['graphId2'], $contentId['localContentId2']);
           $graph2NodeContent = $this->getNodeAttributes(array($global_content_id))[$global_content_id];
           foreach(array_keys($graph2NodeContent) as $attribute_name){
-            if(isset($graph2NodeContent[$attribute_name]) && $graph2NodeContent[$attribute_name] != null)
               $nodes[$content_id][$attribute_name] = $graph2NodeContent[$attribute_name];
           }
         }

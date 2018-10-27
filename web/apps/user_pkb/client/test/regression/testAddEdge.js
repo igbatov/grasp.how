@@ -20,14 +20,14 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
             "0":{
               "label":"proposition",
               "p":{},
-              "reliability":50,
+              "reliability":0.5,
               "text":"",
               "list":[]
             },
             "1":{
               "label":"NOT TRUE: proposition",
               "p":{},
-              "reliability":50,
+              "reliability":0.5,
               "text":"",
               "list":[]
             }
@@ -35,7 +35,10 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           "type":"proposition",
           "importance":50,
           "icon":null,
-          "stickers":null
+          "p_samples":null,
+          "stickers":null,
+          "value_range": null,
+          "value_type": null,
         }
       })
       .then(function(e){
@@ -68,17 +71,20 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           "has_icon":"0",
           "active_alternative_id":"0",
           "stickers":null,
+          "p_samples":null,
+          "value_range": null,
+          "value_type": null,
           "alternatives":[
             {
               "label":"fact",
-              "reliability":"50",
+              "reliability":"0.5",
               "p":"",
               "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
             },
             {
               "label":"NOT TRUE: fact",
-              "reliability":"50",
+              "reliability":"0.5",
               "p":"",
               "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
@@ -91,17 +97,20 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           "has_icon":"0",
           "active_alternative_id":"0",
           "stickers":null,
+          "value_range": null,
+          "value_type": null,
+          "p_samples":null,
           "alternatives":[
             {
               "label":"proposition",
-              "reliability":"50",
+              "reliability":"0.5",
               "p":"",
               "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()
             },
             {
               "label":"NOT TRUE: proposition",
-              "reliability":"50",
+              "reliability":"0.5",
               "p":"",
               "created_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS(),
               "updated_at":GRASP.TestHelpers.likeYYYYMMDD_HHMMSS()

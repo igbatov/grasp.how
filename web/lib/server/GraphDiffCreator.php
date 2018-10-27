@@ -261,6 +261,7 @@ class GraphDiffCreator{
         || $rows[0]['importance'] != $alternative['importance']
         || $rows[0]['label'] != $alternative['label']
         || $rows[0]['text'] != $alternative['text']
+        || $rows[0]['p'] != $alternative['p']
         || $rows[0]['has_icon'] != $alternative['has_icon']
         || $rows[0]['stickers'] != $alternative['stickers']
     )

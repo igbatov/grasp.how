@@ -20,7 +20,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
       }).then(function(){
         return testAttributeChange('active_alternative_id', '1');
       }).then(function(){
-        return testAttributeChange('reliability', '100');
+        return testAttributeChange('reliability', '1');
       }).then(function(){
         // change reliability of second alternative to be consistent
         GRASP.TestHelpers.fetch(
@@ -161,7 +161,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
            GRASP.TestHelpers.cmp(
               'response from node_list_add_request should have alternative new reliability',
               JSON.parse(e),
-              {"result":"SUCCESS","reliability":30}
+              {"result":"SUCCESS","reliability":0.3}
           );
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
@@ -299,7 +299,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           GRASP.TestHelpers.cmp(
               'response from node_list_add_request should have id of list item and alternative new reliability',
               JSON.parse(e),
-              {"result":"SUCCESS","id":1,"reliability":60}
+              {"result":"SUCCESS","id":1,"reliability":0.6}
           );
           return GRASP.TestHelpers.fetch(
               TEST_NAME,
