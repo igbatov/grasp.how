@@ -212,14 +212,26 @@ GRASP.GraphElementEditor.prototype = {
       this.UI.updateForm(form, 'value_range', {rowType: 'textarea'});
       this.UI.updateForm(form, 'value_range_help_discrete', {rowType: 'string'});
       this.UI.updateForm(form, 'value_range_help_continuous', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_from_title', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_from', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_to_title', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_to', {rowType: 'hidden'});
     } else if (value === 'continuous') {
-      this.UI.updateForm(form, 'value_range', {rowType: 'textarea'});
+      this.UI.updateForm(form, 'value_range', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_from_title', {rowType: 'string'});
+      this.UI.updateForm(form, 'value_range_from', {rowType: 'text'});
+      this.UI.updateForm(form, 'value_range_to_title', {rowType: 'string'});
+      this.UI.updateForm(form, 'value_range_to', {rowType: 'text'});
       this.UI.updateForm(form, 'value_range_help_discrete', {rowType: 'hidden'});
       this.UI.updateForm(form, 'value_range_help_continuous', {rowType: 'string'});
     } else {
       this.UI.updateForm(form, 'value_range', {rowType:'hidden'});
       this.UI.updateForm(form, 'value_range_help_discrete', {rowType:'hidden'});
       this.UI.updateForm(form, 'value_range_help_continuous', {rowType:'hidden'});
+      this.UI.updateForm(form, 'value_range_from_title', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_from', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_to_title', {rowType: 'hidden'});
+      this.UI.updateForm(form, 'value_range_to', {rowType: 'hidden'});
     }
   },
 
@@ -247,11 +259,20 @@ GRASP.GraphElementEditor.prototype = {
             nodeContentId: nodeContentId,
             nodeAttribute: {name:'value_type', value:form.value_type}
           }]);
+
+          var value_range = form.value_range
+          if (form.value_type === 'continuous') {
+            value_range = JSON.stringify({
+              from: form.value_range_from,
+              to: form.value_range_to,
+            });
+          }
+
           that.publisher.publish(['request_for_graph_element_content_change',{
             type: 'updateNodeAttribute',
             graphId: graphId,
             nodeContentId: nodeContentId,
-            nodeAttribute: {name:'value_range', value:form.value_range}
+            nodeAttribute: {name:'value_range', value:value_range}
           }]);
           that.UI.closeModal(modalWindow);
         }
@@ -271,11 +292,39 @@ GRASP.GraphElementEditor.prototype = {
       dropType: 'single',
       withDownArrow: false
     };
-    fields['value_range'] = {
-      rowType: (nodeValueType === 'discrete' || nodeValueType === 'continuous') ? 'textarea' : 'hidden',
-      disabled:!isEditable,
-      value: nodeValueRange
-    };
+
+    fields['value_range'] = {rowType: 'hidden'};
+    fields['value_range_from_title'] = {rowType: 'hidden', value: this.i18n.__('starting from')};
+    fields['value_range_from'] = {rowType: 'hidden'};
+    fields['value_range_to_title'] = {rowType: 'hidden', value: this.i18n.__('to')};
+    fields['value_range_to'] = {rowType: 'hidden'};
+
+    if (nodeValueType === 'discrete') {
+      fields['value_range'] = {
+        rowType: 'textarea',
+        disabled:!isEditable,
+        value: nodeValueRange
+      };
+    } else if (nodeValueType === 'continuous') {
+      if (!GRASP.isJson(nodeValueRange)) {
+        nodeValueRange['from'] = '';
+        nodeValueRange['to'] = '';
+      } else {
+        nodeValueRange = JSON.parse(nodeValueRange)
+      }
+      fields['value_range_from_title'].rowType = 'string';
+      fields['value_range_to_title'].rowType = 'string';
+      fields['value_range_from'] = {
+        rowType: 'text',
+        disabled:!isEditable,
+        value: nodeValueRange['from']
+      };
+      fields['value_range_to'] = {
+        rowType: 'text',
+        disabled:!isEditable,
+        value: nodeValueRange['to']
+      };
+    }
 
     var help_str_discrete = that.i18n.__("You can set values as numbers separated by comma.<BR>For example: 3, 4.5, 394.0<BR>Alternatively You can set range and step in JSON format:<BR>{\"from\":\"-2\", \"to\":\"16\", \"step\":\"2\"}");
     fields['value_range_help_discrete'] = {
@@ -284,7 +333,7 @@ GRASP.GraphElementEditor.prototype = {
       value: help_str_discrete
     };
 
-    var help_str_continuous = that.i18n.__("Please, set range format:<BR>{\"from\":\"-2.21\", \"to\":\"16\"}");
+    var help_str_continuous = that.i18n.__("Range");
     fields['value_range_help_continuous'] = {
       className: 'value_range_help',
       rowType: nodeValueType === 'continuous' ? 'string' : 'hidden',
@@ -308,7 +357,20 @@ GRASP.GraphElementEditor.prototype = {
       }
     };
 
-    for (var fieldName in fields) {
+    var fieldNames = [
+      'value_type',
+      'value_range_help_discrete',
+      'value_range_help_continuous',
+      'value_range',
+      'value_range_from_title',
+      'value_range_from',
+      'value_range_to_title',
+      'value_range_to',
+      'save',
+      'cancel',
+    ];
+    for (var i in fieldNames) {
+      var fieldName = fieldNames[i]
       that.UI.updateForm(form, fieldName, fields[fieldName]);
     }
 
