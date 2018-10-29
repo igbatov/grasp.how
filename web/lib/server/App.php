@@ -186,6 +186,9 @@ abstract class App
     $dbname = $this->db->getDBName($auth_id);
 
     $this->db->copyDB($this->config->get('db_template'), $dbname);
+
+    // fill in migrations table with all current migrations
+    $this->db->copyTableContents($this->config->get('db')['dbName'], $dbname, "migration_status");
     return $auth_id;
   }
 

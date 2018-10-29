@@ -76,7 +76,7 @@ class MultiTenantDB {
     }
   }
 
-  private function copyTableContents($fromDB, $toDB, $tableName){
+  public function copyTableContents($fromDB, $toDB, $tableName){
     $q = "INSERT INTO ".$toDB.".".$tableName." SELECT * FROM ".$fromDB.".".$tableName;
     $this->exec(null, $q);
   }
