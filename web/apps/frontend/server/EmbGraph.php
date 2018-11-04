@@ -162,7 +162,7 @@ class EmbGraph{
       if($node_contents[$node["id"]]["importance"] == 0) $importance = 99;
       else $importance = $node_contents[$node["id"]]["importance"];
 
-      if($active_alternative["reliability"] == 0) $reliability = 99;
+      if($active_alternative["reliability"] == 0) $reliability = 1;
       else $reliability = $active_alternative["reliability"];
 
       $node_type = $node_contents[$node["id"]]["type"];
@@ -173,7 +173,7 @@ class EmbGraph{
         "type"=>$node_type,
         "color"=>$decoration[$node_type],
         "size"=>max(1, 1.8*$base_size*$importance/50),
-        "opacity"=>$reliability/99
+        "opacity"=>$reliability
       );
     }
 

@@ -1919,7 +1919,7 @@ GRASP.roundProbabilities = function(probabilityList){
   var indexOfProbabilityToIncrease = 0;
   probabilityList.forEach(function(n, i){
     if (n<0 || n>1) {
-      GRASP.throwError('Every probability in probabilityList must be from [0, 1] interval');
+      GRASP.errorHandler.throwError('Every probability in probabilityList must be from [0, 1] interval');
     }
     var mostSignDP = 0;
     var secondMostSignDigit = 0;
