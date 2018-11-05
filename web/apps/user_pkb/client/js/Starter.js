@@ -1,5 +1,4 @@
 /**
- * Module that monitor keyboard events and publish appropriate GRASP.Events if necessary
  * @constructor
  */
 GRASP.Starter = function(publisher){

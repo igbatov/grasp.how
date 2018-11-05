@@ -370,16 +370,6 @@ var graphDrawer = (function(){
     return _svgc;
   }
 
-  function html2text(html){
-    if (html.substr(0, 5) === '<div>'){
-      html = html.substr(5);
-    }
-
-    return html
-        .replace(new RegExp('<div>', 'g'), '\n')
-        .replace(new RegExp('</div>', 'g'), '');
-  }
-
   function addLabel(node, str, key){
     var gId = guid();
     var g = _svgc.append('g')
@@ -390,7 +380,7 @@ var graphDrawer = (function(){
         .attr("nodeType", node.type)
         .attr("style", "pointer-events: none;");
 
-    var strs = html2text(str).split("\n");
+    var strs = GRASP.html2text(str).split("\n");
     var offset = 0;
 
     /**

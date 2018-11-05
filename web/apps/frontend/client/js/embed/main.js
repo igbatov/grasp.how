@@ -32,7 +32,7 @@ var withFbShare = withFbShare || false;
        2: {name:"Name2", area:area, nodes:nodes, edges:edges, nodeContents:nodeContents, nodeTypes:nodeTypes.edgeTypes:edgeTypes,node_id_global_content_id_map:node_id_global_content_id_map}
      };
      */
-    var graphs = $("#graphsData").text() != "" ? JSON.parse(GRASP.htmlspecialchars_decode($("#graphsData").text())) : null;
+    var graphs = $("#graphsData").text() != "" ? JSON.parse($("#graphsData").text()) : null;
 
     showGraphMenu(graphs);
   });
