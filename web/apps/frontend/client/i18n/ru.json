@@ -1,6 +1,6 @@
 {
   "THANK YOU!":"СПАСИБО!",
-  "Probability of proposition is:": "Вероятность гипотезы равна",
+  "Probability of proposition is": "Вероятность гипотезы равна",
   "Probability of fact is": "Вероятность факта равна",
   "Sources": "Источники",
   "Description": "Описание",
@@ -60,5 +60,6 @@
   "The grasp.how maps induce new structures of relations, value and reliability of documents in the Internet. This structure can be used for intellectual searching for documents, and it can compete with Page Rank algorithm.":"Карты grasp.how индуцируют новые струкутры отношений, значимости и достоверности документов в интернет. Эту структуру можно использовать для интеллектуального поиска документов и составить конкуренцию алгоритму Page Rank.",
   "If you can design a high-quality map on a topic that is interesting to you, e-mail to igbatov@grasp.how!":"Можете составить качественную карту на интересную вам тему? пишите на igbatov@grasp.how!",
   "We pay good money for good maps and provide publications in most visited resources!":"Мы платим хорошие деньги за хорошие карты и обеспечиваем публикации на посещаемых ресурсах!",
-  "where": "где"
+  "where": "где",
+  "Node values probability": "Вероятности значений"
 }

@@ -150,6 +150,27 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
     for (var alt_id in content['alternatives']) {
       var accordionItems = [];
 
+      // for continuous and discrete nodes show chart of probabilities
+      if (content.type === 'proposition' && !isValueRangeLabelled(content.value_type)) {
+        // if we have samples for this node show them on graphics
+        var chartId = 'chart_' + md5(content.nodeId + '_' + alt_id);
+        var chartContainer = GRASP.createElement('div',{'id':chartId});
+        (function(chartId){
+          GRASP.ElementRendered(chartContainer, function(){
+            var p_samples = JSON.parse(content.p_samples)
+            var values = [];
+            for (var i in p_samples) {
+              values.push({x:parseFloat(i), y:p_samples[i]})
+            }
+            GRASP.DrawProbabilityChart(chartId, values);
+          })
+        })(chartId);
+        accordionItems.push({
+          label: GRASP.createElement('div', {class: 'titleH2'}, i18n.__('Node values probability')),
+          content: chartContainer,
+        });
+      }
+
       // creates alternative's content
       var text = content['alternatives'][alt_id].text.replace(/(?:\r\n|\r|\n)/g, '<br />');
       if(text && text.length){

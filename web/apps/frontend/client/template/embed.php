@@ -28,6 +28,8 @@
     <!-- end fork ribbon -->
 
     <!-- general js -->
+    <script src="<?php echo $this->getDefaultDir('js'); ?>md5.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Chart.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
     <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
@@ -73,9 +75,9 @@
     <div id="fb-share-btn" class="fb-share-button" data-href="<?php echo $url; ?>" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($url) ?>">Share</a></div>
   </div>
   <?php endif ?>
-  <div style="display: none;" id="graphsData">
-    <?php echo $graphsData ? json_encode($graphsData) : ""; ?>
-  </div>
+  <script>
+    GRASP.GRAPHS_DATA = <?php echo $graphsData ? json_encode($graphsData) : ""; ?>
+  </script>
   <?php if (!$editMapRibbon) : ?>
     <div class="editMapButton"><a target="_blank" href='<?php echo $cloneUrl; ?>' class="btn">Edit map</a></div>
   <?php endif ?>

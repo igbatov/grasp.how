@@ -2131,3 +2131,87 @@ GRASP.ElementRendered = function (el, cb) {
   })
   observer.observe(document, {attributes: false, childList: true, characterData: false, subtree:true});
 }
+
+GRASP.DrawProbabilityChart = function(containerID, values) {
+  var container = document.getElementById(containerID);
+  var canvas = GRASP.createElement('canvas',{width:container.offsetWidth, height:200});
+  var ctx = canvas.getContext('2d');
+  container.appendChild(canvas);
+
+  var xMin = Infinity;
+  var xMax = -Infinity;
+  for (var i in values) {
+    if (values[i].x > xMax) {
+      xMax = values[i].x;
+    }
+    if (values[i].x < xMin) {
+      xMin = values[i].x;
+    }
+  }
+
+  // split values on backets 5 pixels each
+  var backets = []
+  var backetsNum = Math.ceil(container.offsetWidth/5)
+  var backetWidth = (xMax-xMin)/backetsNum
+  // init backets
+  for (var j=0; j<backetsNum; j++) {
+    backets.push({x:xMin + j*backetWidth + backetWidth/2, y:0})
+  }
+  for (var i in values) {
+    for (var j=0; j<backetsNum; j++) {
+      if (values[i].x >= xMin + j*backetWidth && values[i].x < xMin + (j+1)*backetWidth) {
+        backets[j].y += values[i].y
+      }
+    }
+  }
+
+  // get max y value
+  var yMax = -Infinity
+  for (var i in backets) {
+    if (backets[i].y > yMax) {
+      yMax = backets[i].y;
+    }
+  }
+
+  var myChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Probabilities',
+        data: backets,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      tooltips: {
+        callbacks: {
+          label: function(tooltipItem, data) {
+            var from = tooltipItem.xLabel - backetWidth/2;
+            var to = tooltipItem.xLabel + backetWidth/2;
+            return [
+              'Probability of value to be',
+              'from ' + from + ' to ' + to ,
+              'is ' + tooltipItem.yLabel
+            ];
+          }
+        }
+      },
+      scales: {
+        yAxes: [{
+          ticks: {
+            min: 0,
+            max: yMax*1.3
+          }
+        }],
+      },
+      showLines: true,
+      animation: {
+        duration: 0, // general animation time
+      },
+      hover: {
+        animationDuration: 0, // duration of animations when hovering an item
+      },
+      responsiveAnimationDuration: 0, // animation duration after a resize
+    }
+  });
+}
