@@ -72,7 +72,8 @@ var withFbShare = withFbShare || false;
 
     // create text boxes
     var condPInfo = getCondPsInfo(graph["nodeContents"], graph["edges"]);
-    graphActions.addActions(graph["nodes"], graph["nodeContents"], condPInfo, nodeContentView);
+    var parentsNames = getParentsNames(graph["nodeContents"], graph["edges"]);
+    graphActions.addActions(graph["nodes"], graph["nodeContents"], condPInfo, nodeContentView, parentsNames);
   }
 
   /**
@@ -193,17 +194,31 @@ var withFbShare = withFbShare || false;
       );
     }
     return condPInfo;
+  }
 
-    function getParentIds(nodeId, edges){
-      var parentIds = [];
-      for(var i in edges){
-        var e = edges[i];
-        if(nodeId == e.target){
-          parentIds.push(e.source);
-        }
+  function getParentsNames(contents, edges){
+    var parentsNames = {}
+    for(var nodeId in contents){
+      parentsNames[nodeId] = {}
+      var parentIds = getParentIds(nodeId, edges)
+      for (var i in parentIds) {
+        var parentId = parentIds[i]
+        parentsNames[nodeId][parentId] = contents[parentId].alternatives[0].label
       }
-      return parentIds;
     }
+
+    return parentsNames
+  }
+
+  function getParentIds(nodeId, edges){
+    var parentIds = [];
+    for(var i in edges){
+      var e = edges[i];
+      if(nodeId == e.target){
+        parentIds.push(e.source);
+      }
+    }
+    return parentIds;
   }
 
 })($, graphDrawer, graphActions, nodeContentView, mediator, withFbShare);

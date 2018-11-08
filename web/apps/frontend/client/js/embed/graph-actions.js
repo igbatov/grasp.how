@@ -16,7 +16,7 @@ var graphActions = (function($,d3,publisher){
     return isLeftNode(circle) ? RIGHT_HALF : LEFT_HALF;
   }
 
-  function addActions(nodes, nodeContents, condPInfo, nodeContentView){
+  function addActions(nodes, nodeContents, condPInfo, nodeContentView, parentsNames){
     createTextBoxes(nodes);
 
     // graph node actions
@@ -32,7 +32,7 @@ var graphActions = (function($,d3,publisher){
           publisher.publish(['highlight_nodes',{nodeIds:[selfNodeId]}]);
 
           // show text box with node content
-          showNodeContent(halfName, nodeContents[selfNodeId], condPInfo[selfNodeId], nodeContentView);
+          showNodeContent(halfName, nodeContents[selfNodeId], condPInfo[selfNodeId], nodeContentView, parentsNames[selfNodeId]);
         })
         .on("mouseout", function(){
           //if(selectedNodeId !== null) return;
@@ -64,7 +64,7 @@ var graphActions = (function($,d3,publisher){
           var halfName = selectedNodeHalfName;
 
           // show text box with node content
-          showNodeContent(halfName, nodeContents[selectedNodeId], condPInfo[selectedNodeId], nodeContentView);
+          showNodeContent(halfName, nodeContents[selectedNodeId], condPInfo[selectedNodeId], nodeContentView, parentsNames[selectedNodeId]);
 
           // stop propagation
           d3.event.stopPropagation();
@@ -135,9 +135,9 @@ var graphActions = (function($,d3,publisher){
     return circle.attr('cx') < w/2;
   }
 
-  function showNodeContent(textBoxId, content, condPInfo, nodeContentView){
+  function showNodeContent(textBoxId, content, condPInfo, nodeContentView, parentNames){
     // set node content to textBox and show it
-    $('#'+textBoxId).html(nodeContentView.getView(content, condPInfo));
+    $('#'+textBoxId).html(nodeContentView.getView(content, condPInfo, parentNames));
     $('#'+textBoxId).show();
   }
 
