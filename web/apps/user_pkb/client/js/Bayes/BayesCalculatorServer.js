@@ -1,6 +1,5 @@
 /**
  * It sends request on server and return calculated probabilities
- * @param type - package that is used on server, now only "gRain" (= gRain for R)
  * @constructor
  */
 GRASP.BayesCalculatorServer = function(publisher){
@@ -18,7 +17,7 @@ GRASP.BayesCalculatorServer.prototype = {
     .then(
       function (settings) {
           that.publisher.publish(
-              ['query_bayes_engine', {graphId:graphId, type:settings[GRASP.UserSettings.FIELD_BAYES_ENGINE]}]
+              ['query_bayes_engine', {graphId:graphId}]
           ).then(function(d){
           callback(d);
         });

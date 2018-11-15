@@ -382,24 +382,6 @@ GRASP.GraphElementEditor.prototype = {
     var that = this;
     var c = GRASP.createElement('div', {class:'head', style:'color: ' + nodeTypes[node.type]})
     var label = GRASP.createElement('span', {class:'label'}, GRASP.ucfirst(this.i18n.__(node.type)));
-    if (bayesEngine !== 'gRain' && node.type === 'proposition') {
-      var nodeValueTypeButton = this.UI.createButton({
-        name:'',
-        label:'',
-        type:'icon hamburgerBlack',
-        callback: function(){
-          that._nodeValueTypeModal(
-              node['value_type'],
-              node['value_range'],
-              isEditable,
-              graphId,
-              nodeContentId
-          );
-        }
-      });
-      var nodeValueType = GRASP.createElement('div', {class:'nodeValueTypeButton'});
-      nodeValueType.appendChild(nodeValueTypeButton);
-    }
 
     var remove = this.UI.createButton({
       disabled: !isEditable,
@@ -409,7 +391,23 @@ GRASP.GraphElementEditor.prototype = {
     });
 
     c.appendChild(label);
-    if (bayesEngine !== 'gRain' && node.type === 'proposition') {
+    if (node.type === 'proposition') {
+      var nodeValueTypeButton = this.UI.createButton({
+        name:'',
+        label:'',
+        type:'icon hamburgerBlack',
+        callback: function(){
+          that._nodeValueTypeModal(
+            node['value_type'],
+            node['value_range'],
+            isEditable,
+            graphId,
+            nodeContentId
+          );
+        }
+      });
+      var nodeValueType = GRASP.createElement('div', {class:'nodeValueTypeButton'});
+      nodeValueType.appendChild(nodeValueTypeButton);
       c.appendChild(nodeValueType);
     }
 

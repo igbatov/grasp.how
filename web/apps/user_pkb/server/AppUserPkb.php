@@ -219,14 +219,15 @@ class AppUserPkb extends App
       case 'query_bayes_engine':
         // create text of R script for gRain
         $graph_id = $this->getRequest()['graphId'];
-        $bayesEngineType = $this->getRequest()['type'];
 
         // Note: GRain can han handle graph that actually consists from several independent, splittered subgraphs
         $graph = $this->getBayesGraph($graph_id);
         $probabilities = $this->getBayesProbabilities($graph_id, $graph, $this->contentIdConverter);
 
+        $bayesEngineType = $this->determineGraphEngine($graph);
+
         // check for errors
-        if ($bayesEngineType === 'gRain') {
+        if ($bayesEngineType === Graphs::gRain) {
           $imperfect_nodes = $this->getImperfectNodes($graph_id, $graph, $probabilities);
         }
 
@@ -241,7 +242,7 @@ class AppUserPkb extends App
           return $this->showRawData(json_encode(array('graphId'=>$graph_id, 'result'=>'error', 'data'=>$imperfect_nodes)));
         }
 
-        if ($bayesEngineType === "WebPPL") {
+        if ($bayesEngineType === Graphs::WebPPL) {
           $engine_querier = new WebPPLQuerier($this->config->getWebPPLPath(), $this->config->getDefaultPath('tmp'));
         } else {
           $engine_querier = new GRainQuerier($this->config->getRscriptPath(), $this->config->getDefaultPath('tmp'));
@@ -1004,6 +1005,21 @@ class AppUserPkb extends App
     }
 
     return $graphs_history;
+  }
+
+  /**
+   * Determine graph engine based on graph node types
+   * @param $graph
+   * @return string
+   */
+  private function determineGraphEngine($graph) {
+    foreach ($graph['nodeTypes'] as $nodeType) {
+      if ($nodeType == 'continuous') {
+        return Graphs::WebPPL;
+      }
+    }
+
+    return Graphs::gRain;
   }
 
  /**
