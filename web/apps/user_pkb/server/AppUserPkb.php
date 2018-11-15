@@ -527,7 +527,10 @@ class AppUserPkb extends App
             return false;
           }
 
-          $this->updateUserPassword($this->getUsername(), $r['new_password']);
+          // silently refuse to update on empty password
+          if (!empty($r['new_password'])) {
+            $this->updateUserPassword($this->getUsername(), $r['new_password']);
+          }
         }
 
         /**

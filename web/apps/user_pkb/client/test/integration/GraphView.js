@@ -50,7 +50,7 @@ describe("GraphView", function(){
       },
       nodeLabel:{
         constructor: GRASP.GraphViewNodeLabel,
-        attr: {'font':'Calibri', fill:'#BBBBBB', maxSize: 24}
+        attr: {'font':'SFNSDisplay', fill:'#BBBBBB', maxSize: 24}
       }}
     };
 
