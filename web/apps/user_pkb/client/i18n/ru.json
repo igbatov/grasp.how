@@ -94,5 +94,7 @@
   "starting from": "от",
   "to": "до",
   "with tolerance range": "с областью значений",
-  "Node values probability": "Вероятности значений"
+  "Node values probability": "Вероятности значений",
+  "Continuous": "Числовой интервал",
+  "Labelled": "Список альтернатив"
 }

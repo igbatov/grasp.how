@@ -284,7 +284,7 @@ GRASP.GraphElementEditor.prototype = {
       disabled:!isEditable,
       items: {
         labelled: this.i18n.__('Labelled'),
-        discrete: this.i18n.__('Discrete'),
+        // discrete: this.i18n.__('Discrete'),
         continuous: this.i18n.__('Continuous')
       },
       value: nodeValueType,
