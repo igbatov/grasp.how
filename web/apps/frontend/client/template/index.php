@@ -230,6 +230,10 @@
       <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/j0Ae1ywJfcA"); ?>" frameborder="0" allowfullscreen></iframe>
       <p><?php echo $this->i18n->__("How to share map, clone maps of others and get their modifications"); ?></p>
     </div>
+      <div class="col-sm-6 noleft">
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/CQPSP5dUaRI"); ?>" frameborder="0" allowfullscreen></iframe>
+      <p><?php echo $this->i18n->__("How to work with continuous hypothesis. Example: XRP evaluation"); ?></p>
+    </div>
   </div>
 </div>
 <div id="contacts" class="footer">
