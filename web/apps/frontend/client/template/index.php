@@ -22,7 +22,6 @@
   <![endif]-->
   <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>CommonHelpers.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
   <script>
     <?php

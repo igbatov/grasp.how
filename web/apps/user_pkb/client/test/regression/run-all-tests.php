@@ -24,7 +24,6 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 <script src="<?php echo $app->getDefaultDir('js'); ?>jquery.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>xor4096.min.js"></script>
-<script src="<?php echo $app->getDefaultDir('js'); ?>CommonHelpers.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>Helpers.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>I18n.js"></script>
 <script src="<?php echo $app->getDefaultDir('js'); ?>TestHelpers.js"></script>
