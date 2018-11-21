@@ -33,8 +33,13 @@ $db = new MultiTenantDB(
     $c->getDbConf()->dbName
 );
 $contentIdConverter = new ContentIdConverter();
+
+// set default log file
+ini_set('error_log', $c->getDefaultPath('log')."/error_log.log");
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 $eh = new ErrorHandler();
 $logger = new Logger($db, $eh, $curdir.'../../logs', 'generator.php');
+
 $graphIdConverter = new GraphIdConverter($logger);
 
 $authIds = [];
