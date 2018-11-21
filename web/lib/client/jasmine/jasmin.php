@@ -52,7 +52,6 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 
   <!-- Spec files of unit tests --->
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/TestHelpers.js"></script>
-  <script src="<?php echo $app->getDefaultDir('js'); ?>CommonHelpers.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Helpers.js"></script>
   <!--
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Mediator.js"></script>
