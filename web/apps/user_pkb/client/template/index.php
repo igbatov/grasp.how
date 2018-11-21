@@ -26,6 +26,7 @@
   <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
   <script src='<?php echo $this->getDefaultDir('js'); ?>decimal.min.js'></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>CommonHelpers.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js"></script>
   <script src="<?php echo $this->getDefaultDir('js'); ?>Ajax.js"></script>

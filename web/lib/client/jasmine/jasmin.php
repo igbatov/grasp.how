@@ -28,6 +28,7 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
   <script src="<?php echo $app->getDefaultDir('js'); ?>jquery.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>xor4096.min.js"></script>
+  <script src="<?php echo $app->getDefaultDir('js'); ?>CommonHelpers.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>Helpers.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>TestHelpers.js"></script>
   <script src="<?php echo $app->getDefaultDir('js'); ?>Ajax.js"></script>
@@ -51,7 +52,7 @@ $app = new AppUserPkb($c, $s, $db, $logger, $i18n, $oauth);
 
   <!-- Spec files of unit tests --->
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/TestHelpers.js"></script>
-
+  <script src="<?php echo $app->getDefaultDir('js'); ?>CommonHelpers.js"></script>
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Helpers.js"></script>
   <!--
   <script type="text/javascript" src="../../../apps/user_pkb/client/test/unit/Mediator.js"></script>
