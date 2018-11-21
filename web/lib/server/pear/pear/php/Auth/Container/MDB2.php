@@ -125,13 +125,14 @@ class Auth_Container_MDB2 extends Auth_Container
                                     null
                                     );
 
-        }
+	}
 
-        if (MDB2::isError($this->db) || PEAR::isError($this->db)) {
+	if (MDB2::isError($this->db) || PEAR::isError($this->db)) {
+		$this->log('---------------------111111111111111111111111'.$this->db->getMessage()." ".$this->db->code, AUTH_LOG_DEBUG);
             return PEAR::raiseError($this->db->getMessage(), $this->db->code);
         }
-
-        if ($this->options['auto_quote']) {
+	
+	if ($this->options['auto_quote']) {
             if (strpos('.', $this->options['table']) === false) {
                 $this->options['final_table'] = $this->db->quoteIdentifier($this->options['table'], true);
             } else {

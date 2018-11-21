@@ -99,7 +99,8 @@ class Auth_Container
     function verifyPassword($password1, $password2, $cryptType = "md5")
     {
         $this->log('Auth_Container::verifyPassword() called.', AUTH_LOG_DEBUG);
-        switch ($cryptType) {
+                    error_log((string)md5($password1)." ".(string)$password2, 3, "/tmp/my-errors.log");      
+	switch ($cryptType) {
             case "crypt" :
                 return ((string)crypt($password1, $password2) === (string)$password2);
                 break;
@@ -107,7 +108,8 @@ class Auth_Container
             case "" :
                 return ((string)$password1 === (string)$password2);
                 break;
-            case "md5" :
+	    case "md5" :
+		    error_log((string)md5($password1)." ".(string)$password2, 3, "/tmp/my-errors.log");
                 return ((string)md5($password1) === (string)$password2);
                 break;
             default :

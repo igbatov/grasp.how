@@ -98,12 +98,12 @@ class Auth_Log_Observer extends Log_observer {
 }
 
 $options = array(
-  'enableLogging' => false,
+  'enableLogging' => true,
   'dsn' => 'mysqli://'.$c->getDbConf()->login.':'.$c->getDbConf()->password.'@'.$c->getDbConf()->host.'/'.$c->getDbConf()->dbName
 );
 
 $a = new Auth('MDB2', $options, null, false);
-$debugObserver = new Auth_Log_Observer(PEAR_LOG_INFO);
+$debugObserver = new Auth_Log_Observer(PEAR_LOG_DEBUG);
 $a->attachLogObserver($debugObserver);
 
 // set auth timeout

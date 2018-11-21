@@ -1,6 +1,6 @@
 var fs = require('fs');
 // include file in old school way
-eval(fs.readFileSync('/var/www/html/grasp.how/web/lib/client/Helpers.js')+'');
+eval(fs.readFileSync('/var/www/html/grasp.how/web/lib/client/CommonHelpers.js')+'');
 var d3 = require('d3');
 var jsdom = require('jsdom');
 var graphDrawer = require('/var/www/html/grasp.how/web/apps/frontend/client/js/embed/graph.js');

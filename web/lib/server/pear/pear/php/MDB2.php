@@ -326,7 +326,8 @@ class MDB2
     {
         if (!MDB2::classExists($class_name)) {
             $file_name = str_replace('_', DIRECTORY_SEPARATOR, $class_name).'.php';
-            if ($debug) {
+error_log('---------------------22222222222222222222222222 '.$file_name);    
+	    if ($debug) {
                 $include = include_once($file_name);
             } else {
                 $include = @include_once($file_name);
@@ -370,7 +371,7 @@ class MDB2
     {
         $dsninfo = MDB2::parseDSN($dsn);
         if (empty($dsninfo['phptype'])) {
-            $err = MDB2::raiseError(MDB2_ERROR_NOT_FOUND,
+		$err = MDB2::raiseError(MDB2_ERROR_NOT_FOUND,
                 null, null, 'no RDBMS driver specified');
             return $err;
         }
@@ -379,7 +380,7 @@ class MDB2
         $debug = (!empty($options['debug']));
         $err = MDB2::loadClass($class_name, $debug);
         if (MDB2::isError($err)) {
-            return $err;
+		return $err;
         }
 
         $db = new $class_name();
