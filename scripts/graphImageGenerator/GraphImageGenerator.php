@@ -44,9 +44,7 @@ class GraphImageGenerator {
       $dims = '';
     }
 
-    if (isset($preparedSnap['dims'])) {
-      unset($preparedSnap['dims']);
-    }
+    unset($preparedSnap['dims']);
 
     $filename = implode('_', array_values($preparedSnap)).$dims;
 
