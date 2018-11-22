@@ -40,10 +40,14 @@ class GraphImageGenerator {
 
     if (isset($preparedSnap['dims']) && $preparedSnap['dims']) {
       $dims = '('.$preparedSnap['dims']['width'].'x'.$preparedSnap['dims']['height'].')';
-      unset($preparedSnap['dims']);
     } else {
       $dims = '';
     }
+
+    if isset($preparedSnap['dims']) {
+      unset($preparedSnap['dims']);
+    }
+
     $filename = implode('_', array_values($preparedSnap)).$dims;
 
     return $filename;
@@ -127,6 +131,11 @@ if ($this->imagick) {
     rename(
       $this->tmpDir.'/'.$this->snapToFilename($snap).".svg",
       $this->rootDir."/web/img/graph_shots".'/'.$this->snapToFilename($snap).".svg"
+    );
+
+    rename(
+      $this->tmpDir.'/'.$this->snapToFilename($snap).".jpg",
+      $this->rootDir."/web/img/graph_shots".'/'.$this->snapToFilename($snap).".jpg"
     );
 
     // remove tmp files
