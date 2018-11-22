@@ -138,15 +138,20 @@ class AppFrontend extends App{
         $helper = new Helper();
         $graphImageGenerator = new GraphImageGenerator($embGraph, $helper, $this->getLogger(), $this->config->getNodeJSBinary());
         $extensionFree = substr($vars[2],0, strrpos($vars[2], "."));
-        $extension = substr($vars[2],strrpos($vars[2], "."));
+        $extension = substr($vars[2],strrpos($vars[2], ".")+1);
 
         if (!in_array($extension, ["svg","jpg"])) {
-          exit ("only .svg or .jpg allowed");
+          exit ("only .svg or .jpg allowed got ".$extension);
         }
 
-        $snap = $graphImageGenerator->filenameToSnap($extensionFree);
-        $filepath = $graphImageGenerator->getImage($snap, $extension);
-        $this->showImage($filepath);
+	$snap = $graphImageGenerator->filenameToSnap($extensionFree);
+	$filepath = $graphImageGenerator->getImage($snap, $extension);
+	if ($extension == 'svg') {
+	  $contentType = "image/svg+xml";
+	} else {
+	  $contentType = "image/jpeg";
+	}
+        $this->showImage($filepath, $contentType);
         return;
         break;
 
