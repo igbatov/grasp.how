@@ -31,6 +31,9 @@ To use image generation install nvm and node v4.4.3
 - nvm install 4.4.3
 - sudo apt-get install php-imagick
 - sudo apt-get install libxml2  librsvg2-bin
+- cp /root/.nvm/versions/node/v4.4.3/bin/node /usr/local/bin/nodejs
+
+(Apache should have permission to execute every directory in path /usr/local/bin/nodejs)
 
 # installation
 1. clone code
@@ -50,15 +53,17 @@ to Config.json
 - uploads
 - logs
 - web/img/graph_shots/
-
-4. copy contents of nginx-config to /etc/nginx/sites-enabled/default
-5. load databases docs/init_db/yovalue.sql, docs/init_db/yovalue_user_template.sql
+4. add permissions
+chmod o+w tmp/ embed_cache/ uploads/ logs/ img/graph_shots/
+5. copy contents of nginx-config to /etc/nginx/sites-enabled/default
+6. load databases docs/init_db/yovalue.sql, docs/init_db/yovalue_user_template.sql
 
 # cron
 ```
 30 0    * * *   root    /var/www/html/grasp.how/scripts/cron.php daily >> /var/www/html/grasp.how/logs/cron.log  2>&1
 30 1    * * *   root    /var/www/html/grasp.how/scripts/backup.php >> /var/www/html/grasp.how/logs/backup.log  2>&1
-01 5 *  *  *   root    /var/www/html/grasp.how/scripts/graphImageGenerator/generator.php >  /var/www/html/grasp.how/scripts/graphImageGenerator/generator.log 2>&1
+# optional
+#01 5 *  *  *   root    /var/www/html/grasp.how/scripts/graphImageGenerator/generator.php >  /var/www/html/grasp.how/scripts/graphImageGenerator/generator.log 2>&1
 
 */5 * *  *  *   root    /bin/date >> /var/log/pidstat/pidstatCPU.log
 */5 * *  *  *   root    /usr/bin/pidstat -l 300 1  | awk '$1 ~ !/Average/ { print }'  >> /var/log/pidstat/pidstatCPU.log  2>&1

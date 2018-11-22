@@ -79,9 +79,10 @@ class GraphImageGenerator {
   }
   /**
    * @param $snap ['graphId'=>, 'step'=>, 'ts'=>, 'dims'=>]
+   * @param $format - 'jpg' or 'svg'
    * @return string
    */
-  public function getImage($snap)
+  public function getImage($snap, $format)
   {
     file_put_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.json', json_encode(
         $this->embGraph->getGraphsData([$snap])
@@ -119,7 +120,7 @@ class GraphImageGenerator {
     // remove tmp files
     unlink($this->tmpDir.'/'.$this->snapToFilename($snap).'.json');
 
-    return $this->rootDir."/web/img/graph_shots/".$this->snapToFilename($snap).".jpg";
+    return $this->rootDir."/web/img/graph_shots/".$this->snapToFilename($snap).".".$format;
   }
 }
 

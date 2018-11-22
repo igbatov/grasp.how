@@ -138,9 +138,14 @@ class AppFrontend extends App{
         $helper = new Helper();
         $graphImageGenerator = new GraphImageGenerator($embGraph, $helper, $this->getLogger(), $this->config->getNodeJSBinary());
         $extensionFree = substr($vars[2],0, strrpos($vars[2], "."));
+        $extension = substr($vars[2],strrpos($vars[2], "."));
+
+        if (!in_array($extension, ["svg","jpg"])) {
+          exit ("only .svg or .jpg allowed");
+        }
 
         $snap = $graphImageGenerator->filenameToSnap($extensionFree);
-        $filepath = $graphImageGenerator->getImage($snap);
+        $filepath = $graphImageGenerator->getImage($snap, $extension);
         $this->showImage($filepath);
         return;
         break;
