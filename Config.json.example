@@ -13,6 +13,7 @@
   "channel":"alpha",
   "RscriptPath":"/usr/bin/Rscript",
   "WebPPLPath":"/usr/local/bin/webppl",
+  "NodeJSBinary":"/usr/local/bin/nodejs",
   "OAuthUser":{
     "vk":{
       "client_id": "someid",

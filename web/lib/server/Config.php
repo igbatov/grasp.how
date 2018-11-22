@@ -55,6 +55,10 @@ class Config{
     return $this->config_json['WebPPLPath'];
   }
 
+  public function getNodeJSBinary(){
+    return $this->config_json['NodeJSBinary'];
+  }
+
   public function getWebDomainURL(){
     return (isset($_SERVER['HTTPS']) ? 'https://' : 'http://' ) . $this->getWebDomainName();
   }

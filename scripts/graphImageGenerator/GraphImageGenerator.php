@@ -14,11 +14,15 @@ class GraphImageGenerator {
   private $helper;
   private $logger;
 
-  public function __construct(EmbGraph $embGraph, Helper $helper, Logger $logger)
+  public function __construct(EmbGraph $embGraph, Helper $helper, Logger $logger, $nodejsBinary=null)
   {
     $this->embGraph = $embGraph;
     $this->imagick = $helper->getImagick();
-    $this->node = $helper->getNodeBinary();
+    if (empty($nodejsBinary)) {
+      $this->node = $helper->getNodeBinary();
+    } else {
+      $this->node = $nodejsBinary;
+    }
     $this->currentDir = dirname(__FILE__);
     $this->rootDir = $this->currentDir.'/../..';
     $this->tmpDir = $this->rootDir."/tmp";

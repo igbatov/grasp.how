@@ -136,7 +136,7 @@ class AppFrontend extends App{
         $embGraph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $graphHelper);
 
         $helper = new Helper();
-        $graphImageGenerator = new GraphImageGenerator($embGraph, $helper, $this->getLogger());
+        $graphImageGenerator = new GraphImageGenerator($embGraph, $helper, $this->getLogger(), $this->config->getNodeJSBinary());
         $extensionFree = substr($vars[2],0, strrpos($vars[2], "."));
 
         $snap = $graphImageGenerator->filenameToSnap($extensionFree);
