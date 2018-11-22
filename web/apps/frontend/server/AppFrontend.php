@@ -144,13 +144,13 @@ class AppFrontend extends App{
           exit ("only .svg or .jpg allowed got ".$extension);
         }
 
-	$snap = $graphImageGenerator->filenameToSnap($extensionFree);
-	$filepath = $graphImageGenerator->getImage($snap, $extension);
-	if ($extension == 'svg') {
-	  $contentType = "image/svg+xml";
-	} else {
-	  $contentType = "image/jpeg";
-	}
+        $snap = $graphImageGenerator->filenameToSnap($extensionFree);
+        $filepath = $graphImageGenerator->getImage($snap, $extension);
+        if ($extension == 'svg') {
+          $contentType = "image/svg+xml";
+        } else {
+          $contentType = "image/jpeg";
+        }
         $this->showImage($filepath, $contentType);
         return;
         break;

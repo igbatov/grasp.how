@@ -98,20 +98,32 @@ class GraphImageGenerator {
     $this->logger->log($cmd);
     $this->logger->log(var_export($output, true));
 
-    $svg = file_get_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.svg');
-    $svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'.$svg;
 
-    if ($this->imagick) {
-      $this->imagick->readImageBlob($svg);
-      $this->imagick->setImageFormat('jpg');
-      $this->imagick->setImageCompressionQuality(90);
-      $this->imagick->writeImage($this->tmpDir.'/'.$this->snapToFilename($snap).".jpg");
-      // mv jpeg to its directory
-      rename(
-        $this->tmpDir.'/'.$this->snapToFilename($snap).".jpg",
-        $this->rootDir."/web/img/graph_shots".'/'.$this->snapToFilename($snap).".jpg"
-      );
-    }
+    $cmd = "/usr/bin/convert ".$this->tmpDir.'/'.$this->snapToFilename($snap).'.svg '.$this->tmpDir.'/'.$this->snapToFilename($snap).'.jpg';
+    exec($cmd, $output);
+
+    $this->logger->log($cmd);
+    $this->logger->log(var_export($output, true));
+
+
+
+/*
+$svg = file_get_contents($this->tmpDir.'/'.$this->snapToFilename($snap).'.svg');
+$svg = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'.$svg;
+
+
+if ($this->imagick) {
+  $this->imagick->readImageBlob($svg);
+  $this->imagick->setImageFormat('jpg');
+  $this->imagick->setImageCompressionQuality(90);
+  $this->imagick->writeImage($this->tmpDir.'/'.$this->snapToFilename($snap).".jpg");
+  // mv jpeg to its directory
+  rename(
+    $this->tmpDir.'/'.$this->snapToFilename($snap).".jpg",
+    $this->rootDir."/web/img/graph_shots".'/'.$this->snapToFilename($snap).".jpg"
+  );
+}
+*/
     rename(
       $this->tmpDir.'/'.$this->snapToFilename($snap).".svg",
       $this->rootDir."/web/img/graph_shots".'/'.$this->snapToFilename($snap).".svg"
