@@ -1,5 +1,5 @@
 <?php
-  $cloneUrl = 'http://my.grasp.how/cloneGraph/'.$snaps[0]['graphId'].'/'.$snaps[0]['step'].'/'.$snaps[0]['ts'];
+  $cloneUrl = 'http://my.grasp.how/cloneGraph/'.$template['snap']['graphId'].'/'.$template['snap']['step'].'/'.$template['snap']['ts'];
 ?>
 <!doctype html>
 <html>
@@ -8,15 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!--  Customize snippet with https://developers.facebook.com/tools/debug/sharing  -->
-    <meta property="og:url"           content="<?php echo $url ?>" />
+    <meta property="og:url"           content="<?php echo $template['url'] ?>" />
     <meta property="og:type"          content="website" />
-    <meta property="og:title"         content="<?php echo $graphsData[$graph_ids[0]]['name']; ?>" />
-    <meta property="og:description"   content="Look at rationale behind '<?php echo $graphsData[$graph_ids[0]]['name']; ?>'" />
-    <meta property="og:image"         content="http://www.grasp.how/img/graph_shots/<?php echo $snaps[0]['graphId'].'_'.$snaps[0]['step'].'_'.$snaps[0]['ts']; ?>.jpg" />
+    <meta property="og:title"         content="<?php echo $template['graphsData'][$template['snap']['graphId']]['name']; ?>" />
+    <meta property="og:description"   content="Look at rationale behind '<?php echo $template['graphsData'][$template['snap']['graphId']]['name']; ?>'" />
+    <meta property="og:image"         content="http://www.grasp.how/img/graph_shots/<?php echo $template['snap']['graphId'].'_'.$template['snap']['step'].'_'.$template['snap']['ts']; ?>.jpg" />
     <meta property="og:image:width"   content="1280" />
     <meta property="og:image:height"  content="960" />
 
-    <title><?php echo $graphsData[$graph_ids[0]]['name']; ?></title>
+    <title><?php echo $template['graphsData'][$template['snap']['graphId']]['name']; ?></title>
 
     <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/embed.css">
 
@@ -49,7 +49,7 @@
         echo 'GRASP.TRANSLATIONS = '.json_encode($this->i18n->showAllTranslations()).';';
         echo 'GRASP.LANGUAGE = "'.$this->i18n->getLang().'";';
         /** show fbShareButton or not */
-        echo 'withFbShare = '.($withFbShare ? 'true' : 'false');
+        echo 'withFbShare = '.($template['withFbShare'] ? 'true' : 'false');
       ?>
     </script>
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
@@ -61,28 +61,28 @@
     <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."share_track.js" ?>"></script>
   </head>
   <body>
-  <?php if($withFbShare) include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
+  <?php if($template['withFbShare']) include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>
 
-  <?php if ($editMapRibbon) : ?>
-  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='<?php echo $cloneUrl; ?>' title="edit map on grasp.how" data-graph_id="<?php echo $graph_ids[0]; ?>">Edit me on grasp.how</a>
+  <?php if ($template['editMapRibbon']) : ?>
+  <a id="clone-ribbon" class="github-fork-ribbon right-top" target="_blank" href='<?php echo $cloneUrl; ?>' title="edit map on grasp.how" data-graph_id="<?php echo $template['snap']['graphId']; ?>">Edit me on grasp.how</a>
   <?php endif ?>
   <div id="graphMenuContainer"><ul id="graphMenu"></ul></div>
 
   <div id="graphContainer"></div>
 
-  <?php if($withFbShare): ?>
-  <div style="float: right; margin-right: 7%;"  id="fb-share-btn-wrap" data-graph_id="<?php echo $graph_ids[0]; ?>">
-    <div id="fb-share-btn" class="fb-share-button" data-href="<?php echo $url; ?>" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($url) ?>">Share</a></div>
+  <?php if($template['withFbShare']): ?>
+  <div style="float: right; margin-right: 7%;"  id="fb-share-btn-wrap" data-graph_id="<?php echo $template['snap']['graphId']; ?>">
+    <div id="fb-share-btn" class="fb-share-button" data-href="<?php echo $template['url']; ?>" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($template['url']) ?>">Share</a></div>
   </div>
   <?php endif ?>
   <script>
-    GRASP.GRAPHS_DATA = <?php echo $graphsData ? json_encode($graphsData) : ""; ?>
+    GRASP.GRAPHS_DATA = <?php echo $template['graphsData'] ? json_encode($template['graphsData']) : ""; ?>
   </script>
-  <?php if (!$editMapRibbon) : ?>
+  <?php if (!$template['editMapRibbon']) : ?>
     <div class="editMapButton"><a target="_blank" href='<?php echo $cloneUrl; ?>' class="btn">Edit map</a></div>
   <?php endif ?>
   <div id="pageInfo" style="display: none;">
-    <?php echo json_encode($pageInfo); ?>
+    <?php echo json_encode($template['pageInfo']); ?>
   </div>
   </body>
 </html>

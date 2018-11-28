@@ -332,6 +332,7 @@ Modules['Mediator'].setSubscriptions(
       'repository_update_node_mapping':[Modules['Repository']],
       'repository_get_user_settings':[Modules['Repository']],
       'repository_set_user_settings':[Modules['Repository']],
+      'repository_get_hash_by_snap':[Modules['Repository']],
       'find_publishers':[Modules['Repository']],
       'find_sources':[Modules['Repository']],
       'query_bayes_engine':[Modules['Repository']],

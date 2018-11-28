@@ -3,6 +3,7 @@
 include_once("EmbGraph.php");
 include_once(dirname(__FILE__)."/../../../../scripts/graphImageGenerator/GraphImageGenerator.php");
 include_once(dirname(__FILE__)."/../../../../web/lib/server/NodeContentSnapBuilder.php");
+include_once(dirname(__FILE__)."/../../../../web/lib/server/Snap.php");
 
 class AppFrontend extends App{
   private $contentIdConverter;
@@ -68,10 +69,40 @@ class AppFrontend extends App{
       case 'show':
       case 'embed':
         // sanity check
-        if(strlen($vars[1])>255) exit('Too many snaps');
+        if(strlen($vars[1])>255) {
+          exit('Too long snaps');
+        }
 
-        $snaps = json_decode(urldecode($vars[1]),true);
-        if(!is_array($snaps)) exit('Bad JSON');
+        if (substr($_SERVER['REQUEST_URI'], -5) == '.html') {
+          $authId = $vars[1];
+          $hash = substr($vars[2], 0, -5);
+          $rows = $this->getDB()->exec($authId, "SELECT * FROM snap_hash WHERE hash = :hash", ['hash'=>$hash]);
+          if (empty($rows)) {
+            exit('hash '.$hash.' not found');
+          }
+          $options = empty($rows[0]['settings']) ? [] : json_decode($rows[0]['settings'], true);
+          if (!is_array($options)) {
+            exit('Bad json in settings');
+          }
+          $local_graph_id = $rows[0]['local_graph_id'];
+          $snapVars = [
+            'graphId'=>$this->graphIdConverter->createGlobalGraphId($authId, $local_graph_id),
+            'step'=>$rows[0]['step'],
+            'ts'=>$rows[0]['ts'],
+          ];
+          $snap = new Snap($snapVars, $this->graphIdConverter, $this->db, $this->logger);
+
+        } else {
+          // assume we got vars in json
+          $snapVars = json_decode(urldecode($vars[1]),true);
+          if(!is_array($snapVars)) {
+            exit('Bad JSON');
+          }
+          $options = isset($_REQUEST['p']) ? json_decode($_REQUEST['p'], true) : null;
+          $snap = new Snap($snapVars, $this->graphIdConverter, $this->db, $this->logger);
+          $hash = $snap->createHashBySnap($options);
+          $authId = $snap->getAuthId();
+        }
 
       /**
        * If there is no cache - make it and output
@@ -79,42 +110,27 @@ class AppFrontend extends App{
         $service = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
         $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $service);
 
-        $hash = $emb_graph->snapsToFilename($snaps);
-        $cachePath = $this->getAppDir('embed_cache', false)."/".$hash.".html";
-
-        // comment this to turn cache off
-        if(file_exists($cachePath)) {
-          echo file_get_contents($cachePath);
-          return;
+        $cacheDir = $this->getAppDir('embed_cache', false).'/'.$authId;
+        if (!file_exists($cacheDir)) {
+          mkdir($cacheDir, 0777, true);
         }
+        $cachePath = $cacheDir."/".$hash.".html";
 
-        $options = isset($_REQUEST['p']) ? json_decode($_REQUEST['p'], true) : null;
-        $withFbShare = isset($options['withFbShare']) ? $options['withFbShare'] : true;
-        $editMapRibbon = isset($options['editMapRibbon']) ? $options['editMapRibbon'] : true;
-
-        $graph_ids = [];
-        foreach($snaps as $snap) {
-          $this->graphIdConverter->throwIfNotGlobal($snap['graphId']);
-          $graph_ids[] = $snap['graphId'];
-        }
-
-        $graphsData = $emb_graph->getGraphsData($snaps);
-        $url = 'http://www.grasp.how/show/'.$vars[1].'';
+        $this->graphIdConverter->throwIfNotGlobal($snap->getGraphId());
 
         // create snapshot of node_contents for each snap
-        foreach ($snaps as $snap) {
-          $authId = $this->graphIdConverter->getAuthId($snap['graphId']);
-          $local_graph_id = $this->graphIdConverter->getLocalGraphId($snap['graphId']);
-          $timestamp = $snap['ts'];
+        $this->snapBuilder->createSnapshots($authId, null, $snap->getLocalGraphId(), $snap->getTs());
 
-          $this->snapBuilder->createSnapshots($authId, null, $local_graph_id, $timestamp);
-        }
-
-        // just want to save original request for future possible usage
-        $pageInfo = [
-            'hash_source'=>var_export($_SERVER['REQUEST_URI'], true)
+        // all variables that is used in template
+        $template = [
+          'withFbShare' => isset($options['withFbShare']) ? $options['withFbShare'] : true,
+          'editMapRibbon' => isset($options['editMapRibbon']) ? $options['editMapRibbon'] : true,
+          'url' => 'http://www.grasp.how/embed/'.$authId."/".$hash.".html",
+          'graphsData' => $emb_graph->getGraphsData([$snapVars]),
+          // just want to save original request for future possible usage
+          'pageInfo' => ['hash_source'=>var_export($_SERVER['REQUEST_URI'], true)],
+          'snap' => ['graphId'=>$snap->getGraphId(), 'step'=>$snap->getStep(), 'ts'=>$snap->getTs()]
         ];
-
         // Turn on output buffering
         ob_start();
         include($this->getAppDir("template", false)."/embed.php");

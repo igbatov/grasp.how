@@ -530,11 +530,6 @@ GRASP.GraphMenu.prototype = {
     .then(function(steps){
       var step = steps[graphId];
       var m = that.UI.createModal({class:'wide'});
-      // exactly the same string must be in embedjs.php document.getElementById to get outer div
-      // (to insert iframe in it)
-      var divId = 'grasp-how-501cb8beb66019e90ed669caadbe7ad4';
-      var jsId = that.UI.generateId();
-      var imgId = that.UI.generateId();
       var title = GRASP.createElement(
           'div',
           {class:'shareTitle'},
@@ -543,82 +538,138 @@ GRASP.GraphMenu.prototype = {
               that.graphs[graphId].getGraphName()
           )
       );
-      var jsTitle = GRASP.createElement(
-          'div',
-          {class:'jsTitle'},
-          that.i18n.__('Javascript code for interactive map')
-      );
+
       var data = {"graphId":graphId,"step":step,"ts":Date.now()};
-      var jsCode = GRASP.createElement(
-          'div',
-          {id:jsId, class:'jsCode'},
-          '<div id="'+divId+'"><script src=\'http://www.grasp.how/embed.js?data={"snaps":['+
-            JSON.stringify(data)
-          +'],"editMapRibbon":false}\'></script></div>',
-          null,
-          true
-      );
-      var jsButton = that.UI.createButton({
-        rowType:'button',
-        type:'bigButton uppercase',
-        label:that.i18n.__('copy javascript'),
-        callback: function(){
-          GRASP.copyToClipboard(jsId);
-        }
-      });
-      var imgTitle = GRASP.createElement(
-          'div',
-          {class:'imgTitle'},
-          that.i18n.__('HTML code for non-interactive image')
-      );
-      var defaultImgSize = '700x500';
-      var imgSizeSelect = that.UI.createSelectBox({
-        name: 'imgSizeSelect',
-        items: {
-          '250x250': '250x250',
-          '700x500': '700x500',
-          '1280x960': '1280x960',
-        },
-        defaultValue: defaultImgSize,
-        callback: function(name, key){
-          var imgCode = document.getElementById(imgId);
-          imgCode.innerText = imgCode.innerText.replace(new RegExp('\\(.+\\)'), '('+key+')');
-        },
-        dropType: 'single',
-        withDownArrow: true
-      });
-      imgSizeSelect.className = imgSizeSelect.className+' imgSizeSelect';
-      var imgSizeSelectPostfix = GRASP.createElement('span',{class:'imgSizeSelectPostfix'},'px');
-      var imgCode = GRASP.createElement(
-          'div',
-          {id:imgId, class:'imgCode'},
-          '<a target="_blank" href=\'http://www.grasp.how/embed/['+JSON.stringify(data)+']?p={"editMapRibbon":false}\'>' +
-          '<img src=\'http://www.grasp.how/img/graph_shots/'
-          +data.graphId+'_'+data.step+'_'+data.ts+'('+defaultImgSize+')'+'.jpg\'>' +
-          '</a>',
-          null,
-          true
-      );
-      var imgButton = that.UI.createButton({
-        rowType:'button',
-        type:'bigButton uppercase',
-        label:that.i18n.__('copy HTML'),
-        callback: function(){
-          GRASP.copyToClipboard(imgId);
-        }
-      });
-      var c = GRASP.createElement('div',{class:'share'});
-      c.appendChild(title);
-      c.appendChild(jsTitle);
-      c.appendChild(jsCode);
-      c.appendChild(jsButton);
-      c.appendChild(imgTitle);
-      c.appendChild(imgSizeSelect);
-      c.appendChild(imgSizeSelectPostfix);
-      c.appendChild(imgCode);
-      c.appendChild(imgButton);
-      that.UI.setModalContent(m, c);
+      that.publisher
+        .publish(['repository_get_hash_by_snap', {graphId: graphId, step: step, ts: data.ts,  settings:'{"editMapRibbon":false}'}])
+        .then(function (data) {
+          var hash = data['hash']
+          var linkBlock = that._getLinkShareBlock(hash);
+          var jsBlock = that._getJsShareBlock(hash);
+          var imgBlock = that._getImgShareBlock(hash);
+
+          var c = GRASP.createElement('div',{class:'share'});
+
+          c.appendChild(title);
+          c.appendChild(linkBlock);
+          c.appendChild(jsBlock);
+          c.appendChild(imgBlock);
+          that.UI.setModalContent(m, c);
+        });
     });
+  },
+
+  _getLinkShareBlock: function(hash){
+    var id = this.UI.generateId();
+
+    var title = GRASP.createElement(
+      'div',
+      {class:'firstTitle'},
+      this.i18n.__('Link on this map')
+    );
+    var code = GRASP.createElement(
+      'div',
+      {id:id, class:'code'},
+      'http://www.grasp.how/embed/' + hash + '.html',
+      null,
+      true
+    );
+
+    var c = GRASP.createElement('div', {});
+    c.appendChild(title);
+    c.appendChild(code);
+
+    return c;
+  },
+
+  _getImgShareBlock: function(hash) {
+    var imgId = this.UI.generateId();
+    var imgTitle = GRASP.createElement(
+      'div',
+      {class:'nextTitle'},
+      this.i18n.__('HTML code for non-interactive image')
+    );
+    var defaultImgSize = '700x500';
+    var imgSizeSelect = this.UI.createSelectBox({
+      name: 'imgSizeSelect',
+      items: {
+        '250x250': '250x250',
+        '700x500': '700x500',
+        '1280x960': '1280x960',
+      },
+      defaultValue: defaultImgSize,
+      callback: function(name, key){
+        var imgCode = document.getElementById(imgId);
+        imgCode.innerText = imgCode.innerText.replace(new RegExp('\\(.+\\)'), '('+key+')');
+      },
+      dropType: 'single',
+      withDownArrow: true
+    });
+    imgSizeSelect.className = imgSizeSelect.className+' imgSizeSelect';
+    var imgSizeSelectPostfix = GRASP.createElement('span',{class:'imgSizeSelectPostfix'},'px');
+    var imgCode = GRASP.createElement(
+      'div',
+      {id:imgId, class:'code'},
+      '<a target="_blank" href=\'http://www.grasp.how/embed/' + hash + '\'>' +
+      '<img src=\'http://www.grasp.how/img/graph_shots/' + hash + '('+defaultImgSize+')'+'.jpg\'>' +
+      '</a>',
+      null,
+      true
+    );
+    var imgButton = this.UI.createButton({
+      rowType:'button',
+      type:'bigButton uppercase',
+      label:this.i18n.__('copy HTML'),
+      callback: function(){
+        GRASP.copyToClipboard(imgId);
+      }
+    });
+
+
+    var c = GRASP.createElement('div', {});
+    c.appendChild(imgTitle);
+    c.appendChild(imgSizeSelect);
+    c.appendChild(imgSizeSelectPostfix);
+    c.appendChild(imgCode);
+    c.appendChild(imgButton);
+
+    return c;
+  },
+
+  _getJsShareBlock: function(hash){
+    // exactly the same string must be in embedjs.php document.getElementById to get outer div
+    // (to insert iframe in it)
+    var divId = 'grasp-how-501cb8beb66019e90ed669caadbe7ad4';
+    var jsId = this.UI.generateId();
+
+    var jsTitle = GRASP.createElement(
+      'div',
+      {class:'nextTitle'},
+      this.i18n.__('Javascript code for interactive map')
+    );
+
+    var jsCode = GRASP.createElement(
+      'div',
+      {id:jsId, class:'code'},
+      '<div id="'+divId+'"><script src=\'http://www.grasp.how/embed.js?data=' + hash + '\'></script></div>',
+      null,
+      true
+    );
+    var jsButton = this.UI.createButton({
+      rowType:'button',
+      type:'bigButton uppercase',
+      label:this.i18n.__('copy javascript'),
+      callback: function(){
+        GRASP.copyToClipboard(jsId);
+      }
+    });
+
+    var c = GRASP.createElement('div', {});
+    c.appendChild(jsTitle);
+    c.appendChild(jsCode);
+    c.appendChild(jsButton);
+
+    return c;
   },
 
   _showSources: function(){

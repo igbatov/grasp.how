@@ -5,6 +5,7 @@ include("AbstractQuerier.php");
 include("WebPPLQuerier.php");
 include("GRainQuerier.php");
 include_once(__DIR__."/../../../lib/server/NodeContentSnapBuilder.php");
+include_once(__DIR__."/../../../lib/server/Snap.php");
 
 /**
  * Controller - entry point for all requests
@@ -215,6 +216,20 @@ class AppUserPkb extends App
       /* READ METHODS */
       case 'load_translations':
         return $this->showRawData(json_encode($this->i18n->showAllTranslations()));
+        break;
+      case 'get_hash_by_snap':
+        $r = $this->getRequest();
+        if (!isset($r['settings']) || !isset($r['graphId']) || !isset($r['step']) || !isset($r['ts'])) {
+          exit('wrong params');
+        }
+        if(!$this->graphIdConverter->isGraphIdGlobal($r['graphId'])){
+          $this->logger->log("Error: graphId=".$r['graphId']." but must be in a global format. Exiting...");
+          return false;
+        }
+        $snap = new Snap($r, $this->graphIdConverter, $this->db, $this->logger);
+        return $this->showRawData(json_encode([
+          'hash'=>$snap->getAuthId().'/'.$snap->createHashBySnap($r['settings'])
+        ]));
         break;
       case 'query_bayes_engine':
         // create text of R script for gRain

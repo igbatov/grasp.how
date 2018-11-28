@@ -35,6 +35,9 @@ To use image generation install nvm and node v4.4.3
 
 (Apache should have permission to execute every directory in path /usr/local/bin/nodejs)
 
+Make sure /usr/bin/convert exists and properly converts file.svg to file.jpg with
+"/usr/bin/convert file.svg file.jpg" command
+
 # installation
 1. clone code
 2. add Config.json
@@ -48,7 +51,7 @@ to Config.json
 
 3. Add directories 
 - backups/
-- embed_cache
+- web/embed
 - tmp
 - uploads
 - logs

@@ -240,6 +240,12 @@ GRASP.Repository.prototype = {
       }});
       this.sendPendingRequests();
 
+    }else if(name == 'repository_get_hash_by_snap'){
+      this.pendingRequests.push({url:'get_hash_by_snap', data:e.getData(), callback:function(data){
+        that.setEventResponse(e, data, 'JSON');
+      }});
+      this.sendPendingRequests();
+
     }
   },
 

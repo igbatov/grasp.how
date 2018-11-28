@@ -15,20 +15,16 @@
     padding: 0 1em 1em 1em;
 }
 
-.share .jsTitle {
+.share .firstTitle {
     font-family: 'Roboto-Bold';
     margin-top: 2em;
 }
 
-.share .jsCode {
-    color: #788d98;
-}
-
-.share .imgTitle::before{
+.share .nextTitle::before{
     content: '';
     clear: both;
 }
-.share .imgTitle {
+.share .nextTitle {
     display: inline-block;
     font-family: 'Roboto-Bold';
     margin-top: 2.5em;
@@ -49,7 +45,7 @@
     font-size: 14px;
 }
 
-.share .imgCode {
+.share .code {
     color: #788d98;
 }
 
