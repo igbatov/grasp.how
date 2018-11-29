@@ -82,8 +82,8 @@
       <span>Показываем вероятность ваших гипотез исходя из фактов и их достоверности</span>
     </h1>
     <div id="grasp-how-501cb8beb66019e90ed669caadbe7ad4" style="height: 500px;">
-      <script src='http://www.grasp.how/embed.js?data={"snaps":[{"graphId":"1.155","step":28,"ts":1505413982595}],"withFbShare":false,"editMapRibbon":false}'></script>
-    </div>
+<script src='http://www.grasp.how/embed.js?data=13/3920745505'></script>    
+</div>
   </div>
 </div>
 <div class="box2">
