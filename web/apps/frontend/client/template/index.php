@@ -219,19 +219,19 @@
   <div class="container padding50">
     <h1>Видео-инструкции</h1>
     <div class="col-sm-6 noleft">
-      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/D_BMNLUkro8"); ?>" frameborder="0" allowfullscreen></iframe>
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/xu1_WoEcGqc"); ?>" frameborder="0" allowfullscreen></iframe>
       <p><?php echo $this->i18n->__("What is grasp.how and how to use it, in a nutshell"); ?></p>
     </div>
     <div class="col-sm-6 noright">
-      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/Dm23kNi_KYY"); ?>" frameborder="0" allowfullscreen></iframe>
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/ai40HbjzLJQ"); ?>" frameborder="0" allowfullscreen></iframe>
       <p><?php echo $this->i18n->__("Real-life example: map of Evolution theory"); ?></p>
     </div>
     <div class="col-sm-6 noleft">
-      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/j0Ae1ywJfcA"); ?>" frameborder="0" allowfullscreen></iframe>
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/eBuXwf-Gj7M"); ?>" frameborder="0" allowfullscreen></iframe>
       <p><?php echo $this->i18n->__("How to share map, clone maps of others and get their modifications"); ?></p>
     </div>
       <div class="col-sm-6 noleft">
-      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/CQPSP5dUaRI"); ?>" frameborder="0" allowfullscreen></iframe>
+      <iframe src="<?php echo $this->i18n->__("https://www.youtube.com/embed/i1YR76AWqrA"); ?>" frameborder="0" allowfullscreen></iframe>
       <p><?php echo $this->i18n->__("How to work with continuous hypothesis. Example: XRP evaluation"); ?></p>
     </div>
   </div>
