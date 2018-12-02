@@ -5,7 +5,7 @@
  */
 $graph = [
     'nodeTypes' => [
-        'e1'=>'labelled', 'e2'=>'labelled', 'h1'=>'labelled'
+        'e1'=>Graphs::NODE_VALUE_TYPE_LABELLED, 'e2'=>Graphs::NODE_VALUE_TYPE_LABELLED, 'h1'=>Graphs::NODE_VALUE_TYPE_LABELLED
     ],
     'nodes'=>[
         'e1'=>[1,2], 'e2'=>[1,2], 'h1'=>[1,2]
@@ -78,7 +78,7 @@ console.log(JSON.stringify(dist.getDist()));
 EOT;
 
 $expectedResult = <<<EOT
-{"h1":{"2":0.00089135748034493,"1":0.99910864251965}}
+{"h1":{"2":0.0008913574803449336,"1":0.9991086425196549}}
 EOT;
 
 return [

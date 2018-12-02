@@ -254,9 +254,11 @@ class GraphDiffCreator{
 
     $q = 'SELECT * FROM node_content WHERE graph_id="'.$alternative['cloned_from_graph_id'].'" AND local_content_id="'.$alternative['cloned_from_local_content_id'].'" AND alternative_id="'.$alternative['alternative_id'].'"';
     $rows = $db->exec($alternative['cloned_from_auth_id'], $q);
-    if(!self::isClonePEqual($graphIdConverter, $rows[0], $alternative)) return true;
+    if(!self::isClonePEqual($row['value_type'], $graphIdConverter, $rows[0], $alternative)) return true;
     if(
         $rows[0]['type'] != $alternative['type']
+        || $rows[0]['value_type'] != $alternative['value_type']
+        || $rows[0]['value_range'] != $alternative['value_range']
         || $rows[0]['reliability'] != $alternative['reliability']
         || $rows[0]['importance'] != $alternative['importance']
         || $rows[0]['label'] != $alternative['label']
@@ -274,12 +276,13 @@ class GraphDiffCreator{
 
   /**
    * Check that conditional probabilities of node alternative and its clone are equal
+   * @param 'continuous'|'discrete'|'labelled' $nodeValueType
    * @param GraphIdConverter $graphIdConverter
    * @param $original
    * @param $clone
    * @return bool
    */
-  public static function isClonePEqual(GraphIdConverter $graphIdConverter, $original, $clone)
+  public static function isClonePEqual($nodeValueType, GraphIdConverter $graphIdConverter, $original, $clone)
   {
     if(
         $original['graph_id'] !== $clone['cloned_from_graph_id']
@@ -297,7 +300,7 @@ class GraphDiffCreator{
     );
 
     $contentIdConverter = new ContentIdConverter();
-    $mustBe = Graphs::convertPforClone($cloneP, $globalOriginalGraphId, $contentIdConverter);
+    $mustBe = Graphs::convertPforClone($nodeValueType, $cloneP, $globalOriginalGraphId, $contentIdConverter);
 
     return $mustBe == $originalP;
   }

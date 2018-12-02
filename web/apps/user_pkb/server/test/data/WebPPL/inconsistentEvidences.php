@@ -5,7 +5,7 @@
  */
 $graph = [
     'nodeTypes' => [
-        'e1'=>'labelled', 'e2'=>'labelled', 'h1'=>'labelled'
+        'e1'=>Graphs::NODE_VALUE_TYPE_LABELLED, 'e2'=>Graphs::NODE_VALUE_TYPE_LABELLED, 'h1'=>Graphs::NODE_VALUE_TYPE_LABELLED
     ],
     'nodes'=>[
         'e1'=>[1,2], 'e2'=>[1,2], 'h1'=>[1,2]

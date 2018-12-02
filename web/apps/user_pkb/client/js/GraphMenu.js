@@ -539,7 +539,7 @@ GRASP.GraphMenu.prototype = {
           )
       );
 
-      var data = {"graphId":graphId,"step":step,"ts":Date.now()};
+      var data = {"graphId":graphId,"step":step,"ts":Math.round(Date.now()/1000)};
       that.publisher
         .publish(['repository_get_hash_by_snap', {graphId: graphId, step: step, ts: data.ts,  settings:'{"editMapRibbon":false}'}])
         .then(function (data) {

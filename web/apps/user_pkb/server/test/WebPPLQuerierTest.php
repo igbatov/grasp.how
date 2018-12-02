@@ -13,6 +13,7 @@
  */
 $path = dirname(__FILE__);
 require_once ($path.'/../../../../../web/lib/server/Config.php');
+require_once ($path.'/../../../../../web/lib/server/Graphs.php');
 include_once('../AbstractQuerier.php');
 include_once('../WebPPLQuerier.php');
 

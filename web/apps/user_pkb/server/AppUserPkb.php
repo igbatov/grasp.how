@@ -69,7 +69,13 @@ class AppUserPkb extends App
       return $this->showRawData();
 
     }elseif($vars[0] === 'createNodeContentSnapshots'){
-      $timestamp = $this->snapBuilder->createSnapshots($this->getAuthId());
+      $localGraphId = null;
+      if (isset($vars[1])) {
+        $localGraphId = $vars[1];
+      }
+
+      $timestamp = $this->snapBuilder->createSnapshots($this->getAuthId(), null, $localGraphId);
+
       return $this->showRawData(json_encode(['timestamp'=>$timestamp]));
 
     }elseif($vars[0] === 'cloneGraph'){
@@ -1029,7 +1035,7 @@ class AppUserPkb extends App
    */
   private function determineGraphEngine($graph) {
     foreach ($graph['nodeTypes'] as $nodeType) {
-      if ($nodeType == 'continuous') {
+      if ($nodeType == Graphs::NODE_VALUE_TYPE_CONTINUOUS) {
         return Graphs::WebPPL;
       }
     }
@@ -1076,12 +1082,12 @@ class AppUserPkb extends App
       if($row['type'] == 'fact') {
         // fact always has only two alternatives
         $graph['nodes'][$row['local_content_id']] = ['0','1'];
-        $graph['nodeTypes'][$row['local_content_id']] = 'labelled';
+        $graph['nodeTypes'][$row['local_content_id']] = Graphs::NODE_VALUE_TYPE_LABELLED;
       }
       if($row['type'] == 'proposition') {
         // grain uses only $row['value_type'] === 'labelled'
-        if ($row['value_type'] === 'discrete') {
-          $graph['nodeTypes'][$row['local_content_id']] = 'discrete';
+        if ($row['value_type'] === Graphs::NODE_VALUE_TYPE_DISCRETE) {
+          $graph['nodeTypes'][$row['local_content_id']] = Graphs::NODE_VALUE_TYPE_DISCRETE;
           if (strpos($row['value_range'], 'from') != -1) {
             $range = str_replace(" ", "", $row['value_range']);
             $graph['nodes'][$row['local_content_id']] = explode(',', $range);
@@ -1092,13 +1098,13 @@ class AppUserPkb extends App
               $graph['nodes'][$row['local_content_id']][] = $i;
             }
           }
-        } if ($row['value_type'] === 'continuous' && $row['value_range']) {
-          $graph['nodeTypes'][$row['local_content_id']] = 'continuous';
+        } if ($row['value_type'] === Graphs::NODE_VALUE_TYPE_CONTINUOUS && $row['value_range']) {
+          $graph['nodeTypes'][$row['local_content_id']] = Graphs::NODE_VALUE_TYPE_CONTINUOUS;
           $range = json_decode($row['value_range'], true);
           $graph['nodes'][$row['local_content_id']] = [$range['from'], $range['to']];
         } else {
           $graph['nodes'][$row['local_content_id']][] = $row['alternative_id'];
-          $graph['nodeTypes'][$row['local_content_id']] = 'labelled';
+          $graph['nodeTypes'][$row['local_content_id']] = Graphs::NODE_VALUE_TYPE_LABELLED;
         }
       }
     }

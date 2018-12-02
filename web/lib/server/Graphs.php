@@ -14,6 +14,10 @@ class Graphs {
   const gRain = 'gRain';
   const WebPPL = 'WebPPL';
 
+  const NODE_VALUE_TYPE_CONTINUOUS = 'continuous';
+  const NODE_VALUE_TYPE_DISCRETE = 'discrete';
+  const NODE_VALUE_TYPE_LABELLED = 'labelled';
+
   public function __construct(
       MultiTenantDB $db,
       ContentIdConverter $contentIdConverter,
@@ -415,7 +419,7 @@ class Graphs {
         $local_content_id = $this->contentIdConverter->getLocalContentId($node_content_id);
         $query = "SELECT value_type FROM node_content WHERE `graph_id` = '".$localGraphId."' AND  local_content_id = '".$local_content_id."' AND alternative_id = 0";
         $rows = $this->db->exec($authId, $query);
-        if (isset($rows[0]) && $rows[0]['value_type'] == 'continuous') {
+        if (isset($rows[0]) && in_array($rows[0]['value_type'],  [Graphs::NODE_VALUE_TYPE_CONTINUOUS, Graphs::NODE_VALUE_TYPE_DISCRETE])) {
           $query = "UPDATE node_content SET p_samples = '".json_encode($node)."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = 0";
           $this->logger->log($query);
           $this->db->exec($authId, $query);
@@ -774,8 +778,13 @@ class Graphs {
    * @param ContentIdConverter $contentIdConverter
    * @return mixed
    */
-  public static function convertPforClone($originalP, $new_graph_id, ContentIdConverter $contentIdConverter)
+  public static function convertPforClone($nodeValueType, $originalP, $new_graph_id, ContentIdConverter $contentIdConverter)
   {
+    if ($nodeValueType == Graphs::NODE_VALUE_TYPE_CONTINUOUS || $nodeValueType == Graphs::NODE_VALUE_TYPE_DISCRETE) {
+      // formula uses only local node ids and thus does not change
+      return $originalP;
+    }
+
     $newP = [];
     foreach ($originalP as $parentAlternativesSet => $probability){
       $parentAlternativesSet = json_decode($parentAlternativesSet, true);
@@ -814,7 +823,7 @@ class Graphs {
   private function getQueryPart($names, $values){
     $str = "";
     foreach ($names as $name) {
-      $str .= ", `".$name."` = ".($values[$name] === null ? "null" : "'".$this->db->escape($values[$name])."'");
+      $str .= ", `".$name."` = ".(!isset($values[$name]) || $values[$name] === null ? "null" : "'".$this->db->escape($values[$name])."'");
     }
     return substr($str,1);
   }
@@ -875,11 +884,11 @@ class Graphs {
     $this->copyNodeContents($fromAuthId, $auth_id, $new_graph_id, $localGraphId, $local_content_ids, $ts);
 
     // transform conditional probabilities to respect new nodeContentIds
-    $q = "SELECT local_content_id, alternative_id, p FROM node_content WHERE graph_id = '".$new_graph_id."'";
+    $q = "SELECT local_content_id, alternative_id, p, value_type FROM node_content WHERE graph_id = '".$new_graph_id."'";
     $rows = $this->db->exec($auth_id, $q);
     foreach ($rows as $row) {
       if($row['p'] && $row['p'] !== '' && json_decode($row['p'], true)){
-        $newP = Graphs::convertPforClone(json_decode($row['p'], true), $global_new_graph_id, $this->contentIdConverter);
+        $newP = Graphs::convertPforClone($row['value_type'], json_decode($row['p'], true), $global_new_graph_id, $this->contentIdConverter);
         $q = "UPDATE node_content SET p = '".$this->db->escape(json_encode($newP))."'"
             ." WHERE graph_id = '".$new_graph_id."' AND local_content_id='".$row['local_content_id']."' AND alternative_id='".$row['alternative_id']."'";
         $this->db->exec($auth_id, $q);

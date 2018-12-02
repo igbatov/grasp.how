@@ -202,16 +202,20 @@ EOT;
 
       } else if (isset($probs['soft']) && count($probs) === 1) {
         // fact without incoming nodes
+        // As there is no incoming nodes we set in formula all alternatives as equal
+        // Note, however, that soft evidence is still taken in consideration
+        // in $this->getMain() with "condition(softEvidence(..."
+        $vs = implode(array_keys($probs['soft']), ", ");
         $text .=<<<EOT
       
 var {$nodeName} = function() {
-  return categorical({vs:[0, 1], ps:[0.5, 0.5]});
+  return categorical({vs:[{$vs}], ps:[0.5, 0.5]});
 
 EOT;
 
       } else if (empty($probs)) {
         // hypothesis without incoming nodes - make uniform distribution for it
-        if ($graph['nodeTypes'][$nodeName] === 'continuous') {
+        if ($graph['nodeTypes'][$nodeName] === Graphs::NODE_VALUE_TYPE_CONTINUOUS) {
           $from = $graph['nodes'][$nodeName][0];
           $to = $graph['nodes'][$nodeName][1];
           $text .=<<<EOT
@@ -221,6 +225,7 @@ var {$nodeName} = function() {
 
 EOT;
         } else {
+          $ps = [];
           $vs = $graph['nodes'][$nodeName];
           $prob = 1/count($vs);
           for ($i = 0; $i<count($vs); $i++) {

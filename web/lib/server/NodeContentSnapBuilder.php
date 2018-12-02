@@ -63,6 +63,8 @@ class NodeContentSnapBuilder{
         .'alternative_id = "'.$row['alternative_id'].'", '
         .'active_alternative_id = "'.$row['active_alternative_id'].'", '
         .'p = "'.$this->db->escape($row['p']).'", '
+        .'value_type = "'.$this->db->escape($row['value_type']).'", '
+        .'value_range = "'.$this->db->escape($row['value_range']).'", '
         .'stickers = "'.$this->db->escape($row['stickers']).'", '
         .'datetime = "'.$row['updated_at'].'", '
         .'type = "'.$row['type'].'", '
