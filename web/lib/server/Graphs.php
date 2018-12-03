@@ -200,7 +200,16 @@ class Graphs {
         $node_row = $node_rows[0];
         // general attributes
         foreach($this->node_attribute_names as $name){
-          $node_attributes[$name] = $node_row[$name];
+          if ($name == 'stickers') {
+            $stickers = json_decode($node_row[$name], true);
+            if (is_array($stickers)) {
+              $node_attributes[$name] = $stickers;
+            } else {
+              $node_attributes[$name] = [];
+            }
+          } else {
+            $node_attributes[$name] = $node_row[$name];
+          }
         }
 
         // icon
