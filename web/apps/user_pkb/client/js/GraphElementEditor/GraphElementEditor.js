@@ -1038,7 +1038,7 @@ GRASP.GraphElementEditor.prototype = {
       alternatives[key].alternative_id = key;
     }
 
-    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && (node.value_type === 'labelled' || node.value_type == null)) {
+    if (node.type == GRASP.GraphViewNode.NODE_TYPE_PROPOSITION && (node.value_type === 'labelled' || !node.value_type)) {
       var reliabilityKeys = GRASP.getObjectKeys(alternatives);
       var reliabilityArray = GRASP.getObjectValues(alternatives).map(function(item){
           return parseFloat(item.reliability);
