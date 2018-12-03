@@ -232,7 +232,9 @@ class GraphDiffCreator{
    */
   public static function isCloneModified(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $authId, $nodeAlternatives){
     foreach($nodeAlternatives as $row){
-       if(GraphDiffCreator::isCloneAlternativeModified($db, $graphIdConverter, $authId, $row)) return true;
+       if(GraphDiffCreator::isCloneAlternativeModified($db, $graphIdConverter, $authId, $row)) {
+         return true;
+       }
     }
     return false;
   }
@@ -254,7 +256,10 @@ class GraphDiffCreator{
 
     $q = 'SELECT * FROM node_content WHERE graph_id="'.$alternative['cloned_from_graph_id'].'" AND local_content_id="'.$alternative['cloned_from_local_content_id'].'" AND alternative_id="'.$alternative['alternative_id'].'"';
     $rows = $db->exec($alternative['cloned_from_auth_id'], $q);
-    if(!self::isClonePEqual($row['value_type'], $graphIdConverter, $rows[0], $alternative)) return true;
+    if (!self::isClonePEqual($rows[0]['value_type'], $graphIdConverter, $rows[0], $alternative)) {
+      return true;
+    }
+
     if(
         $rows[0]['type'] != $alternative['type']
         || $rows[0]['value_type'] != $alternative['value_type']

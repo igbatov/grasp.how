@@ -174,7 +174,9 @@ class AppUserPkb extends App
       }
     }
 
-    if(isset($this->getRequest()['graphId']) && GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId'])) $access_level = 'read';
+    if(isset($this->getRequest()['graphId']) && GraphDiffCreator::isDiffGraphId($this->getRequest()['graphId'])) {
+      $access_level = 'read';
+    }
 
     if(in_array($action, $this->writeActions) && $access_level == 'read') return $this->showRawData();
 
