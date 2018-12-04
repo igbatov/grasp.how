@@ -23,7 +23,8 @@
       "fields": "uid,first_name,last_name,screen_name,sex,bdate,photo_big,domain",
       "auth_url":"http://oauth.vk.com/authorize",
       "token_url":"https://oauth.vk.com/access_token",
-      "info_url":"https://api.vk.com/method/users.get"
+      "info_url":"https://api.vk.com/method/users.get",
+      "v":"5.0"
     },
     "facebook":{
       "client_id": "fb_app_id",

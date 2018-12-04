@@ -104,7 +104,8 @@ class OAuthUser{
           $params = array(
               'uids'         => $token['user_id'],
               'fields'       => $config['fields'],
-              'access_token' => $token['access_token']
+              'access_token' => $token['access_token'],
+              'v' => $config['v'],
           );
           break;
 
@@ -133,7 +134,12 @@ class OAuthUser{
           $userInfo = $userInfo['response'] && $userInfo['response'][0] ? $userInfo['response'][0] : $userInfo;
           $email = $token && isset($token['email']) ? $token['email'] : null;
           $userInfo['email'] = $email;
-          $userInfo['link'] = 'http://vk.com/'.$userInfo['domain'];
+          if (!isset($userInfo['domain'])) {
+            $userInfo['link'] = 'http://vk.com/'.$userInfo['domain'];
+          } else {
+            $userInfo['link'] = "";
+            $this->logger->log("Error in Auth::getUserInfo, cannot get vk domain send ",$uri, 'got', $r);
+          }
           break;
 
         case 'facebook':

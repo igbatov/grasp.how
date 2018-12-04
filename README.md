@@ -4,11 +4,18 @@ grasp.how - online visual tool for analysis of importance and reliability of inf
 # prepare
 (Ubuntu 18.04.1 LTS example)
 
-install nginx, mysql, php-fpm, phpunit, php-curl, php-mbstring
+install nginx, mysql, php-fpm, phpunit, php-curl, php-mbstring, php7.2-mbstring
 
 pear install MDB2-2.5.0b5
 
 pear install MDB2_Driver_mysqli-1.5.0b4
+
+update certificate
+```
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt install python-certbot-nginx
+sudo certbot renew
+```
 
 install webppl https://github.com/probmods/webppl
 
