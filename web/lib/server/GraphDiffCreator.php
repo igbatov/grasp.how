@@ -239,6 +239,14 @@ class GraphDiffCreator{
     return false;
   }
 
+  public static function getCloneModifications(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $authId, $nodeAlternatives){
+    $diff = [];
+    foreach($nodeAlternatives as $row){
+      $diff[] = GraphDiffCreator::getCloneAlternativeModifications($db, $graphIdConverter, $authId, $row);
+    }
+    return $diff;
+  }
+
   /**
    *
    * @param $db
@@ -248,35 +256,82 @@ class GraphDiffCreator{
    * @return bool
    */
   public static function isCloneAlternativeModified(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $authId, $alternative){
-    if($alternative['cloned_from_graph_id'] === null || $alternative['cloned_from_local_content_id'] === null) {
-      return false;
+    $diff = self::getCloneAlternativeModifications($db, $graphIdConverter, $authId, $alternative);
+    if (!empty($diff)) {
+      return true;
     }
+    return false;
+  }
 
-    //if($alternative['updated_at'] > $alternative['created_at']) return true;
+  /**
+   * @param MultiTenantDB $db
+   * @param GraphIdConverter $graphIdConverter
+   * @param $authId
+   * @param $alternative
+   * @return array
+   */
+  public static function getCloneAlternativeModifications(MultiTenantDB $db, GraphIdConverter $graphIdConverter, $authId, $alternative) {
+    $diff = [];
+
+    if($alternative['cloned_from_graph_id'] === null || $alternative['cloned_from_local_content_id'] === null) {
+      return [];
+    }
 
     $q = 'SELECT * FROM node_content WHERE graph_id="'.$alternative['cloned_from_graph_id'].'" AND local_content_id="'.$alternative['cloned_from_local_content_id'].'" AND alternative_id="'.$alternative['alternative_id'].'"';
     $rows = $db->exec($alternative['cloned_from_auth_id'], $q);
-    if (!self::isClonePEqual($rows[0]['value_type'], $graphIdConverter, $rows[0], $alternative)) {
-      return true;
+
+    $alternativeFieldNames = array_flip(
+      array_merge(
+        Graphs::getNodeAlternativeAttributeNames(),
+        Graphs::getNodeAttributeNames()
+      )
+    );
+    unset(
+      $alternativeFieldNames['p'],
+      $alternativeFieldNames['created_at'],
+      $alternativeFieldNames['updated_at'],
+      $alternativeFieldNames['p_samples'],
+      $alternativeFieldNames['active_alternative_id']
+    );
+
+    $alternativeFieldNames['text'] = 1;
+
+    foreach ($alternativeFieldNames as $name => $v) {
+      if ($name == 'text') {
+        $isDiff = self::cleanTextForDiff($rows[0][$name]) != self::cleanTextForDiff($alternative[$name]);
+      } else {
+        $isDiff = $rows[0][$name] != $alternative[$name];
+      }
+      if ($isDiff) {
+        $diff[$name] = [
+          'original' => $rows[0][$name],
+          'cloned' => $alternative[$name],
+        ];
+      }
     }
 
-    if(
-        $rows[0]['type'] != $alternative['type']
-        || $rows[0]['value_type'] != $alternative['value_type']
-        || $rows[0]['value_range'] != $alternative['value_range']
-        || $rows[0]['reliability'] != $alternative['reliability']
-        || $rows[0]['importance'] != $alternative['importance']
-        || $rows[0]['label'] != $alternative['label']
-        || $rows[0]['text'] != $alternative['text']
-        || $rows[0]['p'] != $alternative['p']
-        || $rows[0]['has_icon'] != $alternative['has_icon']
-        || $rows[0]['stickers'] != $alternative['stickers']
-    )
-    {
-      return true;
+    // p is a special case
+    $globalOriginalGraphId = $graphIdConverter->createGlobalGraphId(
+      $alternative['cloned_from_auth_id'],
+      $alternative['cloned_from_graph_id']
+    );
+    $rows[0]['p'] = json_decode($rows[0]['p']);
+    $alternative['p'] = json_decode($alternative['p']);
+    $contentIdConverter = new ContentIdConverter();
+    $mustBe = Graphs::convertPforClone($rows[0]['value_type'], $alternative['p'], $globalOriginalGraphId, $contentIdConverter);
+
+    if (array_diff($mustBe, $rows[0]['p']) !== array_diff($rows[0]['p'], $mustBe)) {
+      $diff['p'] = [
+        'original' => $rows[0]['p'],
+        'cloned' => $mustBe
+      ];
     }
 
-    return false;
+    return $diff;
+  }
+
+  public static function cleanTextForDiff($text) {
+    return mb_eregi_replace('!\s+!', ' ', str_replace(["\n", "&nbsp;"], " ", strip_tags($text)));
   }
 
   /**
@@ -378,9 +433,8 @@ class GraphDiffCreator{
       $rows = $db->exec($authId2, $q);
       // in case clone removed one of alternatives we will find nothing in $contentId['graphId1']
       if($rows && count($rows)) return $rows[0]['text'];
-    }
-    // it is cloned node and alternative was modified
-    else{
+    } else {
+      // it is cloned node and alternative was modified
       $text1 = $db->exec($authId1, "SELECT text FROM node_content WHERE graph_id = '".$localGraphId1."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
       $text2 = $db->exec($authId2, "SELECT text FROM node_content WHERE graph_id = '".$localGraphId2."' AND local_content_id = '".$localContentId."' AND alternative_id='".$alternativeId."'")[0]['text'];
       $text1 = mb_convert_encoding($text1, 'HTML-ENTITIES', 'UTF-8');

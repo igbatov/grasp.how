@@ -5,11 +5,6 @@ class Graphs {
   private $contentIdConverter;
   private $graphIdConverter;
   private $logger;
-  private $node_basic_types;
-
-  private $node_attribute_names;
-  private $node_alternative_attribute_names;
-  private $edge_attribute_names;
 
   const gRain = 'gRain';
   const WebPPL = 'WebPPL';
@@ -17,6 +12,12 @@ class Graphs {
   const NODE_VALUE_TYPE_CONTINUOUS = 'continuous';
   const NODE_VALUE_TYPE_DISCRETE = 'discrete';
   const NODE_VALUE_TYPE_LABELLED = 'labelled';
+
+  const NODE_ATTRIBUTE_NAMES = ['type', 'importance', 'has_icon', 'active_alternative_id', 'stickers', 'value_type', 'value_range', 'p_samples'];
+  const NODE_ALTERNATIVE_ATTRIBUTE_NAMES = ['label', 'reliability','p','created_at','updated_at'];
+
+  const EDGE_ATTRIBUTE_NAMES = ['type', 'label'];
+  const NODE_BASIC_TYPES = ['fact'=>'fact','proposition'=>'proposition'];
 
   public function __construct(
       MultiTenantDB $db,
@@ -28,13 +29,14 @@ class Graphs {
     $this->logger = $logger;
     $this->contentIdConverter = $contentIdConverter;
     $this->graphIdConverter = $graphIdConverter;
+  }
 
-    $this->node_basic_types = array('fact'=>'fact','proposition'=>'proposition');
+  public static function getNodeAttributeNames() {
+    return self::NODE_ATTRIBUTE_NAMES;
+  }
 
-    // define node and edge attributes (must be the same as db table column names)
-    $this->node_attribute_names = array('type', 'importance', 'has_icon', 'active_alternative_id', 'stickers', 'value_type', 'value_range', 'p_samples');
-    $this->node_alternative_attribute_names = array('label', 'reliability','p','created_at','updated_at');
-    $this->edge_attribute_names = array('type', 'label');
+  public static function getNodeAlternativeAttributeNames() {
+    return self::NODE_ALTERNATIVE_ATTRIBUTE_NAMES;
   }
 
   /**
@@ -102,7 +104,7 @@ class Graphs {
 
         // get alternative lists
         $list_items = array();
-        if($node['type'] == $this->node_basic_types['fact']){
+        if($node['type'] == self::NODE_BASIC_TYPES['fact']){
           $q = "SELECT id, source_id, comment, pages FROM node_content_source WHERE graph_id='".$localGraphId."' AND local_content_id='".$local_content_id."' AND alternative_id='".$node_row['alternative_id']."'";
           $this->logger->log($q);
           $rows = $this->db->exec($graphAuthId, $q);
@@ -172,6 +174,7 @@ class Graphs {
           $rows = $this->db->exec($authId2, $q);
           if(GraphDiffCreator::isCloneModified($this->db, $this->graphIdConverter, $authId2, $rows)) {
             $status = 'modified';
+            $nodes[$content_id]['modifications'][] = GraphDiffCreator::getCloneModifications($this->db, $this->graphIdConverter, $authId2, $rows);
           }
         }
         $nodes[$content_id]['stickers'][] = $status;
@@ -186,8 +189,8 @@ class Graphs {
 
         $query = "SELECT '".$content_id."' as nodeContentId, "
             ."alternative_id, "
-            .implode(',',$this->node_alternative_attribute_names).", "
-            .implode(',',$this->node_attribute_names).", "
+            .implode(',',self::NODE_ALTERNATIVE_ATTRIBUTE_NAMES).", "
+            .implode(',',self::NODE_ATTRIBUTE_NAMES).", "
             ."cloned_from_graph_id, "
             ."cloned_from_local_content_id FROM node_content "
             ."WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
@@ -199,7 +202,7 @@ class Graphs {
         // == fill in node attributes ==
         $node_row = $node_rows[0];
         // general attributes
-        foreach($this->node_attribute_names as $name){
+        foreach(self::NODE_ATTRIBUTE_NAMES as $name){
           if ($name == 'stickers') {
             $stickers = json_decode($node_row[$name], true);
             if (is_array($stickers)) {
@@ -224,7 +227,7 @@ class Graphs {
         $node_attributes['alternatives'] = array();
         foreach($node_rows as $row){
           if(!isset($node_attributes['alternatives'][$row['alternative_id']])) $node_attributes['alternatives'][$row['alternative_id']] = array();
-          foreach($this->node_alternative_attribute_names as $name){
+          foreach(self::NODE_ALTERNATIVE_ATTRIBUTE_NAMES as $name){
             if($name == 'p'){
               $p = json_decode($row[$name], true);
               if($p) $v = $p;
@@ -459,8 +462,8 @@ class Graphs {
       $this->db->exec($authId, $query);
 
     }else if($r['type'] == 'updateNodeAttribute'){
-      if(in_array($r['nodeAttribute']['name'], $this->node_attribute_names)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
-      if(in_array($r['nodeAttribute']['name'], $this->node_alternative_attribute_names)){
+      if(in_array($r['nodeAttribute']['name'], self::NODE_ATTRIBUTE_NAMES)) $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$this->db->escape($r['nodeAttribute']['value'])."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."'";
+      if(in_array($r['nodeAttribute']['name'], self::NODE_ALTERNATIVE_ATTRIBUTE_NAMES)){
         if($r['nodeAttribute']['name'] == 'p') $value = $this->db->escape(json_encode($r['nodeAttribute']['value']));
         else $value = $this->db->escape($r['nodeAttribute']['value']);
         $query = "UPDATE node_content SET `".$r['nodeAttribute']['name']."` = '".$value."' WHERE graph_id = '".$localGraphId."' AND local_content_id = '".$local_content_id."' AND alternative_id = '".$r['node_alternative_id']."'";
@@ -553,7 +556,7 @@ class Graphs {
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
 
-    if($r['nodeType'] == $this->node_basic_types['fact']){
+    if($r['nodeType'] == self::NODE_BASIC_TYPES['fact']){
       // if it is a new source - add it to the main list
       if(empty($r['item']['source_id'])){
         // TODO: even though client thinks there is no correspondent source, it may be in fact - we need to check it here somehow
@@ -574,7 +577,7 @@ class Graphs {
       $reliability = $this->getFactReliability($graph_id,$local_content_id);
       return json_encode(array('result'=>'SUCCESS','id'=>$item_id,'reliability'=>$reliability));
 
-    }elseif($r['nodeType'] == $this->node_basic_types['proposition']){
+    }elseif($r['nodeType'] == self::NODE_BASIC_TYPES['proposition']){
       $graph_id = $r['graphId'];
       $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
       $q = "INSERT INTO node_content_falsification SET graph_id='".$localGraphId
@@ -594,7 +597,7 @@ class Graphs {
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-    if($r['nodeType'] == $this->node_basic_types['fact']) {
+    if($r['nodeType'] == self::NODE_BASIC_TYPES['fact']) {
       // Client sets $r['item']['source_id'] as empty if user modified fields of source
       // We treat it here as signal for new source creation
       if(empty($r['item']['source_id'])){
@@ -615,7 +618,7 @@ class Graphs {
 
       return json_encode(array('result' => 'SUCCESS', 'reliability' => $reliability));
 
-    }elseif($r['nodeType'] == $this->node_basic_types['proposition']){
+    }elseif($r['nodeType'] == self::NODE_BASIC_TYPES['proposition']){
       $q = "UPDATE node_content_falsification SET "
           ."`name` = '" . $this->db->escape($r['item']['name'])
           . "', comment = '" . $this->db->escape($r['item']['comment'])
@@ -632,7 +635,7 @@ class Graphs {
     $localGraphId = $this->graphIdConverter->getLocalGraphId($graph_id);
     $authId = $this->graphIdConverter->getAuthId($graph_id);
     $local_content_id = $this->contentIdConverter->getLocalContentId($r['nodeContentId']);
-    if($r['nodeType'] == $this->node_basic_types['fact']) {
+    if($r['nodeType'] == self::NODE_BASIC_TYPES['fact']) {
       $q = "DELETE FROM node_content_source WHERE graph_id='".$localGraphId
           ."' AND local_content_id='".$local_content_id
           ."' AND alternative_id='".$r['node_alternative_id']
@@ -822,7 +825,7 @@ class Graphs {
     $q = "INSERT INTO node_content SET graph_id=".$new_graph_id.", "
         ."local_content_id=".$row['local_content_id'].", "
         ."alternative_id=".$row['alternative_id'].", "
-        .$this->getQueryPart($this->node_attribute_names, $row).", "
+        .$this->getQueryPart(self::NODE_ATTRIBUTE_NAMES, $row).", "
         .$this->getQueryPart($node_alternative_attr_names_without_time, $row).", "
         ." `text`='".$this->db->escape($row['text'])."', "
         ." cloned_from_graph_id='".$localGraphId."', "
@@ -982,7 +985,7 @@ class Graphs {
       $q = "INSERT INTO edge_content SET ".
           "`graph_id` = '".$new_graph_id."', ".
           "`local_content_id` = '".$row['local_content_id']."', ".
-          $this->getQueryPart($this->edge_attribute_names, $row).", ".
+          $this->getQueryPart(self::EDGE_ATTRIBUTE_NAMES, $row).", ".
           "`updated_at` = NOW(), `created_at` = NOW()";
       $this->db->exec($auth_id, $q);
     }
@@ -1008,9 +1011,9 @@ class Graphs {
 
   public function copyNodeContents($fromAuthId, $auth_id, $new_graph_id, $localGraphId, $local_content_ids, $ts)
   {
-    $node_alternative_attr_names_without_time = $this->node_alternative_attribute_names;
-    unset($node_alternative_attr_names_without_time[array_search('created_at', $this->node_alternative_attribute_names)]);
-    unset($node_alternative_attr_names_without_time[array_search('updated_at', $this->node_alternative_attribute_names)]);
+    $node_alternative_attr_names_without_time = self::NODE_ALTERNATIVE_ATTRIBUTE_NAMES;
+    unset($node_alternative_attr_names_without_time[array_search('created_at', self::NODE_ALTERNATIVE_ATTRIBUTE_NAMES)]);
+    unset($node_alternative_attr_names_without_time[array_search('updated_at', self::NODE_ALTERNATIVE_ATTRIBUTE_NAMES)]);
 
     // if timestamp is set copy node_contents from node_content_history
     $historyNodeContentIds = [];
@@ -1038,7 +1041,7 @@ class Graphs {
     $rest_local_content_ids = array_diff($local_content_ids, $historyNodeContentIds);
     if (!empty($rest_local_content_ids)) {
       $q ="SELECT id, local_content_id, alternative_id,	"
-          .implode(',', $this->node_attribute_names).", "
+          .implode(',', self::NODE_ATTRIBUTE_NAMES).", "
           .implode(',', $node_alternative_attr_names_without_time)
           .", text"
           ." FROM node_content "
