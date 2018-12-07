@@ -94,7 +94,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
                 "type":"proposition",
                 "importance":50,
                 "icon":null,
-                "stickers":null,
+                "stickers":[],
                 "p_samples":null,
                 "value_range": null,
                 "value_type": null,
@@ -452,6 +452,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
         expected['nodes'][originalGraphId+"-1/"+cloneGraphId+"-1"] = {
           "type": "fact",
           "importance": "32",
+          "modifications":[[{'text':{'original':"123", 'cloned':'bbb'}}, []]],
           "has_icon": "0",
           "active_alternative_id": "1",
           "stickers": [
@@ -478,6 +479,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testEmptyGraphCreation(GLOBALS){
           ],
           "nodeContentId": originalGraphId+"-1/"+cloneGraphId+"-1"
         };
+
         expected['edges'][originalGraphId+"-1/-"] = {
           "edgeContentId": originalGraphId+"-1/-",
           "type": "causal",

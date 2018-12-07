@@ -948,11 +948,19 @@ GRASP.compare = (function() {
     if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
       return false;
     // an identical 'prototype' property.
-    if (a.prototype !== b.prototype) return false;
+    if (a.prototype !== b.prototype) {
+      if (isVerbose) {
+        console.log(a.prototype, "!=", a.prototype)
+      }
+      return false;
+    }
     //~~~I've managed to break Object.keys through screwy arguments passing.
     //   Converting to array solves the problem.
     if (isArguments(a)) {
       if (!isArguments(b)) {
+        if (isVerbose) {
+          console.log("isArguments(a) != isArguments(b)")
+        }
         return false;
       }
       a = pSlice.call(a);
@@ -964,26 +972,40 @@ GRASP.compare = (function() {
           kb = Object_keys(b),
           key, i;
     } catch (e) {//happens when one is a string literal and the other isn't
+      if (isVerbose) {
+        console.log("happens when one is a string literal and the other isn't")
+      }
       return false;
     }
     // having the same number of owned properties (keys incorporates
     // hasOwnProperty)
-    if (ka.length != kb.length)
+    if (ka.length != kb.length) {
+      if (isVerbose) {
+        console.log("ka.length != kb.length", ka.length, "!=", kb.length)
+      }
       return false;
+    }
+
     //the same set of keys (although not necessarily the same order),
     ka.sort();
     kb.sort();
     //~~~cheap key test
     for (i = ka.length - 1; i >= 0; i--) {
-      if (ka[i] != kb[i])
+      if (ka[i] != kb[i]) {
+        if (isVerbose) {
+          console.log("i=", i, " ", ka[i], "!=", kb[i])
+        }
         return false;
+      }
     }
     //equivalent values for every corresponding key, and
     //~~~possibly expensive deep test
     for (i = ka.length - 1; i >= 0; i--) {
       key = ka[i];
       if (!deepEqual(a[key], b[key], usingTestDummies)) {
-        if (isVerbose) console.log("key: " + key);
+        if (isVerbose) {
+          console.log("key: " + key);
+        }
         return false;
       }
     }
@@ -995,7 +1017,9 @@ GRASP.compare = (function() {
       return true;
     } else if (!isStrict && a == b) {
       return true;
-    } else if (isVerbose) {
+    }
+
+    if (isVerbose) {
       console.log('GRASP.compare: ', a, ' not equal to ', b);
     }
     return false;

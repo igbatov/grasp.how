@@ -36,7 +36,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testAddNode(GLOBALS){
           "importance": 50,
           "p_samples": null,
           "icon": null,
-          "stickers": null,
+          "stickers": [],
           "value_range": null,
           "value_type": null,
         }
@@ -61,7 +61,7 @@ GRASP[TEST_NAME][SUBTEST_NAME] = function testAddNode(GLOBALS){
           "importance":"50",
           "has_icon":"0",
           "active_alternative_id":"0",
-          "stickers":null,
+          "stickers":[],
           "p_samples": null,
           "value_range": null,
           "value_type": null,
