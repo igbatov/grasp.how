@@ -315,8 +315,8 @@ class GraphDiffCreator{
       $alternative['cloned_from_auth_id'],
       $alternative['cloned_from_graph_id']
     );
-    $rows[0]['p'] = json_decode($rows[0]['p']);
-    $alternative['p'] = json_decode($alternative['p']);
+    $rows[0]['p'] = json_decode($rows[0]['p'], true);
+    $alternative['p'] = json_decode($alternative['p'], true);
     $contentIdConverter = new ContentIdConverter();
     $mustBe = Graphs::convertPforClone($rows[0]['value_type'], $alternative['p'], $globalOriginalGraphId, $contentIdConverter);
 

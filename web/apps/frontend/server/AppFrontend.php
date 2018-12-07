@@ -118,7 +118,7 @@ class AppFrontend extends App{
 
         $this->graphIdConverter->throwIfNotGlobal($snap->getGraphId());
 
-        // create snapshot of node_contents for each snap
+        // create snapshot of node_contents
         $this->snapBuilder->createSnapshots($authId, null, $snap->getLocalGraphId(), $snap->getTs());
 
         // all variables that is used in template

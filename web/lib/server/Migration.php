@@ -182,6 +182,7 @@ class MigrationRoller{
       $m->$direction($authId);
     }catch(Exception $e){
       $this->mylog($e->getMessage());
+      $this->mylog("rolling back transaction...");
       $this->db->rollbackTransaction();
       return false;
     }
@@ -216,7 +217,7 @@ class MigrationRoller{
   }
 
   function mylog($msg){
-    error_log($msg."\n");
+    $this->logger->fileLog($msg."\n");
     echo $msg."\n";
   }
 
