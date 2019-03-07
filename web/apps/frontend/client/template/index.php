@@ -159,7 +159,7 @@ $detect = new Mobile_Detect;
            <?php if ($detect->isMobile()): ?>
 	         <img style="width:250px;" src="<?php echo $this->getAppDir('img'); ?>/imageedit_1_6764526885.gif">
 	       <?php else: ?>
-             <video class="firstVideo" autoplay loop autobuffer muted playsinline>
+             <video class="firstVideo" loop>
               <source src="<?php echo $this->getAppDir('img'); ?>/<?php echo $this->i18n->getLang() === 'en' ? 'graspGIFs1EN.mp4' : 'graspGIFs1.mp4' ?>" type="video/mp4">
 	         </video>
            <?php endif ?>
@@ -180,9 +180,13 @@ $detect = new Mobile_Detect;
       <div class="col-sm-6 noright">
         <div class="inner">
           <div class="web-cam">
-            <video class="secondVideo" autoplay loop autobuffer muted playsinline>>
+            <?php if ($detect->isMobile()): ?>
+                <img style="width:250px;" src="<?php echo $this->getAppDir('img'); ?>/imageedit_1_4524921268.gif">
+            <?php else: ?>
+            <video class="secondVideo" loop>
               <source src="<?php echo $this->getAppDir('img'); ?>/<?php echo $this->i18n->getLang() === 'en' ? 'v2en.mp4' : '2v4.mp4' ?>" type="video/mp4">
             </video>
+            <?php endif ?>
           </div>
         </div>
       </div>
@@ -213,9 +217,13 @@ $detect = new Mobile_Detect;
       <div class="col-sm-6 noleft">
         <div class="inner">
           <div class="web-cam">
-            <video class="thirdVideo" autoplay loop autobuffer muted playsinline>
+            <?php if ($detect->isMobile()): ?>
+                <img style="width:250px;" src="<?php echo $this->getAppDir('img'); ?>/imageedit_1_5327400483.gif">
+            <?php else: ?>
+            <video class="thirdVideo" loop>
               <source src="<?php echo $this->getAppDir('img'); ?>/<?php echo $this->i18n->getLang() === 'en' ? '3v8.mp4' : '3v2.mp4' ?>" type="video/mp4">
             </video>
+            <?php endif ?>
           </div>
         </div>
       </div>
