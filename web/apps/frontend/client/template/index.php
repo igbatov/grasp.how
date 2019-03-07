@@ -82,7 +82,7 @@
       <span>Показываем вероятность ваших гипотез исходя из фактов и их достоверности</span>
     </h1>
     <div id="grasp-how-501cb8beb66019e90ed669caadbe7ad4" style="height: 500px;">
-<script src='http://www.grasp.how/embed.js?data=13/3920745505'></script>    
+<script src='http://www.grasp.how/embed.js?data=13/854406471'></script>    
 </div>
   </div>
 </div>
@@ -152,10 +152,13 @@
       </div>
       <div class="col-sm-6 noright">
         <div class="inner">
-          <div class="web-cam">
-            <video class="firstVideo" loop>
+	  <div class="web-cam">
+	    <img style="width:250px;" src="<?php echo $this->getAppDir('img'); ?>/imageedit_1_6764526885.gif">
+	    <!---
+             <video class="firstVideo" autoplay loop autobuffer muted playsinline>
               <source src="<?php echo $this->getAppDir('img'); ?>/<?php echo $this->i18n->getLang() === 'en' ? 'graspGIFs1EN.mp4' : 'graspGIFs1.mp4' ?>" type="video/mp4">
-            </video>
+	    </video>
+             -->
           </div>
         </div>
       </div>
