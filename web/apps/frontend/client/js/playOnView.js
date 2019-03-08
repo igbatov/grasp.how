@@ -19,7 +19,11 @@ $(document).ready(function() {
       var yBottomMedia = $(this).height() + yTopMedia;
 
       if(scrollTop < yTopMedia && scrollBottom > yBottomMedia){ //view explaination in `In brief` section above
-        $(this).get(0).play();
+        try {
+		$(this).get(0).play();
+	}catch(error){
+		console.log(error);
+	}
       } else {
         $(this).get(0).pause();
         $(this).get(0).currentTime = 0;
