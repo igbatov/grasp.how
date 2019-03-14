@@ -18,6 +18,7 @@ if (!function_exists('http_response_code'))
 ini_set('display_errors', 0);
 $timeout = 604800;
 session_set_cookie_params($timeout);
+ini_set('session.gc_maxlifetime', $timeout);
 
 // path to this file
 $path = dirname(__FILE__);
