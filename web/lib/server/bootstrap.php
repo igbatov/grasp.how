@@ -106,9 +106,9 @@ $a = new Auth('MDB2', $options, null, false);
 $debugObserver = new Auth_Log_Observer(PEAR_LOG_DEBUG);
 $a->attachLogObserver($debugObserver);
 
-// set auth timeout
-$a->setExpire($timeout);
-$a->setIdle($timeout);
+// set auth timeout (0 for unlimit)
+$a->setExpire(0);
+$a->setIdle(0);
 
 // init session
 $s = new Session($a);
