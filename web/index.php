@@ -12,6 +12,7 @@ if($c && $c->isDebugOn()){
 switch($c->getWebDomainName()){
   case 'my.grasp.how':
   case 'grasp.local':
+  case 'my.grasp.local':
     // if it is test, then rollback all db queries after script finishes
     if(isset($_REQUEST['TEST_NAME'])){
       $originalDBPrefix = $db->getPrefix();

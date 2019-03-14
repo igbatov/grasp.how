@@ -251,6 +251,10 @@ GRASP.SVGDrawer.prototype = {
     }
   },
 
+  getSVGRoot: function() {
+    return this.svgroot
+  },
+
   /**
    * @private
    */
@@ -358,17 +362,31 @@ GRASP.SVGDrawer.prototype = {
   },
 
   /**
-   * Return x, y from
+   * Return x, y where (0,0) is top left of svg
+   * @param evt
+   * @returns {*}
+   * @private
+   */
+  _getEventRelativeXY: function(evt){
+    if(typeof evt == 'undefined' || typeof evt.type == 'undefined') return false;
+
+    var rect = this.svgroot.getBoundingClientRect()
+
+    var x = evt.type.indexOf("touch") == -1 ? evt.pageX : evt.changedTouches[0].pageX;
+    var y = evt.type.indexOf("touch") == -1 ? evt.pageY : evt.changedTouches[0].pageY;
+
+    return {x:x - rect.left, y:y - rect.top};
+  },
+
+  /**
+   * Return x, y where (0, 0) is the top left of web page
    * @param evt
    * @returns {*}
    * @private
    */
   _getEventAbsXY: function(evt){
     if(typeof evt == 'undefined' || typeof evt.type == 'undefined') return false;
-/*
-    var xOffset=Math.max(document.documentElement.scrollLeft,document.body.scrollLeft);
-    var yOffset=Math.max(document.documentElement.scrollTop,document.body.scrollTop);
-    */
+
     var x = evt.type.indexOf("touch") == -1 ? evt.pageX : evt.changedTouches[0].pageX;
     var y = evt.type.indexOf("touch") == -1 ? evt.pageY : evt.changedTouches[0].pageY;
 
@@ -407,6 +425,7 @@ GRASP.SVGDrawer.prototype = {
 
   _createSVGDragEvent: function(){
     this.dragstartEventSend = false;
+    this.dragstartShape = null;
     var that = this;
     var handler = function(evt){
       var shape;
@@ -424,27 +443,29 @@ GRASP.SVGDrawer.prototype = {
         var targetId = that._getShapeIdByEventTarget(evt.target);
         shape = that.shapes[targetId];
 
+        if((evt.type == "mouseup" || evt.type == "touchend") && (that.dragstartEventSend || (shape != null && shape.mousedown === true))){
+          shape = shape == null ? that.dragstartShape : shape;
+          shape.mousedown = false;
+          if(that.dragstartEventSend === true){
+            var myEvent = new CustomEvent("dragend", {detail:{
+                id: shape.getId(),
+                x:xy.x,
+                y:xy.y,
+                target:shape.getShape()
+              }});
+            that.svgroot.dispatchEvent(myEvent);
+            that.dragstartEventSend = false;
+            that.dragstartShape = null;
+            evt.preventDefault();
+          }
+        }
+
         if(!shape) return;
         if(!shape.getDraggable()) return;
 
         if(evt.type == "mousedown" || evt.type == "touchstart"){
           shape.mousedown = true;
           shape.mousedownXY = xy;
-        }
-
-        if((evt.type == "mouseup" || evt.type == "touchend") && shape.mousedown == true){
-          shape.mousedown = false;
-          if(that.dragstartEventSend === true){
-            var myEvent = new CustomEvent("dragend", {detail:{
-              id: shape.getId(),
-              x:xy.x,
-              y:xy.y,
-              target:shape.getShape()
-            }});
-            that.svgroot.dispatchEvent(myEvent);
-            that.dragstartEventSend = false;
-            evt.preventDefault();
-          }
         }
 
       }else if(evt.type == "mousemove" || evt.type == "touchmove"){
@@ -465,6 +486,7 @@ GRASP.SVGDrawer.prototype = {
                 target:shape.getShape()
               }});
               that.dragstartEventSend = true;
+              that.dragstartShape = shape;
               that.svgroot.dispatchEvent(myEvent);
             }
             var myEvent = new CustomEvent("dragging", {detail:{

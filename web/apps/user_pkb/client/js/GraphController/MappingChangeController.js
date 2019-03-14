@@ -32,15 +32,30 @@ GRASP.MappingChangeController.prototype = {
 
     if(eventName == 'dragstartnode'){
       m = GRASP.clone(this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId}));
-      this.nodeStartXY = {
-        x: m.mapping[event.getData()['element'].id].x,
-        y: m.mapping[event.getData()['element'].id].y
-      };
       this.pointerStartXY = {
         x: event.getData()['x'],
         y: event.getData()['y']
       };
+
+      // move node center under cursor (otherwise it slips away after fast mose move)
+      var rect = event.getData()['svgroot'].getBoundingClientRect()
+      m.mapping[event.getData()['element'].id].x = this.pointerStartXY.x - rect.left;
+      m.mapping[event.getData()['element'].id].y = this.pointerStartXY.y - rect.top;
+      this.nodeStartXY = {
+        x: m.mapping[event.getData()['element'].id].x,
+        y: m.mapping[event.getData()['element'].id].y
+      };
+
+      // new mapping of graph
+      var graphViewSettings = {
+        graphId: graphId,
+        nodeMapping: m,
+        nodeLabelMapping: m
+      };
+      that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
+
     }
+
     if(eventName == 'draggingnode'){
       m = this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId});
       m.mapping[event.getData()['draggedModelElement']['element'].id].x = this.nodeStartXY.x + (event.getData()['x'] - this.pointerStartXY.x);

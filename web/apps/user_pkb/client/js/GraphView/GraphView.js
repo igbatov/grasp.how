@@ -352,11 +352,14 @@ GRASP.GraphView.prototype = {
       elNode = rows[0]['element'];
 
       if(
-        elNode.getSize() != this.decoration.nodes[nodeId].size ||
-        elNode.getOpacity() != this.decoration.nodes[nodeId].opacity ||
-        elNode.getColor() != this.decoration.nodes[nodeId].color ||
-        elNode.getNodeType() != nodes[nodeId].type ||
-        !GRASP.compare(elNode.getStickers(), this.decoration.nodes[nodeId].stickers)
+        this.decoration.nodes[nodeId] &&
+        (
+          elNode.getSize() != this.decoration.nodes[nodeId].size ||
+          elNode.getOpacity() != this.decoration.nodes[nodeId].opacity ||
+          elNode.getColor() != this.decoration.nodes[nodeId].color ||
+          elNode.getNodeType() != nodes[nodeId].type ||
+          !GRASP.compare(elNode.getStickers(), this.decoration.nodes[nodeId].stickers)
+        )
       ){
         elNode.setSize(this.decoration.nodes[nodeId].size);
         elNode.setOpacity(this.decoration.nodes[nodeId].opacity);
@@ -461,14 +464,17 @@ GRASP.GraphView.prototype = {
       p2 = {x:nodeMapping[edges[edgeId].target].x, y:nodeMapping[edges[edgeId].target].y};
 
       if(
-        elEdge.getEdgeType() != edges[edgeId].type ||
-        elEdge.getStart().x != p1.x ||
-        elEdge.getStart().y != p1.y ||
-        elEdge.getStop().x != p2.x ||
-        elEdge.getStop().y != p2.y ||
-        elEdge.getColor() != this.decoration.edges[edgeId].color ||
-        elEdge.getOpacity() != this.decoration.edges[edgeId].opacity ||
-        elEdge.getWidth() != this.decoration.edges[edgeId].width
+        this.decoration.edges[edgeId] &&
+        (
+          elEdge.getEdgeType() != edges[edgeId].type ||
+          elEdge.getStart().x != p1.x ||
+          elEdge.getStart().y != p1.y ||
+          elEdge.getStop().x != p2.x ||
+          elEdge.getStop().y != p2.y ||
+          elEdge.getColor() != this.decoration.edges[edgeId].color ||
+          elEdge.getOpacity() != this.decoration.edges[edgeId].opacity ||
+          elEdge.getWidth() != this.decoration.edges[edgeId].width
+        )
       ){
         doNeedRedraw = true;
         elEdge.setColor(this.decoration.edges[edgeId].color);
@@ -789,6 +795,7 @@ GRASP.GraphView.prototype = {
           eventType: eventType,
           elementType:modelElement.type,
           element: modelElement.element,
+          svgroot: that.drawer.getSVGRoot(),
           x: evt.x,
           y: evt.y
         });
