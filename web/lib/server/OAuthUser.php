@@ -134,7 +134,7 @@ class OAuthUser{
           $userInfo = $userInfo['response'] && $userInfo['response'][0] ? $userInfo['response'][0] : $userInfo;
           $email = $token && isset($token['email']) ? $token['email'] : null;
           $userInfo['email'] = $email;
-          if (!isset($userInfo['domain'])) {
+          if (isset($userInfo['domain'])) {
             $userInfo['link'] = 'http://vk.com/'.$userInfo['domain'];
           } else {
             $userInfo['link'] = "";
@@ -153,13 +153,15 @@ class OAuthUser{
               break;
             }
           }
-          $userInfo['link'] =  $userInfo['url'];
+          if (isset($userInfo['link'])) {
+            $userInfo['link'] =  $userInfo['link'];
+          }
 
           break;
       }
 
       if(!$email){
-        $this->logger->log("Error in Auth::getUserInfo, send ",$uri, 'got', $r);
+        $this->logger->log("Cannot get user email. Error in Auth::getUserInfo, send ",$uri, 'got', $r);
         exit('cannot get user email');
       }
 
