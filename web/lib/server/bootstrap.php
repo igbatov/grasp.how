@@ -19,6 +19,7 @@ ini_set('display_errors', 0);
 $timeout = 604800;
 session_set_cookie_params($timeout);
 ini_set('session.gc_maxlifetime', $timeout);
+session_save_path('/tmp/php/sessions');
 
 // path to this file
 $path = dirname(__FILE__);
