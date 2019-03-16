@@ -109,8 +109,8 @@ $debugObserver = new Auth_Log_Observer(PEAR_LOG_DEBUG);
 $a->attachLogObserver($debugObserver);
 
 // set auth timeout (0 for unlimit)
-$a->setExpire(0);
-$a->setIdle(0);
+$a->setExpire($timeout);
+$a->setIdle($timeout);
 
 // init session
 $s = new Session($a);
