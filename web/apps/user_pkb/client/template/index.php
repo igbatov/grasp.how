@@ -42,6 +42,14 @@
   <?php endforeach ?>
   <script src="<?php echo $this->getAppDir('js'); ?>/init.js"></script>
   <script src="<?php echo $this->getAppDir('js'); ?>/main.js"></script>
-
+  <script type="text/javascript">
+    window._mfq = window._mfq || [];
+    (function() {
+      var mf = document.createElement("script");
+      mf.type = "text/javascript"; mf.async = true;
+      mf.src = "//cdn.mouseflow.com/projects/8f374802-70db-4c74-8593-3d0b319da01d.js";
+      document.getElementsByTagName("head")[0].appendChild(mf);
+    })();
+  </script>
   </body>
 </html>
