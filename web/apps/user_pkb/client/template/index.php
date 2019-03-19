@@ -42,6 +42,8 @@
   <?php endforeach ?>
   <script src="<?php echo $this->getAppDir('js'); ?>/init.js"></script>
   <script src="<?php echo $this->getAppDir('js'); ?>/main.js"></script>
+
+  <!-- mouseflow session replay -->
   <script type="text/javascript">
     window._mfq = window._mfq || [];
     (function() {
@@ -51,5 +53,22 @@
       document.getElementsByTagName("head")[0].appendChild(mf);
     })();
   </script>
+
+  <!-- yandex webvisor -->
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+      m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(52877368, "init", {
+      clickmap:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:true
+    });
+  </script>
+  <noscript><div><img src="https://mc.yandex.ru/watch/52877368" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+  <!-- /Yandex.Metrika counter -->
   </body>
 </html>
