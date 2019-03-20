@@ -52,6 +52,8 @@
       mf.src = "//cdn.mouseflow.com/projects/8f374802-70db-4c74-8593-3d0b319da01d.js";
       document.getElementsByTagName("head")[0].appendChild(mf);
     })();
+    window._mfq.push(["setVariable", "auth_id", "<?php echo $this->getAuthId(); ?>"]);
+    window._mfq.push(["setVariable", "username", "<?php echo $this->getUsername(); ?>"]);
   </script>
   </body>
 </html>

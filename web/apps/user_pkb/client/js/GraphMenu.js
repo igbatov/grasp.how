@@ -265,6 +265,11 @@ GRASP.GraphMenu.prototype = {
     for(i in this.selectedPosition) if(this.selectedPosition[i] == 'leftGraphView') this.leftGraphId = i;
     for(i in this.selectedPosition) if(this.selectedPosition[i] == 'rightGraphView') this.rightGraphId = i;
 
+    // ugly hack to quick set variable for mousemove.com plugin
+    if (window._mfq) {
+      window._mfq.push(["setVariable", "graph_id", graphId]);
+    }
+
     // say about this event to all subscribers
     return this.publisher.publish(['graph_position_changed', {graphId:graphId, position:position}]);
   },

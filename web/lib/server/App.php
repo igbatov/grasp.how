@@ -206,7 +206,7 @@ abstract class App
     $this->db->exec(null, $query);
   }
 
-  protected function getUsername(){
+  public function getUsername(){
     return $this->session->getUsername();
   }
 
