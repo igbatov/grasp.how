@@ -65,6 +65,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
 
   function createLabels(content){
     var items = {};
+    var active_alternative_id = content['active_alternative_id'] ? content['active_alternative_id'] : 0;	  
     for(var i in content['alternatives']){
       var alternative = content['alternatives'][i];
       items[i] = {alternative:alternative, type:content.type, alternative_id:i};
@@ -86,7 +87,7 @@ var nodeContentView = (function(GRASP, UI, globalState, publisher, i18n){
           name:'labels',
           withDownArrow: true,
           items:items,
-          defaultValue:"0",
+          defaultValue:active_alternative_id,
           map:createLabelHTML.bind(this, reliabilityHash),
           callback:function(name, alt_id){
             setState(content.nodeId, alt_id);

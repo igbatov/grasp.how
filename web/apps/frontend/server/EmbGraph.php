@@ -90,6 +90,7 @@ class EmbGraph{
       }
 
       // set active_alternative_id of alternative with max reliability
+      /*
       foreach($graphs[$graphId]["nodeContents"] as $node_id => $content){
         $max_reliability = 0;
         foreach($content['alternatives'] as $alternative_id => $alternative){
@@ -98,8 +99,8 @@ class EmbGraph{
             $graphs[$graphId]["nodeContents"][$node_id]['active_alternative_id'] = $alternative_id;
           }
         }
-
       }
+       */
 
       // convert data to the appropriate format
       $base_size = min(min($mapping["area"]["width"], $mapping["area"]["height"])/(2*count($elements['nodes'])), 5);
