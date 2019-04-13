@@ -85,7 +85,7 @@ $detect = new Mobile_Detect;
       <span>Показываем вероятность ваших гипотез исходя из фактов и их достоверности</span>
     </h1>
     <div id="grasp-how-501cb8beb66019e90ed669caadbe7ad4" style="height: 500px;">
-        <script src='http://www.grasp.how/embed.js?data=13/1495445836'></script>
+        <script src='http://www.grasp.how/embed.js?data=39/969822304'></script>
 </div>
   </div>
 </div>
