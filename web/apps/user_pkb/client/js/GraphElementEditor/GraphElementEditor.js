@@ -558,14 +558,18 @@ GRASP.GraphElementEditor.prototype = {
 
         // check that every probability in [0,1]
         for(var j in node.alternatives){
-          probabilities[j][formKeyStr] = probabilities[j][formKeyStr].replace(',','.');
+          if (!probabilities[j][formKeyStr]) {
+            alert(that.i18n.__('Probability must be a number from 0 to 1'));
+            return false;
+          }
+          probabilities[j][formKeyStr] = probabilities[j][formKeyStr].toString().replace(',','.');
           if(isNaN(probabilities[j][formKeyStr])){
             alert(that.i18n.__('Probability must be a number from 0 to 1'));
-            return true;
+            return false;
           }
           if(probabilities[j][formKeyStr]<0 || probabilities[j][formKeyStr]>1){
             alert(that.i18n.__('Probability cannot be less than 0 and greater than 1'));
-            return true;
+            return false;
           }
         }
 
@@ -582,7 +586,7 @@ GRASP.GraphElementEditor.prototype = {
         if(sum != 1){
           alertMsg = alertMsg.substring(0, alertMsg.length-1)+' != 1';
           alert(alertMsg+"\n"+that.i18n.__('Sum of probabilities of all proposition alternatives (under fixed conditions) must be equal to 1'));
-          return true;
+          return false;
         }
 
       }
@@ -712,6 +716,8 @@ GRASP.GraphElementEditor.prototype = {
           }
         }
       }]);
+
+      return true;
     }
 
     // probability table form
@@ -754,12 +760,19 @@ GRASP.GraphElementEditor.prototype = {
         fields,
         // form submit callback
         function(form) {
-          if (form.formulaSwitch) {
-            formulaCallback(form)
-          } else {
-            tableCallback(form)
+          var res = false;
+          try {
+            if (form.formulaSwitch) {
+              res = formulaCallback(form)
+            } else {
+              res = tableCallback(form)
+            }
+          } catch(error) {
+            console.log(error)
           }
-          that.UI.closeModal(modalWindow);
+          if (res) {
+            that.UI.closeModal(modalWindow);
+          }
         }
     );
 
