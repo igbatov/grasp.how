@@ -548,7 +548,10 @@ GRASP.GraphElementEditor.prototype = {
         probabilities[j] = {};
         for(var i in formKeys){
           var formKeyStr = JSON.stringify(formKeys[i]);
-          probabilities[j][formKeyStr] = form[i+'_THEN_'+formKeyStr+'_'+j] != '' ? form[i+'_THEN_'+formKeyStr+'_'+j] : 1/GRASP.getObjectLength(node.alternatives);
+          // formKeyStr is fixed parents alternatives, i.e. {"1.192-1":"0", {"1.192-2":"0"}}
+          // j is this node alternative, i.e. 0
+          // so read the following as "if formKeyStr then probability of j is probabilities[j][formKeyStr]"
+          probabilities[j][formKeyStr] = form[i+'_THEN_'+formKeyStr+'_'+j];
         }
       }
 

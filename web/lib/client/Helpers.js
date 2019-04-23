@@ -1739,19 +1739,22 @@ GRASP.nodeConditionalFormHelper = (function(){
       var formKeyStr = JSON.stringify(formKeys[i]);
 
       // create text fields for conditional probabilities of node's alternatives
+      var alternLength = GRASP.getObjectLength(node.alternatives);
+      var iter = 0;
       for(var j in node.alternatives){
+        iter++;
         var inputLabelKey = i+'_THEN_'+formKeyStr+'_'+j+'_label';
         var inputKey = i+'_THEN_'+formKeyStr+'_'+j;
         // do not show second alternative for facts,
         // as it is always filled in automatically from first alternative probability
         var isFactDenial = isNodeFact(node.type) && j!=0;
-        var probability = GRASP.typeof(node.alternatives[j].p) == 'object' ? findPByFormKey(node.alternatives[j].p, formKeys[i]) : "";
+        var probability = getP(node.alternatives[j].p, formKeys[i])
         fields[inputKey] = {
           rowLabel: j === GRASP.getObjectKeys(node.alternatives)[0] ? i18n.__('Then') : '',
           rowType: isFactDenial ? 'hidden' : 'text',
           rowClass:'shortLabel black',
           value: probability,
-          placeholder: 1/GRASP.getObjectLength(node.alternatives),
+          placeholder: iter === alternLength ? (1 - (alternLength-1)/alternLength) : 1/alternLength,
           disabled:!isEditable
         };
         if(!isFactDenial) fields[inputLabelKey] = {
@@ -1765,6 +1768,20 @@ GRASP.nodeConditionalFormHelper = (function(){
     }
 
     return {fields:fields, fieldsObj:fieldsObj, formKeys:formKeys};
+  }
+
+  /**
+   * Find probability of alternative given parentCombination
+   * If not found, set it uniform
+   * @param alternativePs - like {'{"131-6":"0","131-8":"1"}': "0.5", '{"131-6":"0","131-8":"0"}': "1"}
+   * @param parentCombination - like {"131-8":"0","131-6"}
+   */
+  var getP = function(alternativePs, parentCombination) {
+    var p = GRASP.typeof(alternativePs) == 'object' ? findPByFormKey(alternativePs, parentCombination) : false;
+    if (!p) {
+      return "";
+    }
+    return p;
   }
 
   var isNodeConditionalFieldsEmpty = function(node){
