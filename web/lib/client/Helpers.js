@@ -1723,12 +1723,13 @@ GRASP.nodeConditionalFormHelper = (function(){
     // create form fields for each combination of parent alternatives
     for(var i in formKeys){ // i - number of combination
       var alternativeLabel = '';
+      var parentAlternativeImpossible = isParentsAlternativeImpossible(formKeys[i], parentContents);
       fieldsObj[i] = {IF:{}, THEN:{}};
       for(var j in formKeys[i]){ // j - parent node id, formKeys[i][j] - parent node j alternative id
         alternativeLabel = parentContents[j].alternatives[formKeys[i][j]].label;
         fields[i+'_IF_'+j+'='+formKeys[i][j]+'_label'] = {
           rowLabel: j===GRASP.getObjectKeys(formKeys[i])[0] ? i18n.__('If') : i18n.__('and'),
-          rowType:'string',
+          rowType: parentAlternativeImpossible ? 'hidden' : 'string',
           rowClass:'shortLabel black',
           value:alternativeLabel.replace(/(?:\r\n|\r|\n)/g, ' ')
         };
@@ -1745,19 +1746,18 @@ GRASP.nodeConditionalFormHelper = (function(){
         iter++;
         var inputLabelKey = i+'_THEN_'+formKeyStr+'_'+j+'_label';
         var inputKey = i+'_THEN_'+formKeyStr+'_'+j;
-        // do not show second alternative for facts,
-        // as it is always filled in automatically from first alternative probability
-        var isFactDenial = isNodeFact(node.type) && j!=0;
+        var hidden = isHidden(isNodeFact(node.type), j, parentAlternativeImpossible);
         var probability = getP(node.alternatives[j].p, formKeys[i])
+        var placeholder = iter === alternLength ? (1 - (alternLength-1)/alternLength) : 1/alternLength;
         fields[inputKey] = {
           rowLabel: j === GRASP.getObjectKeys(node.alternatives)[0] ? i18n.__('Then') : '',
-          rowType: isFactDenial ? 'hidden' : 'text',
+          rowType: hidden ? 'hidden' : 'text',
           rowClass:'shortLabel black',
-          value: probability,
-          placeholder: iter === alternLength ? (1 - (alternLength-1)/alternLength) : 1/alternLength,
+          value: parentAlternativeImpossible ? placeholder : probability,
+          placeholder: placeholder,
           disabled:!isEditable
         };
-        if(!isFactDenial) fields[inputLabelKey] = {
+        if(!hidden) fields[inputLabelKey] = {
           rowLabel: '',
           rowType:'string',
           rowClass:'shortLabel blue',
@@ -1768,6 +1768,40 @@ GRASP.nodeConditionalFormHelper = (function(){
     }
 
     return {fields:fields, fieldsObj:fieldsObj, formKeys:formKeys};
+  }
+
+  /**
+   * If even one of parents has probability of alternative 0, then probability of all alternative set is 0
+   * @param parentsAlternativeIds
+   * @param parentsContent
+   * @returns {boolean}
+   */
+  var isParentsAlternativeImpossible = function(parentsAlternativeIds, parentsContent) {
+    for (var parentId in parentsAlternativeIds) {
+      var parentAlternativeId = parentsAlternativeIds[parentId];
+      // reliability maybe string '0' (data from server) or number 0 (update in client),
+      // so use type coercion here
+      if (parentsContent[parentId].alternatives[parentAlternativeId].reliability == 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Field is hidden if this is field for fact denial
+   * or if parents alternatives has 0 probability
+   *
+   * @param isNodeFact
+   * @param alternativeIndex
+   * @param isParentsAlternativeImpossible
+   * @returns {*|boolean}
+   */
+  var isHidden = function(isNodeFact, alternativeIndex, isParentsAlternativeImpossible) {
+    // do not show second alternative for facts,
+    // as it is always filled in automatically from first alternative probability
+    return isNodeFact && alternativeIndex>0 || isParentsAlternativeImpossible;
   }
 
   /**
