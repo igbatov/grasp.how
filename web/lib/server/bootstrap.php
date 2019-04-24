@@ -19,6 +19,9 @@ ini_set('display_errors', 0);
 $timeout = 604800;
 session_set_cookie_params($timeout);
 ini_set('session.gc_maxlifetime', $timeout);
+if (!file_exists('/tmp/php/sessions')) {
+  mkdir('/tmp/php/sessions', 0777, true);
+}
 session_save_path('/tmp/php/sessions');
 
 // path to this file

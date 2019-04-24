@@ -724,7 +724,7 @@ GRASP.GraphElementEditor.prototype = {
     }
 
     // probability table form
-    var f = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
+    var cff = GRASP.nodeConditionalFormHelper.getNodeConditionalFormFields(
         node,
         isEditable,
         function(type){return type == GRASP.GraphViewNode.NODE_TYPE_FACT;},
@@ -733,10 +733,10 @@ GRASP.GraphElementEditor.prototype = {
         nodeId,
         that.i18n
     );
-    fields = Object.assign(fields, f.fields);
+    fields = Object.assign(fields, cff.fields);
     // formKeys is array of each combination of parent alternatives,
     // ex.: [{p1:1,p2:1},{p1:1,p2:2},{p1:2,p2:1},{p1:2,p2:2}]
-    var formKeys = f.formKeys;
+    var formKeys = cff.formKeys;
     var tableCallback = this._tableProbabilityCallback.bind(this, graphId, node, formKeys, nodeContentId)
 
     var modalWindow = that.UI.createModal();
@@ -779,7 +779,7 @@ GRASP.GraphElementEditor.prototype = {
         }
     );
 
-    that._switchConditionalForm(form, f.fields, (canBeOnlyFormula || GRASP.nodeConditionalFormHelper.conditionIsFormula(node)))
+    that._switchConditionalForm(form, cff.fields, (canBeOnlyFormula || GRASP.nodeConditionalFormHelper.conditionIsFormula(node)))
 
     that.UI.updateForm(
         form,
@@ -787,7 +787,7 @@ GRASP.GraphElementEditor.prototype = {
         {
           callback: function (name, value) {
             node.alternatives[0].p = {formula:''}
-            that._switchConditionalForm(form, f.fields, value)
+            that._switchConditionalForm(form, cff.fields, value)
           }
         }
     );
