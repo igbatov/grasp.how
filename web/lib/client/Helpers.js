@@ -1723,7 +1723,7 @@ GRASP.nodeConditionalFormHelper = (function(){
     // create form fields for each combination of parent alternatives
     for(var i in formKeys){ // i - number of combination
       var alternativeLabel = '';
-      var parentAlternativeImpossible = isParentsAlternativeImpossible(formKeys[i], parentContents);
+      var parentAlternativeImpossible = isParentsAlternativeImpossible(formKeys[i], parentContents, isNodeFact);
       fieldsObj[i] = {IF:{}, THEN:{}};
       for(var j in formKeys[i]){ // j - parent node id, formKeys[i][j] - parent node j alternative id
         alternativeLabel = parentContents[j].alternatives[formKeys[i][j]].label;
@@ -1771,17 +1771,22 @@ GRASP.nodeConditionalFormHelper = (function(){
   }
 
   /**
-   * If even one of parents has probability of alternative 0, then probability of all alternative set is 0
+   *
+   * If, given parents alternative set, probability of even one fact alternative in set is 0
+   * then probability of all set is 0
    * @param parentsAlternativeIds
    * @param parentsContent
+   * @param isNodeFact
    * @returns {boolean}
    */
-  var isParentsAlternativeImpossible = function(parentsAlternativeIds, parentsContent) {
+  var isParentsAlternativeImpossible = function(parentsAlternativeIds, parentsContent, isNodeFact) {
     for (var parentId in parentsAlternativeIds) {
       var parentAlternativeId = parentsAlternativeIds[parentId];
       // reliability maybe string '0' (data from server) or number 0 (update in client),
       // so use type coercion here
-      if (parentsContent[parentId].alternatives[parentAlternativeId].reliability == 0) {
+      if (isNodeFact(parentsContent[parentId].type)
+        && parentsContent[parentId].alternatives[parentAlternativeId].reliability == 0
+      ) {
         return true;
       }
     }
