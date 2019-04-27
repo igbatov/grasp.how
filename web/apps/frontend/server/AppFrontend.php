@@ -190,6 +190,30 @@ class AppFrontend extends App{
         $this->redirect($referrer);
         break;
 
+      case 'slack':
+        $thankYou = false;
+        include($this->getAppDir("template", false)."/slack.php");
+        break;
+
+      case 'joinSlack':
+        $url = 'https://grasphow.slack.com/api/users.admin.invite'.
+        '?email=' . urlencode($_POST['email']).
+        '&token=' . urlencode($this->config->get('slackToken'));
+        $r = file_get_contents($url);
+        $this->logger->log("slack registration answer", $r);
+        $resp = json_decode($r, true);
+        if ($resp && isset($resp["ok"]) && $resp["ok"]) {
+          $thankYou = true;
+          include($this->getAppDir("template", false)."/slack.php");
+        } else if ($resp && isset($resp["ok"]) && !$resp["ok"] && $resp["error"] == "invalid_email") {
+          $thankYou = false;
+          $badEmail = true;
+          include($this->getAppDir("template", false)."/slack.php");
+        } else {
+          exit("OOPS! Something go wrong :(");
+        }
+        break;
+
       default:
         include($this->getAppDir("template", false)."/index.php");
       break;

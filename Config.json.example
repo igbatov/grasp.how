@@ -46,5 +46,6 @@
       "token_url":"https://accounts.google.com/o/oauth2/token",
       "info_url":"https://www.googleapis.com/plus/v1/people/me"
     }
-  }
+  },
+  "slackToken":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 }
