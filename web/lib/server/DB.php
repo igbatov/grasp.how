@@ -4,17 +4,19 @@ class DB
   private $mysqlLink;
   private $preExecListeners;
   private $dbConf;
+  private $logger;
 
   private static $totalTimeInExecute = 0; // in msec
   private static $totalTimeInQuery = 0; // in msec
   private static $totalTimeInFetch = 0; // in msec
 
-  public function __construct(dbConf $c)
+  public function __construct(dbConf $c, callable $logger=null)
   {
     $this->mysqlLink = mysqli_connect($c->host, $c->login, $c->password, $c->dbName);
     mysqli_query($this->mysqlLink, "SET NAMES utf8");
     $this->preExecListeners = [];
     $this->dbConf = $c;
+    $this->logger = $logger;
   }
 
   public function switchDB($dbname){
@@ -26,7 +28,7 @@ class DB
     $startTimeExecute = round(microtime(true) * 1000);
 
     if ($this->dbConf->verbose_logging) {
-      error_log($query);
+      $this->log($query);
     }
 
     // notify all preexec listeners that we are going to execute query
@@ -34,7 +36,7 @@ class DB
       try{
         $listener['obj']->$listener['method']($query);
       }catch(Exception $e){
-        error_log('Cannot exec '.$listener['obj'].'->'.$listener['method']);
+        $this->log('Cannot exec '.$listener['obj'].'->'.$listener['method']);
       }
     }
 
@@ -84,7 +86,7 @@ class DB
   {
     if($str === NULL) return NULL;
     if(!is_string($str) && !is_numeric($str)){
-      error_log('DB::escape: $str is not a string and not a number $str = '.var_export($str, true)." \n\n STACKTRACE: ".print_r(debug_backtrace(),true));
+      $this->log('DB::escape: $str is not a string and not a number $str = '.var_export($str, true)." \n\n STACKTRACE: ".print_r(debug_backtrace(),true));
     }
     return mysqli_real_escape_string($this->mysqlLink, $str);
   }
@@ -146,6 +148,15 @@ class DB
   {
     $rows = $this->execute("SHOW COLUMNS FROM ".$dbName.".".$tableName." LIKE '".$columnName."'");
     return count($rows)>0 ? TRUE : FALSE;
+  }
+
+  private function log($m) {
+    if ($this->logger) {
+      $f = $this->logger;
+      $f($m);
+    } else {
+      error_log($m);
+    }
   }
 }
 ?>

@@ -7,14 +7,16 @@ class Logger{
   protected $username;
   private $start_time = 0;
   private $id;
+  private $uri;
 
-  public function __construct(MultiTenantDB $db, $eh, $log_dir, $username){
+  public function __construct(MultiTenantDB $db, $eh, $log_dir, $username, $request_id, $uri){
     $this->db = $db;
     $this->eh = $eh;
     $this->log_dir = $log_dir;
     $this->username = $username;
     $this->start_time = microtime(true);
-    $this->id = time().'.'.rand(100,999);
+    $this->id = $request_id;
+    $this->uri = $uri;
   }
 
   public function warning($msg){
@@ -75,11 +77,51 @@ class Logger{
     foreach(func_get_args() as $arg){
       if(is_array($arg)) $msg .= var_export($arg, true);
       else $msg .= $arg;
-      $msg .= "\n";
     }
-    $msg = $this->username." ".$this->id." ".$msg;
-    error_log($msg);
+    $this->infoKV('msg', $msg);
     //$this->dbLog('log',$msg);
+    return 1;
+  }
+
+  /**
+   * Log (key, value) pairs to error_log
+   * You MUST pass to args key, value pairs
+   * Example: infoKV('error', err, 'msg', 'smth wrong')
+   */
+  public function infoKV() {
+    $kv = $this->prepareKV(func_get_args());
+    $kv['level'] = 'INFO';
+    error_log(json_encode($kv));
+  }
+
+  public function warnKV() {
+    $kv = $this->prepareKV(func_get_args());
+    $kv['level'] = 'WARN';
+    error_log(json_encode($kv));
+  }
+
+  public function errorKV() {
+    $kv = $this->prepareKV(func_get_args());
+    $kv['level'] = 'ERROR';
+    error_log(json_encode($kv));
+  }
+
+  private function prepareKV($args): array {
+    $kv = ['username'=>$this->username, 'request_id'=>$this->id, 'uri'=>$this->uri];
+
+    if (count($args) % 2 !== 0) {
+      // Wrong use of logKV
+      $kv['msg'] = json_encode($args);
+      return $kv;
+    }
+
+    $i = 0;
+    $l = count($args);
+    while($i < $l){
+      $kv[$args[$i]] = $args[$i+1];
+      $i = $i + 2;
+    }
+    return $kv;
   }
 
   public function preAccessLog(){

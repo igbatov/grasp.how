@@ -152,6 +152,7 @@ abstract class App
   }
 
   public function showRawData($data=""){
+    $this->logger->infoKV('response', $data);
     echo $data;
     return true;
   }

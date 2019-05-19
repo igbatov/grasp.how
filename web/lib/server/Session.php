@@ -1,8 +1,13 @@
 <?php
 class Session{
   private $auth;
+  private $request_id;
+  private $uri;
+
   function __construct(Auth $auth) {
     $this->auth = $auth;
+    $this->request_id = time().'.'.rand(10,9999);
+    $this->uri = $_SERVER['REQUEST_URI'];
   }
 
   /**
@@ -72,7 +77,7 @@ class Session{
    * @return string
    */
   public function getUsername(){
-    return $this->auth->checkAuth() ? $this->auth->getUsername() : null;
+    return $this->auth && $this->auth->checkAuth() ? $this->auth->getUsername() : null;
   }
 
   public function getLoginFormVars(){
@@ -103,5 +108,13 @@ class Session{
     if(is_object($this->auth->storage)){
       $this->auth->storage->_connect($this->auth->storage_options['dsn']);
     }
+  }
+
+  public function getRequestId() {
+    return $this->request_id;
+  }
+
+  public function getURI() {
+    return $this->uri;
   }
 }

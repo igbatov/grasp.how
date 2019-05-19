@@ -5,7 +5,7 @@ require_once ('lib/server/bootstrap.php');
 
 // log request to db
 if($c && $c->isDebugOn()){
-  $logger->log('request', $_SERVER["REQUEST_URI"], var_export($_REQUEST, true));
+  $logger->infoKV('request', $_REQUEST);
 }
 
 // init application

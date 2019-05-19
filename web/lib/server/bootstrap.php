@@ -50,7 +50,10 @@ function shutdown() {
   if($er['type'] == E_STRICT || $er['type'] == E_DEPRECATED) return;
 
   // and log error to file
-  error_log(print_r($er, true));
+  error_log(json_encode($er));
+
+  // add empty line to ease log read
+  error_log('');
 
   if($er['type'] == E_WARNING) {
       return;
@@ -98,7 +101,7 @@ require_once ($path.'/'.'../../apps/user_pkb/server/AppUserPkb.php');
 class Auth_Log_Observer extends Log_observer {
   var $messages = array();
   function notify($event) {
-    error_log(print_r($event, true));
+    error_log(json_encode($event));
   }
 }
 
@@ -109,7 +112,8 @@ $options = array(
 
 $a = new Auth('MDB2', $options, null, false);
 $debugObserver = new Auth_Log_Observer(PEAR_LOG_DEBUG);
-$a->attachLogObserver($debugObserver);
+// uncomment to log Auth process:
+//$a->attachLogObserver($debugObserver);
 
 // set auth timeout (0 for unlimit)
 $a->setExpire($timeout);
@@ -122,12 +126,19 @@ $s->start();
 
 // init helper modules
 $db = new MultiTenantDB(
-    new EscapeDB(new NestedDB($c->getDbConf())),
+    new EscapeDB(new NestedDB($c->getDbConf(), function ($msg) use ($s) {
+      error_log(json_encode(['username'=>$s->getUsername(), 'request_id'=>$s->getRequestId(), 'uri'=>$s->getURI(), 'msg'=>$msg]));
+    })),
     $c->get('userDBPrefix'),
     $c->getDbConf()->dbName
 );
-$eh = new ErrorHandler();
-$logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername());
+
+// error handler
+$eh = new ErrorHandler($s);
+set_error_handler([$eh, 'customErrorHandler']);
+set_exception_handler([$eh, 'customExceptionHandler']);
+
+$logger = new Logger($db, $eh, dirname(__FILE__)."/../../../logs", $s->getUsername(), $s->getRequestId(), $s->getURI());
 $i18n = new I18N($s, $logger);
 
 // include browser detector classes
