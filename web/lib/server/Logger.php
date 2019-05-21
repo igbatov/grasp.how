@@ -9,7 +9,7 @@ class Logger{
   private $id;
   private $uri;
 
-  public function __construct(MultiTenantDB $db, $eh, $log_dir, $username, $request_id, $uri){
+  public function __construct(MultiTenantDB $db, $eh, $log_dir, $username, $request_id='', $uri=''){
     $this->db = $db;
     $this->eh = $eh;
     $this->log_dir = $log_dir;

@@ -30,13 +30,24 @@ class AppUserPkb extends App
     $this->snapBuilder = new NodeContentSnapBuilder($this->db);
   }
 
+  public function preAccessLog() {
+    parent::preAccessLog();
+    $username = $this->getUsername();
+    if ($username) {
+      $this->getDB()->exec(
+        null,
+        'INSERT INTO activity_stat (username, `date`, cnt) VALUES (:username, :date, 1) ON DUPLICATE KEY UPDATE cnt = cnt + 1;',
+        ['username'=>$username, 'date'=>date('Y-m-d')]
+      );
+    }
+  }
+
   public function showView(){
     parent::showView();
 
     $vars = $this->getRoute();
 
     /**** SPECIAL ACTIONS ***/
-    // send email to admin on signup
     if($vars[0] === 'signupSuccess'){
       // send email to me signalling that someone want to signup
       $this->sendMail("info@grasp.how", "igbatov@gmail.com", "someone want to signup", print_r($_REQUEST, true));

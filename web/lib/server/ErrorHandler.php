@@ -4,9 +4,6 @@ class ErrorHandler{
 
   public function __construct(Session $s=null)
   {
-    if ($s == null) {
-      $s = new Session(null);
-    }
     $this->session = $s;
   }
 
@@ -19,9 +16,9 @@ class ErrorHandler{
     error_log(json_encode([
       'type'=>'ERROR',
       'exception'=>get_class($e),
-      'username'=>$this->session->getUsername(),
-      'uri'=>$this->session->getURI(),
-      'request_id'=>$this->session->getRequestId(),
+      'username'=>$this->session ? $this->session->getUsername() : '',
+      'uri'=>$this->session ? $this->session->getURI() : '',
+      'request_id'=>$this->session ? $this->session->getRequestId() : '',
       'msg'=>$e->getMessage(),
       'file'=>$e->getFile(),
       'line'=>$e->getLine(),

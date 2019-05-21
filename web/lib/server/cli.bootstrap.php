@@ -7,6 +7,9 @@ $path = dirname(__FILE__);
 require_once ($path.'/'.'Config.php');
 $c = new Config();
 
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+ini_set('display_errors', 1);
+
 // set default log file
 ini_set('error_log', $c->getDefaultPath('log')."/error_log.log");
 /**
