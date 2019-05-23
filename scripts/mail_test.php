@@ -1,6 +1,6 @@
 <?php
 
-sendMail("info@grasp.how", "igbatov@gmail.com", "someone want to signup", "test");
+sendMail("igbatov@grasp.how", "igbatov@gmail.com", "someone want to signup", "test");
 
   function sendMail( $from, $to, $subj, $text, $files = array())
   {

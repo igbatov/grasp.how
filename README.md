@@ -84,3 +84,19 @@ chmod o+w tmp/ embed_cache/ uploads/ logs/ img/graph_shots/
 ```
 # cron scripts
 add `~/.credentials/drive-php-uploader.json` and `/var/www/html/grasp.how/scripts/google/client_secret.json` for `scripts/backup` to work properly
+
+# email send from php
+sudo apt-get install ssmtp
+vim /etc/ssmtp/ssmtp.conf
+Write this lines
+```
+mailhub=smtp.yandex.ru:587
+UseSTARTTLS=YES
+AuthUser=igbatov@grasp.how
+AuthPass=xxxxxxxxxxx
+```
+
+Check that email send works:
+```
+php scripts/mail_test.php
+```
