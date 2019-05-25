@@ -142,7 +142,7 @@ var withFbShare = withFbShare || false;
   function createWrapper(){
     var GRAPH_CONTAINER_LEFT_WIDTH_MARGIN = 0; // in %
     var GRAPH_CONTAINER_RIGHT_WIDTH_MARGIN = 0; // in %
-    var GRAPH_CONTAINER_BOTTOM_MARGIN = withFbShare ? 25 : 0; // in px
+    var GRAPH_CONTAINER_BOTTOM_MARGIN = 40; // in px
 
     var svgcH = $(window).height();
     svgcH -= GRAPH_CONTAINER_BOTTOM_MARGIN;

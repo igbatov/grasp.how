@@ -552,16 +552,55 @@ GRASP.GraphMenu.prototype = {
           var linkBlock = that._getLinkShareBlock(hash);
           var jsBlock = that._getJsShareBlock(hash);
           var imgBlock = that._getImgShareBlock(hash);
+          var settingsBlock = that._getSettingsShareBlock(graphId, that.graphs[graphId].getAttributes()['discussionChannel']);
 
           var c = GRASP.createElement('div',{class:'share'});
+          var leftCol = GRASP.createElement('div', {class:'leftCol'});
+          var rightCol = GRASP.createElement('div', {class:'rightCol'});
 
-          c.appendChild(title);
-          c.appendChild(linkBlock);
-          c.appendChild(jsBlock);
-          c.appendChild(imgBlock);
+          leftCol.appendChild(title);
+          leftCol.appendChild(linkBlock);
+          leftCol.appendChild(jsBlock);
+          leftCol.appendChild(imgBlock);
+
+          rightCol.appendChild(settingsBlock);
+
+          c.appendChild(leftCol);
+          c.appendChild(rightCol);
+
           that.UI.setModalContent(m, c);
         });
     });
+  },
+
+  _getSettingsShareBlock: function(graphId, discussionChannel){
+    var that = this;
+    var c = GRASP.createElement('div',{});
+
+    var title = GRASP.createElement(
+      'div',
+      {class:'shareTitle'},
+      this.i18n.__('Display settings')
+    );
+
+    var form = this.UI.createForm({
+      'discussionChannel': {
+        rowType: 'text',
+        value: discussionChannel,
+        rowLabel: this.i18n.__('Link to discussion channel:') + ':',
+        placeholder: this.i18n.__('google group, telegram, slack, ...'),
+        callback: GRASP.debounce(function(name, value) {
+          that.publisher.publish(['set_graph_attributes', {
+            graphId:graphId,
+            discussionChannel:value,
+          }]);
+        }, 2000),
+      },
+    });
+
+    c.appendChild(title);
+    c.appendChild(form);
+    return c;
   },
 
   _getLinkShareBlock: function(hash){

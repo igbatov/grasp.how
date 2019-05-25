@@ -1903,6 +1903,33 @@ GRASP.getURLParameters = function(url){
   }
 }
 
+GRASP.parseURL = function(url) {
+  if (url.substr(0, 4) !== 'http') {
+    url = 'http://'+url;
+  }
+  var parser = document.createElement('a'),
+    searchObject = {},
+    queries, split, i;
+  // Let the browser do the work
+  parser.href = url;
+  // Convert query string to object
+  queries = parser.search.replace(/^\?/, '').split('&');
+  for( i = 0; i < queries.length; i++ ) {
+    split = queries[i].split('=');
+    searchObject[split[0]] = split[1];
+  }
+  return {
+    protocol: parser.protocol,
+    host: parser.host,
+    hostname: parser.hostname,
+    port: parser.port,
+    pathname: parser.pathname,
+    search: parser.search,
+    searchObject: searchObject,
+    hash: parser.hash
+  };
+}
+
 GRASP.stopWatch = function(timerName){
   var startTime = (new Date()).getTime();
 
@@ -2294,4 +2321,20 @@ GRASP.DrawProbabilityChart = function(containerID, values) {
       responsiveAnimationDuration: 0, // animation duration after a resize
     }
   });
-}
+};
+
+GRASP.debounce = function(f, ms) {
+  var timer = null;
+  return function(...args){
+    var onComplete = function() {
+      f.apply(this, args);
+      timer = null;
+    }
+
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    timer = setTimeout(onComplete, ms);
+  };
+};

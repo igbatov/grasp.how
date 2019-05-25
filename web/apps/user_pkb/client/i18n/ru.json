@@ -97,5 +97,8 @@
   "with tolerance range": "с областью значений",
   "Node values probability": "Вероятности значений",
   "Continuous": "Числовой интервал",
-  "Labelled": "Список альтернатив"
+  "Labelled": "Список альтернатив",
+  "Link to discussion channel:": "Ссылка на канал обсуждения",
+  "google group, telegram, slack, ...": "google group, telegram, slack, ...",
+  "Display settings": "Настройки отображения"
 }

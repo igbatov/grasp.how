@@ -30,8 +30,8 @@ var tracker = {
     var observer = new MutationObserver(function(mutations) {
       var listener = addEventListener('blur', function() {
         if(document.activeElement === $('#fb-share-btn').find('iframe')[0]) {
-          ga('send', 'event', 'facebookShare', 'click');
-          var graph_id = $('#fb-share-btn-wrap').attr('data-graph_id');
+          var graph_id = $('#fb-share-btn').attr('data-graph_id');
+          ga('send', 'event', 'facebookShare', 'click', graph_id);
           $.ajax({
             method: "GET",
             url: "/share_track",

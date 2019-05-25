@@ -70,19 +70,54 @@
 
   <div id="graphContainer"></div>
 
-  <?php if($template['withFbShare']): ?>
-  <div style="float: right; margin-right: 7%;"  id="fb-share-btn-wrap" data-graph_id="<?php echo $template['snap']['graphId']; ?>">
-    <div id="fb-share-btn" class="fb-share-button" data-href="<?php echo $template['url']; ?>" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($template['url']) ?>">Share</a></div>
+  <div class="footer">
+      <div class="p1"></div>
+      <div class="p2"></div>
+      <div class="p3">
+        <?php if (!$template['editMapRibbon']) : ?>
+          <a target="_blank" href='<?php echo $cloneUrl; ?>' class="btn editMapButton">Edit map</a>
+          <?php endif ?>
+      </div>
+      <div class="p4">
+        <?php if (!!$template['graphsData'][$template['snap']['graphId']]['attributes']['discussionChannel']) : ?>
+            <div class="discussionChannel">
+              <?php
+              $ch = $template['graphsData'][$template['snap']['graphId']]['attributes']['discussionChannel'];
+              if(substr($ch, 0, 4) !== 'http'){
+                $ch = 'http://'.$ch;
+              }
+              $parsedCh = parse_url($ch);
+              ?>
+                Discuss at <a href="<?php echo $ch ?>" target="_blank"><?php echo $parsedCh['host']; ?></a>
+            </div>
+        <?php endif ?>
+      </div>
+      <div class="p5">
+        <?php if($template['withFbShare']): ?>
+            <div
+                    id="fb-share-btn"
+                    class="fb-share-button"
+                    data-href="<?php echo $template['url']; ?>"
+                    data-graph_id="<?php echo $template['snap']['graphId']; ?>"
+                    data-layout="button_count" data-size="small" data-mobile-iframe="true">
+                <a
+                        class="fb-xfbml-parse-ignore"
+                        target="_blank"
+                        href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode($template['url']) ?>">
+                    Share
+                </a>
+            </div>
+        <?php endif ?>
+      </div>
   </div>
-  <?php endif ?>
+
   <script>
     GRASP.GRAPHS_DATA = <?php echo $template['graphsData'] ? json_encode($template['graphsData']) : ""; ?>
   </script>
-  <?php if (!$template['editMapRibbon']) : ?>
-    <div class="editMapButton"><a target="_blank" href='<?php echo $cloneUrl; ?>' class="btn">Edit map</a></div>
-  <?php endif ?>
+
   <div id="pageInfo" style="display: none;">
     <?php echo json_encode($template['pageInfo']); ?>
   </div>
+
   </body>
 </html>

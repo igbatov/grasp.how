@@ -701,7 +701,7 @@ class Graphs {
       return false;
     }
 
-    $graph = '{"name":"'.$name.'","isEditable":true, "attributes":{"isInTrash":false}, "edgeTypes":["link","causal","conditional"],"nodeTypes":["fact","proposition","illustration","question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"causal"}';
+    $graph = '{"name":"'.$this->db->escape($name).'","isEditable":true, "attributes":{"isInTrash":false, "edgeTypes":["link","causal","conditional"],"nodeTypes":["fact","proposition","illustration","question", "to_read", "best_known_practice"],"nodeDefaultType":"text","edgeDefaultType":"causal"}';
     $q = "INSERT INTO graph SET graph = '".$graph."', created_at = NOW()";
     $graph_id = $this->db->exec($auth_id, $q);
 

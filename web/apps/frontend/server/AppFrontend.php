@@ -105,7 +105,7 @@ class AppFrontend extends App{
         }
 
       /**
-       * If there is no cache - make it and output
+       * Cache to file and output, on next request nginx will find cache file and we will not be here
        */
         $service = new Graphs($this->db, $this->contentIdConverter, $this->graphIdConverter, $this->getLogger());
         $emb_graph = new EmbGraph($this->db, $this->contentIdConverter, $this->graphIdConverter, $service);

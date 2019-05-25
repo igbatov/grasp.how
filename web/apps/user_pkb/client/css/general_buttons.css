@@ -13,11 +13,26 @@
     text-align: left;
     color: #191919;
     padding: 0 1em 1em 1em;
+    display: flex;
+    flex-direction: row;
+}
+
+.share .leftCol {
+    margin-right: 20px;
+    border-right: 1px solid;
+    flex: 0 0 60%;
+}
+
+.share .rightCol {
+    flex: 0 0 40%;
+}
+
+.share .shareTitle {
+    height: 80px;
 }
 
 .share .firstTitle {
     font-family: 'Roboto-Bold';
-    margin-top: 2em;
 }
 
 .share .nextTitle::before{
