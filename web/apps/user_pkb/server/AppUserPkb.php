@@ -140,6 +140,7 @@ class AppUserPkb extends App
             $authRows[0]['username'],
             'Your grasp.how map was cloned!',
             'We just want to notify you that your map "'.$grName.'"" was cloned by someone with email '.$this->getUsername()
+            .'<BR>You can track his edits by clicking "Clones" menu item (see top left corner at https://my.grasp.how)'
           );
         }
       } catch (Throwable $e) {
