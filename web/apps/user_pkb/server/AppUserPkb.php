@@ -108,6 +108,43 @@ class AppUserPkb extends App
       $new_graph_id = $this->graphs->cloneGraph($fromGraphId, $history_step, $timestamp, $this->getAuthId());
       $user_graph_ids = $this->getGraphIds($this->getAuthId());
       $this->graphs->changeGraphPosition($new_graph_id, 'leftGraphView', $user_graph_ids);
+
+      // send email that graph was cloned
+      try {
+        $fromAuthID = $this->graphIdConverter->getAuthId($fromGraphId);
+        $fromGraphID = $this->graphIdConverter->getLocalGraphId($fromGraphId);
+
+        $q = "SELECT username FROM auth WHERE id = '".$this->db->escape($fromAuthID)."'";
+        $authRows = $this->getDB()->exec(null, $q);
+
+        $q = "SELECT graph FROM graph WHERE id = '".$this->db->escape($fromGraphID)."'";
+        $rows = $this->getDB()->exec(null, $q);
+
+        if (
+          !empty($authRows)
+          && is_array($authRows)
+          && isset($authRows[0])
+          && isset($authRows[0]['username'])
+          && !empty($rows)
+          && is_array($rows)
+          && isset($rows[0])
+          && isset($rows[0]['graph'])
+        ) {
+          $gr = json_decode($rows[0]['graph'], true);
+          $grName = '';
+          if ($gr) {
+            $grName = $gr['name'];
+          }
+          App::sendMail(
+            'info@grasp.how',
+            $authRows[0]['username'],
+            'Your grasp.how map was cloned!',
+            'We just want to notify you that your map "'.$grName.'"" was cloned by someone with email '.$this->getUsername()
+          );
+        }
+      } catch (Throwable $e) {
+        $this->logger->errorKV('msg', 'Error send email notification on clone', 'exception', $e->getMessage());
+      }
       return $this->redirect('/');
 
     }elseif($vars[0] === 'oauth'){

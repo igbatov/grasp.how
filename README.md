@@ -87,13 +87,15 @@ add `~/.credentials/drive-php-uploader.json` and `/var/www/html/grasp.how/script
 
 # email send from php
 sudo apt-get install ssmtp
-vim /etc/ssmtp/ssmtp.conf
+sudo vim /etc/ssmtp/ssmtp.conf
 Write this lines
 ```
 mailhub=smtp.yandex.ru:587
 UseSTARTTLS=YES
 AuthUser=igbatov@grasp.how
 AuthPass=xxxxxxxxxxx
+
+FromLineOverride=YES
 ```
 
 Check that email send works:
