@@ -118,7 +118,7 @@ class AppUserPkb extends App
         $authRows = $this->getDB()->exec(null, $q);
 
         $q = "SELECT graph FROM graph WHERE id = '".$this->db->escape($fromGraphID)."'";
-        $rows = $this->getDB()->exec(null, $q);
+        $rows = $this->getDB()->exec($fromAuthID, $q);
 
         if (
           !empty($authRows)
