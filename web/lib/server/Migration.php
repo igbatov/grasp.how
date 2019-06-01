@@ -154,7 +154,7 @@ class MigrationRoller{
       $rev = $rev[0];
       // get date of current revision
       exec('git show -s --format=%ct '.$rev.' 2>&1', $revdate, $return_value);
-      if(count($rev) == 1){
+      if(count($revdate) > 0){
         $revdate = $revdate[0];
       }
       return $revdate;

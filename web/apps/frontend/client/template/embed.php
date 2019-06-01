@@ -18,29 +18,29 @@
 
     <title><?php echo $template['graphsData'][$template['snap']['graphId']]['name']; ?></title>
 
-    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/embed.css">
+    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/embed.css?v=<?php echo $this->getRevision(); ?>">
 
     <!-- fork ribbon -->
-    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/gh-fork-ribbon.css">
+    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/gh-fork-ribbon.css?v=<?php echo $this->getRevision(); ?>">
     <!--[if lt IE 9]>
-    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/gh-fork-ribbon.ie.css">
+    <link rel="stylesheet" href="<?php echo $this->getAppDir('css'); ?>/gh-fork-ribbon.ie.css?v=<?php echo $this->getRevision(); ?>">
     <![endif]-->
     <!-- end fork ribbon -->
 
     <!-- general js -->
-    <script src="<?php echo $this->getDefaultDir('js'); ?>md5.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Chart.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Ajax.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/iListener.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Event.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Mediator.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Publisher.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Subscriber.js"></script>
-    <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>md5.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Chart.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Ajax.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/iListener.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Event.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Mediator.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Publisher.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Subscriber.js?v=<?php echo $this->getRevision(); ?>"></script>
+    <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js?v=<?php echo $this->getRevision(); ?>"></script>
 
     <!-- app specific js -->
     <script>
@@ -52,13 +52,13 @@
         echo 'withFbShare = '.($template['withFbShare'] ? 'true' : 'false');
       ?>
     </script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."d3.v3.min.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."node-content-view.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph-actions.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."main.js" ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."share_track.js" ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/"."googleanalytics.js" ?>?v=<?php echo $this->getRevision(); ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."d3.v3.min.js" ?>?v=<?php echo $this->getRevision(); ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."node-content-view.js" ?>?v=<?php echo $this->getRevision(); ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph.js" ?>?v=<?php echo $this->getRevision(); ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."graph-actions.js" ?>?v=<?php echo $this->getRevision(); ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."main.js" ?>?v=<?php echo $this->getRevision(); ?>"></script>
+    <script type="text/javascript" src="<?php echo $this->getAppDir('js')."/embed/"."share_track.js" ?>?v=<?php echo $this->getRevision(); ?>"></script>
   </head>
   <body>
   <?php if($template['withFbShare']) include($this->getAppDir('template', false).'/_facebook_sdk.php'); ?>

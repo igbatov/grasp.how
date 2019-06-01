@@ -102,3 +102,20 @@ Check that email send works:
 ```
 php scripts/mail_test.php
 ```
+
+# Add git hook to save revision to rev.txt
+```
+vim /var/www/html/grasp.how/.git/hooks/post-merge
+```
+
+```
+#!/bin/bash
+  
+FILENAME='rev.txt'
+shorthash=`git log --pretty=format:'%h' -n 1`
+echo $shorthash > $FILENAME
+```
+
+```
+chmod +x /var/www/html/grasp.how/.git/hooks/post-merge
+```

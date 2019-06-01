@@ -11,6 +11,8 @@ abstract class App
   protected $i18n;
   protected $auth_id;
   protected $oauth;
+  protected $revision;
+  protected $revisionDate;
 
   function __construct(Config $c, Session $s, MultiTenantDB $db, Logger $logger, I18N $i18n, OAuthUser $oauth=null) {
     $this->config = $c;
@@ -21,6 +23,8 @@ abstract class App
     $this->i18n->setI18NDir($this->getAppDir('i18n', false));
     $this->auth_id = null;
     $this->oauth = $oauth;
+    $this->revision = $this->pullRevision();
+    $this->revisionDate = $this->pullRevisionDate();
   }
 
   /**
@@ -279,4 +283,37 @@ abstract class App
         $dbname
     );
   }
+
+  public function getRevision() {
+    return $this->revision;
+  }
+
+  /**
+   * get current revision
+   * @return string
+   */
+  private function pullRevision() {
+    // get current revision
+    exec('git rev-parse HEAD 2>&1', $rev, $return_value);
+    if(count($rev) == 1) {
+      return $rev[0];
+    }
+
+    return 'unknown-revision';
+  }
+
+  /**
+   * get current revision date
+   * @return mixed
+   */
+  private function pullRevisionDate(){
+    $rev = $this->getRevision();
+    // get date of current revision
+    exec('git show -s --format=%ct '.$rev.' 2>&1', $revdate, $return_value);
+    if(count($revdate) > 0){
+      return $revdate[0];
+    }
+    return 'unknown-revision-date';
+  }
+
 }

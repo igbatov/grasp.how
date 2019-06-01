@@ -11,21 +11,21 @@ $detect = new Mobile_Detect;
   <title>(grasp|how)</title>
 
   <!-- Bootstrap -->
-  <link href="<?php echo $this->getAppDir('css'); ?>/bootstrap.min.css" rel="stylesheet">
-  <link href="<?php echo $this->getAppDir('css'); ?>/font-awesome.min.css" rel="stylesheet">
-  <link href="<?php echo $this->getAppDir('css'); ?>/hover.css" rel="stylesheet">
-  <link href="<?php echo $this->getAppDir('css'); ?>/style.css" rel="stylesheet">
-  <link href="<?php echo $this->getAppDir('css'); ?>/media.css" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/bootstrap.min.css?v=<?php echo $this->getRevision(); ?>" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/font-awesome.min.css?v=<?php echo $this->getRevision(); ?>" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/hover.css?v=<?php echo $this->getRevision(); ?>" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/style.css?v=<?php echo $this->getRevision(); ?>" rel="stylesheet">
+  <link href="<?php echo $this->getAppDir('css'); ?>/media.css?v=<?php echo $this->getRevision(); ?>" rel="stylesheet">
 
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js?v=<?php echo $this->getRevision(); ?>"></script>
   <![endif]-->
-  <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js?v=<?php echo $this->getRevision(); ?>"></script>
   <script>
     <?php
     /** @var I18N $i18n */
@@ -33,11 +33,11 @@ $detect = new Mobile_Detect;
     echo 'GRASP.LANGUAGE = "'.$this->i18n->getLang().'";';
     ?>
   </script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
-  <script src="<?php echo $this->getAppDir('js'); ?>/main.js"></script>
-  <script src="<?php echo $this->getAppDir('js'); ?>/bootstrap.min.js"></script>
-  <script src="<?php echo $this->getAppDir('js'); ?>/playOnView.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/main.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/bootstrap.min.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/playOnView.js?v=<?php echo $this->getRevision(); ?>"></script>
 </head>
 <body>
 <div class="mainContainer">

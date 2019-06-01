@@ -19,29 +19,29 @@
   </div>
 
   <!-- General js libs -->
-  <script src="<?php echo $this->getDefaultDir('js'); ?>md5.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Chart.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>jserrorlog.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js"></script>
-  <script src='<?php echo $this->getDefaultDir('js'); ?>decimal.min.js'></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Ajax.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/iListener.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Event.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Mediator.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Publisher.js"></script>
-  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Subscriber.js"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>md5.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Chart.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>jserrorlog.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>jquery.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>stacktrace-0.4.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>xor4096.min.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src='<?php echo $this->getDefaultDir('js'); ?>decimal.min.js?v=<?php echo $this->getRevision(); ?>'></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Helpers.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>I18n.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Ajax.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>UIElements.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/iListener.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Event.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Mediator.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Publisher.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getDefaultDir('js'); ?>Mediator/Subscriber.js?v=<?php echo $this->getRevision(); ?>"></script>
 
   <!-- GRASP source -->
   <?php foreach($this->getJsIncludeList() as $js_include) : ?>
-      <script src="<?php echo $this->getAppDir('js')."/".$js_include; ?>"></script>
+      <script src="<?php echo $this->getAppDir('js')."/".$js_include; ?>?v=<?php echo $this->getRevision(); ?>"></script>
   <?php endforeach ?>
-  <script src="<?php echo $this->getAppDir('js'); ?>/init.js"></script>
-  <script src="<?php echo $this->getAppDir('js'); ?>/main.js"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/init.js?v=<?php echo $this->getRevision(); ?>"></script>
+  <script src="<?php echo $this->getAppDir('js'); ?>/main.js?v=<?php echo $this->getRevision(); ?>"></script>
 
   <!-- mouseflow session replay -->
   <script type="text/javascript">
