@@ -191,26 +191,31 @@ body{
 }
 
 .footer .p1 {
+    white-space: nowrap;
     text-align: center;
     flex: 0 0 20%;
 }
 
 .footer .p2 {
+    white-space: nowrap;
     text-align: center;
     flex: 0 0 20%;
 }
 
 .footer .p3 {
+    white-space: nowrap;
     text-align: center;
     flex: 0 0 20%;
 }
 
 .footer .p4 {
+    white-space: nowrap;
     text-align: center;
     flex: 0 0 20%;
 }
 
 .footer .p5 {
+    white-space: nowrap;
     text-align: center;
     flex: 0 0 20%;
 }
