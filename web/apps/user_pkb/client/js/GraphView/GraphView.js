@@ -21,6 +21,7 @@ GRASP.GraphView = function (graphId, drawer) {
 
   //GraphView settings
   this.graphArea = null;
+  this.graphAreaStyle = null;
   this.nodeMapping = {};
   this.nodeLabelMapping = {};
   this.decoration = {};
@@ -33,7 +34,7 @@ GRASP.GraphView = function (graphId, drawer) {
     x: 0,
     y: 0,
     width: 0,
-    height: 0
+    height: 0,
   });
   this.drawer.addShape(this.backgroundLayerId, this.backgroundShape);
 
@@ -207,6 +208,24 @@ GRASP.GraphView.prototype = {
 
   getGraphArea: function(){
     return this.graphArea;
+  },
+
+  setAreaStyle: function(style) {
+    if(this.graphAreaStyle != null
+      && style.stroke == this.graphAreaStyle.stroke
+      && style.strokeWidth == this.graphAreaStyle.strokeWidth
+      && style.strokeDasharray == this.graphAreaStyle.strokeDasharray
+    ) return;
+
+    this.graphAreaStyle = style;
+
+    this.backgroundShape.setStroke(this.graphAreaStyle.stroke);
+    this.backgroundShape.setStrokeWidth(this.graphAreaStyle.strokeWidth);
+    this.backgroundShape.setStrokeDasharray(this.graphAreaStyle.strokeDasharray);
+  },
+
+  getAreaStyle: function() {
+    return this.graphAreaStyle;
   },
 
   /**

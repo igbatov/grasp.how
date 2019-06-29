@@ -100,6 +100,9 @@ GRASP.GraphViewsPubSub.prototype = {
           if(typeof(graphViewSettings['skin']) !== 'undefined'){
             this.graphViewList[graphId].setSkin(graphViewSettings['skin']);
           }
+          if(typeof(graphViewSettings['areaStyle']) !== 'undefined'){
+            this.graphViewList[graphId].setAreaStyle(graphViewSettings['areaStyle']);
+          }
           this.graphViewList[graphId].drawGraph();
         }
         event.setResponse(true);
@@ -130,6 +133,10 @@ GRASP.GraphViewsPubSub.prototype = {
 
       case 'get_graph_view_drag_mode':
         event.setResponse(this.graphViewList[graphId].getDragMode());
+        break;
+
+      case 'get_graph_area':
+        event.setResponse(this.graphViewList[graphId].getGraphArea());
         break;
 
       case 'set_drag_mode':

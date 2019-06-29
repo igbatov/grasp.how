@@ -57,13 +57,30 @@ GRASP.MappingChangeController.prototype = {
     }
 
     if(eventName == 'draggingnode'){
+      var graphArea = this.publisher.getInstant('get_graph_area', {graphId: graphId});
       m = this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId});
-      m.mapping[event.getData()['draggedModelElement']['element'].id].x = this.nodeStartXY.x + (event.getData()['x'] - this.pointerStartXY.x);
-      m.mapping[event.getData()['draggedModelElement']['element'].id].y = this.nodeStartXY.y + (event.getData()['y'] - this.pointerStartXY.y);
+      var newX = this.nodeStartXY.x + (event.getData()['x'] - this.pointerStartXY.x);
+      var newY = this.nodeStartXY.y + (event.getData()['y'] - this.pointerStartXY.y);
+
+      // prevent dragging outside graphArea
+      if(
+        newX > graphArea.centerX+graphArea.width/2
+        || newX < graphArea.centerX-graphArea.width/2
+        || newY > graphArea.centerY+graphArea.height/2
+        || newY < graphArea.centerY-graphArea.height/2
+      ) {
+        return;
+      }
+
+      m.mapping[event.getData()['draggedModelElement']['element'].id].x = newX;
+      m.mapping[event.getData()['draggedModelElement']['element'].id].y = newY;
+
+      // iGraphViewSettingsStructOne
       var graphViewSettings = {
+        areaStyle: {stroke: '#BBBBBB', strokeWidth: 0.5, strokeDasharray: '10 5'},
         graphId: graphId,
         nodeMapping: m,
-        nodeLabelMapping: m
+        nodeLabelMapping: m,
       };
       that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
     }
@@ -71,6 +88,12 @@ GRASP.MappingChangeController.prototype = {
     if(eventName == 'dragendnode'){
       m = this.publisher.getInstant('get_graph_view_node_mapping', {graphId: graphId});
       that.publisher.publish(["node_mapping_changed", {graphId: graphId, node_mapping: m}, true]);
+      // iGraphViewSettingsStructOne
+      var graphViewSettings = {
+        graphId: graphId,
+        areaStyle: {stroke: '', strokeWidth: 0, strokeDasharray: ''},
+      };
+      that.publisher.publish(["draw_graph_view", graphViewSettings, true]);
     }
   }
 };

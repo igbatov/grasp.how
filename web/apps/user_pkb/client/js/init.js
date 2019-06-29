@@ -296,6 +296,7 @@ Modules['Mediator'].setSubscriptions(
       'get_graph_view_node_label_mapping':[Modules['GraphViewsPubSub']],
       'get_graph_view_decoration':[Modules['GraphViewsPubSub']],
       'get_graph_view_drag_mode':[Modules['GraphViewsPubSub']],
+      'get_graph_area':[Modules['GraphViewsPubSub']],
       'set_drag_mode':[
         Modules['GraphViewsPubSub'],
         Modules['StatusString']

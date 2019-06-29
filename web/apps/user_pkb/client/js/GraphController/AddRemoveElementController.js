@@ -13,7 +13,12 @@ GRASP.AddRemoveElementController = function(publisher){
 
 GRASP.AddRemoveElementController.prototype = {
   execute: function(event, selectedElement){
-    var that = this, eventName = event.getName(), dragMode, acceptedEvents = ['dragendnode', 'delete_pressed', 'element_editor_focusin', 'element_editor_focusout'];
+    var that = this, eventName = event.getName(), dragMode, acceptedEvents =[
+      'dragendnode',
+      'delete_pressed',
+      'element_editor_focusin',
+      'element_editor_focusout'
+    ];
 
     // reject in the explicit form all events except those in acceptedEvents
     if(acceptedEvents.indexOf(eventName) == -1) return;

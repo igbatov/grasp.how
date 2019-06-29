@@ -586,6 +586,7 @@ GRASP.SVGDrawer.BaseShape = function(args){
   this.opacity = args.opacity;
   this.stroke = args.stroke;
   this.strokeWidth = args.strokeWidth;
+  this.strokeDasharray = args.strokeDasharray;
   this.draggable = args.draggable;
   this.mousedown = false;
   this.shape = null; // DOM (SVG) element, should be redefined in final shape class
@@ -713,6 +714,14 @@ GRASP.SVGDrawer.BaseShape.prototype = {
   },
   getStrokeWidth: function(){
     return this.strokeWidth;
+  },
+
+  setStrokeDasharray: function(v){
+    this.strokeDasharray = v;
+    this.shape.setAttributeNS(null, "stroke-dasharray", v);
+  },
+  getStrokeDasharray: function(){
+    return this.strokeDasharray;
   },
 
   setPointerEvents: function(v){
