@@ -70,7 +70,9 @@
 }
 
 .GeneralButtons {
-    width: 340px;
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
 }
 
 .GeneralButtons .ui_select {
@@ -147,6 +149,7 @@
 }
 
 .ui_button.bigButton[name=CalculateBayes] {
+    white-space: nowrap;
     position: relative;
     top: -0.15em;
 }

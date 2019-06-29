@@ -172,7 +172,6 @@ body {
     font-size: 16px;
 }
 #horizontalMenu .leftContainer{
-    width: 300px;
     align-items: center;
     justify-content: space-between;
     display: flex;
