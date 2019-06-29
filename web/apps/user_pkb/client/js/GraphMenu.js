@@ -85,9 +85,10 @@ GRASP.GraphMenu.prototype = {
       // clear our container
       $('#'+c.id).html('');
 
-      // create containers for select boxes
-      $('#'+c.id).append('<div id="leftSelectContainer" class="GraphMenu"></div>');
-      $('#'+c.id).append('<div id="rightSelectContainer" class="GraphMenu"></div>');
+      // create logo
+      var leftContainer = GRASP.createElement('div', {class:'leftContainer'});
+      document.getElementById(c.id).appendChild(leftContainer);
+      leftContainer.appendChild(GRASP.createElement('img', {src: '/lib/client/img/grasp.how_inverse.svg', height:'46px'}));
 
       // create left and right select box
       var selectItems = {
@@ -127,8 +128,9 @@ GRASP.GraphMenu.prototype = {
           }
         }
       });
-      document.getElementById('leftSelectContainer').appendChild(that.leftGraphViewSelect);
+      leftContainer.appendChild(that.leftGraphViewSelect);
 
+      /*
       that.rightGraphViewSelect = that.UI.createSelectBox({
         name:'rightGraphView',
         items:items,
@@ -138,7 +140,7 @@ GRASP.GraphMenu.prototype = {
         }
       });
       document.getElementById('rightSelectContainer').appendChild(that.rightGraphViewSelect);
-
+       */
       var generalButtonsContainer = GRASP.createElement('div',{class:'GeneralButtons'});
       document.getElementById(c.id).appendChild(generalButtonsContainer);
       that.publisher.publish(['get_user_settings']).then(function(settings){

@@ -70,10 +70,7 @@
 }
 
 .GeneralButtons {
-    text-align: right;
-    width: 40%;
-    display: inline-block;
-    padding-right: 6.5em;
+    width: 340px;
 }
 
 .GeneralButtons .ui_select {

@@ -161,28 +161,21 @@ body {
     left: 50%;
 }
 
-#horizontalMenu::before{
-    /* background-repeat: no-repeat; */
-    /* background-image: url('/lib/client/img/grasp.how_inverse.svg'); */
-    /* background-size: 7em 3.1em; */
-    /* display: inline-block; */
-    /* width: 5em; */
-    /* height: 2.5em; */
-    /* content:""; */
-    /*margin-left: 10%;*/
-    /*margin-right: 5%;*/
-}
-
 #horizontalMenu{
-    background-repeat: no-repeat;
-    background-image: url(/lib/client/img/grasp.how_inverse.svg);
-    background-size: 8em 3.3em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     height: 3em;
     background-color: #1c1f33;
     color: white;
-    /* padding: 0.33em 0; */
+    padding: 0 5%;
     font-size: 16px;
-    background-position: 5% -0.1em;
+}
+#horizontalMenu .leftContainer{
+    width: 300px;
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
 }
 
 .GraphMenu{
