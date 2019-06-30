@@ -174,7 +174,10 @@ GRASP.GraphView.prototype = {
       && area.centerX == this.graphArea.centerX
       && area.centerY == this.graphArea.centerY
       && area.width == this.graphArea.width
-      && area.height == this.graphArea.height) return;
+      && area.height == this.graphArea.height
+    ) {
+      return;
+    }
 
     this.graphArea = area;
 
@@ -282,6 +285,14 @@ GRASP.GraphView.prototype = {
     return this.dragMode;
   },
 
+  setDragRestrictedToArea: function(val) {
+    this.dragRestrictedToArea = !!val;
+  },
+
+  getDragRestrictedToArea: function() {
+    return this.dragRestrictedToArea;
+  },
+
   /**
    * Creates (or adjusts if element already exists) canvas elements from given nodes and edges.
    * Adds them to canvas and draw.
@@ -349,6 +360,7 @@ GRASP.GraphView.prototype = {
 
       //bind event helpers
       this._bindToElement('dragstartnode', elNode, this._dragStartNodeHandler.bind(this));
+      this._bindToElement('draggingnode', elNode, this._draggingNodeHandler.bind(this));
       this._bindToElement('dragendnode', elNode, this._dragEndNodeHandler.bind(this));
 
       //bind to new node all user callbacks (that was registered with bind() on all other nodes)
@@ -730,24 +742,30 @@ GRASP.GraphView.prototype = {
       }
     }
   },
-/**
+
   _draggingNodeHandler: function(e){
-    if(this.isNodeDraggedStarted && this.dragMode == 'move'){
-      var rows, i;
-      // update accordingly moving node label and adjacent edges
-      for(i in model.edges){
-        if(model.edges[i].source == this.draggedModelElement['id']){
-          rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':model.edges[i].id});
-          rows[0]['element'].setStart({x:node.getX(), y:node.getY()});
-        }
-        if(model.edges[i].target == this.draggedModelElement['id']){
-          rows = this.graphViewElements.getRows({'elementType':'edge', 'elementId':model.edges[i].id});
-          rows[0]['element'].setStop({x:node.getX(), y:node.getY()});
-        }
+    if (this.dragRestrictedToArea) {
+      var area = this.getGraphArea();
+      var xy =  e.targetNode.getXY();
+      var maxX = area.centerX+area.width/2;
+      var minX = area.centerX-area.width/2;
+      var maxY = area.centerY+area.height/2;
+      var minY = area.centerY-area.height/2;
+      if (xy.x > maxX) {
+        e.targetNode.setX(maxX);
+      }
+      if (xy.x < minX) {
+        e.targetNode.setX(minX);
+      }
+      if (xy.y > maxY) {
+        e.targetNode.setY(maxY);
+      }
+      if (xy.y < minY) {
+        e.targetNode.setY(minY);
       }
     }
   },
-*/
+
   /**
    * Remove dragged node and fill in this.droppedOnShapeIds
    * @param evt

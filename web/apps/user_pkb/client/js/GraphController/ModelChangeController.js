@@ -215,7 +215,8 @@ GRASP.ModelChangeController.prototype = {
               graphEdgeAttributes:graphEdgeAttributes,
               decoration:decoration,
               nodeMapping:nodeMapping,
-              dragMode:'move'
+              dragMode:'move',
+              dragRestrictedToArea: true,
           };
 
         // hide ajax loader

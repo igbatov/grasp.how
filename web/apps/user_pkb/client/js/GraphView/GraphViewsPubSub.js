@@ -75,6 +75,7 @@ GRASP.GraphViewsPubSub.prototype = {
           this.graphViewList[graphId].setDecoration(graphViewSettings['decoration']);
           this.graphViewList[graphId].setSkin(graphViewSettings['skin']);
           this.graphViewList[graphId].setDragMode(graphViewSettings['dragMode']);
+          this.graphViewList[graphId].setDragRestrictedToArea(graphViewSettings['dragRestrictedToArea']);
           this.graphViewList[graphId].drawGraph();
 
           this.dragMode = graphViewSettings['dragMode'];
@@ -226,7 +227,8 @@ GRASP.GraphViewsPubSub.prototype = {
         graphNodeAttributes = graphViewSettingsStructTwo['graphNodeAttributes'],
         graphEdgeAttributes = graphViewSettingsStructTwo['graphEdgeAttributes'],
         decoration = graphViewSettingsStructTwo['decoration'],
-        nodeMapping = graphViewSettingsStructTwo['nodeMapping'];
+        nodeMapping = graphViewSettingsStructTwo['nodeMapping'],
+        dragRestrictedToArea = graphViewSettingsStructTwo['dragRestrictedToArea'];
 
     var i, graphNodes = graphModel.nodes, graphEdges = graphModel.edges;
 
@@ -273,7 +275,8 @@ GRASP.GraphViewsPubSub.prototype = {
       nodeLabelMapping: nodeMapping,
       decoration: decoration,
       skin: skin,
-      dragMode: graphViewSettingsStructTwo.dragMode
+      dragMode: graphViewSettingsStructTwo.dragMode,
+      dragRestrictedToArea: dragRestrictedToArea,
     };
 
     return graphViewSettings;

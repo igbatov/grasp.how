@@ -527,7 +527,7 @@ GRASP.SVGDrawer.prototype = {
     this.addEventListener('dragstart', function(evt, shape){
 
       // move element center under mouse pointer
-      // (this hack is to avoid bug when sometimes element slips away from mouse)
+      // (this hack is to avoid bug when sometimes element slips away from mouse after fast mouse move)
       var shapeBoundRect = shape.getShape().getBoundingClientRect();
       shape.setXY({
         x: shape.getX() - (shapeBoundRect.left + shapeBoundRect.width/2 - evt.x),
