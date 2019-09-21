@@ -111,6 +111,17 @@ body {
     content: "";
     background: url(/apps/user_pkb/client/img/ic_mode_edit_black_24px.svg) no-repeat 0 0;
 }
+.withDownloadIcon::before{
+    position: relative;
+    top: -0.2em;
+    display: inline;
+    width: 24px;
+    height: 24px;
+    padding-right: 2.3em;
+    padding-bottom: 5px;
+    content: "";
+    background: url(/apps/user_pkb/client/img/download.svg) no-repeat 0 0;
+}
 .withShareIcon::before{
     position: relative;
     top: -0.2em;

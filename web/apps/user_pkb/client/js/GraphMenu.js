@@ -97,6 +97,7 @@ GRASP.GraphMenu.prototype = {
         Clones: GRASP.createElement('div',{class:'withCloneIcon'},that.i18n.__('Clones')),
         Share: GRASP.createElement('div',{class:'withShareIcon'}, that.i18n.__('Share')),
         EditName: GRASP.createElement('div',{class:'withEditIcon'},that.i18n.__('Rename')),
+        DownloadAsText: GRASP.createElement('div',{class:'withDownloadIcon'},that.i18n.__('Download as text')),
       };
       if(GRASP.getObjectLength(items) > 1) {
         selectItems.Remove = GRASP.createElement('div',{class:'withTrashIcon'},that.i18n.__('Remove'));
@@ -120,6 +121,9 @@ GRASP.GraphMenu.prototype = {
             return false;
           } else if (value === 'Remove') {
             that._onRemove.call(that, 'leftGraphView');
+            return false;
+          } else if (value === 'DownloadAsText') {
+            that._onDownloadAsText.call(that, 'leftGraphView');
             return false;
           } else {
             // selection of graph (value = graphId)
@@ -182,6 +186,35 @@ GRASP.GraphMenu.prototype = {
         );
       });
     });
+  },
+
+  _onDownloadAsText: function(position){
+    var graphId = '', that = this;
+    for(var i in this.selectedPosition){
+      if(this.selectedPosition[i] == position) graphId = i;
+    }
+    if(typeof(this.graphs[graphId]) == 'undefined') return;
+    var nodeContentIds = Object.values(this.graphs[graphId].getNodes()).map(
+      function(node){
+        return node && node.nodeContentId;
+      }
+    );
+    this.publisher.publish(
+        [
+          'get_graph_node_content',
+          {
+            graphId: graphId,
+            nodeContentIds: nodeContentIds,
+          }
+        ]
+      )
+      .then(function(nodeContents){
+        function replacer(key, value) {
+          return value;
+        }
+        GRASP.saveTextToFile(JSON.stringify(nodeContents, replacer, 5), that.graphs[graphId].getGraphName() + '.json');
+      });
+
   },
 
   _onRemove: function(position){
