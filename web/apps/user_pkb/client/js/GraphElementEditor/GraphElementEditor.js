@@ -1032,7 +1032,7 @@ GRASP.GraphElementEditor.prototype = {
     }));
     c.appendChild(this.UI.createRange({
       name: 'importance',
-      label: this.i18n.__('Importance'),
+      label: this.i18n.__('Size'),
       min: 1,
       max: 99,
       step: 1,
