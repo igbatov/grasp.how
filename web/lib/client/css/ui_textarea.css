@@ -1,3 +1,4 @@
 .ui_textarea[contenteditable="true"]{
     border-bottom: solid 1px #788d98;
+    min-width: 150px;
 }
