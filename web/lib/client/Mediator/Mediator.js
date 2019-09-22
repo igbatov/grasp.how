@@ -164,14 +164,16 @@ GRASP.Mediator.prototype = {
         if(stack[i].indexOf("Publisher.js") > 0 && stack[i+1].indexOf("Publisher.js") < 0) break;
       }
       var str = stack[i+1];
-      // str decoration
-      var src = str.substr(str.lastIndexOf("/"));
-      var fileName = src.substr(1,src.indexOf(":")-1);
-      var codeLine = src.substr(src.indexOf(":")+1);
-      if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
-      // log it
-      GRASP.debug.printEvent(currentEvent, fileName,codeLine,'fire',event.getName(),event.getData(), GRASP.getObjectId(event));
-      //GRASP.logger.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), GRASP.clone(event.getData()), GRASP.getObjectId(event));
+      if(str) {
+        // str decoration
+        var src = str.substr(str.lastIndexOf("/"));
+        var fileName = src.substr(1,src.indexOf(":")-1);
+        var codeLine = src.substr(src.indexOf(":")+1);
+        if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
+        // log it
+        GRASP.debug.printEvent(currentEvent, fileName,codeLine,'fire',event.getName(),event.getData(), GRASP.getObjectId(event));
+        //GRASP.logger.log(str.substr(str.lastIndexOf("/"))+" ---- "+event.getName(), GRASP.clone(event.getData()), GRASP.getObjectId(event));
+      }
     }
     // endof debugging
 

@@ -29,10 +29,10 @@ GRASP.GraphElementEditor = function(publisher, ViewManager, UI, formFields, i18n
 
 
   // Fire event on editor focusin and focusout
-  $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('focus', 'input, select, textarea', function(e){
+  $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('focus', 'input, select, .ui_textarea', function(e){
     that.publisher.publish(['element_editor_focusin', {}]);
   });
-  $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('focusout', 'input, select, textarea', function(e){
+  $('#'+this.leftContainer.id+', #'+this.rightContainer.id).on('focusout', 'input, select, .ui_textarea', function(e){
     that.publisher.publish(['element_editor_focusout', {}]);
   });
 };

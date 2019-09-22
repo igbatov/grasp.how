@@ -39,13 +39,15 @@ GRASP.Event.prototype = GRASP.extend(GRASP.iEvent, {
       }
 
       var str = stack[i+1];
-      // str decoration
-      var src = str.substr(str.lastIndexOf("/"));
-      var fileName = src.substr(1,src.indexOf(":")-1);
-      var codeLine = src.substr(src.indexOf(":")+1);
-      if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
-      // log it
-      GRASP.debug.printEvent(undefined,fileName,codeLine,'response',this.getName(), v, GRASP.getObjectId(this));
+      if (str) {
+        // str decoration
+        var src = str.substr(str.lastIndexOf("/"));
+        var fileName = src.substr(1,src.indexOf(":")-1);
+        var codeLine = src.substr(src.indexOf(":")+1);
+        if(codeLine[codeLine.length-1] == ')') codeLine = codeLine.substr(0,codeLine.length-1);
+        // log it
+        GRASP.debug.printEvent(undefined,fileName,codeLine,'response',this.getName(), v, GRASP.getObjectId(this));
+      }
     }
     // endof debugging
 
