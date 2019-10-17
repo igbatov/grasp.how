@@ -715,8 +715,8 @@ GRASP.decorationHelper.adjustDecorationToArea = function(decoration, area){
   for(i in decoration.nodeLabels){
     n = decoration.nodeLabels[i];
     adjustedNodeLabels[i] = GRASP.clone(n);
-    //  adjustedNodeLabels[i].size = Math.max(Math.round(n.size*adjustedScale), 1);
-    adjustedNodeLabels[i].size = 12;
+    adjustedNodeLabels[i].size = Math.max(Math.round(n.size*adjustedScale), 1);
+    // adjustedNodeLabels[i].size = 12;
   }
 
   for(i in decoration.edges){

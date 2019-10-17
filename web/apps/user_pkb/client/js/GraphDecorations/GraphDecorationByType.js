@@ -61,7 +61,14 @@ GRASP.GraphDecorationByType.prototype = {
         }
       }
       decoration.nodes[i] = {color:color, borderColor:color, opacity:Math.max(0.1,reliability), size:Math.max(5, size*importance/20), stickers:stickers};
-      decoration.nodeLabels[i] = {opacity: 1, size:Math.max(5, labelSize*importance/50)};
+      if (skin.nodeLabel.attr.fixedSize) {
+        decoration.nodeLabels[i] = {
+          opacity: 1,
+          size:skin.nodeLabel.attr.fixedSize
+        };
+      } else {
+        decoration.nodeLabels[i] = {opacity: 1, size:Math.max(5, labelSize*importance/50)};
+      }
     }
     for(i in edges){
       color = skin.edge.attr.typeColors[graphEdgeAttributes[edges[i].edgeContentId].type];
