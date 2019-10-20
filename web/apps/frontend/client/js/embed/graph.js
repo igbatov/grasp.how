@@ -2,6 +2,9 @@
 var GRASP = GRASP || {};
 
 GRASP.html2text = function(html){
+  if (!html) {
+    return '';
+  }
   html = html.replace(/<style([\s\S]*?)<\/style>/gi, '');
   html = html.replace(/<script([\s\S]*?)<\/script>/gi, '');
   html = html.replace(/<div>/ig, '\n');

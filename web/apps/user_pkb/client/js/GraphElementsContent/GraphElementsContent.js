@@ -405,8 +405,8 @@ GRASP.GraphElementsContent.prototype = {
           var rows = this.cacheContent.get({elementType:'node', contentId:nodeContentId});
           // we assume that if even one alternative has text, then full node contents were already retrieved from server
           if(
-            rows.length && 
-            typeof(rows[0]['content']['alternatives'][0]['text']) != 'undefined' && 
+            rows.length && rows[0]['content'] && rows[0]['content']['alternatives'] && rows[0]['content']['alternatives'].length &&
+            typeof(rows[0]['content']['alternatives'][0]['text']) != 'undefined' &&
             rows[0]['content']['alternatives'][0]['text'] != null
           ){
              cachedContents[nodeContentId] = rows[0]['content'];

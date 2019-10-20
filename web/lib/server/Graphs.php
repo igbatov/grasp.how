@@ -962,7 +962,7 @@ class Graphs {
     }
 
     // Copy node_content_falsification
-    $q = "SELECT '".$new_graph_id."', local_content_id,	alternative_id, `name`, comment FROM node_content_falsification "
+    $q = "SELECT '".$new_graph_id."', local_content_id, alternative_id, `name`, comment FROM node_content_falsification "
         ."WHERE graph_id = '".$localGraphId."' AND local_content_id IN ('".implode("','",$local_content_ids)."')";
     $rows = $this->db->exec($fromAuthId, $q);
 

@@ -200,6 +200,9 @@ GRASP.GraphViewsPubSub.prototype = {
   },
 
   _setBottomPanelSwitchClass: function(dragMode){
+    if (!this.bottomPanel || !this.bottomPanel['switch']) {
+      return;
+    }
     if (dragMode === GRASP.DragModeChangeController.MOVE) {
       this.bottomPanel['switch'].getShape().setAttribute(
           'class',
