@@ -6,6 +6,10 @@ class D20191020ChangeTextToMediumText extends Migration {
     if ($authId === NULL) {
       $this->db->exec(
         $authId,
+        'update yovalue_user_template.node_content set created_at=updated_at where created_at = 0;'
+      );
+      $this->db->exec(
+        $authId,
         'alter table yovalue_user_template.node_content modify `text` mediumtext null;'
       );
       $this->db->exec(
@@ -13,6 +17,10 @@ class D20191020ChangeTextToMediumText extends Migration {
         'alter table yovalue_user_template.node_content_history modify `text` mediumtext null;'
       );
     } else {
+      $this->db->exec(
+        $authId,
+        'update yovalue_user_template.node_content set created_at=updated_at where created_at = 0;'
+      );
       $this->db->exec(
         $authId,
         'alter table node_content modify `text` mediumtext null;'
