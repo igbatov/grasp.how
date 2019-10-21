@@ -64,7 +64,8 @@ var withFbShare = withFbShare || false;
       nodeContents: graph["nodeContents"],
       nodeTypes: graph["nodeTypes"],
       edgeTypes: graph["edgeTypes"],
-      graphAreaSidePadding: 0
+      graphAreaSidePadding: 0,
+      skin: graph["skin"],
     });
     graphDrawer.showGraph();
 
@@ -104,7 +105,8 @@ var withFbShare = withFbShare || false;
       edgeTypes:graph['edgeTypes'],
       nodes:nodes,
       edges:edges,
-      nodeContents:nodeContents
+      nodeContents:nodeContents,
+      skin:graph['skin'],
     };
   }
 

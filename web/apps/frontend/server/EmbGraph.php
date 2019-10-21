@@ -46,12 +46,13 @@ class EmbGraph{
 
       // get names and node types
       $graph_row = $this->db->exec($authId, "SELECT * FROM graph WHERE id = '".$localGraphId."'")[0];
-      $graph_settings = json_decode($graph_row['graph'], true);
+      $graph_cfg = json_decode($graph_row['graph'], true);
       $graphs[$graphId] = array(
-        "name"=>$graph_settings["name"],
-        "nodeTypes"=>$graph_settings["nodeTypes"],
-        "edgeTypes"=>$graph_settings["edgeTypes"],
-        'attributes'=>$graph_settings["attributes"],
+        "name"=>$graph_cfg["name"],
+        "nodeTypes"=>$graph_cfg["nodeTypes"],
+        "edgeTypes"=>$graph_cfg["edgeTypes"],
+        'attributes'=>$graph_cfg["attributes"],
+        "skin"=>$graph_settings['skin'],
       );
 
       // get nodes and edges

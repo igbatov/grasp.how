@@ -84,7 +84,7 @@ var graphDrawer = (function(){
 
     }else if(eventName == 'add_labels'){
       for(var i in eventData){
-        addLabel(_nodes[eventData[i].nodeId], eventData[i].label, eventData[i].key)
+        addLabel(_nodes[eventData[i].nodeId], eventData[i].label, eventData[i].key, _options['skin'])
       }
       updateNodeXY();
 
@@ -290,6 +290,7 @@ var graphDrawer = (function(){
     var nodeContents = _options['nodeContents'];
     var edgeTypes = _options['edgeTypes'];
     var graphAreaSidePadding = _options['graphAreaSidePadding'];
+    var skin = _options['skin'];
     _nodes = clone(orig_nodes);
 
     _svgc = wrapper.append("svg")
@@ -382,7 +383,7 @@ var graphDrawer = (function(){
       var node = _nodes[i];
 
       var active_alternative_id = nodeContents[node.id]['active_alternative_id'];
-      addLabel(node, nodeContents[node.id]['alternatives'][active_alternative_id].label, 'default');
+      addLabel(node, nodeContents[node.id]['alternatives'][active_alternative_id].label, 'default', skin);
     }
 
     updateNodeXY();
@@ -390,7 +391,7 @@ var graphDrawer = (function(){
     return _svgc;
   }
 
-  function addLabel(node, str, key){
+  function addLabel(node, str, key, skin){
     var gId = guid();
     var g = _svgc.append('g')
         .attr("class", 'graphLabel')
@@ -416,7 +417,11 @@ var graphDrawer = (function(){
       newText.setAttributeNS(null,"dx",0);
       newText.setAttributeNS(null,"dy",offset);
       newText.setAttributeNS(null,"font-family", LABEL_FONT_FAMILY);
-      newText.setAttributeNS(null,"font-size",LABEL_FONT_SIZE_FACTOR*node.size);
+      if (skin && skin['nodeLabel']['attr'] && skin['nodeLabel']['attr']['fixedSize']) {
+        newText.setAttributeNS(null,"font-size", skin['nodeLabel']['attr']['fixedSize']);
+      } else {
+        newText.setAttributeNS(null,"font-size",LABEL_FONT_SIZE_FACTOR*node.size);
+      }
       newText.setAttributeNS(null,"fill","#BBBBBB");
       newText.setAttributeNS(null,"opacity",node.opacity);
       var textNode = _document.createTextNode(str);

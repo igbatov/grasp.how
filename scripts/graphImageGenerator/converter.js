@@ -41,7 +41,8 @@ fs.readFile(arg1, (err, data) => {
             nodeContents: graph["nodeContents"],
             nodeTypes: graph["nodeTypes"],
             edgeTypes: graph["edgeTypes"],
-            graphAreaSidePadding: 0
+            graphAreaSidePadding: 0,
+            skin: graph["skin"],
         });
         var svg = graphDrawer.showGraph();
 
