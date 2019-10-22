@@ -391,6 +391,10 @@ var graphDrawer = (function(){
     return _svgc;
   }
 
+  function isFontFixedSize(skin) {
+    return skin && skin['nodeLabel']['attr'] && skin['nodeLabel']['attr']['fixedSize'];
+  }
+
   function addLabel(node, str, key, skin){
     var gId = guid();
     var g = _svgc.append('g')
@@ -417,7 +421,7 @@ var graphDrawer = (function(){
       newText.setAttributeNS(null,"dx",0);
       newText.setAttributeNS(null,"dy",offset);
       newText.setAttributeNS(null,"font-family", LABEL_FONT_FAMILY);
-      if (skin && skin['nodeLabel']['attr'] && skin['nodeLabel']['attr']['fixedSize']) {
+      if (isFontFixedSize(skin)) {
         newText.setAttributeNS(null,"font-size", skin['nodeLabel']['attr']['fixedSize']);
       } else {
         newText.setAttributeNS(null,"font-size",LABEL_FONT_SIZE_FACTOR*node.size);
@@ -428,7 +432,11 @@ var graphDrawer = (function(){
       newText.appendChild(textNode);
       gNode.appendChild(newText);
 
-      offset += LABEL_FONT_SIZE_FACTOR*node.size;
+      if (isFontFixedSize(skin)) {
+        offset += skin['nodeLabel']['attr']['fixedSize'];
+      } else {
+        offset += LABEL_FONT_SIZE_FACTOR*node.size;
+      }
     }
   }
 
