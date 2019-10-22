@@ -25,8 +25,8 @@ GRASP.html2text = function(html){
 var graphDrawer = (function(){
   // CONSTANTS
   var LABEL_FONT_FAMILY = "SFNSDisplay";
-  var LABEL_FONT_SIZE_FACTOR = 1;
-  var NODE_SIZE_FACTOR = 1;
+  var LABEL_FONT_SIZE_FACTOR = 1.6;
+  var NODE_SIZE_FACTOR = 1.6;
   var ANIMATION_TICK = 2; // in ms
   var ANIMATION_INCREMENT = 5; // in pixels
   var ARROW_EDGE_TYPES = ['causal', 'conditional']; // in pixels
@@ -396,7 +396,11 @@ var graphDrawer = (function(){
   }
 
   function getFontSize(node, skin){
-    return Math.max(skin['nodeLabel']['attr']['fixedSize'], LABEL_FONT_SIZE_FACTOR*node.size);
+    if (isFontFixedSize(skin)) {
+      return Math.max(skin['nodeLabel']['attr']['fixedSize'], node.size);
+    } else {
+      return LABEL_FONT_SIZE_FACTOR*node.size;
+    }
   }
 
   function addLabel(node, str, key, skin){
@@ -419,31 +423,23 @@ var graphDrawer = (function(){
     var svgNS = "http://www.w3.org/2000/svg";
     var gNode = _document.getElementById(gId);
     for(var j in strs){
-      var str = strs[j];
-      if (!str || !str.length) {
-	continue;
+      var line = strs[j];
+      if (!line || !line.length) {
+	      continue;
       }	      
       var newText = _document.createElementNS(svgNS,"text");
       newText.setAttributeNS(null,"class","graphLabelString");
       newText.setAttributeNS(null,"dx",0);
       newText.setAttributeNS(null,"dy",offset);
       newText.setAttributeNS(null,"font-family", LABEL_FONT_FAMILY);
-      if (isFontFixedSize(skin)) {
-        newText.setAttributeNS(null,"font-size", getFontSize(node, skin));
-      } else {
-        newText.setAttributeNS(null,"font-size", LABEL_FONT_SIZE_FACTOR*node.size);
-      }
+      newText.setAttributeNS(null,"font-size", getFontSize(node, skin));
       newText.setAttributeNS(null,"fill","#BBBBBB");
       newText.setAttributeNS(null,"opacity",node.opacity);
-      var textNode = _document.createTextNode(str);
+      var textNode = _document.createTextNode(line);
       newText.appendChild(textNode);
       gNode.appendChild(newText);
 
-      if (isFontFixedSize(skin)) {
-        offset += getFontSize(node, skin);
-      } else {
-        offset += LABEL_FONT_SIZE_FACTOR*node.size;
-      }
+      offset += getFontSize(node, skin);
     }
   }
 
