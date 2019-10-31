@@ -172,11 +172,11 @@ class AppUserPkb extends App
           $this->logger->errorKV('msg', 'empty email in oauth response');
           return false;
         }
-        $email = $info['email'][0];
-        if (!isset($info['email'][0]['value'])) {
+        if (!isset($info['email']['value']) || !is_string($info['email']['value'])) {
           $this->logger->errorKV('msg', 'cannot find email in oauth response', 'email = ', var_export($info['email'], true));
           return false;
         }
+        $email = $info['email']['value'];
       }
 
       if (!$email) {
