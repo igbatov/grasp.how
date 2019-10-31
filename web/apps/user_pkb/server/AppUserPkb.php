@@ -159,15 +159,38 @@ class AppUserPkb extends App
       }
 
       $info = $this->oauth->oauth($type, $code);
-      if(!isset($info['email']) || strlen($info['email']) == 0) return false;
+      if(!isset($info['email'])) {
+        $this->logger->errorKV('msg', 'cannot find email field in oauth response');
+        return false;
+      }
+
+      $email = null;
+      if (is_string($info['email'])) {
+        $email = $info['email'];
+      } elseif (is_array($info['email'])) {
+        if (empty($info['email'])) {
+          $this->logger->errorKV('msg', 'empty email in oauth response');
+          return false;
+        }
+        $email = $info['email'][0];
+        if (!isset($info['email'][0]['value'])) {
+          $this->logger->errorKV('msg', 'cannot find email in oauth response', 'email = ', var_export($info['email'], true));
+          return false;
+        }
+      }
+
+      if (!$email) {
+        $this->logger->errorKV('msg', 'empty email in oauth response');
+        return false;
+      }
 
       // search user with this email, if not found create him
-      if($this->getUserId($info['email']) === null){
-        $new_user_id = $this->createNewUser($info['email'], bin2hex(openssl_random_pseudo_bytes(10)));
+      if($this->getUserId($email) === null){
+        $new_user_id = $this->createNewUser($email, bin2hex(openssl_random_pseudo_bytes(10)));
         $this->graphs->createNewGraph($new_user_id, 'newGraph');
       }
       // authorize him
-      $this->session->setAuth($info['email']);
+      $this->session->setAuth($email);
       // update his info
       $this->updateUserInfo(array('type'=>$type, 'info'=>$info));   
       $fromUrl = json_decode(base64_decode($_REQUEST['state']), true)['fromUrl'];
