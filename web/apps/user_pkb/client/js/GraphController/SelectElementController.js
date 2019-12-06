@@ -59,6 +59,45 @@ GRASP.SelectElementController.prototype = {
         selectedElement.elementType = event.getData().elementType;
         selectedElement.element = event.getData().element;
       }
+
+      if (isNewNodeGraph && eventName === 'clicknode') {
+        // add new node on left graph
+        this.publisher.publish(["get_selected_positions"])
+          .then(function(positions){
+          var leftGraphId = Object.keys(positions).filter(function(key){
+            return positions[key] === 'leftGraphView';
+          })[0];
+          var newContent = GRASP.clone(event.getData().element);
+          newContent.nodeContentId = null;
+          return that.publisher
+            .publish(["get_graph_models", [leftGraphId]],
+              ["request_for_graph_element_content_change",
+                {
+                  type: 'addNode',
+                  graphId: leftGraphId,
+                  element: newContent,
+                }
+              ]
+            );
+        }).then(function(graphModels, nodeContent) {
+          var leftGraphId = Object.keys(graphModels)[0];
+          var graphArea = that.publisher.getInstant('get_graph_area', {graphId: leftGraphId});;
+          var eData = {
+            graphId: leftGraphId,
+            type: 'addNode',
+            nodeContentId: nodeContent.nodeContentId,
+            newNodeXY: {x:graphArea.centerX, y:graphArea.centerY},
+          };
+          that.publisher.publish(
+            ["request_for_graph_model_change", eData]
+          );
+        });
+      }
+
+      // if (isNewNodeGraph && eventName === 'mouseenternode') {
+      //   this.publisher.publish(["show_drag_hint", graphViewSettings]);
+      // }
+
       // determine node that must be somehow highlighted
       var nodesToSelect = [];
       var edgesToSelect = [];

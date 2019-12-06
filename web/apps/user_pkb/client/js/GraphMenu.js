@@ -37,6 +37,11 @@ GRASP.GraphMenu.prototype = {
       case "get_selected_positions":
         var i, graphIds = event.getData(), unknownGraphIds=[], knownGraphIds=[];
 
+        if (!graphIds || !graphIds.length) {
+          event.setResponse(this.selectedPosition);
+          return;
+        }
+
         // determine graph id which is not in this.selectedPosition yet
         for(i in graphIds){
           var isNewNodesGraph = this.publisher.getInstant("is_new_node_graph_id", {'graphId':graphIds[i]});
