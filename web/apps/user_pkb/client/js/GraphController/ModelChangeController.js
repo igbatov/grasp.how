@@ -110,7 +110,7 @@ GRASP.ModelChangeController.prototype = {
           var bottomPanelHeight = GRASP.convertEm(1.5),
               bottomPanelArea = {
                 centerX: graphArea.centerX + 5*GRASP.convertEm(1),
-                centerY: graphArea.height - bottomPanelHeight,
+                centerY: graphArea.height - bottomPanelHeight/2,
                 width: graphArea.width,
                 height: bottomPanelHeight
               };

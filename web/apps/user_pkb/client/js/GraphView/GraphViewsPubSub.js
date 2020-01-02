@@ -174,7 +174,7 @@ GRASP.GraphViewsPubSub.prototype = {
         this.bottomPanel['layer'] = this.drawer.addLayer("graph_bottom_panel");
         var panel = this.drawer.createGroup({
           x: this.bottomPanel['area'].centerX - this.bottomPanel['area'].width/2,
-          y: this.bottomPanel['area'].centerY
+          y: this.bottomPanel['area'].centerY - this.bottomPanel['area'].height/2
         });
         this.bottomPanel['switch'] = this.drawer.createShape('svg', {
           svgxml: switchsvg
