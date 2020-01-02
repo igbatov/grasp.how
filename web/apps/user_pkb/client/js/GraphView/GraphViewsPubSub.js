@@ -160,36 +160,15 @@ GRASP.GraphViewsPubSub.prototype = {
         }
         this.bottomPanel = {};
         this.bottomPanel['area'] = event.getData()['area'];
-        var switchsvg = '<svg cursor="pointer" version="1.1" id="graphModeSwitch" class="graphModeSwitch" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"\n' +
-            '\t viewBox="0 0 200 18"  height="18" width="200" style="enable-background:new 0 0 200 18;" xml:space="preserve">\n' +
-            '<path class="slot" d="M24.5,13.4H8.2c-2.3,0-4.1-1.8-4.1-4.1V8.6c0-2.3,1.8-4.1,4.1-4.1h16.3c2.3,0,4.1,1.8,4.1,4.1v0.7\n' +
-            '\tC28.6,11.6,26.7,13.4,24.5,13.4z"/>\n' +
-            '<path class="knob" d="M12.2,2.8c2.3,0.7,3.9,2.3,4.5,4.6c0.1,0.5,0.2,0.8,0.2,1.6c0,0.8,0,1.1-0.2,1.6c-0.6,2.3-2.3,4-4.6,4.7\n' +
-            '\tc-0.8,0.2-2.3,0.2-3.2,0c-2.3-0.6-4-2.4-4.7-4.7C4,9.7,4,8.2,4.3,7.4C4.9,4.9,7,3,9.6,2.6C10.3,2.5,11.5,2.6,12.2,2.8z"/>\n' +
-            '<text visibility="hidden" id="164" class="offText" fill="#BBBBBB" opacity="1" font-family="Roboto" font-size="12" pointer-events="none" transform="matrix(1 0 0 1 45 4)">' +
-            '<tspan x="0" dy="0.8em">'+this.i18n.__('Drag mode')+'</tspan></text>' +
-            '<text visibility="hidden" id="164" class="onText" fill="#BBBBBB" opacity="1" font-family="Roboto" font-size="12" pointer-events="none" transform="matrix(1 0 0 1 45 4)">' +
-            '<tspan x="0" dy="0.8em">'+this.i18n.__('Connect mode')+'</tspan></text>' +
-            '</svg>';
         this.bottomPanel['layer'] = this.drawer.addLayer("graph_bottom_panel");
         var panel = this.drawer.createGroup({
           x: this.bottomPanel['area'].centerX - this.bottomPanel['area'].width/2,
           y: this.bottomPanel['area'].centerY - this.bottomPanel['area'].height/2
         });
-        this.bottomPanel['switch'] = this.drawer.createShape('svg', {
-          svgxml: switchsvg
-        });
-        panel.add(this.bottomPanel['switch']);
+
+        // add dragMode switch
+        panel.add(this._createDragModeSwitch());
         this.drawer.addShape(this.bottomPanel['layer'], panel);
-        this.bottomPanel['switchDefaultClass'] = this.bottomPanel['switch'].getShape().getAttribute('class');
-        this._setBottomPanelSwitchClass(this.dragMode);
-        var that = this;
-        this.bottomPanel['switch'].getShape().addEventListener('click', function(){
-          var newDragMode = that.dragMode === GRASP.DragModeChangeController.MOVE ?
-              GRASP.DragModeChangeController.CONNECT : GRASP.DragModeChangeController.MOVE;
-          that._setBottomPanelSwitchClass(newDragMode);
-          that.publisher.publish(['set_drag_mode', {drag_mode:newDragMode}, true]);
-        });
         event.setResponse(true);
         break;
 
@@ -199,19 +178,48 @@ GRASP.GraphViewsPubSub.prototype = {
     return true;
   },
 
-  _setBottomPanelSwitchClass: function(dragMode){
-    if (!this.bottomPanel || !this.bottomPanel['switch']) {
+  _createDragModeSwitch: function() {
+    var switchsvg = '<svg cursor="pointer" version="1.1" id="graphModeSwitch" class="graphModeSwitch" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"\n' +
+      '\t viewBox="0 0 200 18"  height="18" width="200" style="enable-background:new 0 0 200 18;" xml:space="preserve">\n' +
+      '<path class="slot" d="M24.5,13.4H8.2c-2.3,0-4.1-1.8-4.1-4.1V8.6c0-2.3,1.8-4.1,4.1-4.1h16.3c2.3,0,4.1,1.8,4.1,4.1v0.7\n' +
+      '\tC28.6,11.6,26.7,13.4,24.5,13.4z"/>\n' +
+      '<path class="knob" d="M12.2,2.8c2.3,0.7,3.9,2.3,4.5,4.6c0.1,0.5,0.2,0.8,0.2,1.6c0,0.8,0,1.1-0.2,1.6c-0.6,2.3-2.3,4-4.6,4.7\n' +
+      '\tc-0.8,0.2-2.3,0.2-3.2,0c-2.3-0.6-4-2.4-4.7-4.7C4,9.7,4,8.2,4.3,7.4C4.9,4.9,7,3,9.6,2.6C10.3,2.5,11.5,2.6,12.2,2.8z"/>\n' +
+      '<text visibility="hidden" id="164" class="offText" fill="#BBBBBB" opacity="1" font-family="Roboto" font-size="12" pointer-events="none" transform="matrix(1 0 0 1 45 4)">' +
+      '<tspan x="0" dy="0.8em">'+this.i18n.__('Drag mode')+'</tspan></text>' +
+      '<text visibility="hidden" id="164" class="onText" fill="#BBBBBB" opacity="1" font-family="Roboto" font-size="12" pointer-events="none" transform="matrix(1 0 0 1 45 4)">' +
+      '<tspan x="0" dy="0.8em">'+this.i18n.__('Connect mode')+'</tspan></text>' +
+      '</svg>';
+    var switchEl = this.drawer.createShape('svg', {
+      svgxml: switchsvg
+    });
+    var defClass = switchEl.getShape().getAttribute('class');
+    this._setBottomPanelSwitchClass = this._setBottomPanelSwitchElClass.bind(this, switchEl, defClass);
+    var that = this;
+    switchEl.getShape().addEventListener('click', function(){
+      var newDragMode = that.dragMode === GRASP.DragModeChangeController.MOVE ?
+        GRASP.DragModeChangeController.CONNECT : GRASP.DragModeChangeController.MOVE;
+      that._setBottomPanelSwitchClass(newDragMode);
+      that.publisher.publish(['set_drag_mode', {drag_mode:newDragMode}, true]);
+    });
+
+    this._setBottomPanelSwitchClass(this.dragMode);
+    return switchEl;
+  },
+
+  _setBottomPanelSwitchElClass: function(switchEl, defClass, dragMode){
+    if (!switchEl) {
       return;
     }
     if (dragMode === GRASP.DragModeChangeController.MOVE) {
-      this.bottomPanel['switch'].getShape().setAttribute(
+      switchEl.getShape().setAttribute(
           'class',
-          this.bottomPanel['switchDefaultClass']+' off'
+        defClass + ' off'
       );
     } else {
-      this.bottomPanel['switch'].getShape().setAttribute(
+      switchEl.getShape().setAttribute(
           'class',
-          this.bottomPanel['switchDefaultClass']+' on'
+        defClass + ' on'
       );
     }
   },
